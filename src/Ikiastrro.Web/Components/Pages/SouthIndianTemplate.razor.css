@@ -1,0 +1,61 @@
+/*
+ * Dedicated light "chart card" palette for the South Indian chart template — NOT the app's
+ * dark tokens.css theme (rammyps's explicit call, 2026-09-05: reproduce the reference image's
+ * cream/black/orange/gold look). Declared as --tmpl-* custom properties on this page's own
+ * top-level wrapper so D1TemplateGrid.razor.css / DashaRoundBox.razor.css can read them via
+ * var(...) despite being separate CSS-isolation scopes — inheritance follows the real DOM tree,
+ * the same cross-scope trick SouthIndianGrid.razor.css already documents for --paper/--ink.
+ * Hex values are a first-pass read of the reference screenshot, not a pixel-exact match — refine
+ * once compared side-by-side with a running page.
+ */
+.tmpl-root {
+    --tmpl-paper: #fdfbf1;
+    --tmpl-ink: #1a1a1a;
+    --tmpl-ink-soft: #55503f;
+    --tmpl-line: #000000;
+    --tmpl-thead-bg: #fdfbf1;
+
+    --tmpl-orange: #e8622c;
+    --tmpl-orange-fg: #fff8ef;
+
+    --tmpl-gold: #e3b23c;
+    --tmpl-gold-ink: #1a1a1a;
+
+    --tmpl-navy: #17163a;
+    --tmpl-navy-fg: #f2efe0;
+
+    --tmpl-badge-bg: #111111;
+    --tmpl-badge-fg: #ffffff;
+
+    background: var(--tmpl-paper);
+    color: var(--tmpl-ink);
+    padding: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.tmpl-title h1 {
+    margin: 0 0 12px 0;
+    padding: 6px 10px;
+    border: 2px solid var(--tmpl-orange);
+    color: var(--tmpl-orange);
+    font-family: Georgia, 'Iowan Old Style', serif;
+    font-size: 20px;
+    font-weight: 700;
+}
+.tmpl-dash { font-weight: 400; }
+
+.tmpl-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.karaka-strip { background: var(--tmpl-navy); color: var(--tmpl-navy-fg); padding: 6px 4px; }
+.karaka-line { display: flex; justify-content: space-around; gap: 4px; padding: 2px 0; }
+.karaka { font-size: 11px; font-weight: 600; white-space: nowrap; }
+.karaka b { font-weight: 700; margin-right: 2px; }
+
+@media (max-width: 700px) {
+    .tmpl-row { flex-direction: column; align-items: stretch; }
+}

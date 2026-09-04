@@ -1,0 +1,71 @@
+/* Reads --tmpl-* custom properties from the page's own .page-scoped wrapper (SouthIndianTemplate.razor.css)
+   — CSS custom-property inheritance follows the real DOM tree, not Blazor's per-component CSS-isolation
+   scope, same cross-scope reasoning SouthIndianGrid.razor.css documents for --paper/--ink. */
+
+* { box-sizing: border-box; }
+
+.tmpl-chart {
+    width: 100%;
+    max-width: 760px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 0;
+    background: var(--tmpl-paper);
+    border: 2px solid var(--tmpl-line);
+}
+
+.tcell {
+    background: var(--tmpl-paper);
+    border: 1px solid var(--tmpl-line);
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    min-height: 96px;
+    position: relative;
+}
+.tcell.center { background: var(--tmpl-paper); padding: 0; align-items: stretch; justify-content: flex-start; }
+.tcell.asc { box-shadow: inset 0 0 0 2px var(--tmpl-orange); }
+
+.thead {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--tmpl-ink);
+    background: var(--tmpl-thead-bg);
+    border: 1px solid var(--tmpl-line);
+    text-align: center;
+    margin: -6px -8px 2px -8px;
+    padding: 1px 0;
+}
+
+.tpoints { display: flex; flex-wrap: wrap; gap: 4px; }
+.tpoint {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 600; color: var(--tmpl-ink);
+    border: 1px solid var(--tmpl-line); border-radius: 2px; padding: 0 3px;
+}
+.tpoint b { font-size: 10px; font-weight: 700; }
+.tpoint b.lagna { color: var(--tmpl-gold-ink); }
+.tpoint b.moon { color: var(--tmpl-navy); }
+
+.tsign { font-size: 12px; font-weight: 700; color: var(--tmpl-ink); }
+.tasc {
+    align-self: flex-start;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    color: var(--tmpl-orange-fg); background: var(--tmpl-orange);
+    padding: 0 4px; border-radius: 2px;
+}
+
+.tplanets { display: flex; flex-direction: column; gap: 1px; }
+.tplanet { font-size: 12px; font-weight: 600; color: var(--tmpl-ink); }
+
+.tupagraha { font-size: 10px; color: var(--tmpl-ink-soft); }
+
+.tasp { font-size: 10px; color: var(--tmpl-ink-soft); margin-top: auto; border-top: 1px dashed var(--tmpl-line); padding-top: 2px; }
+
+@media (max-width: 560px) {
+    .tcell { padding: 4px 5px; min-height: 76px; }
+    .tsign, .tplanet { font-size: 11px; }
+}

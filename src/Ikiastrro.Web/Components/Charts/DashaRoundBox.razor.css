@@ -1,0 +1,31 @@
+/* Reads --tmpl-* from the page's wrapper — see D1TemplateGrid.razor.css's cross-scope note. */
+
+.rbox {
+    display: flex;
+    flex-direction: column;
+    background: var(--tmpl-paper);
+    border: 2px solid var(--tmpl-line);
+    min-width: 120px;
+}
+
+.rbox.flank { align-self: flex-start; }
+.rbox.center { border: none; border-top: 2px solid var(--tmpl-line); width: 100%; }
+
+.rtitle {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-align: center;
+    padding: 2px 4px;
+    border-bottom: 2px solid var(--tmpl-line);
+    color: var(--tmpl-ink);
+}
+.rbox.center .rtitle { background: var(--tmpl-gold); color: var(--tmpl-gold-ink); text-transform: uppercase; }
+
+.rline { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; }
+.rbox.flank .rline { background: var(--tmpl-badge-bg); color: var(--tmpl-badge-fg); font-weight: 700; margin: 2px 3px; padding: 1px 4px; }
+.rbox.center .rline { color: var(--tmpl-ink); border-bottom: 1px solid var(--tmpl-line); padding: 2px 6px; }
+.rline.muted { opacity: 0.7; justify-content: center; }
+
+.rname { font-weight: 700; }
+.rval { white-space: nowrap; }

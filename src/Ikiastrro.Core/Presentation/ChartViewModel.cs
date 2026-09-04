@@ -118,7 +118,21 @@ public static class ChartViewModel
 
     public static IReadOnlyDictionary<string, IReadOnlyList<string>> BuildAspectedByGlyphs(
         IReadOnlyList<ChartKeyDetail> keyDetails,
-        IReadOnlyList<ChartAspect> aspects)
+        IReadOnlyList<ChartAspect> aspects) =>
+        BuildAspectedBy(keyDetails, aspects, FormatAspectChip);
+
+    /// <summary>Plain "Ju-3" style label (no "(a)", the house number always shown, unlike
+    /// FormatAspectChip's default-7th omission) for the South Indian chart template's "ASP:" row —
+    /// same per-sign grouping as BuildAspectedByGlyphs above, just a different label shape.</summary>
+    public static IReadOnlyDictionary<string, IReadOnlyList<string>> BuildAspectedByPlain(
+        IReadOnlyList<ChartKeyDetail> keyDetails,
+        IReadOnlyList<ChartAspect> aspects) =>
+        BuildAspectedBy(keyDetails, aspects, FormatAspectPlain);
+
+    private static IReadOnlyDictionary<string, IReadOnlyList<string>> BuildAspectedBy(
+        IReadOnlyList<ChartKeyDetail> keyDetails,
+        IReadOnlyList<ChartAspect> aspects,
+        Func<string, string, string> formatChip)
     {
         var signByPlanet = keyDetails.ToDictionary(k => k.Planet, k => k.Sign);
 
@@ -131,9 +145,12 @@ public static class ChartViewModel
                 g => (IReadOnlyList<string>)g
                     .GroupBy(a => a.AspectingPlanet) // same aspecting planet can hit >1 target in this sign — one chip each, not one per target
                     .OrderBy(pg => Array.IndexOf(PlanetOrder, pg.Key))
-                    .Select(pg => FormatAspectChip(pg.Key, pg.First().AspectType)) // same source offset -> same AspectType for every target in the group
+                    .Select(pg => formatChip(pg.Key, pg.First().AspectType)) // same source offset -> same AspectType for every target in the group
                     .ToList());
     }
+
+    private static string FormatAspectPlain(string aspectingPlanet, string aspectType) =>
+        $"{PlanetGlyph(aspectingPlanet)}-{new string(aspectType.TakeWhile(char.IsDigit).ToArray())}";
 
     /// <summary>"(D)"/"(R)" direction label — null (the Ascendant; no retrograde concept) renders as "—".</summary>
     public static string DirectionLabel(bool? isRetrograde) => isRetrograde switch
