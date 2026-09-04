@@ -1,14 +1,15 @@
 @*
     One Sade-Sati "Round" panel — that chronological cycle's Sade Sati / Kantaka Shani / Ashtama
-    Shani windows (SadeSatiRounds.Round, Ikiastrro.Core.Presentation). Two visual roles selected by
-    `Variant`: "flank" for the Round-ONE/Round-THREE boxes beside the grid, "center" for the
-    Round-TWO panel nested under the karaka strip in the grid's center cell — same markup either
-    way, just different styling. Whichever Round SadeSatiRounds.BuildRounds flagged nearest today
-    (Round.ShowDates) renders real calendar dates; the other two render age ranges (rammyps's
-    explicit call, 2026-09-05).
+    Shani windows (SadeSatiRounds.Round, Ikiastrro.Core.Presentation). All 3 chronological Rounds
+    now render together, side by side, inside the grid's center cell as one .round-group row
+    (rammyps's call, 2026-09-05: Round ONE/THREE used to flank the grid and only Round TWO sat
+    centered — moved together so every Sade-Sati period reads from one place instead of three).
+    Whichever Round SadeSatiRounds.BuildRounds flagged nearest today (Round.ShowDates) renders real
+    calendar dates and gets its title highlighted gold; the other two render age ranges in the
+    plain title style.
 *@
-<div class="rbox @Variant">
-    <div class="rtitle">Round - @Label</div>
+<div class="rbox">
+    <div class="rtitle @(Round?.ShowDates == true ? "current" : "")">Round - @Label</div>
     @if (Round is null)
     {
         <div class="rline muted">Not yet reached</div>
@@ -25,7 +26,6 @@
     [Parameter, EditorRequired] public string Label { get; set; } = "";
     [Parameter, EditorRequired] public SadeSatiRounds.Round? Round { get; set; }
     [Parameter, EditorRequired] public DateTime BirthDate { get; set; }
-    [Parameter] public string Variant { get; set; } = "flank";
 
     /// <summary>"Age 1–9" for the two non-nearest Rounds, "Nov 2011 – Jan 2020" for the one
     /// SadeSatiRounds.BuildRounds flagged nearest today.</summary>

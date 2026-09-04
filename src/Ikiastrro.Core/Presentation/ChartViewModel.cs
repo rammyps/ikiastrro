@@ -177,6 +177,24 @@ public static class ChartViewModel
         _ => "neutral"
     };
 
+    /// <summary>Maps a classical DignityStatus label to a signed strength score on a symmetric,
+    /// evenly-spaced -4..+4 scale across the same 9 tiers DignityToken collapses to 7 CSS tokens —
+    /// Exalted at the top (+4) down to Debilitated at the bottom (-4). Backs the "Dg(+N)" label
+    /// D1TemplateGrid prints after each planet's combust icon (rammyps's decision, 2026-09-05).</summary>
+    public static int DignityScore(string? dignityStatus) => dignityStatus switch
+    {
+        "Exalted" => 4,
+        "Moolatrikona" => 3,
+        "Own Sign" => 2,
+        "Great Friend" => 1,
+        "Friend" => 0,
+        "Neutral" => -1,
+        "Enemy" => -2,
+        "Great Enemy" => -3,
+        "Debilitated" => -4,
+        _ => 0
+    };
+
     /// <summary>Short glyph for the South Indian grid cells (2 letters, Sanskrit-flavored for Jupiter/Rahu/Ketu per this project's convention).</summary>
     public static string PlanetGlyph(string planet) => planet switch
     {

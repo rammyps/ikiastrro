@@ -1,71 +1,85 @@
 /* Reads --tmpl-* custom properties from the page's own .page-scoped wrapper (SouthIndianTemplate.razor.css)
    — CSS custom-property inheritance follows the real DOM tree, not Blazor's per-component CSS-isolation
-   scope, same cross-scope reasoning SouthIndianGrid.razor.css documents for --paper/--ink. */
+   scope, same cross-scope reasoning SouthIndianGrid.razor.css documents for --paper/--ink.
+
+   Font sizes and the chart's max-width were bumped up across this file (2026-09-05 legibility pass,
+   then bumped further + switched to clamp()-based fluid sizing in the 2026-09-05 responsive/size
+   follow-up) — cells grew to give the bigger text (and the Dg(±N) dignity score) room without
+   wrapping, and every size now scales continuously with viewport width instead of jumping at a
+   single breakpoint. */
 
 * { box-sizing: border-box; }
 
 .tmpl-chart {
     width: 100%;
-    max-width: 760px;
+    max-width: 1180px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
     gap: 0;
     background: var(--tmpl-paper);
-    border: 2px solid var(--tmpl-line);
+    border: 2px solid var(--tmpl-border-strong);
 }
 
 .tcell {
     background: var(--tmpl-paper);
     border: 1px solid var(--tmpl-line);
-    padding: 6px 8px;
+    padding: clamp(8px, 1vw, 14px) clamp(9px, 1.2vw, 16px);
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 5px;
     min-width: 0;
-    min-height: 96px;
+    min-height: clamp(128px, 16vw, 176px);
     position: relative;
 }
 .tcell.center { background: var(--tmpl-paper); padding: 0; align-items: stretch; justify-content: flex-start; }
-.tcell.asc { box-shadow: inset 0 0 0 2px var(--tmpl-orange); }
+.tcell.asc { box-shadow: inset 0 0 0 3px var(--tmpl-orange); }
 
 .thead {
-    font-size: 11px;
+    font-size: clamp(13px, 0.6rem + 0.5vw, 16px);
     font-weight: 700;
-    color: var(--tmpl-ink);
+    color: var(--tmpl-thead-fg);
     background: var(--tmpl-thead-bg);
     border: 1px solid var(--tmpl-line);
     text-align: center;
-    margin: -6px -8px 2px -8px;
-    padding: 1px 0;
+    margin: clamp(-8px, -1vw, -14px) clamp(-9px, -1.2vw, -16px) 3px;
+    padding: 3px 0;
 }
 
-.tpoints { display: flex; flex-wrap: wrap; gap: 4px; }
+.tpoints { display: flex; flex-wrap: wrap; gap: 5px; }
 .tpoint {
-    display: inline-flex; align-items: center; gap: 3px;
-    font-size: 10px; font-weight: 600; color: var(--tmpl-ink);
-    border: 1px solid var(--tmpl-line); border-radius: 2px; padding: 0 3px;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: clamp(12px, 0.5rem + 0.4vw, 14px); font-weight: 600; color: var(--tmpl-ink);
+    border: 1px solid var(--tmpl-line); border-radius: 2px; padding: 1px 5px;
 }
-.tpoint b { font-size: 10px; font-weight: 700; }
-.tpoint b.lagna { color: var(--tmpl-gold-ink); }
-.tpoint b.moon { color: var(--tmpl-navy); }
+.tpoint b { font-size: inherit; font-weight: 700; }
+.tpoint b.lagna { color: var(--tmpl-lagna-text); }
+.tpoint b.moon { color: var(--tmpl-moon-text); }
 
-.tsign { font-size: 12px; font-weight: 700; color: var(--tmpl-ink); }
+.tsign { font-size: clamp(15px, 0.7rem + 0.7vw, 19px); font-weight: 700; color: var(--tmpl-ink); }
 .tasc {
     align-self: flex-start;
-    font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    font-size: clamp(12px, 0.5rem + 0.3vw, 14px); font-weight: 700; letter-spacing: 0.05em;
     color: var(--tmpl-orange-fg); background: var(--tmpl-orange);
-    padding: 0 4px; border-radius: 2px;
+    padding: 1px 6px; border-radius: 2px;
 }
 
-.tplanets { display: flex; flex-direction: column; gap: 1px; }
-.tplanet { font-size: 12px; font-weight: 600; color: var(--tmpl-ink); }
+.tplanets { display: flex; flex-direction: column; gap: 3px; }
+.tplanet { font-size: clamp(14px, 0.6rem + 0.7vw, 18px); font-weight: 600; color: var(--tmpl-ink); }
+/* Planet identity color (--tmpl-planet-<key>, set inline per glyph) — only the glyph itself is
+   colored, degrees/retrograde-parens/combust stay in --tmpl-ink so the color reads as identity,
+   not a mood/emphasis signal (same restraint PlanetChip.razor already documents). */
+.pglyph { font-weight: 700; }
 
-.tupagraha { font-size: 10px; color: var(--tmpl-ink-soft); }
+/* Dg(+N)/Dg(-N) dignity score (2026-09-05) — muted relative to the degree/combust text ahead of
+   it, same "annotation, not part of the glyph itself" treatment SouthIndianGrid's own direction
+   suffix uses. */
+.tdignity { font-size: clamp(11px, 0.45rem + 0.35vw, 13px); font-weight: 600; color: var(--tmpl-ink-soft); }
 
-.tasp { font-size: 10px; color: var(--tmpl-ink-soft); margin-top: auto; border-top: 1px dashed var(--tmpl-line); padding-top: 2px; }
+.tupagraha { font-size: clamp(11px, 0.45rem + 0.35vw, 13px); color: var(--tmpl-ink-soft); }
 
-@media (max-width: 560px) {
-    .tcell { padding: 4px 5px; min-height: 76px; }
-    .tsign, .tplanet { font-size: 11px; }
+.tasp { font-size: clamp(11px, 0.45rem + 0.35vw, 13px); color: var(--tmpl-ink-soft); margin-top: auto; border-top: 1px dashed var(--tmpl-line); padding-top: 4px; }
+
+@media (max-width: 480px) {
+    .tcell { min-height: 104px; }
 }

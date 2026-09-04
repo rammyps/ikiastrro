@@ -1,31 +1,33 @@
-/* Reads --tmpl-* from the page's wrapper — see D1TemplateGrid.razor.css's cross-scope note. */
+/* Reads --tmpl-* from the page's wrapper — see D1TemplateGrid.razor.css's cross-scope note.
+   Round-ONE renders full-width above the center-mid block; Round-TWO/THREE render 2-across in
+   the page's own .round-group flex row below it (SouthIndianTemplate.razor.css) — sizing here is
+   per-box only (flex:1 there). Text bumped up alongside the rest of the template (2026-09-05
+   legibility pass, then switched to clamp()-based fluid sizing in the responsive/size follow-up). */
 
 .rbox {
     display: flex;
     flex-direction: column;
     background: var(--tmpl-paper);
-    border: 2px solid var(--tmpl-line);
-    min-width: 120px;
+    min-width: 0;
 }
-
-.rbox.flank { align-self: flex-start; }
-.rbox.center { border: none; border-top: 2px solid var(--tmpl-line); width: 100%; }
+.rbox + .rbox { border-left: 2px solid var(--tmpl-border-strong); }
 
 .rtitle {
-    font-size: 11px;
+    font-size: clamp(13px, 0.6rem + 0.5vw, 16px);
     font-weight: 700;
     letter-spacing: 0.03em;
+    text-transform: uppercase;
     text-align: center;
-    padding: 2px 4px;
-    border-bottom: 2px solid var(--tmpl-line);
+    padding: clamp(5px, 0.8vw, 8px) 6px;
+    border-bottom: 2px solid var(--tmpl-border-strong);
     color: var(--tmpl-ink);
 }
-.rbox.center .rtitle { background: var(--tmpl-gold); color: var(--tmpl-gold-ink); text-transform: uppercase; }
+/* The one Round nearest today (real calendar dates, not an age range) — gold so it reads as
+   "you are here" among three otherwise-identical panels. */
+.rtitle.current { background: var(--tmpl-gold); color: var(--tmpl-gold-ink); }
 
-.rline { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; }
-.rbox.flank .rline { background: var(--tmpl-badge-bg); color: var(--tmpl-badge-fg); font-weight: 700; margin: 2px 3px; padding: 1px 4px; }
-.rbox.center .rline { color: var(--tmpl-ink); border-bottom: 1px solid var(--tmpl-line); padding: 2px 6px; }
-.rline.muted { opacity: 0.7; justify-content: center; }
+.rline { display: flex; justify-content: space-between; gap: 10px; font-size: clamp(12px, 0.5rem + 0.45vw, 15px); color: var(--tmpl-ink); border-bottom: 1px solid var(--tmpl-line); padding: clamp(3px, 0.5vw, 6px) 9px; }
+.rline.muted { opacity: 0.7; justify-content: center; border-bottom: none; }
 
 .rname { font-weight: 700; }
 .rval { white-space: nowrap; }

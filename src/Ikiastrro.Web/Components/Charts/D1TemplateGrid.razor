@@ -2,7 +2,8 @@
     Standalone dense South Indian D1 template grid — deliberately NOT a reskin of
     SouthIndianGrid.razor (kept separate per an explicit "new dedicated template" call,
     2026-09-05): this one packs more per cell (a karaka/special-point house-triplet row, whole-
-    degree planet lines, an "ASP:" row, an upagraha row) and its own light "chart card" palette
+    degree planet lines each ending in a Dg(±N) dignity score, an "ASP:" row, an upagraha row) and
+    its own light "chart card" palette
     (--tmpl-* custom properties, read via var(...) the same cross-scope way SouthIndianGrid reads
     --paper/--ink — see its own doc comment) instead of the app's dark theme.
 
@@ -45,7 +46,10 @@
                 <div class="tplanets">
                     @foreach (var p in planets)
                     {
-                        <span class="tplanet">@(p.IsRetrograde ? $"({p.Glyph})" : p.Glyph) +@p.DegreesInSign@(p.IsCombust ? " 🔥" : "")</span>
+                        <span class="tplanet">
+                            <span class="pglyph" style="color:var(--tmpl-planet-@(p.Key))">@(p.IsRetrograde ? $"({p.Glyph})" : p.Glyph)</span>
+                            +@p.DegreesInSign@(p.IsCombust ? " 🔥" : "") <span class="tdignity">Dg(@(p.DignityScore > 0 ? "+" : "")@p.DignityScore)</span>
+                        </span>
                     }
                 </div>
             }
