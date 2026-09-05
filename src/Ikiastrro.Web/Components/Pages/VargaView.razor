@@ -84,12 +84,13 @@ else
 
     private string? Prev()
     {
-        var i = VargaBundles.RailOrder.ToList().IndexOf(Code);
-        return i > 0 ? VargaBundles.RailOrder[i - 1] : null;
+        var order = VargaBundles.RailOrder(_data?.ChartTypes ?? Array.Empty<ChartTypeRow>()).ToList();
+        var i = order.IndexOf(Code);
+        return i > 0 ? order[i - 1] : null;
     }
     private string? Next()
     {
-        var order = VargaBundles.RailOrder.ToList();
+        var order = VargaBundles.RailOrder(_data?.ChartTypes ?? Array.Empty<ChartTypeRow>()).ToList();
         var i = order.IndexOf(Code);
         return i >= 0 && i < order.Count - 1 ? order[i + 1] : null;
     }

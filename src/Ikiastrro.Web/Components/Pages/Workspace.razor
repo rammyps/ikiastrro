@@ -31,7 +31,7 @@ else
                      OnToggleComputation="v => _compOpen = v" />
     @if (_compOpen)
     {
-        <div class="ws-comp"><BirthComputationPanel Person="_data.Person" Charts="_data.Charts" /></div>
+        <div class="ws-comp"><BirthComputationPanel Person="_data.Person" Charts="_data.Charts" ChartTypes="_data.ChartTypes" /></div>
     }
 
     <div class="ws-cols">
@@ -67,7 +67,7 @@ else
         </div>
 
         <div class="ws-rail">
-            <VargaRail PersonId="Id" Charts="_data.Charts" />
+            <VargaRail PersonId="Id" Charts="_data.Charts" ChartTypes="_data.ChartTypes" />
         </div>
     </div>
 
