@@ -1,7 +1,10 @@
-@* The 4 classical strength bundles + Extra vargas, each a Disclosure of MiniGrid tiles.
-   A varga appears once, in its smallest bundle. Missing chart -> EmptyState tile. *@
+@using Ikiastrro.Core.Models
+@* The 6 DB-sourced life-area categories (tbl_Dim_ChartType.Category, migration 25), each a
+   Disclosure of MiniGrid tiles — replaces the old hardcoded classical Shadvarga/Saptavarga/
+   Dasavarga/Shodasavarga/Extra-vargas bundles (rammyps's call, 2026-09-05; see VargaBundles.cs).
+   A varga appears once, in its one Category. Missing chart -> EmptyState tile. *@
 <div class="rail">
-    @foreach (var (title, codes) in VargaBundles.Groups)
+    @foreach (var (title, codes) in VargaBundles.Groups(ChartTypes))
     {
         <Disclosure Title="@title" Open="@(_open.Contains(title))" OnToggle="v => SetOpen(title, v)">
             <div class="rail-tiles">
@@ -11,7 +14,7 @@
                     {
                         <MiniGrid PlanetsBySign="GlyphsBySign(lc)" LagnaSign="@lc.AscendantSign"
                                   Href="@(code == "D1" ? $"/charts/{PersonId}" : $"/charts/{PersonId}/varga/{code}")"
-                                  Caption="@Caption(code, lc)" />
+                                  Caption="@Caption(code)" />
                     }
                     else
                     {
@@ -30,17 +33,36 @@
     [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; }
         = new Dictionary<string, LoadedChart>();
 
-    private readonly HashSet<string> _open = new() { "Shadvarga (6)" };
+    /// <summary>tbl_Dim_ChartType rows — drives both the Category grouping (VargaBundles.Groups)
+    /// and each tile's ChartShortDescription caption.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ChartTypeRow> ChartTypes { get; set; }
+        = Array.Empty<ChartTypeRow>();
+
+    /// <summary>Open by default: whichever Category D1 falls into ("Self &amp; Personality" as
+    /// seeded by migration 25) — was "Shadvarga (6)" back when groups were the classical bundles.</summary>
+    private HashSet<string> _open = new();
     private void SetOpen(string title, bool open) { if (open) _open.Add(title); else _open.Remove(title); }
+
+    protected override void OnParametersSet()
+    {
+        if (_open.Count == 0)
+        {
+            var d1Category = ChartTypes.FirstOrDefault(t => t.Code == "D1")?.Category;
+            if (d1Category is not null) _open.Add(d1Category);
+        }
+    }
 
     private static IReadOnlyDictionary<string, IReadOnlyList<string>> GlyphsBySign(LoadedChart lc) =>
         lc.Grahas.Where(k => k.Planet != "Ascendant")
             .GroupBy(k => k.Sign)
             .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(k => k.Planet).ToList());
 
-    private static string Caption(string code, LoadedChart lc)
+    /// <summary>"D9 · Marriage / Dharma" — code + ChartShortDescription (the DB-sourced "Area"
+    /// half of the Category-Area mapping), falling back to just the code when a chart type has no
+    /// ChartShortDescription yet.</summary>
+    private string Caption(string code)
     {
-        var method = lc.VargaMethod is { Length: > 0 } m ? $" · {m[0]}" : "";
-        return code == "D1" ? $"{code} · hero" : $"{code}{method}";
+        var shortDesc = ChartTypes.FirstOrDefault(t => string.Equals(t.Code, code, StringComparison.OrdinalIgnoreCase))?.ChartShortDescription;
+        return string.IsNullOrWhiteSpace(shortDesc) ? code : $"{code} · {shortDesc}";
     }
 }

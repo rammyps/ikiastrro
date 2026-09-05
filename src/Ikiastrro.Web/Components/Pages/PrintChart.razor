@@ -52,7 +52,7 @@ else
         <section class="print-sec">
             <h2>All vargas</h2>
             <div class="print-minis">
-                @foreach (var vc in VargaBundles.RailOrder)
+                @foreach (var vc in VargaBundles.RailOrder(_data.ChartTypes))
                 {
                     @if (_data.Charts.TryGetValue(vc, out var lc))
                     {

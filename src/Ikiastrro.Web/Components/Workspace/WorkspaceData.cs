@@ -22,6 +22,11 @@ public sealed class WorkspaceData
     public required IReadOnlyDictionary<string, LoadedChart> Charts { get; init; }
     public bool HasAnyChart => Charts.Count > 0;
 
+    /// <summary>tbl_Dim_ChartType rows, kept alongside Charts (2026-09-05) so the varga rail can
+    /// group by Category (life-area) and caption tiles with ChartShortDescription — DB-sourced,
+    /// replacing VargaBundles' old hardcoded classical Shadvarga/Saptavarga/etc. bundles.</summary>
+    public required IReadOnlyList<ChartTypeRow> ChartTypes { get; init; }
+
     public static WorkspaceData? Load(
         int id,
         BirthDetailsRepository people,
@@ -69,6 +74,6 @@ public sealed class WorkspaceData
                 h.AyanamshaDegrees, h.SiderealTimeHours, h.EngineVersion);
         }
 
-        return new WorkspaceData { Person = person, Charts = charts };
+        return new WorkspaceData { Person = person, Charts = charts, ChartTypes = chartTypes };
     }
 }
