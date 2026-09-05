@@ -30,18 +30,18 @@ How this project is configured and deployed across environments. Companion to
 
 | Layer | Holds | Committed? |
 |---|---|---|
-| `src/Ikiastrro.Web/appsettings.json` | dev default — `ConnectionStrings:Ikiastrro = Server=localhost;Database=ikiastrro;Integrated Security=True;TrustServerCertificate=True;` | yes |
+| `src/Ikiastrro.Web/appsettings.json` | dev default — `ConnectionStrings:Ikiastrro = Server=localhost\SQLSERVER2025;Database=ikiastrro;Integrated Security=True;TrustServerCertificate=True;` (this dev machine's SQL Server is a named instance, not the default one — plain `Server=localhost` 500s every page; found 2026-09-05) | yes |
 | `src/Ikiastrro.Web/appsettings.{Environment}.json` | non-secret per-env overrides (server host) | yes — **no credentials** |
 | env var `ConnectionStrings__Ikiastrro` (Web) / `IKIASTRRO_CONNECTION` (CLI) | stage/uat/prod full connection string incl. credentials | **no** — set on the host / Key Vault / user-secrets |
 | CLI `--db <name>` | one-off catalog targeting (scratch checks, a stage smoke) | n/a |
 
 `ASPNETCORE_ENVIRONMENT` / `DOTNET_ENVIRONMENT` selects the `appsettings.{Environment}.json`
 layer for the Web app. `SqlConnectionFactory.Create` precedence: explicit string →
-`IKIASTRRO_CONNECTION` → `Server=localhost;Database={--db | IKIASTRRO_DB | ikiastrro};…`.
+`IKIASTRRO_CONNECTION` → `Server=localhost\SQLSERVER2025;Database={--db | IKIASTRRO_DB | ikiastrro};…`.
 
 ## Migration application
 
-- **dev:** `sqlcmd -S localhost -E -b -i db/ikiastrro.sql` for a fresh install; the numbered
+- **dev:** `sqlcmd -S localhost\SQLSERVER2025 -E -b -i db/ikiastrro.sql` for a fresh install; the numbered
   `db/NN_*.sql` for an incremental change. A from-empty rebuild check (`db/ikiastrro.sql`
   against a throwaway `ikiastrro_scratch`):
   - **go-sqlcmd** (v1.x, `winget install sqlcmd`) honours the override —
@@ -63,7 +63,7 @@ layer for the Web app. `SqlConnectionFactory.Create` precedence: explicit string
 ## Local dev quick start
 
 ```
-sqlcmd -S localhost -E -b -i db/ikiastrro.sql          # create + seed the ikiastrro DB
+sqlcmd -S localhost\SQLSERVER2025 -E -b -i db/ikiastrro.sql          # create + seed the ikiastrro DB
 dotnet build Ikiastrro.slnx
 dotnet run --project src/Ikiastrro.Cli -- compute-all Ramakrishnan   # (repeat per seed person)
 dotnet run --project src/Ikiastrro.Cli -- verify-schema             # ... and the other verify-* modes
