@@ -20,6 +20,18 @@
     All 3 Rounds moved into the center cell together (2026-09-05 follow-up) — they used to flank the
     grid (ONE left, THREE right) with only Round TWO centered; every Sade-Sati period now reads from
     one place instead of three.
+
+    Major-size + equal-Rounds pass (2026-09-05, rammyps's call): the whole template scaled up
+    substantially for legibility, and Round ONE/TWO/THREE briefly sat as 3 equal columns in one
+    .round-group row below the heading (previously ONE rendered alone, full-width, above the
+    heading+karaka block, so it never matched TWO/THREE's size). The Ras(L) header tag also gets
+    its own dark-orange highlight, distinct from Hor(L)'s shared maroon banner — light theme only,
+    per that same call; dark theme keeps Ras(L)/Hor(L) identical.
+
+    Stacked-Rounds follow-up (2026-09-05, same day): Round ONE/TWO/THREE now stack one below
+    another instead — 3 equal-width rows in one .round-group column, still below the heading.
+    D1TemplateGrid's cells also gained a per-sign house-number badge pair (from Sun / from Moon),
+    the same "two colored badges" idea SouthIndianGrid already uses for Lagna/Moon.
 *@
 <PageTitle>D1 template — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
 
@@ -43,13 +55,14 @@ else
 
         <div class="tmpl-row">
             <D1TemplateGrid AscendantSign="@d1.AscendantSign"
+                            SunSign="@SignOf(d1, "Sun")"
+                            MoonSign="@SignOf(d1, "Moon")"
                             PlanetsBySign="PlanetsBySign(d1)"
                             PointsBySign="PointsBySign(d1)"
                             AspectsBySign="ChartViewModel.BuildAspectedByPlain(d1.KeyDetails, d1.Aspects)"
                             UpagrahasBySign="UpagrahasBySign(d1)">
                 <CenterContent>
                     <div class="center-stack">
-                        <DashaRoundBox Label="ONE" Round="RoundAt(0)" BirthDate="_birthDate" />
                         <div class="center-mid">
                             <div class="center-heading">
                                 <span class="center-heading-main">@d1.SanskritName.ToUpperInvariant()</span>
@@ -68,6 +81,7 @@ else
                             </div>
                         </div>
                         <div class="round-group">
+                            <DashaRoundBox Label="ONE" Round="RoundAt(0)" BirthDate="_birthDate" />
                             <DashaRoundBox Label="TWO" Round="RoundAt(1)" BirthDate="_birthDate" />
                             <DashaRoundBox Label="THREE" Round="RoundAt(2)" BirthDate="_birthDate" />
                         </div>
@@ -117,6 +131,11 @@ else
     }
 
     private SadeSatiRounds.Round? RoundAt(int i) => i < _rounds.Count ? _rounds[i] : null;
+
+    /// <summary>The sign a named graha sits in — feeds D1TemplateGrid's SunSign/MoonSign
+    /// parameters (2026-09-05, per-cell house-number badges).</summary>
+    private static string SignOf(LoadedChart lc, string planet) =>
+        lc.Grahas.First(k => k.Planet == planet).Sign;
 
     private static IReadOnlyDictionary<string, IReadOnlyList<TemplatePlanetLine>> PlanetsBySign(LoadedChart lc) =>
         lc.Grahas.Where(k => k.Planet != "Ascendant").GroupBy(k => k.Sign)

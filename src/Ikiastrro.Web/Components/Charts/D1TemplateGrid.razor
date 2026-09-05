@@ -14,7 +14,18 @@
     The "Ras(L)"/"Hor(L)" header tags and their house-triplet boxes are this component's one
     best-guess element (see the design spec's Open decisions) — confirm against the reference
     image once rendered and adjust if the intent was different.
+
+    Ras(L) gets its own dark-orange highlight in light theme (2026-09-05, rammyps's call) — Hor(L)
+    keeps the shared maroon banner both tags used before. See .thead-rashi in this component's .css
+    and --tmpl-rashi-highlight in SouthIndianTemplate.razor.css.
+
+    Per-cell house-number badges (2026-09-05, rammyps's call): each cell also shows its house
+    counted from the Sun and from the Moon, next to the sign name — the same
+    AstroMath.CountFromSignToSign two-axis idea SouthIndianGrid already uses for Lagna/Moon, just
+    with Sun instead of Lagna as the first axis (this template shows Lagna/Moon house counts
+    separately already, in the Ras(L)/Hor(L) points row above).
 *@
+@using Ikiastrro.Core.Engines.Astronomy
 <div class="tmpl-chart">
     @foreach (var cell in GridCells)
     {
@@ -23,9 +34,12 @@
         var planets = PlanetsBySign.TryGetValue(cell.MatchSign, out var pls) ? pls : Array.Empty<TemplatePlanetLine>();
         var upagrahas = UpagrahasBySign.TryGetValue(cell.MatchSign, out var ug) ? ug : Array.Empty<string>();
         var aspects = AspectsBySign.TryGetValue(cell.MatchSign, out var asp) ? asp : Array.Empty<string>();
+        var cellSign = Enum.Parse<ZodiacName>(cell.MatchSign);
+        var houseFromSun = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(SunSign), cellSign);
+        var houseFromMoon = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(MoonSign), cellSign);
 
         <div class="tcell @(isAscendant ? "asc" : "")" style="grid-column:@cell.Col;grid-row:@cell.Row;">
-            @if (cell.Col == 1 && cell.Row == 1) { <div class="thead">Ras(L)</div> }
+            @if (cell.Col == 1 && cell.Row == 1) { <div class="thead thead-rashi">Ras(L)</div> }
             @if (cell.Col == 2 && cell.Row == 1) { <div class="thead">Hor(L)</div> }
 
             @if (points.Count > 0)
@@ -38,7 +52,13 @@
                 </div>
             }
 
-            <div class="tsign">@cell.DisplayEn</div>
+            <div class="tsign">
+                @cell.DisplayEn
+                <span class="thousenums">
+                    <span class="thouse-num from-sun" title="House @houseFromSun from the Sun">@houseFromSun</span>
+                    <span class="thouse-num from-moon" title="House @houseFromMoon from the Moon">@houseFromMoon</span>
+                </span>
+            </div>
             @if (isAscendant) { <div class="tasc">Asc</div> }
 
             @if (planets.Count > 0)
@@ -73,6 +93,15 @@
 
 @code {
     [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
+
+    /// <summary>This chart's own natal Sun sign (internal ZodiacName spelling) — drives the "from
+    /// Sun" half of each cell's house-number badge pair (2026-09-05, rammyps's call).</summary>
+    [Parameter, EditorRequired] public string SunSign { get; set; } = "";
+
+    /// <summary>This chart's own natal Moon sign — drives the "from Moon" half of each cell's
+    /// house-number badge pair. Distinct from PointsBySign's own HouseFromMoon (that one is
+    /// per karaka/special-point; this one is per sign cell, shown next to the sign name).</summary>
+    [Parameter, EditorRequired] public string MoonSign { get; set; } = "";
 
     [Parameter, EditorRequired]
     public IReadOnlyDictionary<string, IReadOnlyList<TemplatePlanetLine>> PlanetsBySign { get; set; }
