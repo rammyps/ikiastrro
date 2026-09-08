@@ -529,6 +529,7 @@ CREATE TABLE [dbo].[tbl_Chart_Conjunctions](
 	[Planet1Id] [tinyint] NOT NULL,
 	[Planet2Id] [tinyint] NOT NULL,
 	[SignId] [tinyint] NOT NULL,
+	[MultiGrahaConjunctionId] [int] NULL,   -- FK added after tbl_Chart_MultiGrahaConjunction (folded from db/22_add_multigraha_conjunction.sql)
  CONSTRAINT [FK_Conjunctions_Planet1] FOREIGN KEY ([Planet1Id]) REFERENCES [dbo].[tbl_Planets] ([Id]),
  CONSTRAINT [FK_Conjunctions_Planet2] FOREIGN KEY ([Planet2Id]) REFERENCES [dbo].[tbl_Planets] ([Id]),
  CONSTRAINT [FK_Conjunctions_Sign]    FOREIGN KEY ([SignId])    REFERENCES [dbo].[tbl_SignAttributes] ([Id]),
@@ -1013,6 +1014,107 @@ CREATE NONCLUSTERED INDEX [IX_ChartResults_BirthDetailId_ChartType] ON [dbo].[tb
 	[ChartType] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
+
+-- >>> BEGIN AYANAMSA RULE TABLE (migration 36 folded into baseline) >>>
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+IF OBJECT_ID('dbo.tbl_Rule_Ayanamsa', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_Ayanamsa
+    (
+        Id INT IDENTITY(1,1) CONSTRAINT PK_Rule_Ayanamsa PRIMARY KEY,
+        RuleSetId TINYINT NOT NULL CONSTRAINT FK_Rule_Ayanamsa_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        Code VARCHAR(40) NOT NULL, DisplayName NVARCHAR(160) NOT NULL,
+        SwissSiderealMode INT NULL, IsTropical BIT NOT NULL CONSTRAINT DF_Rule_Ayanamsa_IsTropical DEFAULT 0,
+        IsImplemented BIT NOT NULL CONSTRAINT DF_Rule_Ayanamsa_IsImplemented DEFAULT 0,
+        IsDefault BIT NOT NULL CONSTRAINT DF_Rule_Ayanamsa_IsDefault DEFAULT 0,
+        CorrectionDirection VARCHAR(8) NOT NULL CONSTRAINT DF_Rule_Ayanamsa_CorrectionDirection DEFAULT 'Subtract',
+        CorrectionDegrees DECIMAL(12,8) NOT NULL CONSTRAINT DF_Rule_Ayanamsa_CorrectionDegrees DEFAULT 0,
+        SourceRefCode VARCHAR(40) NULL,
+        CONSTRAINT UQ_Rule_Ayanamsa_RuleSetCode UNIQUE (RuleSetId, Code),
+        CONSTRAINT CK_Rule_Ayanamsa_CorrectionDirection CHECK (CorrectionDirection IN ('Add','Subtract')),
+        CONSTRAINT CK_Rule_Ayanamsa_CorrectionDegrees CHECK (CorrectionDegrees >= 0 AND CorrectionDegrees <= 360),
+        CONSTRAINT CK_Rule_Ayanamsa_TropicalMode CHECK (IsTropical = 0 OR SwissSiderealMode IS NULL)
+    );
+END
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_Rule_Ayanamsa_Default' AND object_id = OBJECT_ID('dbo.tbl_Rule_Ayanamsa'))
+    CREATE UNIQUE INDEX UX_Rule_Ayanamsa_Default ON dbo.tbl_Rule_Ayanamsa (RuleSetId) WHERE IsDefault = 1;
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_Ayanamsa)
+BEGIN
+    INSERT dbo.tbl_Rule_Ayanamsa (RuleSetId, Code, DisplayName, SwissSiderealMode, IsTropical, IsImplemented, IsDefault, SourceRefCode)
+    VALUES
+      (1,'AYANAMSA_TRUE_LAHIRI',N'True Lahiri/Chitrapaksha',27,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_LAHIRI',N'Traditional Lahiri',1,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_PUSHYA_PAKSHA',N'Pushya-paksha ayanamsa',29,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_RAMAN',N'Raman',3,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_KP',N'Krishnamoorthy (KP)',5,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_FIXED_STAR_CUSTOM',N'Fixed star based CUSTOM ayanamsa',NULL,0,0,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_JAGANNATHA',N'Jagannatha (Spica in the middle of Chitra always, fixed solar rotation plane)',26,0,1,1,'SRC_PYJHORA'),
+      (1,'AYANAMSA_ROHINI_PAKSHA',N'Rohini-paksha ayanamsa',NULL,0,0,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_SRI_SURYA_SIDDHANTA',N'Sri Surya Siddhanta',21,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_DEVA_DATTA',N'Deva-datta',NULL,0,0,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_USHA_SHASHI',N'Usha-Shashi',4,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_YUKTESHWAR',N'Yukteshwar',7,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_JN_BHASIN',N'JN Bhasin',8,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_CHANDRA_HARI',N'Chandra Hari',NULL,0,0,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_FAGAN',N'Fagan',0,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_DELUCE',N'Deluce',2,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_DJWHAL_KHUL',N'Djwhal Khul',6,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_ALDEBARAN_15_TAU',N'Aldebaran at 15Ta0',14,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_GALACTIC_CENTER',N'Galaxy center at 0Sg0',17,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_HIPPARCHOS',N'Hipparchos',15,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_SASSANIAN',N'Sassanian',16,0,1,0,'SRC_PYJHORA'),
+      (1,'AYANAMSA_TROPICAL',N'Tropical (sayana)',NULL,1,1,0,'SRC_PYJHORA');
+END
+GO
+-- >>> END AYANAMSA RULE TABLE >>>
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[tbl_ChartResults]') AND name = N'IX_ChartResults_BirthDetailId_CalculationKind_Id')
+CREATE NONCLUSTERED INDEX [IX_ChartResults_BirthDetailId_CalculationKind_Id] ON [dbo].[tbl_ChartResults]
+(
+    [BirthDetailId] ASC,
+    [CalculationKind] ASC,
+    [Id] DESC
+)
+INCLUDE ([ChartTypeId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[tbl_Chart_HouseLords]') AND name = N'IX_Chart_HouseLords_ChartResultId_LordPlanetId')
+CREATE NONCLUSTERED INDEX [IX_Chart_HouseLords_ChartResultId_LordPlanetId] ON [dbo].[tbl_Chart_HouseLords]
+(
+    [ChartResultId] ASC,
+    [LordPlanetId] ASC
+)
+INCLUDE ([HouseNumber])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[tbl_Chart_Aspects]') AND name = N'IX_Chart_Aspects_ChartResultId_AspectingPlanetId')
+CREATE NONCLUSTERED INDEX [IX_Chart_Aspects_ChartResultId_AspectingPlanetId] ON [dbo].[tbl_Chart_Aspects]
+(
+    [ChartResultId] ASC,
+    [AspectingPlanetId] ASC
+)
+INCLUDE ([AspectedTargetType], [AspectedPlanetId], [AspectType])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[tbl_Chart_Conjunctions]') AND name = N'IX_Chart_Conjunctions_ChartResultId_Planet1Id')
+CREATE NONCLUSTERED INDEX [IX_Chart_Conjunctions_ChartResultId_Planet1Id] ON [dbo].[tbl_Chart_Conjunctions]
+(
+    [ChartResultId] ASC,
+    [Planet1Id] ASC
+)
+INCLUDE ([Planet2Id])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[tbl_Chart_Conjunctions]') AND name = N'IX_Chart_Conjunctions_ChartResultId_Planet2Id')
+CREATE NONCLUSTERED INDEX [IX_Chart_Conjunctions_ChartResultId_Planet2Id] ON [dbo].[tbl_Chart_Conjunctions]
+(
+    [ChartResultId] ASC,
+    [Planet2Id] ASC
+)
+INCLUDE ([Planet1Id])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[tbl_Dim_LifeCalendar]') AND name = N'IX_Dim_LifeCalendar_MonthNumber')
 CREATE NONCLUSTERED INDEX [IX_Dim_LifeCalendar_MonthNumber] ON [dbo].[tbl_Dim_LifeCalendar]
 (
@@ -1257,6 +1359,18 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE object_id = OBJECT_ID(N'[dbo].[CK__tbl_Naksh__SubSe__5D95E53A]') AND parent_object_id = OBJECT_ID(N'[dbo].[tbl_NakshatraSubLords]'))
 ALTER TABLE [dbo].[tbl_NakshatraSubLords]  WITH CHECK ADD CHECK  (([SubSequenceNumber]>=(1) AND [SubSequenceNumber]<=(9)))
 GO
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = N'CK_Nakshatras_DegreeSpan' AND parent_object_id = OBJECT_ID(N'[dbo].[tbl_Nakshatras]'))
+ALTER TABLE [dbo].[tbl_Nakshatras] WITH CHECK ADD CONSTRAINT [CK_Nakshatras_DegreeSpan]
+CHECK ([StartDegree] >= 0 AND [EndDegree] <= 360 AND [StartDegree] < [EndDegree])
+GO
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = N'CK_NakshatraPadas_DegreeSpan' AND parent_object_id = OBJECT_ID(N'[dbo].[tbl_NakshatraPadas]'))
+ALTER TABLE [dbo].[tbl_NakshatraPadas] WITH CHECK ADD CONSTRAINT [CK_NakshatraPadas_DegreeSpan]
+CHECK ([StartDegree] >= 0 AND [EndDegree] <= 360 AND [StartDegree] < [EndDegree])
+GO
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = N'CK_NakshatraSubLords_DegreeSpan' AND parent_object_id = OBJECT_ID(N'[dbo].[tbl_NakshatraSubLords]'))
+ALTER TABLE [dbo].[tbl_NakshatraSubLords] WITH CHECK ADD CONSTRAINT [CK_NakshatraSubLords_DegreeSpan]
+CHECK ([StartDegree] >= 0 AND [EndDegree] <= 360 AND [StartDegree] < [EndDegree])
+GO
 IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE object_id = OBJECT_ID(N'[dbo].[CK__tbl_Plane__Natur__30C33EC3]') AND parent_object_id = OBJECT_ID(N'[dbo].[tbl_Planets]'))
 ALTER TABLE [dbo].[tbl_Planets]  WITH CHECK ADD CHECK  (([NaturalNature]='Conditional' OR [NaturalNature]='Malefic' OR [NaturalNature]='Benefic'))
 GO
@@ -1301,6 +1415,20 @@ ALTER TABLE [dbo].[tbl_SignAttributes]  WITH CHECK ADD CHECK  (([type_house_elem
 GO
 IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE object_id = OBJECT_ID(N'[dbo].[CK__tbl_SignA__type___37703C52]') AND parent_object_id = OBJECT_ID(N'[dbo].[tbl_SignAttributes]'))
 ALTER TABLE [dbo].[tbl_SignAttributes]  WITH CHECK ADD CHECK  (([type_house_keyattri]='Dwiswabhava' OR [type_house_keyattri]='Sthira' OR [type_house_keyattri]='Chara'))
+GO
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = N'CK_SignAttributes_DegreeRanges' AND parent_object_id = OBJECT_ID(N'[dbo].[tbl_SignAttributes]'))
+ALTER TABLE [dbo].[tbl_SignAttributes] WITH CHECK ADD CONSTRAINT [CK_SignAttributes_DegreeRanges]
+CHECK (
+    ([ExaltedDegree] IS NULL OR ([ExaltedDegree] >= 0 AND [ExaltedDegree] < 30)) AND
+    ([DebilitatedDegree] IS NULL OR ([DebilitatedDegree] >= 0 AND [DebilitatedDegree] < 30)) AND
+    ([MooltrikonaRangeStart] IS NULL OR ([MooltrikonaRangeStart] >= 0 AND [MooltrikonaRangeStart] < 30)) AND
+    ([MooltrikonaRangeEnd] IS NULL OR ([MooltrikonaRangeEnd] > 0 AND [MooltrikonaRangeEnd] <= 30)) AND
+    ([MooltrikonaRangeStart] IS NULL OR [MooltrikonaRangeEnd] IS NULL OR [MooltrikonaRangeStart] < [MooltrikonaRangeEnd])
+)
+GO
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = N'CK_KeyDetails_EclipticLatitude' AND parent_object_id = OBJECT_ID(N'[dbo].[tbl_Chart_KeyDetails]'))
+ALTER TABLE [dbo].[tbl_Chart_KeyDetails] WITH CHECK ADD CONSTRAINT [CK_KeyDetails_EclipticLatitude]
+CHECK ([EclipticLatitudeDegrees] IS NULL OR ([EclipticLatitudeDegrees] >= -90 AND [EclipticLatitudeDegrees] <= 90))
 GO
 
 -- --------------------- REFERENCE DATA --------------------
@@ -2183,9 +2311,14 @@ END
 GO
 
 -- --- tbl_Rule_Sets ---
+-- Ids 2/3 (dignity rule-sets, folded from db/23_add_rule_graha_dignity.sql) carry
+-- IsActive = 0: rule-set 1 stays the single global active set (UX_RuleSets_OneActive).
+-- Dignity "active" is per row in tbl_Rule_GrahaDignity.IsActive.
 IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_Sets)
 BEGIN
 INSERT [dbo].[tbl_Rule_Sets] ([Id], [RuleSetName], [Description], [IsActive]) VALUES (1, N'Parashari-Classical', N'This project''s existing hardcoded rules (ClassicalRelationships.cs / ClassicalCombustion.cs) as of 2026-08-30 -- Rahu/Ketu use Jupiter-style 5th/7th/9th aspects, BPHS/Phaladeepika combustion orbs.', 1)
+INSERT [dbo].[tbl_Rule_Sets] ([Id], [RuleSetName], [Description], [IsActive], [SupersedesRuleSetId], [SourceReference]) VALUES (2, N'PVR-Dignity-Integrated', N'Graha dignity per PVR Narasimha Rao, Integrated Approach Table 6 + the 7 special-degree notes. Active dignity set via tbl_Rule_GrahaDignity.IsActive=1; rule-set 1 stays the global active set.', 0, 1, N'docs/research/dignity-pvr-integrated.md')
+INSERT [dbo].[tbl_Rule_Sets] ([Id], [RuleSetName], [Description], [IsActive]) VALUES (3, N'BPHS-Dignity-Parashari', N'Graha dignity mirror of the pre-2026-09 hard-coded DignityEngine dicts (BPHS/Parashari). Inactive; kept for provenance and one-UPDATE rollback.', 0)
 END
 GO
 
@@ -2333,10 +2466,7 @@ GO
 
 -- =====================================================================
 -- tbl_Dim_ChartType — controlled vocabulary for ChartResults.ChartTypeId
--- (folded from db/02_create_dim_charttype.sql + db/10_seed_varga_charttypes.sql
--- + db/22_add_charttype_description.sql + db/23_add_charttype_shortdescription.sql
--- + db/24_update_charttype_shortdescription.sql
--- + db/25_update_charttype_category_lifearea.sql).
+-- (folded from db/02_create_dim_charttype.sql + db/10_seed_varga_charttypes.sql).
 -- Seeds the 21 registered position charts (D1, D2, D2-US, D3..D60);
 -- Vimshottari Dasha is not a chart type (see CalculationKind).
 -- Ids 22..24 are reserved for Plan B (D81/D108/D144).
@@ -2351,36 +2481,34 @@ CREATE TABLE dbo.tbl_Dim_ChartType (
     Code             VARCHAR(20)  NOT NULL CONSTRAINT UQ_Dim_ChartType_Code UNIQUE,
     DisplayName      VARCHAR(40)  NOT NULL,
     DivisionalFactor TINYINT      NULL,
-    Category         VARCHAR(40)  NOT NULL,
+    Category         VARCHAR(20)  NOT NULL,
     DisplayOrder     TINYINT      NOT NULL,
-    Description      VARCHAR(120) NULL,
-    ChartShortDescription VARCHAR(60) NULL,
     CONSTRAINT CK_Dim_ChartType_Factor CHECK (DivisionalFactor IS NULL OR DivisionalFactor BETWEEN 1 AND 60)
 );
 GO
 IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_ChartType)
-INSERT dbo.tbl_Dim_ChartType (Id, Code, DisplayName, DivisionalFactor, Category, DisplayOrder, Description, ChartShortDescription) VALUES
-    ( 1, 'D1',    'Rasi',              1,  'Self & Personality',      1, 'Personality, Expression, Logic', 'Self / Overall Life'),
-    ( 2, 'D2',    'Hora',              2,  'Wealth & Resources',      2, NULL, 'Wealth'),
-    ( 3, 'D6',    'Shashtamsa',        6,  'Health & Vitality',       3, NULL, 'Health / Disease'),
-    ( 4, 'D9',    'Navamsa',           9,  'Relationships & Family',  4, NULL, 'Marriage / Dharma'),
-    ( 5, 'D10',   'Dasamsa',           10, 'Career & Status',         5, NULL, 'Career / Status'),
-    ( 6, 'D11',   'Rudramsa',          11, 'Spirituality & Struggle', 6, NULL, 'Struggle / Destruction'),
-    ( 7, 'D2-US', 'Hora (Uma Shambu)', 2,  'Wealth & Resources',      7, NULL, 'Wealth / Prosperity'),
-    ( 8, 'D3',    'Drekkana',          3,  'Relationships & Family',  8, NULL, 'Siblings / Courage'),
-    ( 9, 'D4',    'Chaturthamsa',      4,  'Wealth & Resources',      9, NULL, 'Property / Fortune'),
-    (10, 'D5',    'Panchamsa',         5,  'Career & Status',        10, NULL, 'Power / Influence'),
-    (11, 'D7',    'Saptamsa',          7,  'Relationships & Family', 11, NULL, 'Children'),
-    (12, 'D8',    'Ashtamsa',          8,  'Health & Vitality',      12, NULL, 'Longevity / Obstacles'),
-    (13, 'D12',   'Dwadasamsa',        12, 'Relationships & Family', 13, NULL, 'Parents / Ancestors'),
-    (14, 'D16',   'Shodasamsa',        16, 'Wealth & Resources',     14, NULL, 'Vehicles / Comforts'),
-    (15, 'D20',   'Vimsamsa',          20, 'Spirituality & Struggle',15, NULL, 'Spirituality'),
-    (16, 'D24',   'Siddhamsa',         24, 'Career & Status',        16, NULL, 'Education'),
-    (17, 'D27',   'Nakshatramsa',      27, 'Self & Personality',     17, NULL, 'Strength / Weakness'),
-    (18, 'D30',   'Trimsamsa',         30, 'Self & Personality',     18, NULL, 'Misfortune / Vulnerability'),
-    (19, 'D40',   'Khavedamsa',        40, 'Relationships & Family', 19, NULL, 'Maternal Lineage'),
-    (20, 'D45',   'Akshavedamsa',      45, 'Relationships & Family', 20, NULL, 'Paternal Lineage / Character'),
-    (21, 'D60',   'Shashtyamsa',       60, 'Self & Personality',     21, NULL, 'Karma / Past-life Influences');
+INSERT dbo.tbl_Dim_ChartType (Id, Code, DisplayName, DivisionalFactor, Category, DisplayOrder) VALUES
+    ( 1, 'D1',    'Rasi',              1,  'Varga',  1),
+    ( 2, 'D2',    'Hora',              2,  'Varga',  2),
+    ( 3, 'D6',    'Shashtamsa',        6,  'Varga',  3),
+    ( 4, 'D9',    'Navamsa',           9,  'Varga',  4),
+    ( 5, 'D10',   'Dasamsa',           10, 'Varga',  5),
+    ( 6, 'D11',   'Rudramsa',          11, 'Varga',  6),
+    ( 7, 'D2-US', 'Hora (Uma Shambu)', 2,  'Varga',  7),
+    ( 8, 'D3',    'Drekkana',          3,  'Varga',  8),
+    ( 9, 'D4',    'Chaturthamsa',      4,  'Varga',  9),
+    (10, 'D5',    'Panchamsa',         5,  'Varga', 10),
+    (11, 'D7',    'Saptamsa',          7,  'Varga', 11),
+    (12, 'D8',    'Ashtamsa',          8,  'Varga', 12),
+    (13, 'D12',   'Dwadasamsa',        12, 'Varga', 13),
+    (14, 'D16',   'Shodasamsa',        16, 'Varga', 14),
+    (15, 'D20',   'Vimsamsa',          20, 'Varga', 15),
+    (16, 'D24',   'Siddhamsa',         24, 'Varga', 16),
+    (17, 'D27',   'Nakshatramsa',      27, 'Varga', 17),
+    (18, 'D30',   'Trimsamsa',         30, 'Varga', 18),
+    (19, 'D40',   'Khavedamsa',        40, 'Varga', 19),
+    (20, 'D45',   'Akshavedamsa',      45, 'Varga', 20),
+    (21, 'D60',   'Shashtyamsa',       60, 'Varga', 21);
 GO
 -- =====================================================================
 -- 15 — tbl_Dim_Source: the SRC_* citation registry (STANDARDS §M.4). Mirror of
@@ -2419,7 +2547,8 @@ GO
         ('SRC_JHORA_EXPORT_RAMAKRISHNAN', N'JHora natal export — 1_Ramakrishnan', NULL, N'22 Apr 1981 05:30 Chennai', NULL, N'verify-vargas / verify-jaimini golden values; docs/artifacts/reference-charts/Rammy_Jagannatha.txt'),
         ('SRC_RATH_VARGA',      N'Vedic Astrology / varga methods', N'Sanjay Rath', NULL, 'Jaimini/SJC', N'D11 (Rudramsa), argala'),
         ('SRC_VEDASTRO',        N'VedAstro.Library',              N'(open source)', N'pre-2026-08-24', 'mixed', N'Historical — replaced by SwissEphNet; enum spellings inherited'),
-        ('SRC_SWISSEPH',        N'Swiss Ephemeris / SwissEphNet', N'Astrodienst / port', N'SwissEphNet 2.8.0.2', 'astronomy', N'Moshier mode, Lahiri sidereal')
+        ('SRC_SWISSEPH',        N'Swiss Ephemeris / SwissEphNet', N'Astrodienst / port', N'SwissEphNet 2.8.0.2', 'astronomy', N'Moshier mode, Lahiri sidereal'),
+        ('SRC_PVR_INTEGRATED',  N'Vedic Astrology: An Integrated Approach', N'P. V. R. Narasimha Rao', NULL, 'PVR Integrated', N'Part 1 Chart Analysis, Table 6 (Dignities of Planets) + the 7 special-degree notes. Distinct from SRC_JHORA (same author, desktop software).')
     ) v (Code, Title, Author, Edition, Tradition, Notes)
 )
 MERGE dbo.tbl_Dim_Source AS tgt
@@ -2452,7 +2581,7 @@ CREATE TABLE dbo.tbl_Astro_Terminology (
     CONSTRAINT CK_Astro_Terminology_Category CHECK (Category IN (
         'Planet','Sign','House','Nakshatra','NakshatraPada','DivisionalChart','Karaka',
         'SpecialPoint','AvasthaState','DignityState','Relationship','StrengthComponent',
-        'Dasha','Yoga','Ayanamsa','Concept')),
+        'Dasha','Yoga','Ayanamsa','Concept','LifeArea','HouseCategory','HouseReference')),   -- LifeArea migr30, HouseCategory migr31, HouseReference migr32
     CONSTRAINT FK_Astro_Terminology_Parent FOREIGN KEY (ParentCode)
         REFERENCES dbo.tbl_Astro_Terminology (Code)
 );
@@ -3229,6 +3358,62 @@ WHEN NOT MATCHED THEN INSERT (TerminologyId, LanguageCode, Script, Name, Traditi
     VALUES (src.TerminologyId, src.LanguageCode, src.Script, src.Name, src.TraditionalName, src.ShortDescription);
 GO
 -- <<< END TERMINOLOGY SEED <<<
+
+-- ---------------------------------------------------------------------
+-- Terminology ADDENDUM - special lagnas (migration 29). Hand-maintained;
+-- NOT yet emitted by TerminologySeed.cs - fold these into the generator
+-- on its next pass. Same MERGE shape as the generated block above.
+-- SPT_* rows keep EngineCode 'KARAKA' to match the sibling SPT_ rows.
+-- ---------------------------------------------------------------------
+MERGE dbo.tbl_Astro_Terminology AS tgt
+USING (VALUES
+  ('SpecialPoint','SPT_BL',NULL,'KARAKA',NULL,901),
+  ('SpecialPoint','SPT_HL',NULL,'KARAKA',NULL,902),
+  ('SpecialPoint','SPT_GL',NULL,'KARAKA',NULL,903),
+  ('SpecialPoint','SPT_SL',NULL,'KARAKA',NULL,904),
+  ('Concept','CALC_TIME_FROM_SUNRISE',NULL,'SPECIALLAGNA',NULL,905),
+  ('Concept','CALC_NAKSHATRA_FRACTION',NULL,'SPECIALLAGNA',NULL,906),
+  ('Concept','ANCHOR_SUN_AT_SUNRISE',NULL,'SPECIALLAGNA',NULL,907),
+  ('Concept','ANCHOR_NATAL_LAGNA',NULL,'SPECIALLAGNA',NULL,908),
+  ('Concept','BASIS_NAKSHATRA_SPAN',NULL,'SPECIALLAGNA',NULL,909)
+) AS src (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder)
+ON tgt.Code = src.Code
+WHEN MATCHED THEN UPDATE SET Category = src.Category, ParentCode = src.ParentCode,
+    EngineCode = src.EngineCode, NumericKey = src.NumericKey, DisplayOrder = src.DisplayOrder, IsActive = 1
+WHEN NOT MATCHED THEN INSERT (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder, IsActive)
+    VALUES (src.Category, src.Code, src.ParentCode, src.EngineCode, src.NumericKey, src.DisplayOrder, 1);
+GO
+MERGE dbo.tbl_Astro_TerminologyText AS tgt
+USING (
+  SELECT t.TerminologyId, v.LanguageCode, v.Script, v.Name, v.TraditionalName, v.ShortDescription
+  FROM (VALUES
+   ('SPT_BL','sa','Latn',N'Bhaava Lagna',N'Bhaava Lagna',NULL),
+   ('SPT_BL','en','Latn',N'Bhaava Lagna',NULL,N'Special lagna at the Sun''s sunrise longitude, advancing one sign per two hours. Defined for completeness; not used in PVR''s Integrated Approach.'),
+   ('SPT_HL','sa','Latn',N'Hora Lagna',N'Hora Lagna',NULL),
+   ('SPT_HL','en','Latn',N'Hora Lagna',NULL,N'Special lagna advancing one sign per hora (hour) from the Sun''s sunrise longitude. Shows the self with respect to wealth and money; weighed when timing prosperity periods (PVR sec 5.3 / 5.6).'),
+   ('SPT_GL','sa','Latn',N'Ghati Lagna',N'Ghati Lagna',NULL),
+   ('SPT_GL','en','Latn',N'Ghati Lagna',NULL,N'Special lagna advancing one sign per ghati (24 minutes) from the Sun''s sunrise longitude; also called Ghatika Lagna. Shows the self with respect to power, authority and fame; weighed when timing public-life periods (PVR sec 5.4 / 5.6).'),
+   ('SPT_SL','sa','Latn',N'Sree Lagna',N'Sree Lagna',NULL),
+   ('SPT_SL','en','Latn',N'Sree Lagna',NULL,N'The natal lagna plus the Moon''s fraction through its nakshatra scaled to the whole zodiac. Signifies prosperity; the reference point from which Sudasa is reckoned (PVR sec 5.7).'),
+   ('CALC_TIME_FROM_SUNRISE','sa','Latn',N'Time from sunrise',N'Time from sunrise',NULL),
+   ('CALC_TIME_FROM_SUNRISE','en','Latn',N'Time from sunrise',NULL,N'Special-lagna calculation family: a fixed angular rate per minute elapsed since the day''s opening sunrise, added to the Sun''s sunrise longitude (Bhaava, Hora, Ghati).'),
+   ('CALC_NAKSHATRA_FRACTION','sa','Latn',N'Nakshatra fraction',N'Nakshatra fraction',NULL),
+   ('CALC_NAKSHATRA_FRACTION','en','Latn',N'Nakshatra fraction',NULL,N'Special-lagna calculation family: the Moon''s fractional progress through its nakshatra, scaled to 360 degrees and added to the natal lagna (Sree Lagna).'),
+   ('ANCHOR_SUN_AT_SUNRISE','sa','Latn',N'Sun at sunrise',N'Sun at sunrise',NULL),
+   ('ANCHOR_SUN_AT_SUNRISE','en','Latn',N'Sun at sunrise',NULL,N'Base longitude for the time-rate special lagnas: the Sun''s nirayana longitude at the day''s opening sunrise.'),
+   ('ANCHOR_NATAL_LAGNA','sa','Latn',N'Natal lagna',N'Natal lagna',NULL),
+   ('ANCHOR_NATAL_LAGNA','en','Latn',N'Natal lagna',NULL,N'Base longitude for Sree Lagna: the ascendant of the birth (rasi) chart.'),
+   ('BASIS_NAKSHATRA_SPAN','sa','Latn',N'Nakshatra span',N'Nakshatra span',NULL),
+   ('BASIS_NAKSHATRA_SPAN','en','Latn',N'Nakshatra span',NULL,N'The 13 degrees 20 minutes extent of one nakshatra - the denominator when taking the Moon''s fractional progress for Sree Lagna.')
+  ) AS v (Code, LanguageCode, Script, Name, TraditionalName, ShortDescription)
+  JOIN dbo.tbl_Astro_Terminology t ON t.Code = v.Code
+) AS src
+ON tgt.TerminologyId = src.TerminologyId AND tgt.LanguageCode = src.LanguageCode AND tgt.Script = src.Script
+WHEN MATCHED THEN UPDATE SET Name = src.Name, TraditionalName = src.TraditionalName, ShortDescription = src.ShortDescription
+WHEN NOT MATCHED THEN INSERT (TerminologyId, LanguageCode, Script, Name, TraditionalName, ShortDescription)
+    VALUES (src.TerminologyId, src.LanguageCode, src.Script, src.Name, src.TraditionalName, src.ShortDescription);
+GO
+
 -- tbl_ChartResults -> tbl_Rule_Sets / tbl_Dim_ChartType foreign keys
 -- (folded from db/06_add_chartfact_constraints.sql). Declared here rather than inline in the
 -- tbl_ChartResults CREATE TABLE because both referenced tables are created later in this script.
@@ -3283,7 +3468,7 @@ FROM (VALUES
     ( 8, 'D8',    8,  'ParasaraTraditional', 'BPHS Ashtamsa; PyJHora ashtamsa_chart method 1',                   'Special', 'AshtamsaD8'),
     ( 9, 'D9',    9,  'ParasaraTraditional', 'BPHS Navamsa; AstroMath.GetNavamsaSign',                           'Special', 'NavamsaD9'),
     (10, 'D10',   10, 'ParasaraTraditional', 'BPHS Dasamsa odd-self/even-9th; AstroMath.GetDasamsaSign',         'Special', 'DasamsaD10'),
-    (11, 'D11',   11, 'SanjayRath',          'Sanjay Rath Rudramsa; AstroMath.GetRudramsaSign',                  'Special', 'RudramsaD11'),
+    (11, 'D11',   11, 'ParasaraTraditional', 'PVR Integrated Approach / BPHS Rudramsa; AstroMath.GetRudramsaSign', 'Special', 'RudramsaD11'),
     (12, 'D12',   12, 'ParasaraTraditional', 'BPHS Dwadasamsa 12-from-self; PyJHora dwadasamsa_chart method 1',  'Linear',  'DwadasamsaD12'),
     (13, 'D16',   16, 'ParasaraTraditional', 'BPHS Shodasamsa; PyJHora shodasamsa_chart method 1',               'Special', 'ShodasamsaD16'),
     (14, 'D20',   20, 'ParasaraTraditional', 'BPHS Vimsamsa; PyJHora vimsamsa_chart method 1',                   'Special', 'VimsamsaD20'),
@@ -3328,6 +3513,7 @@ UPDATE dbo.tbl_Rule_VargaScheme SET RuleParametersJson = N'{"method":"BAND_VARGA
 UPDATE dbo.tbl_Rule_VargaScheme SET RuleParametersJson = N'{"method":"GRID_VARGA","parts":40,"map":[[0,6,0,6,0,6,0,6,0,6,0,6],[1,7,1,7,1,7,1,7,1,7,1,7],[2,8,2,8,2,8,2,8,2,8,2,8],[3,9,3,9,3,9,3,9,3,9,3,9],[4,10,4,10,4,10,4,10,4,10,4,10],[5,11,5,11,5,11,5,11,5,11,5,11],[6,0,6,0,6,0,6,0,6,0,6,0],[7,1,7,1,7,1,7,1,7,1,7,1],[8,2,8,2,8,2,8,2,8,2,8,2],[9,3,9,3,9,3,9,3,9,3,9,3],[10,4,10,4,10,4,10,4,10,4,10,4],[11,5,11,5,11,5,11,5,11,5,11,5],[0,6,0,6,0,6,0,6,0,6,0,6],[1,7,1,7,1,7,1,7,1,7,1,7],[2,8,2,8,2,8,2,8,2,8,2,8],[3,9,3,9,3,9,3,9,3,9,3,9],[4,10,4,10,4,10,4,10,4,10,4,10],[5,11,5,11,5,11,5,11,5,11,5,11],[6,0,6,0,6,0,6,0,6,0,6,0],[7,1,7,1,7,1,7,1,7,1,7,1],[8,2,8,2,8,2,8,2,8,2,8,2],[9,3,9,3,9,3,9,3,9,3,9,3],[10,4,10,4,10,4,10,4,10,4,10,4],[11,5,11,5,11,5,11,5,11,5,11,5],[0,6,0,6,0,6,0,6,0,6,0,6],[1,7,1,7,1,7,1,7,1,7,1,7],[2,8,2,8,2,8,2,8,2,8,2,8],[3,9,3,9,3,9,3,9,3,9,3,9],[4,10,4,10,4,10,4,10,4,10,4,10],[5,11,5,11,5,11,5,11,5,11,5,11],[6,0,6,0,6,0,6,0,6,0,6,0],[7,1,7,1,7,1,7,1,7,1,7,1],[8,2,8,2,8,2,8,2,8,2,8,2],[9,3,9,3,9,3,9,3,9,3,9,3],[10,4,10,4,10,4,10,4,10,4,10,4],[11,5,11,5,11,5,11,5,11,5,11,5],[0,6,0,6,0,6,0,6,0,6,0,6],[1,7,1,7,1,7,1,7,1,7,1,7],[2,8,2,8,2,8,2,8,2,8,2,8],[3,9,3,9,3,9,3,9,3,9,3,9]]}', CalculationNarrative = N'GRID_VARGA parts=40: each rasi sign splits into 40 equal 0.75 deg parts; map[part][rasiSign] is the 0-based varga sign. Sampled from KhavedamsaD40SignRule (SignRuleKey=KhavedamsaD40).' WHERE Id = 18;  -- KhavedamsaD40
 UPDATE dbo.tbl_Rule_VargaScheme SET RuleParametersJson = N'{"method":"GRID_VARGA","parts":45,"map":[[0,4,8,0,4,8,0,4,8,0,4,8],[1,5,9,1,5,9,1,5,9,1,5,9],[2,6,10,2,6,10,2,6,10,2,6,10],[3,7,11,3,7,11,3,7,11,3,7,11],[4,8,0,4,8,0,4,8,0,4,8,0],[5,9,1,5,9,1,5,9,1,5,9,1],[6,10,2,6,10,2,6,10,2,6,10,2],[7,11,3,7,11,3,7,11,3,7,11,3],[8,0,4,8,0,4,8,0,4,8,0,4],[9,1,5,9,1,5,9,1,5,9,1,5],[10,2,6,10,2,6,10,2,6,10,2,6],[11,3,7,11,3,7,11,3,7,11,3,7],[0,4,8,0,4,8,0,4,8,0,4,8],[1,5,9,1,5,9,1,5,9,1,5,9],[2,6,10,2,6,10,2,6,10,2,6,10],[3,7,11,3,7,11,3,7,11,3,7,11],[4,8,0,4,8,0,4,8,0,4,8,0],[5,9,1,5,9,1,5,9,1,5,9,1],[6,10,2,6,10,2,6,10,2,6,10,2],[7,11,3,7,11,3,7,11,3,7,11,3],[8,0,4,8,0,4,8,0,4,8,0,4],[9,1,5,9,1,5,9,1,5,9,1,5],[10,2,6,10,2,6,10,2,6,10,2,6],[11,3,7,11,3,7,11,3,7,11,3,7],[0,4,8,0,4,8,0,4,8,0,4,8],[1,5,9,1,5,9,1,5,9,1,5,9],[2,6,10,2,6,10,2,6,10,2,6,10],[3,7,11,3,7,11,3,7,11,3,7,11],[4,8,0,4,8,0,4,8,0,4,8,0],[5,9,1,5,9,1,5,9,1,5,9,1],[6,10,2,6,10,2,6,10,2,6,10,2],[7,11,3,7,11,3,7,11,3,7,11,3],[8,0,4,8,0,4,8,0,4,8,0,4],[9,1,5,9,1,5,9,1,5,9,1,5],[10,2,6,10,2,6,10,2,6,10,2,6],[11,3,7,11,3,7,11,3,7,11,3,7],[0,4,8,0,4,8,0,4,8,0,4,8],[1,5,9,1,5,9,1,5,9,1,5,9],[2,6,10,2,6,10,2,6,10,2,6,10],[3,7,11,3,7,11,3,7,11,3,7,11],[4,8,0,4,8,0,4,8,0,4,8,0],[5,9,1,5,9,1,5,9,1,5,9,1],[6,10,2,6,10,2,6,10,2,6,10,2],[7,11,3,7,11,3,7,11,3,7,11,3],[8,0,4,8,0,4,8,0,4,8,0,4]]}', CalculationNarrative = N'GRID_VARGA parts=45: each rasi sign splits into 45 equal 0.6667 deg parts; map[part][rasiSign] is the 0-based varga sign. Sampled from AkshavedamsaD45SignRule (SignRuleKey=AkshavedamsaD45).' WHERE Id = 19;  -- AkshavedamsaD45
 UPDATE dbo.tbl_Rule_VargaScheme SET RuleParametersJson = N'{"method":"LINEAR_VARGA","factor":60,"stride":1}', CalculationNarrative = N'LINEAR_VARGA factor=60 stride=1: l = floor(degreesInRasiSign / (30/60)); varga sign = (rasiSign + l*1) mod 12. Closed form of LinearVargaSignRule (SignRuleKey=ShashtyamsaD60).' WHERE Id = 20;  -- ShashtyamsaD60
+UPDATE dbo.tbl_Rule_VargaScheme SET MethodCode = 'ParasaraTraditional', MethodSource = 'PVR Integrated Approach / BPHS Rudramsa; AstroMath.GetRudramsaSign', SourceRefCode = 'SRC_PVR_INTEGRATED' WHERE Id = 11; -- D11 Rudramsa
 GO
 
 -- =====================================================================
@@ -3434,7 +3620,7 @@ GO
 -- =====================================================================
 UPDATE dbo.tbl_Rule_AspectOffset                SET SourceRefCode = 'SRC_BPHS_26'         WHERE SourceRefCode IS NULL;
 UPDATE dbo.tbl_Rule_CombustionOrb               SET SourceRefCode = 'SRC_BPHS_COMBUSTION' WHERE SourceRefCode IS NULL;
-UPDATE dbo.tbl_Rule_NaturalRelationship         SET SourceRefCode = 'SRC_BPHS'            WHERE SourceRefCode IS NULL;
+UPDATE dbo.tbl_Rule_NaturalRelationship         SET SourceRefCode = 'SRC_PVR_INTEGRATED'  WHERE SourceRefCode IS NULL OR SourceRefCode = 'SRC_BPHS';  -- PVR is the cited key ref (data == BPHS); folded from db/25
 UPDATE dbo.tbl_Rule_TemporaryFriendshipDistance SET SourceRefCode = 'SRC_BPHS'            WHERE SourceRefCode IS NULL;
 UPDATE dbo.tbl_Rule_AgeState                    SET SourceRefCode = 'SRC_BPHS_AVASTHA'    WHERE SourceRefCode IS NULL;
 UPDATE dbo.tbl_Rule_WakefulnessState           SET SourceRefCode = 'SRC_BPHS_AVASTHA'    WHERE SourceRefCode IS NULL;
@@ -3465,11 +3651,25 @@ VALUES
     ('tbl_Rule_TemporaryFriendshipDistance','DIGNITY',      'DISTANCE_SET',  'Tatkalika (temporary) friendship: which sign-distances from a planet count as friendly.', 'baseline'),
     ('tbl_Rule_AgeState',                   'AVASTHA',      'BAND_LOOKUP',   'Baaladi avastha (infant..dead) degree bands per odd/even sign, with the effect fraction.', 'migration 00 / renamed 16'),
     ('tbl_Rule_WakefulnessState',           'AVASTHA',      'MAP_LOOKUP',    'Jagradadi avastha (awake/dreaming/sleeping) keyed by the planet''s dignity status.', 'migration 00 / renamed 16'),
-    ('tbl_Rule_HouseSignification',         'HOUSE',        'MAP_LOOKUP',    'Reserved: bhava karakatvas — the significations attached to each house.', 'migration 18 (empty; P2)'),
+    ('tbl_Rule_HouseSignification',         'HOUSE',        'MAP_LOOKUP',    'Bhava karatvas: the significations attached to each house (PVR sec 7.2). One row per matter, categorised body-part / person / matter / derived-house, RuleSetId 1.', '31_add_house_model.sql'),
     ('tbl_Rule_Karaka',                     'KARAKA',       'MAP_LOOKUP',    'Reserved: chara / sthira / naisargika karaka assignment schemes.', 'migration 18 (empty; P2)'),
+    ('tbl_Rule_HouseAttribute',             'HOUSE',        'ATTR_LOOKUP',   'Per-house descriptive attributes (PVR ch. 7): general character, sec 7.4.6 special-category effect, and naisargika bhava karaka. One row per (rule-set, house, attribute, priority); mirror of tbl_Rule_GrahaAttribute.', '31_add_house_model.sql'),
+    ('tbl_Rule_HouseReferenceMatter',       'HOUSE',        'MAP_LOOKUP',    'PVR Table 12 (sec 7.3.9): the houses each planetary reference (graha lagna) is classically read for - Sun 9/10/11, Moon 4/1/2/11/9, Mars 3, Mercury 6, Jupiter 5, Venus 7, Saturn 8/12. One row per (rule-set, reference, house).', '32_add_house_reference_points.sql'),
     ('tbl_Rule_ShadbalaComponent',          'STRENGTH',     'WEIGHT_TABLE',  'Reserved: shadbala sub-component weights and maxima, in rupas.', 'migration 18 (empty; P3)'),
     ('tbl_Rule_VimsopakaWeight',            'STRENGTH',     'WEIGHT_TABLE',  'Reserved: vimsopaka bala varga-group weights per scheme (shadvarga..shodasavarga).', 'migration 18 (empty; P3)'),
-    ('tbl_Rule_Yoga',                       'YOGA',         'PREDICATE_SET', 'Reserved: yoga definitions — formation predicates, cancellation rules, and result codes.', 'migration 18 (empty; P4)');
+    ('tbl_Rule_Yoga',                       'YOGA',         'PREDICATE_SET', 'Reserved: yoga definitions — formation predicates, cancellation rules, and result codes.', 'migration 18 (empty; P4)'),
+    ('tbl_Rule_GrahaDignity',               'DIGNITY',      'SEGMENT_LOOKUP', 'Graha dignity (axis A): exaltation / debilitation / moolatrikona / own-sign degree segments per rule-set, with deep-degree points and DignityScore. PVR Integrated Approach Table 6 active; BPHS-Parashari mirror inactive.', '23_add_rule_graha_dignity.sql'),
+    ('tbl_Rule_CompoundRelationship',       'DIGNITY',      'MATRIX_LOOKUP', 'Panchadha Maitri: the natural x temporary compound relationship (Adhimitra..Adhishatru) with RelationshipScore -2..+2. Separate axis from tbl_Rule_GrahaDignity; combined only at the interpretation layer.', '24_add_rule_compound_relationship.sql'),
+    ('tbl_Rule_GrahaAttribute',             'GRAHA',        'ATTR_LOOKUP',   'Static graha characters (BPHS ch. 3, PVR-consolidated): substance class, body dhatu, kala unit, diurnal strength, ritu, natural signification, colour, royal rank, deity, gender, tattva, varna, guna, residence. One row per (rule-set, graha, attribute); blank source cell = no row.', '26_add_rule_graha_attributes.sql'),
+    ('tbl_Rule_DigBala',                    'STRENGTH',     'HOUSE_LOOKUP',  'Directional-strength (Dig Bala) reference house per graha - the bhava of full digbala (Lagna=1 / 4th / 7th / 10th). One strength input, not overall planetary strength.', '26_add_rule_graha_attributes.sql'),
+    ('tbl_Rule_SubPlanetSunLongitude',      'SUBPLANET',    'SUN_LONGITUDE_CHAIN', 'Sun-longitude-derived sub-planets (Dhuma, Vyatipata, Parivesha, Indrachapa, Upaketu): an ordered ADD / COMPLEMENT_360 chain off the Sun''s nirayana longitude. Reference data - engine not yet built.', '27_add_subplanet_rule_layer.sql'),
+    ('tbl_Rule_SubPlanetPartRuler',         'SUBPLANET',    'PART_RULER_LOOKUP', 'PVR "Table 10": the ruling graha (or none) of each of the 8 equal parts of the day / night arc, per weekday. Feeds the EIGHTH_PART_RULER method for the time-based sub-planets; also the ruler sequence for Gulika/Maandi.', '27_add_subplanet_rule_layer.sql'),
+    ('tbl_Rule_SubPlanetTime',              'SUBPLANET',    'EIGHTH_PART_RULER', 'Time-based sub-planets (Kaala, Mrityu, Ardhaprahara, Yamaghantaka, Gulika, Maandi): each rises at PartFraction (0 = start, 0.5 = middle) of the 1/8 arc part ruled by a specific graha; the rising Ascendant at that instant is the longitude. Reference data - only Gulika/Maandi are built in C# (start/middle swapped vs this text per JHora).', '27_add_subplanet_rule_layer.sql'),
+    ('tbl_Rule_SpecialLagnaTimeRate',       'SPECIALLAGNA', 'TIME_RATE_FROM_SUNRISE', 'Bhaava / Hora / Ghati Lagna: each is the Sun''s sunrise longitude plus a fixed DegreesPerMinute advance for every minute since the day''s opening sunrise (Bhaava 0.25, Hora 0.5, Ghati 1.25), mod 360. Reference data - only Hora Lagna is built in C#.', '28_add_special_lagna_rule_layer.sql'),
+    ('tbl_Rule_SpecialLagnaFraction',       'SPECIALLAGNA', 'LAGNA_PLUS_NAK_FRACTION', 'Sree Lagna: natal lagna longitude plus the Moon''s fraction through its nakshatra scaled to 360 deg, mod 360. Reference point for Sudasa. Reference data - engine not yet built.', '28_add_special_lagna_rule_layer.sql'),
+    ('tbl_Rule_Ayanamsa',                   'ASTRONOMY',    'SIDEREAL_MODE,USER_OFFSET', 'Versioned ayanamsa selection, Swiss Ephemeris sidereal mode, optional correction, and default policy.', '36_create_rule_ayanamsa.sql'),
+    ('tbl_Rule_BhavaBalaComponent',         'STRENGTH',     'HOUSE_LORD_SHADBALA,HOUSE_DIRECTION,HOUSE_ASPECT', 'Versioned Bhava Bala component definitions, maxima, methods, and formula provenance.', '39_add_shadbala_strength_facts.sql'),
+    ('tbl_Rule_DashaApplicability',         'DASHA',        'CONDITION_LOOKUP', 'Source-attributed applicability conditions for conditional dasha systems.', '46_create_ayanamsa_dasha_benchmarks.sql');
 GO
 
 -- =====================================================================
@@ -3582,6 +3782,1746 @@ END
 GO
 
 -- =====================================================================
+-- Multi-graha conjunction (Graha Saṃyoga) layer — folded from
+-- db/22_add_multigraha_conjunction.sql. One group row per (ChartResultId,
+-- SignId) holding >= 2 grahas; per-planet facts once in the member table;
+-- tbl_Chart_Conjunctions.MultiGrahaConjunctionId links each pair to its group.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Chart_MultiGrahaConjunction', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Chart_MultiGrahaConjunction (
+        Id                    INT IDENTITY(1,1) NOT NULL
+                                  CONSTRAINT PK_Chart_MultiGrahaConjunction PRIMARY KEY,
+        ChartResultId         INT     NOT NULL
+                                  CONSTRAINT FK_MultiGrahaConjunction_ChartResult
+                                  FOREIGN KEY REFERENCES dbo.tbl_ChartResults (Id),
+        SignId                TINYINT NOT NULL
+                                  CONSTRAINT FK_MultiGrahaConjunction_Sign
+                                  FOREIGN KEY REFERENCES dbo.tbl_SignAttributes (Id),
+        HouseNumberFromLagna  TINYINT      NOT NULL,
+        PlanetCount           TINYINT      NOT NULL,
+        MemberKey             VARCHAR(40)  NOT NULL,
+        LongitudeSpanDegrees  DECIMAL(7,4) NULL,
+        CONSTRAINT UQ_MultiGrahaConjunction UNIQUE (ChartResultId, SignId),
+        CONSTRAINT CK_MultiGrahaConjunction_House CHECK (HouseNumberFromLagna BETWEEN 1 AND 12),
+        CONSTRAINT CK_MultiGrahaConjunction_Count CHECK (PlanetCount >= 2),
+        CONSTRAINT CK_MultiGrahaConjunction_Span  CHECK (LongitudeSpanDegrees IS NULL
+                                  OR (LongitudeSpanDegrees >= 0 AND LongitudeSpanDegrees < 30))
+    );
+    CREATE NONCLUSTERED INDEX IX_Chart_MultiGrahaConjunction_ChartResultId
+        ON dbo.tbl_Chart_MultiGrahaConjunction (ChartResultId);
+END
+GO
+IF OBJECT_ID('dbo.tbl_Chart_MultiGrahaConjunctionMember', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Chart_MultiGrahaConjunctionMember (
+        Id                        INT IDENTITY(1,1) NOT NULL
+                                      CONSTRAINT PK_Chart_MultiGrahaConjunctionMember PRIMARY KEY,
+        MultiGrahaConjunctionId   INT     NOT NULL
+                                      CONSTRAINT FK_MultiGrahaConjunctionMember_Group
+                                      FOREIGN KEY REFERENCES dbo.tbl_Chart_MultiGrahaConjunction (Id)
+                                      ON DELETE CASCADE,
+        PlanetId                  TINYINT NOT NULL
+                                      CONSTRAINT FK_MultiGrahaConjunctionMember_Planet
+                                      FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        DegreesInSign             DECIMAL(7,4) NULL,
+        NirayanaLongitude         FLOAT        NULL,
+        VargaLongitude            DECIMAL(9,6) NULL,
+        OrbFromGroupCenterDegrees DECIMAL(7,4) NULL,
+        DignityStatus             VARCHAR(20)  NULL,
+        IsRetrograde              BIT          NULL,
+        IsCombust                 BIT          NULL,
+        CONSTRAINT UQ_MultiGrahaConjunctionMember UNIQUE (MultiGrahaConjunctionId, PlanetId),
+        CONSTRAINT CK_MGCMember_DegInSign CHECK (DegreesInSign IS NULL
+                                  OR (DegreesInSign >= 0 AND DegreesInSign < 30)),
+        CONSTRAINT CK_MGCMember_Nirayana  CHECK (NirayanaLongitude IS NULL
+                                  OR (NirayanaLongitude >= 0 AND NirayanaLongitude < 360)),
+        CONSTRAINT CK_MGCMember_Varga     CHECK (VargaLongitude IS NULL
+                                  OR (VargaLongitude >= 0 AND VargaLongitude < 360)),
+        CONSTRAINT CK_MGCMember_Orb       CHECK (OrbFromGroupCenterDegrees IS NULL
+                                  OR (OrbFromGroupCenterDegrees >= 0 AND OrbFromGroupCenterDegrees < 30))
+    );
+    -- UQ_MultiGrahaConjunctionMember (MultiGrahaConjunctionId, PlanetId) already indexes the FK's
+    -- leading column, so no separate index on MultiGrahaConjunctionId is needed.
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Chart_Conjunctions_MultiGrahaConjunction')
+    ALTER TABLE dbo.tbl_Chart_Conjunctions
+        ADD CONSTRAINT FK_Chart_Conjunctions_MultiGrahaConjunction
+            FOREIGN KEY (MultiGrahaConjunctionId) REFERENCES dbo.tbl_Chart_MultiGrahaConjunction (Id);
+GO
+
+-- =====================================================================
+-- 23 — tbl_Rule_GrahaDignity: axis-A graha dignity as data (folded from
+-- db/23_add_rule_graha_dignity.sql). EXALTED / MOOLATRIKONA / OWN /
+-- DEBILITATED degree segments per rule-set + DeepDegree + DignityScore
+-- (+4/+3/+2/-2) + Mood/InterpretationTendency/Analogy. Panchadha Maitri
+-- (friend/neutral/enemy, the two "great" tiers) is a separate axis and
+-- stays in tbl_Rule_NaturalRelationship + tbl_Rule_TemporaryFriendshipDistance.
+-- Seeds RuleSetId 2 (PVR-Dignity-Integrated, rows IsActive=1) + RuleSetId 3
+-- (BPHS-Dignity-Parashari, rows IsActive=0). Placed here because the seed
+-- JOINs tbl_Planets / tbl_SignAttributes and FKs tbl_Rule_Sets. Idempotent.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Rule_GrahaDignity', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_GrahaDignity (
+        Id                     INT IDENTITY(1,1) NOT NULL
+                                   CONSTRAINT PK_Rule_GrahaDignity PRIMARY KEY,
+        RuleSetId              TINYINT      NOT NULL
+                                   CONSTRAINT FK_Rule_GrahaDignity_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        PlanetId               TINYINT      NOT NULL
+                                   CONSTRAINT FK_Rule_GrahaDignity_Planet  FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        SignId                 TINYINT      NOT NULL
+                                   CONSTRAINT FK_Rule_GrahaDignity_Sign    FOREIGN KEY REFERENCES dbo.tbl_SignAttributes (Id),
+        DignityTypeCode        VARCHAR(20)  NOT NULL,
+        StartDegree            DECIMAL(5,2) NOT NULL,
+        EndDegree              DECIMAL(5,2) NOT NULL,
+        DeepDegree             DECIMAL(5,2) NULL,
+        DignityScore           SMALLINT     NOT NULL,
+        IsPrimary              BIT          NOT NULL
+                                   CONSTRAINT DF_Rule_GrahaDignity_IsPrimary DEFAULT 1,
+        Mood                   VARCHAR(20)  NULL,
+        InterpretationTendency NVARCHAR(200) NULL,
+        Analogy                NVARCHAR(400) NULL,
+        DignityRationale       NVARCHAR(MAX) NULL,
+        MethodCode             VARCHAR(30)  NULL,
+        RuleParametersJson     NVARCHAR(MAX) NULL,
+        CalculationNarrative   NVARCHAR(MAX) NULL,
+        SourceRefCode          VARCHAR(40)  NULL,
+        IsActive               BIT          NOT NULL
+                                   CONSTRAINT DF_Rule_GrahaDignity_IsActive DEFAULT 1,
+        CONSTRAINT CK_RuleGrahaDignity_Type    CHECK (DignityTypeCode IN ('EXALTED','MOOLATRIKONA','OWN','DEBILITATED')),
+        CONSTRAINT CK_RuleGrahaDignity_Degrees CHECK (StartDegree >= 0 AND EndDegree > StartDegree AND EndDegree <= 30),
+        CONSTRAINT CK_RuleGrahaDignity_Deep    CHECK (DeepDegree IS NULL OR (DeepDegree >= 0 AND DeepDegree <= 30)),
+        CONSTRAINT CK_RuleGrahaDignity_Score   CHECK (DignityScore BETWEEN -2 AND 4),
+        CONSTRAINT CK_RuleGrahaDignity_Json    CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_RuleGrahaDignity_Src     CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_GrahaDignity UNIQUE (RuleSetId, PlanetId, SignId, DignityTypeCode, StartDegree)
+    );
+    CREATE NONCLUSTERED INDEX IX_Rule_GrahaDignity_Lookup
+        ON dbo.tbl_Rule_GrahaDignity (RuleSetId, PlanetId, SignId)
+        INCLUDE (StartDegree, EndDegree, DignityTypeCode, DignityScore, DeepDegree);
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_GrahaDignity)
+BEGIN
+    DECLARE @r_ju_pisces  NVARCHAR(400) = N'Pisces is the 12th house of the natural zodiac; saattwik and ethery - Jupiter is most comfortable here. This is his home, like a peaceful Brahmin doing pooja.';
+    DECLARE @r_ju_sag     NVARCHAR(400) = N'Sagittarius is the 9th house of the natural zodiac; upholding dharma is Jupiter''s duty. He is like a raaja-purohit who must sometimes take strong decisions.';
+    DECLARE @r_ju_cancer  NVARCHAR(400) = N'Cancer is the 4th house of the natural zodiac; Jupiter is excited to do imaginative (watery) learning.';
+    DECLARE @r_ju_cap     NVARCHAR(400) = N'Capricorn is the 10th house of the natural zodiac, taamasik; Jupiter dislikes well-defined taamasik karma - it is against his nature.';
+    DECLARE @r_me_gemini  NVARCHAR(400) = N'Gemini is the 3rd house of the natural zodiac (communications); intelligent communication is what Mercury is most comfortable with. This is his home.';
+    DECLARE @r_me_virgo   NVARCHAR(400) = N'Virgo is the 6th house of the natural zodiac (debate and arguments); Mercury loves this official job, so Virgo is both his office (moolatrikona) and his favourite picnic spot (exaltation).';
+    DECLARE @r_ke_scorpio NVARCHAR(400) = N'Scorpio is the 8th house of the natural zodiac; Ketu is most comfortable with occult activity, so he owns it.';
+    DECLARE @r_ke_pisces  NVARCHAR(400) = N'Pisces is the 12th house of the natural zodiac; Ketu''s duty is giving upaasana (meditation) and moksha (liberation).';
+    DECLARE @n_mars_typo  NVARCHAR(400) = N'PVR special-point note as printed reads "first 12 deg of Leo", which contradicts Table 6 (Mars moolatrikona = Aries) and the note itself. Encoded as Aries per Table 6.';
+
+    ;WITH meta (DignityTypeCode, DignityScore, Mood, InterpretationTendency, Analogy) AS (
+        SELECT * FROM (VALUES
+            ('EXALTED',      CONVERT(SMALLINT,  4), 'Elevated',      N'Performs exceptionally and enthusiastically.', N'Favourite picnic or party - excited and eager, performing at its best.'),
+            ('MOOLATRIKONA', CONVERT(SMALLINT,  3), 'Dutiful',       N'Powerful, purposeful and responsible.',        N'Office - executes its formal duty, whether it enjoys the work or not.'),
+            ('OWN',          CONVERT(SMALLINT,  2), 'Comfortable',   N'Natural, authentic and relaxed.',              N'Home - most natural, comfortable and at ease.'),
+            ('DEBILITATED',  CONVERT(SMALLINT, -2), 'Uncomfortable', N'Struggles to express its natural qualities.',  N'Worst party - unhappy and stuck where it hates to be.')
+        ) m (DignityTypeCode, DignityScore, Mood, InterpretationTendency, Analogy)
+    ),
+    pvr (PlanetName, SignName, DignityTypeCode, StartDegree, EndDegree, DeepDegree, IsPrimary, DignityRationale, CalcNarr) AS (
+        SELECT * FROM (VALUES
+            ('Sun','Aries','EXALTED',        0, 30,  10, 1, CONVERT(NVARCHAR(MAX),NULL), CONVERT(NVARCHAR(MAX),NULL)),
+            ('Sun','Leo','MOOLATRIKONA',     0, 20, NULL, 1, NULL, NULL),
+            ('Sun','Leo','OWN',             20, 30, NULL, 1, NULL, NULL),
+            ('Sun','Libra','DEBILITATED',    0, 30,  10, 1, NULL, NULL),
+            ('Moon','Taurus','EXALTED',      0,  3,   3, 1, NULL, NULL),
+            ('Moon','Taurus','MOOLATRIKONA', 3, 30, NULL, 1, NULL, NULL),
+            ('Moon','Cancer','OWN',          0, 30, NULL, 1, NULL, NULL),
+            ('Moon','Scorpio','DEBILITATED', 0, 30,   3, 1, NULL, NULL),
+            ('Mars','Capricorn','EXALTED',   0, 30,  28, 1, NULL, NULL),
+            ('Mars','Aries','MOOLATRIKONA',  0, 12, NULL, 1, NULL, @n_mars_typo),
+            ('Mars','Aries','OWN',          12, 30, NULL, 1, NULL, NULL),
+            ('Mars','Scorpio','OWN',         0, 30, NULL, 0, NULL, NULL),
+            ('Mars','Cancer','DEBILITATED',  0, 30,  28, 1, NULL, NULL),
+            ('Mercury','Virgo','EXALTED',    0, 15,  15, 1, @r_me_virgo,  NULL),
+            ('Mercury','Virgo','MOOLATRIKONA',15,20, NULL, 0, @r_me_virgo, NULL),
+            ('Mercury','Virgo','OWN',        20, 30, NULL, 0, @r_me_virgo,  NULL),
+            ('Mercury','Gemini','OWN',        0, 30, NULL, 1, @r_me_gemini, NULL),
+            ('Mercury','Pisces','DEBILITATED',0,30,  15, 1, NULL, NULL),
+            ('Jupiter','Cancer','EXALTED',   0, 30,   5, 1, @r_ju_cancer, NULL),
+            ('Jupiter','Sagittarius','MOOLATRIKONA',0,10,NULL,0,@r_ju_sag, NULL),
+            ('Jupiter','Sagittarius','OWN', 10, 30, NULL, 0, @r_ju_sag,    NULL),
+            ('Jupiter','Pisces','OWN',       0, 30, NULL, 1, @r_ju_pisces, NULL),
+            ('Jupiter','Capricorn','DEBILITATED',0,30, 5, 1, @r_ju_cap,    NULL),
+            ('Venus','Pisces','EXALTED',     0, 30,  27, 1, NULL, NULL),
+            ('Venus','Libra','MOOLATRIKONA', 0, 15, NULL, 0, NULL, NULL),
+            ('Venus','Libra','OWN',         15, 30, NULL, 0, NULL, NULL),
+            ('Venus','Taurus','OWN',         0, 30, NULL, 1, NULL, NULL),
+            ('Venus','Virgo','DEBILITATED',  0, 30,  27, 1, NULL, NULL),
+            ('Saturn','Libra','EXALTED',     0, 30,  20, 1, NULL, NULL),
+            ('Saturn','Aquarius','MOOLATRIKONA',0,20,NULL,0, NULL, NULL),
+            ('Saturn','Aquarius','OWN',      20, 30, NULL, 0, NULL, NULL),
+            ('Saturn','Capricorn','OWN',      0, 30, NULL, 1, NULL, NULL),
+            ('Saturn','Aries','DEBILITATED', 0, 30,  20, 1, NULL, NULL),
+            ('Rahu','Gemini','EXALTED',      0, 30, NULL, 1, NULL, NULL),
+            ('Rahu','Virgo','MOOLATRIKONA',  0, 30, NULL, 1, NULL, NULL),
+            ('Rahu','Aquarius','OWN',        0, 30, NULL, 1, NULL, NULL),
+            ('Rahu','Sagittarius','DEBILITATED',0,30,NULL,1, NULL, NULL),
+            ('Ketu','Sagittarius','EXALTED', 0, 30, NULL, 1, NULL, NULL),
+            ('Ketu','Pisces','MOOLATRIKONA', 0, 30, NULL, 1, @r_ke_pisces,  NULL),
+            ('Ketu','Scorpio','OWN',         0, 30, NULL, 1, @r_ke_scorpio, NULL),
+            ('Ketu','Gemini','DEBILITATED',  0, 30, NULL, 1, NULL, NULL)
+        ) v (PlanetName, SignName, DignityTypeCode, StartDegree, EndDegree, DeepDegree, IsPrimary, DignityRationale, CalcNarr)
+    )
+    INSERT dbo.tbl_Rule_GrahaDignity
+        (RuleSetId, PlanetId, SignId, DignityTypeCode, StartDegree, EndDegree, DeepDegree, DignityScore,
+         IsPrimary, Mood, InterpretationTendency, Analogy, DignityRationale, MethodCode, CalculationNarrative,
+         SourceRefCode, IsActive)
+    SELECT 2, p.Id, s.Id, d.DignityTypeCode,
+           CONVERT(DECIMAL(5,2), d.StartDegree), CONVERT(DECIMAL(5,2), d.EndDegree), CONVERT(DECIMAL(5,2), d.DeepDegree),
+           m.DignityScore, d.IsPrimary, m.Mood, m.InterpretationTendency, m.Analogy, d.DignityRationale,
+           'SEGMENT_LOOKUP', d.CalcNarr, 'SRC_PVR_INTEGRATED', 1
+    FROM pvr d
+    JOIN dbo.tbl_Planets p        ON p.PlanetName = d.PlanetName
+    JOIN dbo.tbl_SignAttributes s ON s.SignName  = d.SignName
+    JOIN meta m                   ON m.DignityTypeCode = d.DignityTypeCode;
+
+    ;WITH meta (DignityTypeCode, DignityScore, Mood, InterpretationTendency, Analogy) AS (
+        SELECT * FROM (VALUES
+            ('EXALTED',      CONVERT(SMALLINT,  4), 'Elevated',      N'Performs exceptionally and enthusiastically.', N'Favourite picnic or party - excited and eager, performing at its best.'),
+            ('MOOLATRIKONA', CONVERT(SMALLINT,  3), 'Dutiful',       N'Powerful, purposeful and responsible.',        N'Office - executes its formal duty, whether it enjoys the work or not.'),
+            ('OWN',          CONVERT(SMALLINT,  2), 'Comfortable',   N'Natural, authentic and relaxed.',              N'Home - most natural, comfortable and at ease.'),
+            ('DEBILITATED',  CONVERT(SMALLINT, -2), 'Uncomfortable', N'Struggles to express its natural qualities.',  N'Worst party - unhappy and stuck where it hates to be.')
+        ) m (DignityTypeCode, DignityScore, Mood, InterpretationTendency, Analogy)
+    ),
+    bphs (PlanetName, SignName, DignityTypeCode, StartDegree, EndDegree, DeepDegree, IsPrimary) AS (
+        SELECT * FROM (VALUES
+            ('Sun','Aries','EXALTED',        0, 30,  10, 1),
+            ('Sun','Leo','MOOLATRIKONA',     0, 20, NULL, 1),
+            ('Sun','Leo','OWN',             20, 30, NULL, 1),
+            ('Sun','Libra','DEBILITATED',    0, 30,  10, 1),
+            ('Moon','Taurus','EXALTED',      0, 30,   3, 1),
+            ('Moon','Cancer','OWN',          0, 30, NULL, 1),
+            ('Moon','Scorpio','DEBILITATED', 0, 30,   3, 1),
+            ('Mars','Capricorn','EXALTED',   0, 30,  28, 1),
+            ('Mars','Aries','MOOLATRIKONA',  0, 12, NULL, 1),
+            ('Mars','Aries','OWN',          12, 30, NULL, 1),
+            ('Mars','Scorpio','OWN',         0, 30, NULL, 0),
+            ('Mars','Cancer','DEBILITATED',  0, 30,  28, 1),
+            ('Mercury','Virgo','EXALTED',    0, 30,  15, 1),
+            ('Mercury','Gemini','OWN',       0, 30, NULL, 1),
+            ('Mercury','Pisces','DEBILITATED',0,30,  15, 1),
+            ('Jupiter','Cancer','EXALTED',   0, 30,   5, 1),
+            ('Jupiter','Sagittarius','MOOLATRIKONA',0,10,NULL,0),
+            ('Jupiter','Sagittarius','OWN', 10, 30, NULL, 0),
+            ('Jupiter','Pisces','OWN',       0, 30, NULL, 1),
+            ('Jupiter','Capricorn','DEBILITATED',0,30, 5, 1),
+            ('Venus','Pisces','EXALTED',     0, 30,  27, 1),
+            ('Venus','Libra','MOOLATRIKONA', 0, 15, NULL, 0),
+            ('Venus','Libra','OWN',         15, 30, NULL, 0),
+            ('Venus','Taurus','OWN',         0, 30, NULL, 1),
+            ('Venus','Virgo','DEBILITATED',  0, 30,  27, 1),
+            ('Saturn','Libra','EXALTED',     0, 30,  20, 1),
+            ('Saturn','Aquarius','MOOLATRIKONA',0,20,NULL,0),
+            ('Saturn','Aquarius','OWN',      20, 30, NULL, 0),
+            ('Saturn','Capricorn','OWN',      0, 30, NULL, 1),
+            ('Saturn','Aries','DEBILITATED', 0, 30,  20, 1),
+            ('Rahu','Taurus','EXALTED',      0, 30, NULL, 1),
+            ('Rahu','Scorpio','DEBILITATED', 0, 30, NULL, 1),
+            ('Ketu','Scorpio','EXALTED',     0, 30, NULL, 1),
+            ('Ketu','Taurus','DEBILITATED',  0, 30, NULL, 1)
+        ) v (PlanetName, SignName, DignityTypeCode, StartDegree, EndDegree, DeepDegree, IsPrimary)
+    )
+    INSERT dbo.tbl_Rule_GrahaDignity
+        (RuleSetId, PlanetId, SignId, DignityTypeCode, StartDegree, EndDegree, DeepDegree, DignityScore,
+         IsPrimary, Mood, InterpretationTendency, Analogy, DignityRationale, MethodCode, CalculationNarrative,
+         SourceRefCode, IsActive)
+    SELECT 3, p.Id, s.Id, d.DignityTypeCode,
+           CONVERT(DECIMAL(5,2), d.StartDegree), CONVERT(DECIMAL(5,2), d.EndDegree), CONVERT(DECIMAL(5,2), d.DeepDegree),
+           m.DignityScore, d.IsPrimary, m.Mood, m.InterpretationTendency, m.Analogy, NULL,
+           'SEGMENT_LOOKUP', NULL, 'SRC_BPHS', 0
+    FROM bphs d
+    JOIN dbo.tbl_Planets p        ON p.PlanetName = d.PlanetName
+    JOIN dbo.tbl_SignAttributes s ON s.SignName  = d.SignName
+    JOIN meta m                   ON m.DignityTypeCode = d.DignityTypeCode;
+END
+GO
+IF OBJECT_ID('dbo.vw_Dignity_Legend', 'V') IS NOT NULL
+    DROP VIEW dbo.vw_Dignity_Legend;
+GO
+CREATE VIEW dbo.vw_Dignity_Legend AS
+SELECT DISTINCT DignityTypeCode, DignityScore, Mood, InterpretationTendency, Analogy
+FROM dbo.tbl_Rule_GrahaDignity
+WHERE IsActive = 1;
+GO
+
+-- =====================================================================
+-- 24 — tbl_Rule_CompoundRelationship: the Panchadha Maitri 2x3 matrix
+-- (natural x temporary -> compound) as scored master data (folded from
+-- db/24_add_rule_compound_relationship.sql). RelationshipScore -2..+2 is a
+-- SEPARATE axis from tbl_Rule_GrahaDignity.DignityScore; combined only at
+-- the interpretation layer. DignityEngine.CombineToPanchadha reads this
+-- instead of hard-coding the grid. EnglishName = the DignityStatus label.
+-- tbl_Rule_NaturalRelationship / tbl_Rule_TemporaryFriendshipDistance are
+-- the input rules and are unchanged. Idempotent.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Rule_CompoundRelationship', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_CompoundRelationship (
+        Id                   INT IDENTITY(1,1) NOT NULL
+                                 CONSTRAINT PK_Rule_CompoundRelationship PRIMARY KEY,
+        RuleSetId            TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_CompoundRelationship_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        NaturalRelation      VARCHAR(10)  NOT NULL,
+        IsTemporaryFriend    BIT          NOT NULL,
+        CompoundCode         VARCHAR(20)  NOT NULL,
+        SanskritName         NVARCHAR(40) NOT NULL,
+        EnglishName          NVARCHAR(40) NOT NULL,
+        RelationshipScore    SMALLINT     NOT NULL,
+        MethodCode           VARCHAR(30)  NULL,
+        RuleParametersJson   NVARCHAR(MAX) NULL,
+        CalculationNarrative NVARCHAR(MAX) NULL,
+        SourceRefCode        VARCHAR(40)  NULL,
+        IsActive             BIT          NOT NULL
+                                 CONSTRAINT DF_Rule_CompoundRelationship_IsActive DEFAULT 1,
+        CONSTRAINT CK_RuleCompoundRel_Nat   CHECK (NaturalRelation IN ('Friend','Neutral','Enemy')),
+        CONSTRAINT CK_RuleCompoundRel_Code  CHECK (CompoundCode IN ('ADHIMITRA','MITRA','SAMA','SHATRU','ADHISHATRU')),
+        CONSTRAINT CK_RuleCompoundRel_Score CHECK (RelationshipScore BETWEEN -2 AND 2),
+        CONSTRAINT CK_RuleCompoundRel_Json  CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_RuleCompoundRel_Src   CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_CompoundRelationship UNIQUE (RuleSetId, NaturalRelation, IsTemporaryFriend)
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_CompoundRelationship)
+    INSERT dbo.tbl_Rule_CompoundRelationship
+        (RuleSetId, NaturalRelation, IsTemporaryFriend, CompoundCode, SanskritName, EnglishName,
+         RelationshipScore, MethodCode, SourceRefCode)
+    SELECT 1, v.NaturalRelation, v.IsTemporaryFriend, v.CompoundCode, v.SanskritName, v.EnglishName,
+           v.RelationshipScore, 'MATRIX_LOOKUP', 'SRC_PVR_INTEGRATED'
+    FROM (VALUES
+        ('Friend',  CONVERT(BIT,1), 'ADHIMITRA',  N'Adhimitra',  N'Great Friend', CONVERT(SMALLINT, 2)),
+        ('Friend',  CONVERT(BIT,0), 'SAMA',       N'Sama',       N'Neutral',      CONVERT(SMALLINT, 0)),
+        ('Neutral', CONVERT(BIT,1), 'MITRA',      N'Mitra',      N'Friend',       CONVERT(SMALLINT, 1)),
+        ('Neutral', CONVERT(BIT,0), 'SHATRU',     N'Shatru',     N'Enemy',        CONVERT(SMALLINT,-1)),
+        ('Enemy',   CONVERT(BIT,1), 'SAMA',       N'Sama',       N'Neutral',      CONVERT(SMALLINT, 0)),
+        ('Enemy',   CONVERT(BIT,0), 'ADHISHATRU', N'Adhishatru', N'Great Enemy',  CONVERT(SMALLINT,-2))
+    ) v (NaturalRelation, IsTemporaryFriend, CompoundCode, SanskritName, EnglishName, RelationshipScore);
+GO
+
+-- =====================================================================
+-- 26 — Graha characters (BPHS ch. 3, PVR-consolidated) as normalized data
+-- (folded from db/26_add_rule_graha_attributes.sql). tbl_Dim_GrahaAttribute
+-- (16-row attribute catalog) + tbl_Rule_GrahaAttribute (one row per
+-- rule-set/graha/attribute; blank source cell -> no row) + tbl_Rule_DigBala
+-- (directional-strength reference house per graha, Lagna=1). RuleSetId 1,
+-- SourceRefCode SRC_PVR_INTEGRATED. Placed after tbl_Planets/tbl_Rule_Sets
+-- seeds (the seed JOINs the former, FKs the latter). Idempotent.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Dim_GrahaAttribute', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_GrahaAttribute (
+        AttributeCode VARCHAR(30)  NOT NULL CONSTRAINT PK_Dim_GrahaAttribute PRIMARY KEY,
+        DisplayName   NVARCHAR(80)  NOT NULL,
+        ValueKind     VARCHAR(10)   NOT NULL CONSTRAINT CK_Dim_GrahaAttribute_Kind CHECK (ValueKind IN ('CODE','TEXT','NUMBER')),
+        SortOrder     TINYINT       NOT NULL,
+        Notes         NVARCHAR(400) NULL
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_GrahaAttribute)
+    INSERT dbo.tbl_Dim_GrahaAttribute (AttributeCode, DisplayName, ValueKind, SortOrder, Notes)
+    VALUES
+    ('SUBSTANCE_CLASS',       N'Substance class (dhatu / mula / jiva)', 'CODE',  1, N'The class of substance the graha governs.'),
+    ('BODY_DHATU',            N'Bodily dhatu (sapta-dhatu)',            'CODE',  2, N'The bodily tissue the graha signifies.'),
+    ('TIME_PERIOD',           N'Time period lorded (kala)',             'CODE',  3, N'The unit of time the graha rules.'),
+    ('DIURNAL_STRENGTH',      N'Diurnal strength',                     'CODE',  4, N'When the graha is strong: day, night, or always.'),
+    ('RITU',                  N'Season lorded (ritu)',                  'CODE',  5, N'6-fold ritu lordship; the Sun lords the ayana, not a ritu.'),
+    ('NATURAL_SIGNIFICATION', N'Primary natural signification',        'CODE',  6, N'The single core matter the graha governs.'),
+    ('COLOR',                 N'Colour',                               'CODE',  7, NULL),
+    ('ROYAL_STATUS',          N'Royal-cabinet rank',                   'CODE',  8, N'King / Prince / Minister / Army-chief / Servant / Soldier.'),
+    ('PRESIDING_DEITY',       N'Presiding deity (adhidevata)',          'CODE',  9, NULL),
+    ('GENDER',                N'Gender (linga)',                       'CODE', 10, N'PVR-consolidated worksheet uses Male / Female only.'),
+    ('TATTVA',                N'Element (pancha-tattva)',               'CODE', 11, NULL),
+    ('GENERAL_CHARACTER',     N'General disposition',                  'TEXT', 12, N'Free-text summary of the graha''s nature.'),
+    ('VARNA',                 N'Varna (caste)',                        'CODE', 13, NULL),
+    ('VARNA_TRAIT',           N'Trait implied by the varna',           'CODE', 14, N'1:1 function of VARNA; kept to preserve the worksheet 1:1.'),
+    ('GUNA',                  N'Guna',                                 'CODE', 15, NULL),
+    ('RESIDENCE',             N'Residence (vasa-sthana)',               'CODE', 16, NULL);
+GO
+IF OBJECT_ID('dbo.tbl_Rule_GrahaAttribute', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_GrahaAttribute (
+        Id            INT IDENTITY(1,1) NOT NULL
+                          CONSTRAINT PK_Rule_GrahaAttribute PRIMARY KEY,
+        RuleSetId     TINYINT      NOT NULL
+                          CONSTRAINT FK_Rule_GrahaAttribute_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        GrahaId       TINYINT      NOT NULL
+                          CONSTRAINT FK_Rule_GrahaAttribute_Planet FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        AttributeCode VARCHAR(30)  NOT NULL
+                          CONSTRAINT FK_Rule_GrahaAttribute_Attr FOREIGN KEY REFERENCES dbo.tbl_Dim_GrahaAttribute (AttributeCode),
+        ValueCode     VARCHAR(40)   NULL,
+        ValueText     NVARCHAR(200) NOT NULL,
+        Priority      TINYINT      NOT NULL CONSTRAINT DF_Rule_GrahaAttribute_Priority DEFAULT 1,
+        SourceRefCode VARCHAR(40)   NULL,
+        IsActive      BIT          NOT NULL CONSTRAINT DF_Rule_GrahaAttribute_IsActive DEFAULT 1,
+        Notes         NVARCHAR(400) NULL,
+        CONSTRAINT CK_RuleGrahaAttr_Src CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_GrahaAttribute UNIQUE (RuleSetId, GrahaId, AttributeCode)
+    );
+    CREATE NONCLUSTERED INDEX IX_Rule_GrahaAttribute_Attr
+        ON dbo.tbl_Rule_GrahaAttribute (AttributeCode, GrahaId);
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_GrahaAttribute)
+BEGIN
+    ;WITH a (PlanetName, AttributeCode, ValueCode, ValueText, Notes) AS (
+        SELECT * FROM (VALUES
+        ('Sun','SUBSTANCE_CLASS','VEGETABLE',N'Roots and vegetables',CONVERT(NVARCHAR(400),NULL)),
+        ('Sun','BODY_DHATU','ASTHI',N'Bones',NULL),
+        ('Sun','TIME_PERIOD','SIX_MONTHS',N'6 months',NULL),
+        ('Sun','DIURNAL_STRENGTH','DAY',N'Day',NULL),
+        ('Sun','NATURAL_SIGNIFICATION','SOUL',N'Soul',NULL),
+        ('Sun','COLOR','BLOOD_RED',N'Blood red',NULL),
+        ('Sun','ROYAL_STATUS','KING',N'King',NULL),
+        ('Sun','PRESIDING_DEITY','AGNI',N'Agni (fire god)',NULL),
+        ('Sun','GENDER','MALE',N'Male',NULL),
+        ('Sun','TATTVA','AGNI',N'Agni (fire)',NULL),
+        ('Sun','VARNA','KSHATRIYA',N'Kshatriya',NULL),
+        ('Sun','VARNA_TRAIT','BRAVERY',N'Bravery',NULL),
+        ('Sun','GUNA','SATTVA',N'Sattva (pure, truthful)',NULL),
+        ('Sun','RESIDENCE','TEMPLE',N'Temple',NULL),
+        ('Moon','SUBSTANCE_CLASS','MINERAL',N'Metals and materials',NULL),
+        ('Moon','BODY_DHATU','RAKTA',N'Blood',NULL),
+        ('Moon','TIME_PERIOD','MINUTE',N'Minute',NULL),
+        ('Moon','DIURNAL_STRENGTH','NIGHT',N'Night',NULL),
+        ('Moon','RITU','RAINY',N'Rainy season',NULL),
+        ('Moon','NATURAL_SIGNIFICATION','MIND',N'Mind',NULL),
+        ('Moon','COLOR','TAWNY',N'Tawny',NULL),
+        ('Moon','ROYAL_STATUS','KING',N'King',NULL),
+        ('Moon','PRESIDING_DEITY','VARUNA',N'Varuna (rain god)',NULL),
+        ('Moon','GENDER','FEMALE',N'Female',NULL),
+        ('Moon','TATTVA','JALA',N'Jala (water)',NULL),
+        ('Moon','VARNA','VAISHYA',N'Vaishya',NULL),
+        ('Moon','VARNA_TRAIT','SOCIABILITY',N'Getting along with others',NULL),
+        ('Moon','GUNA','SATTVA',N'Sattva (pure, truthful)',NULL),
+        ('Moon','RESIDENCE','WATERY_PLACE',N'Watery place',NULL),
+        ('Mars','SUBSTANCE_CLASS','MINERAL',N'Metals and materials',NULL),
+        ('Mars','BODY_DHATU','MAJJA',N'Marrow',NULL),
+        ('Mars','TIME_PERIOD','WEEK',N'Week',NULL),
+        ('Mars','DIURNAL_STRENGTH','NIGHT',N'Night',NULL),
+        ('Mars','RITU','SUMMER',N'Summer',NULL),
+        ('Mars','NATURAL_SIGNIFICATION','STRENGTH',N'Strength',NULL),
+        ('Mars','COLOR','BLOOD_RED',N'Blood red',NULL),
+        ('Mars','ROYAL_STATUS','ARMY_CHIEF',N'Army chief',NULL),
+        ('Mars','PRESIDING_DEITY','SUBRAHMANYA',N'Subrahmanya (army-chief god)',NULL),
+        ('Mars','GENDER','MALE',N'Male',NULL),
+        ('Mars','TATTVA','AGNI',N'Agni (fire)',NULL),
+        ('Mars','GENERAL_CHARACTER',NULL,N'Leadership, enterprise',NULL),
+        ('Mars','VARNA','KSHATRIYA',N'Kshatriya',NULL),
+        ('Mars','VARNA_TRAIT','BRAVERY',N'Bravery',NULL),
+        ('Mars','GUNA','TAMAS',N'Tamas (dark, mean, depraved)',NULL),
+        ('Mercury','SUBSTANCE_CLASS','ANIMAL',N'Living beings',NULL),
+        ('Mercury','BODY_DHATU','TWAK',N'Skin',NULL),
+        ('Mercury','TIME_PERIOD','TWO_MONTHS',N'2 months',NULL),
+        ('Mercury','DIURNAL_STRENGTH','ALWAYS',N'Always',NULL),
+        ('Mercury','RITU','DEW',N'Dew (autumn)',NULL),
+        ('Mercury','NATURAL_SIGNIFICATION','SPEECH',N'Speech',NULL),
+        ('Mercury','COLOR','GRASS_GREEN',N'Grass green',NULL),
+        ('Mercury','ROYAL_STATUS','PRINCE',N'Prince',NULL),
+        ('Mercury','PRESIDING_DEITY','MAHA_VISHNU',N'Maha Vishnu (supreme sustaining force)',NULL),
+        ('Mercury','GENDER','FEMALE',N'Female',N'PVR-consolidated worksheet; classical BPHS ch. 3 assigns neuter to Mercury.'),
+        ('Mercury','TATTVA','PRITHVI',N'Prithvi (earth)',NULL),
+        ('Mercury','GENERAL_CHARACTER',NULL,N'Memory, logical abilities',NULL),
+        ('Mercury','VARNA','VAISHYA',N'Vaishya',N'PVR-consolidated; several BPHS renderings give Shudra for Mercury.'),
+        ('Mercury','VARNA_TRAIT','SOCIABILITY',N'Getting along with others',NULL),
+        ('Mercury','GUNA','RAJAS',N'Rajas (passionate, energetic, impure)',NULL),
+        ('Mercury','RESIDENCE','SPORTS_GROUND',N'Sports ground',NULL),
+        ('Jupiter','SUBSTANCE_CLASS','ANIMAL',N'Living beings',NULL),
+        ('Jupiter','BODY_DHATU','MEDAS',N'Fat',NULL),
+        ('Jupiter','TIME_PERIOD','MONTH',N'Month',NULL),
+        ('Jupiter','DIURNAL_STRENGTH','DAY',N'Day',NULL),
+        ('Jupiter','RITU','WINTER',N'Winter',NULL),
+        ('Jupiter','NATURAL_SIGNIFICATION','KNOWLEDGE_HAPPINESS',N'Knowledge and happiness',NULL),
+        ('Jupiter','COLOR','TAWNY',N'Tawny',NULL),
+        ('Jupiter','ROYAL_STATUS','MINISTER',N'Minister',NULL),
+        ('Jupiter','PRESIDING_DEITY','INDRA',N'Indra (ruler of the gods)',NULL),
+        ('Jupiter','GENDER','MALE',N'Male',NULL),
+        ('Jupiter','TATTVA','AKASHA',N'Akasha (ether)',NULL),
+        ('Jupiter','GENERAL_CHARACTER',NULL,N'Wisdom, intelligence, perceiving knowledge',NULL),
+        ('Jupiter','VARNA','BRAHMANA',N'Brahmana',NULL),
+        ('Jupiter','VARNA_TRAIT','LEARNING',N'Learning and intelligence',NULL),
+        ('Jupiter','GUNA','SATTVA',N'Sattva (pure, truthful)',NULL),
+        ('Jupiter','RESIDENCE','TREASURE_HOUSE',N'Treasure house',NULL),
+        ('Venus','SUBSTANCE_CLASS','VEGETABLE',N'Roots and vegetables',NULL),
+        ('Venus','BODY_DHATU','SHUKRA',N'Semen',NULL),
+        ('Venus','TIME_PERIOD','FORTNIGHT',N'Fortnight',NULL),
+        ('Venus','DIURNAL_STRENGTH','DAY',N'Day',NULL),
+        ('Venus','RITU','SPRING',N'Spring',NULL),
+        ('Venus','NATURAL_SIGNIFICATION','POTENCY',N'Potency',NULL),
+        ('Venus','COLOR','VARIEGATED',N'Variegated',NULL),
+        ('Venus','ROYAL_STATUS','MINISTER',N'Minister',NULL),
+        ('Venus','PRESIDING_DEITY','SACHI',N'Sachi Devi (Indra''s consort)',NULL),
+        ('Venus','GENDER','FEMALE',N'Female',NULL),
+        ('Venus','TATTVA','JALA',N'Jala (water)',NULL),
+        ('Venus','GENERAL_CHARACTER',NULL,N'Imagination, creative work',NULL),
+        ('Venus','VARNA','BRAHMANA',N'Brahmana',NULL),
+        ('Venus','VARNA_TRAIT','LEARNING',N'Learning and intelligence',NULL),
+        ('Venus','GUNA','RAJAS',N'Rajas (passionate, energetic, impure)',NULL),
+        ('Saturn','SUBSTANCE_CLASS','MINERAL',N'Metals and materials',NULL),
+        ('Saturn','BODY_DHATU','SNAYU',N'Muscles',NULL),
+        ('Saturn','TIME_PERIOD','YEAR',N'Year',NULL),
+        ('Saturn','DIURNAL_STRENGTH','NIGHT',N'Night',NULL),
+        ('Saturn','RITU','FALL',N'Fall (late winter)',NULL),
+        ('Saturn','NATURAL_SIGNIFICATION','GRIEF',N'Grief',NULL),
+        ('Saturn','COLOR','BLACK',N'Black',NULL),
+        ('Saturn','ROYAL_STATUS','SERVANT',N'Servant',NULL),
+        ('Saturn','PRESIDING_DEITY','BRAHMA',N'Brahma (the creator)',NULL),
+        ('Saturn','GENDER','FEMALE',N'Female',N'PVR-consolidated worksheet; classical BPHS ch. 3 assigns neuter to Saturn.'),
+        ('Saturn','TATTVA','VAYU',N'Vayu (air)',NULL),
+        ('Saturn','GENERAL_CHARACTER',NULL,N'Wandering, free spirit',NULL),
+        ('Saturn','VARNA','SHUDRA',N'Shudra',NULL),
+        ('Saturn','VARNA_TRAIT','DILIGENCE',N'Hard working',NULL),
+        ('Saturn','GUNA','TAMAS',N'Tamas (dark, mean, depraved)',NULL),
+        ('Saturn','RESIDENCE','FILTHY_AREA',N'Filthy area',NULL),
+        ('Rahu','SUBSTANCE_CLASS','MINERAL',N'Metals and materials',NULL),
+        ('Rahu','ROYAL_STATUS','SOLDIER',N'Soldier',NULL),
+        ('Ketu','SUBSTANCE_CLASS','ANIMAL',N'Living beings',NULL),
+        ('Ketu','ROYAL_STATUS','SOLDIER',N'Soldier',NULL)
+        ) v (PlanetName, AttributeCode, ValueCode, ValueText, Notes)
+    )
+    INSERT dbo.tbl_Rule_GrahaAttribute
+        (RuleSetId, GrahaId, AttributeCode, ValueCode, ValueText, Priority, SourceRefCode, IsActive, Notes)
+    SELECT 1, p.Id, a.AttributeCode, a.ValueCode, a.ValueText, 1, 'SRC_PVR_INTEGRATED', 1, a.Notes
+    FROM a
+    JOIN dbo.tbl_Planets p ON p.PlanetName = a.PlanetName;
+END
+GO
+IF OBJECT_ID('dbo.tbl_Rule_DigBala', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_DigBala (
+        Id            INT IDENTITY(1,1) NOT NULL
+                          CONSTRAINT PK_Rule_DigBala PRIMARY KEY,
+        RuleSetId     TINYINT      NOT NULL
+                          CONSTRAINT FK_Rule_DigBala_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        GrahaId       TINYINT      NOT NULL
+                          CONSTRAINT FK_Rule_DigBala_Planet FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        DigBalaHouse  TINYINT      NOT NULL,
+        MethodCode           VARCHAR(30)   NULL,
+        RuleParametersJson   NVARCHAR(MAX) NULL,
+        CalculationNarrative NVARCHAR(MAX) NULL,
+        SourceRefCode        VARCHAR(40)   NULL,
+        IsActive             BIT NOT NULL CONSTRAINT DF_Rule_DigBala_IsActive DEFAULT 1,
+        CONSTRAINT CK_RuleDigBala_House CHECK (DigBalaHouse BETWEEN 1 AND 12),
+        CONSTRAINT CK_RuleDigBala_Json  CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_RuleDigBala_Src   CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_DigBala UNIQUE (RuleSetId, GrahaId)
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_DigBala)
+    INSERT dbo.tbl_Rule_DigBala (RuleSetId, GrahaId, DigBalaHouse, MethodCode, SourceRefCode)
+    SELECT 1, p.Id, v.DigBalaHouse, 'HOUSE_LOOKUP', 'SRC_PVR_INTEGRATED'
+    FROM (VALUES
+        ('Sun',10),('Moon',4),('Mars',10),('Mercury',1),('Jupiter',1),('Venus',4),('Saturn',7)
+    ) v (PlanetName, DigBalaHouse)
+    JOIN dbo.tbl_Planets p ON p.PlanetName = v.PlanetName;
+GO
+
+-- =====================================================================
+-- 27 — Sub-planet (upagraha) reference layer (folded from
+-- db/27_add_subplanet_rule_layer.sql). New tables use the English
+-- "Planet / Sub Planet" vocabulary; the graha/upagraha table names are
+-- unchanged. Names follow STANDARDS.md §D: tbl_<Category>_<PascalCase>
+-- (no internal underscore after the infix), Dim plural / Rule singular,
+-- PK column is Id. tbl_Dim_SubPlanets (11-row master; AssociatedPlanetId
+-- is the interpretive analogy, not identity) + tbl_Rule_SubPlanetSunLongitude
+-- (5-step longitude chain off the Sun) + tbl_Rule_SubPlanetPartRuler
+-- (PVR "Table 10" — the ruling graha of each of the 8 arc parts per
+-- weekday, 112 rows) + tbl_Rule_SubPlanetTime (the 6 time-based points:
+-- each rises at PartFraction of the 1/8 part ruled by a given graha).
+-- D1 reference data only — engines not yet built. RuleSetId 1,
+-- SourceRefCode SRC_PVR_INTEGRATED (the one registered source for the PVR
+-- corpus). Placed after tbl_Planets/tbl_Rule_Sets seeds (the seeds JOIN
+-- the former, FK the latter). Idempotent.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Dim_SubPlanets', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_SubPlanets (
+        Id                 TINYINT       NOT NULL
+                               CONSTRAINT PK_Dim_SubPlanets PRIMARY KEY,
+        SubPlanetCode      VARCHAR(20)   NOT NULL
+                               CONSTRAINT UQ_Dim_SubPlanets_Code UNIQUE,
+        SubPlanetName      VARCHAR(30)   NOT NULL
+                               CONSTRAINT UQ_Dim_SubPlanets_Name UNIQUE,
+        EnglishMeaning     NVARCHAR(60)  NULL,
+        CalculationType    VARCHAR(20)   NOT NULL,
+        CalculationFamilyCode VARCHAR(20) NOT NULL,
+        AssociatedPlanetId TINYINT       NOT NULL
+                               CONSTRAINT FK_Dim_SubPlanets_Planet FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        AssociationRole    VARCHAR(20)   NOT NULL,
+        NaturalNature      VARCHAR(12)   NULL,
+        SortOrder          TINYINT       NOT NULL,
+        IsActive           BIT           NOT NULL CONSTRAINT DF_Dim_SubPlanets_IsActive DEFAULT 1,
+        Notes              NVARCHAR(400) NULL,
+        CONSTRAINT CK_Dim_SubPlanets_CalcType CHECK (CalculationType IN ('SUN_LONGITUDE','DAY_NIGHT_TIME')),
+        CONSTRAINT CK_Dim_SubPlanets_Family CHECK (CalculationFamilyCode IN ('SUN_BASED','TIME_BASED')),
+        CONSTRAINT CK_Dim_SubPlanets_AssociationRole CHECK (AssociationRole IN ('FORMULA_INPUT','PART_RULER','PLANETARY_ANALOG')),
+        CONSTRAINT CK_Dim_SubPlanets_Nature   CHECK (NaturalNature IS NULL OR NaturalNature IN ('Malefic','Benefic','Neutral','Mixed'))
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_SubPlanets)
+    INSERT dbo.tbl_Dim_SubPlanets
+        (Id, SubPlanetCode, SubPlanetName, EnglishMeaning, CalculationType, CalculationFamilyCode, AssociatedPlanetId, AssociationRole, NaturalNature, SortOrder, Notes)
+    SELECT v.Id, v.SubPlanetCode, v.SubPlanetName, v.EnglishMeaning, v.CalculationType, v.CalculationFamilyCode,
+           p.Id, v.AssociationRole, v.NaturalNature, v.SortOrder, v.Notes
+    FROM (VALUES
+        ( 1,'DHUMA',       'Dhuma',       N'Smoke',        'SUN_LONGITUDE', 'SUN_BASED', 'Sun', 'FORMULA_INPUT', 'Malefic',  1, CONVERT(NVARCHAR(400),NULL)),
+        ( 2,'VYATIPATA',   'Vyatipata',   N'Calamity',     'SUN_LONGITUDE', 'SUN_BASED', 'Sun', 'FORMULA_INPUT', 'Malefic',  2, NULL),
+        ( 3,'PARIVESHA',   'Parivesha',   N'Halo',         'SUN_LONGITUDE', 'SUN_BASED', 'Sun', 'FORMULA_INPUT', 'Malefic',  3, N'Some traditions class Parivesha (halo) as benefic / neutral.'),
+        ( 4,'INDRACHAPA',  'Indrachapa',  N'Rainbow',      'SUN_LONGITUDE', 'SUN_BASED', 'Sun', 'FORMULA_INPUT', 'Malefic',  4, N'Some traditions class Indrachapa (rainbow) as benefic / neutral.'),
+        ( 5,'UPAKETU',     'Upaketu',     N'Sub-Ketu',     'SUN_LONGITUDE', 'SUN_BASED', 'Sun', 'FORMULA_INPUT', 'Malefic',  5, N'Chain identity: Upaketu + 30 deg = Sun.'),
+        ( 6,'KAALA',       'Kaala',       N'Time',         'DAY_NIGHT_TIME','TIME_BASED', 'Sun', 'PART_RULER', 'Malefic',  6, NULL),
+        ( 7,'MRITYU',      'Mrityu',      N'Death',        'DAY_NIGHT_TIME','TIME_BASED', 'Mars', 'PART_RULER', 'Malefic',  7, NULL),
+        ( 8,'ARDHAPRAHARA','Ardhaprahara',N'Half-prahara', 'DAY_NIGHT_TIME','TIME_BASED', 'Mercury', 'PART_RULER', NULL,      8, N'PVR text spells it "Artha Praharaka" / "Artha Prahara". BPHS: Mercury''s day/night portion.'),
+        ( 9,'YAMAGHANTAKA','Yamaghantaka',N'Yama''s bell', 'DAY_NIGHT_TIME','TIME_BASED', 'Jupiter', 'PART_RULER', NULL,      9, N'BPHS names Jupiter''s day/night portion Yamaghantaka.'),
+        (10,'GULIKA',      'Gulika',      NULL,            'DAY_NIGHT_TIME','TIME_BASED', 'Saturn', 'PART_RULER', 'Malefic', 10, N'PVR: middle of Saturn''s part.'),
+        (11,'MAANDI',      'Maandi',      NULL,            'DAY_NIGHT_TIME','TIME_BASED', 'Saturn', 'PART_RULER', 'Malefic', 11, N'PVR: beginning of Saturn''s part.')
+    ) v (Id, SubPlanetCode, SubPlanetName, EnglishMeaning, CalculationType, CalculationFamilyCode, AssocPlanetName, AssociationRole, NaturalNature, SortOrder, Notes)
+    JOIN dbo.tbl_Planets p ON p.PlanetName = v.AssocPlanetName;
+GO
+IF OBJECT_ID('dbo.tbl_Rule_SubPlanetSunLongitude', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_SubPlanetSunLongitude (
+        Id                   INT IDENTITY(1,1) NOT NULL
+                                 CONSTRAINT PK_Rule_SubPlanetSunLongitude PRIMARY KEY,
+        RuleSetId            TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_SubPlanetSunLongitude_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        SubPlanetId          TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_SubPlanetSunLongitude_SubPlanet FOREIGN KEY REFERENCES dbo.tbl_Dim_SubPlanets (Id),
+        SequenceNo           TINYINT      NOT NULL,
+        Operation            VARCHAR(16)  NOT NULL,
+        InputSubPlanetId     TINYINT      NULL
+                                 CONSTRAINT FK_Rule_SubPlanetSunLongitude_Input FOREIGN KEY REFERENCES dbo.tbl_Dim_SubPlanets (Id),
+        OffsetDegrees        DECIMAL(9,6) NULL,
+        NormalizationMethod  VARCHAR(12)  NOT NULL CONSTRAINT DF_Rule_SubPlanetSunLongitude_Norm DEFAULT 'MOD_360',
+        MethodCode           VARCHAR(30)  NULL,
+        RuleParametersJson   NVARCHAR(MAX) NULL,
+        CalculationNarrative NVARCHAR(MAX) NULL,
+        SourceRefCode        VARCHAR(40)  NULL,
+        IsActive             BIT          NOT NULL CONSTRAINT DF_Rule_SubPlanetSunLongitude_IsActive DEFAULT 1,
+        CONSTRAINT CK_Rule_SubPlanetSunLongitude_Op   CHECK (Operation IN ('ADD','COMPLEMENT_360')),
+        CONSTRAINT CK_Rule_SubPlanetSunLongitude_Off  CHECK ((Operation = 'ADD' AND OffsetDegrees IS NOT NULL)
+                                                          OR (Operation = 'COMPLEMENT_360' AND OffsetDegrees IS NULL)),
+        CONSTRAINT CK_Rule_SubPlanetSunLongitude_Json CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_Rule_SubPlanetSunLongitude_Src  CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_SubPlanetSunLongitude UNIQUE (RuleSetId, SubPlanetId, SequenceNo)
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_SubPlanetSunLongitude)
+    INSERT dbo.tbl_Rule_SubPlanetSunLongitude
+        (RuleSetId, SubPlanetId, SequenceNo, Operation, InputSubPlanetId, OffsetDegrees,
+         NormalizationMethod, MethodCode, CalculationNarrative, SourceRefCode, IsActive)
+    SELECT 1, sp.Id, v.SequenceNo, v.Operation, inp.Id,
+           CONVERT(DECIMAL(9,6), v.OffsetDegrees), 'MOD_360', 'SUN_LONGITUDE_CHAIN',
+           v.Narrative, 'SRC_PVR_INTEGRATED', 1
+    FROM (VALUES
+        ('DHUMA',      1, 'ADD',            CONVERT(VARCHAR(20),NULL),  133.333333, N'Dhuma = Sun + 133 deg 20 min.'),
+        ('VYATIPATA',  2, 'COMPLEMENT_360', 'DHUMA',                    CONVERT(DECIMAL(9,6),NULL), N'Vyatipata = 360 deg - Dhuma. Identity: Dhuma + Vyatipata = 360.'),
+        ('PARIVESHA',  3, 'ADD',            'VYATIPATA',                180.000000, N'Parivesha = Vyatipata + 180 deg.'),
+        ('INDRACHAPA', 4, 'COMPLEMENT_360', 'PARIVESHA',                CONVERT(DECIMAL(9,6),NULL), N'Indrachapa = 360 deg - Parivesha. Identity: Parivesha + Indrachapa = 360.'),
+        ('UPAKETU',    5, 'ADD',            'INDRACHAPA',               16.666667,  N'Upaketu = Indrachapa + 16 deg 40 min. Validation identity: Upaketu + 30 deg = Sun.')
+    ) v (SubPlanetCode, SequenceNo, Operation, InputCode, OffsetDegrees, Narrative)
+    JOIN dbo.tbl_Dim_SubPlanets sp ON sp.SubPlanetCode = v.SubPlanetCode
+    LEFT JOIN dbo.tbl_Dim_SubPlanets inp ON inp.SubPlanetCode = v.InputCode;
+GO
+IF OBJECT_ID('dbo.tbl_Rule_SubPlanetPartRuler', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_SubPlanetPartRuler (
+        Id                   INT IDENTITY(1,1) NOT NULL
+                                 CONSTRAINT PK_Rule_SubPlanetPartRuler PRIMARY KEY,
+        RuleSetId            TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_SubPlanetPartRuler_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        DayNight             VARCHAR(5)   NOT NULL,
+        Weekday              TINYINT      NOT NULL,
+        PartNumber           TINYINT      NOT NULL,
+        RulingPlanetId       TINYINT      NULL
+                                 CONSTRAINT FK_Rule_SubPlanetPartRuler_Planet FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        MethodCode           VARCHAR(30)  NULL,
+        RuleParametersJson   NVARCHAR(MAX) NULL,
+        CalculationNarrative NVARCHAR(MAX) NULL,
+        SourceRefCode        VARCHAR(40)  NULL,
+        IsActive             BIT          NOT NULL CONSTRAINT DF_Rule_SubPlanetPartRuler_IsActive DEFAULT 1,
+        CONSTRAINT CK_Rule_SubPlanetPartRuler_DN   CHECK (DayNight IN ('DAY','NIGHT')),
+        CONSTRAINT CK_Rule_SubPlanetPartRuler_WD   CHECK (Weekday BETWEEN 0 AND 6),
+        CONSTRAINT CK_Rule_SubPlanetPartRuler_Part CHECK (PartNumber BETWEEN 1 AND 8),
+        CONSTRAINT CK_Rule_SubPlanetPartRuler_Json CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_Rule_SubPlanetPartRuler_Src  CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_SubPlanetPartRuler UNIQUE (RuleSetId, DayNight, Weekday, PartNumber)
+    );
+    CREATE NONCLUSTERED INDEX IX_Rule_SubPlanetPartRuler_Lookup
+        ON dbo.tbl_Rule_SubPlanetPartRuler (RuleSetId, DayNight, Weekday)
+        INCLUDE (PartNumber, RulingPlanetId);
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_SubPlanetPartRuler)
+    INSERT dbo.tbl_Rule_SubPlanetPartRuler
+        (RuleSetId, DayNight, Weekday, PartNumber, RulingPlanetId, MethodCode, SourceRefCode, IsActive)
+    SELECT 1, t.DayNight, t.Weekday, x.PartNumber, p.Id, 'PART_RULER_LOOKUP', 'SRC_PVR_INTEGRATED', 1
+    FROM (VALUES
+        ('DAY',   0, 'Sun',    'Moon',   'Mars',   'Mercury','Jupiter','Venus',  'Saturn', NULL),
+        ('DAY',   1, 'Moon',   'Mars',   'Mercury','Jupiter','Venus',  'Saturn', NULL,     'Sun'),
+        ('DAY',   2, 'Mars',   'Mercury','Jupiter','Venus',  'Saturn', NULL,     'Sun',    'Moon'),
+        ('DAY',   3, 'Mercury','Jupiter','Venus',  'Saturn', NULL,     'Sun',    'Moon',   'Mars'),
+        ('DAY',   4, 'Jupiter','Venus',  'Saturn', NULL,     'Sun',    'Moon',   'Mars',   'Mercury'),
+        ('DAY',   5, 'Venus',  'Saturn', NULL,     'Sun',    'Moon',   'Mars',   'Mercury','Jupiter'),
+        ('DAY',   6, 'Saturn', NULL,     'Sun',    'Moon',   'Mars',   'Mercury','Jupiter','Venus'),
+        ('NIGHT', 0, 'Jupiter','Venus',  'Saturn', NULL,     'Sun',    'Moon',   'Mars',   'Mercury'),
+        ('NIGHT', 1, 'Venus',  'Saturn', NULL,     'Sun',    'Moon',   'Mars',   'Mercury','Jupiter'),
+        ('NIGHT', 2, 'Saturn', NULL,     'Sun',    'Moon',   'Mars',   'Mercury','Jupiter','Venus'),
+        ('NIGHT', 3, 'Sun',    'Moon',   'Mars',   'Mercury','Jupiter','Venus',  'Saturn', NULL),
+        ('NIGHT', 4, 'Moon',   'Mars',   'Mercury','Jupiter','Venus',  'Saturn', NULL,     'Sun'),
+        ('NIGHT', 5, 'Mars',   'Mercury','Jupiter','Venus',  'Saturn', NULL,     'Sun',    'Moon'),
+        ('NIGHT', 6, 'Mercury','Jupiter','Venus',  'Saturn', NULL,     'Sun',    'Moon',   'Mars')
+    ) t (DayNight, Weekday, P1, P2, P3, P4, P5, P6, P7, P8)
+    CROSS APPLY (VALUES
+        (CONVERT(TINYINT,1), t.P1), (2, t.P2), (3, t.P3), (4, t.P4),
+        (5, t.P5), (6, t.P6), (7, t.P7), (8, t.P8)
+    ) x (PartNumber, PlanetName)
+    LEFT JOIN dbo.tbl_Planets p ON p.PlanetName = x.PlanetName;
+GO
+IF OBJECT_ID('dbo.tbl_Rule_SubPlanetTime', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_SubPlanetTime (
+        Id                   INT IDENTITY(1,1) NOT NULL
+                                 CONSTRAINT PK_Rule_SubPlanetTime PRIMARY KEY,
+        RuleSetId            TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_SubPlanetTime_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        SubPlanetId          TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_SubPlanetTime_SubPlanet FOREIGN KEY REFERENCES dbo.tbl_Dim_SubPlanets (Id),
+        RisesInPlanetId      TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_SubPlanetTime_Planet FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        PartFraction         DECIMAL(3,2) NOT NULL,
+        DivisionCount        TINYINT      NOT NULL CONSTRAINT DF_Rule_SubPlanetTime_Div DEFAULT 8,
+        MethodCode           VARCHAR(30)  NULL,
+        RuleParametersJson   NVARCHAR(MAX) NULL,
+        CalculationNarrative NVARCHAR(MAX) NULL,
+        SourceRefCode        VARCHAR(40)  NULL,
+        IsActive             BIT          NOT NULL CONSTRAINT DF_Rule_SubPlanetTime_IsActive DEFAULT 1,
+        CONSTRAINT CK_Rule_SubPlanetTime_Frac CHECK (PartFraction >= 0 AND PartFraction < 1),
+        CONSTRAINT CK_Rule_SubPlanetTime_Div  CHECK (DivisionCount > 0),
+        CONSTRAINT CK_Rule_SubPlanetTime_Json CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_Rule_SubPlanetTime_Src  CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_SubPlanetTime UNIQUE (RuleSetId, SubPlanetId)
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_SubPlanetTime)
+    INSERT dbo.tbl_Rule_SubPlanetTime
+        (RuleSetId, SubPlanetId, RisesInPlanetId, PartFraction, DivisionCount, MethodCode, CalculationNarrative, SourceRefCode, IsActive)
+    SELECT 1, sp.Id, p.Id, CONVERT(DECIMAL(3,2), v.PartFraction), 8, 'EIGHTH_PART_RULER',
+           v.Narrative, 'SRC_PVR_INTEGRATED', 1
+    FROM (VALUES
+        ('KAALA',        'Sun',     0.50, N'Kaala rises at the middle of the Sun-ruled 1/8 part.'),
+        ('MRITYU',       'Mars',    0.50, N'Mrityu rises at the middle of the Mars-ruled 1/8 part.'),
+        ('ARDHAPRAHARA', 'Mercury', 0.50, N'Ardhaprahara (PVR: "Artha Praharaka") rises at the middle of the Mercury-ruled 1/8 part.'),
+        ('YAMAGHANTAKA', 'Jupiter', 0.50, N'Yamaghantaka rises at the middle of the Jupiter-ruled 1/8 part.'),
+        ('GULIKA',       'Saturn',  0.50, N'PVR text: Gulika rises at the MIDDLE of Saturn''s 1/8 part. NOTE: the shipped UpagrahaCalculator.cs follows the JHora convention and puts Gulika at the START of Saturn''s part (and Maandi at the middle) - the two are swapped relative to this row. verify-jaimini is pinned to the shipped output.'),
+        ('MAANDI',       'Saturn',  0.00, N'PVR text: Maandi rises at the BEGINNING of Saturn''s 1/8 part. NOTE: the shipped UpagrahaCalculator.cs puts Maandi at the middle - swapped relative to this row (see Gulika).')
+    ) v (SubPlanetCode, PlanetName, PartFraction, Narrative)
+    JOIN dbo.tbl_Dim_SubPlanets sp ON sp.SubPlanetCode = v.SubPlanetCode
+    JOIN dbo.tbl_Planets        p  ON p.PlanetName     = v.PlanetName;
+GO
+
+-- =====================================================================
+-- 28 - Special Lagna reference layer (PVR ch 5). Folded from
+-- db/28_add_special_lagna_rule_layer.sql. tbl_Dim_SpecialLagnas (4) +
+-- tbl_Rule_SpecialLagnaTimeRate (Bhaava/Hora/Ghati) + tbl_Rule_SpecialLagnaFraction
+-- (Sree). Two calculation families: TIME_FROM_SUNRISE (a fixed deg/minute
+-- advance of the Sun's sunrise longitude) and NAKSHATRA_FRACTION (natal
+-- lagna + Moon's nakshatra fraction x 360). Bhaava DegreesPerMinute is
+-- 0.25 per PVR sec 5.2's stated rate (its method step / Example 7 give a
+-- contradictory 1.0 - a book erratum; see the row narrative). RuleSetId 1,
+-- SourceRefCode SRC_PVR_INTEGRATED. Catalog rows are in the tbl_Rule_Catalog
+-- seed above. D1 reference data; only Hora Lagna is built in C#.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Dim_SpecialLagnas', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_SpecialLagnas (
+        Id              TINYINT       NOT NULL
+                            CONSTRAINT PK_Dim_SpecialLagnas PRIMARY KEY,
+        LagnaCode       VARCHAR(16)   NOT NULL
+                            CONSTRAINT UQ_Dim_SpecialLagnas_Code UNIQUE,
+        Abbreviation    VARCHAR(4)    NOT NULL
+                            CONSTRAINT UQ_Dim_SpecialLagnas_Abbr UNIQUE,
+        LagnaName       VARCHAR(30)   NOT NULL
+                            CONSTRAINT UQ_Dim_SpecialLagnas_Name UNIQUE,
+        CalculationType     VARCHAR(20)   NOT NULL,
+        UsedInBook          BIT           NOT NULL,
+        Significations      NVARCHAR(300) NULL,
+        SortOrder           TINYINT       NOT NULL,
+        IsActive            BIT           NOT NULL CONSTRAINT DF_Dim_SpecialLagnas_IsActive DEFAULT 1,
+        Notes               NVARCHAR(400) NULL,
+        -- usage / varga correlation (migration 29)
+        LifeAreaFocus       VARCHAR(24)   NULL,                                  -- Wealth | PowerAndFame | Prosperity; NULL = none
+        UsageContext        NVARCHAR(400) NULL,                                  -- PVR sec 5.6: when to bring this lagna in
+        HouseReferenceScope VARCHAR(20)   NOT NULL
+                                CONSTRAINT DF_Dim_SpecialLagnas_HouseRefScope DEFAULT 'AnyChart',
+        DasaLinkage         VARCHAR(30)   NULL,                                  -- 'Sudasa' for Sree Lagna
+        RelatedVargaChartId TINYINT       NULL                                   -- soft PVR sec 6.3 pairing, not a ch-5 rule
+                                CONSTRAINT FK_Dim_SpecialLagnas_RelatedVarga FOREIGN KEY REFERENCES dbo.tbl_Dim_ChartType (Id),
+        CONSTRAINT CK_Dim_SpecialLagnas_CalcType CHECK (CalculationType IN ('TIME_FROM_SUNRISE','NAKSHATRA_FRACTION')),
+        CONSTRAINT CK_Dim_SpecialLagnas_HouseRefScope CHECK (HouseReferenceScope IN ('AnyChart','RasiChartOnly','NotUsed'))
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_SpecialLagnas)
+    INSERT dbo.tbl_Dim_SpecialLagnas
+        (Id, LagnaCode, Abbreviation, LagnaName, CalculationType, UsedInBook, Significations, SortOrder, Notes,
+         LifeAreaFocus, UsageContext, HouseReferenceScope, DasaLinkage, RelatedVargaChartId)
+    SELECT v.Id, v.LagnaCode, v.Abbreviation, v.LagnaName, v.CalculationType, v.UsedInBook, v.Significations, v.SortOrder, v.Notes,
+           v.LifeAreaFocus, v.UsageContext, v.HouseReferenceScope, v.DasaLinkage, ct.Id
+    FROM (VALUES
+        (1, 'BHAAVA_LAGNA', 'BL', 'Bhaava Lagna', 'TIME_FROM_SUNRISE',  CONVERT(BIT,0),
+            N'Defined for the sake of completeness; PVR does not use Bhaava Lagna further in the book.', CONVERT(TINYINT,1),
+            N'PVR sec 5.2 gives contradictory rates - see the tbl_Rule_SpecialLagnaTimeRate Bhaava row. Seeded per the stated "one rasi per 2 hours".',
+            CONVERT(VARCHAR(24),NULL), N'PVR does not use Bhaava Lagna in the Integrated Approach; it is defined only for completeness (sec 5.2).',
+            'NotUsed', CONVERT(VARCHAR(30),NULL), CONVERT(VARCHAR(20),NULL)),
+        (2, 'HORA_LAGNA',   'HL', 'Hora Lagna',   'TIME_FROM_SUNRISE',  1,
+            N'Self with respect to money, wealth and prosperity; weighed heavily when timing periods for a businessman (PVR sec 5.6).', 2,
+            N'The only special lagna built in C# today (HoraLagnaCalculator.cs).',
+            'Wealth', N'Bring in when timing wealth / money / prosperity periods - PVR sec 5.6 weighs it heavily for someone whose life runs on business or trade. Read houses from HL and cross-check the D2 (Hora) chart.',
+            'AnyChart', NULL, 'D2'),
+        (3, 'GHATI_LAGNA',  'GL', 'Ghati Lagna',  'TIME_FROM_SUNRISE',  1,
+            N'Self with respect to fame, power and authority; weighed heavily when timing periods for a politician (PVR sec 5.6). Also called Ghatika Lagna.', 3,
+            N'PVR sec 5.5: a 1-minute birthtime error shifts GL by 1 deg 15 min, so GL is more birthtime-sensitive than the normal lagna, especially in vargas.',
+            'PowerAndFame', N'Bring in when timing fame / power / authority periods - PVR sec 5.6 weighs it heavily for someone in politics or public office. Read houses from GL and cross-check the D10 (Dasamsa) chart. sec 5.5: GL shifts 1 deg 15 min per birthtime minute, so correct the birthtime before trusting it in vargas.',
+            'AnyChart', NULL, 'D10'),
+        (4, 'SREE_LAGNA',   'SL', 'Sree Lagna',   'NAKSHATRA_FRACTION', 1,
+            N'Prosperity (Sree = wealth / Lakshmi). The reference point for Sudasa ("Sree Lagna Kendradi Rasi Dasa") (PVR sec 5.7).', 4,
+            N'PVR sec 5.8: Sree Lagna moves at about twice the rate of the normal lagna; watch rasi-border cases.',
+            'Prosperity', N'The seed point for Sudasa ("Sree Lagna Kendradi Rasi Dasa") - dasas start from the sign holding Sree Lagna (PVR sec 5.7 and the Sudasa chapter). Not read as a chart of its own.',
+            'RasiChartOnly', 'Sudasa', CONVERT(VARCHAR(20),NULL))
+    ) v (Id, LagnaCode, Abbreviation, LagnaName, CalculationType, UsedInBook, Significations, SortOrder, Notes,
+         LifeAreaFocus, UsageContext, HouseReferenceScope, DasaLinkage, VargaCode)
+    LEFT JOIN dbo.tbl_Dim_ChartType ct ON ct.Code = v.VargaCode;
+GO
+IF OBJECT_ID('dbo.tbl_Rule_SpecialLagnaTimeRate', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_SpecialLagnaTimeRate (
+        Id                   INT IDENTITY(1,1) NOT NULL
+                                 CONSTRAINT PK_Rule_SpecialLagnaTimeRate PRIMARY KEY,
+        RuleSetId            TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_SpecialLagnaTimeRate_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        SpecialLagnaId       TINYINT      NOT NULL
+                                 CONSTRAINT FK_Rule_SpecialLagnaTimeRate_Lagna FOREIGN KEY REFERENCES dbo.tbl_Dim_SpecialLagnas (Id),
+        AnchorPoint          VARCHAR(20)  NOT NULL,
+        DegreesPerMinute     DECIMAL(9,6) NOT NULL,
+        NormalizationMethod  VARCHAR(12)  NOT NULL CONSTRAINT DF_Rule_SpecialLagnaTimeRate_Norm DEFAULT 'MOD_360',
+        MethodCode           VARCHAR(30)  NULL,
+        RuleParametersJson   NVARCHAR(MAX) NULL,
+        CalculationNarrative NVARCHAR(MAX) NULL,
+        SourceRefCode        VARCHAR(40)  NULL,
+        IsActive             BIT          NOT NULL CONSTRAINT DF_Rule_SpecialLagnaTimeRate_IsActive DEFAULT 1,
+        CONSTRAINT CK_Rule_SpecialLagnaTimeRate_Anchor CHECK (AnchorPoint IN ('SUN_AT_SUNRISE')),
+        CONSTRAINT CK_Rule_SpecialLagnaTimeRate_Rate   CHECK (DegreesPerMinute > 0),
+        CONSTRAINT CK_Rule_SpecialLagnaTimeRate_Json   CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_Rule_SpecialLagnaTimeRate_Src    CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_SpecialLagnaTimeRate UNIQUE (RuleSetId, SpecialLagnaId)
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_SpecialLagnaTimeRate)
+    INSERT dbo.tbl_Rule_SpecialLagnaTimeRate
+        (RuleSetId, SpecialLagnaId, AnchorPoint, DegreesPerMinute, NormalizationMethod,
+         MethodCode, CalculationNarrative, SourceRefCode, IsActive)
+    SELECT 1, l.Id, v.AnchorPoint, CONVERT(DECIMAL(9,6), v.DegreesPerMinute), 'MOD_360',
+           'TIME_RATE_FROM_SUNRISE', v.Narrative, 'SRC_PVR_INTEGRATED', 1
+    FROM (VALUES
+        ('BHAAVA_LAGNA', 'SUN_AT_SUNRISE', 0.250000,
+            N'Bhaava Lagna (BL) = Sun''s nirayana longitude at the day''s opening sunrise + 0.25 deg per minute elapsed since that sunrise, mod 360. 0.25 deg/min = 15 deg/hour = one rasi per 2 hours, per PVR sec 5.2''s stated rate, the classical ishtakaala/5 rule, and JHora / PyJHora. ERRATUM NOTE: PVR sec 5.2''s method step (2) and worked Example 7 both take the minutes-since-sunrise value directly as degrees (i.e. 1.0 deg/min), which contradicts the same section''s rate by a factor of 4; that reading is treated as a book erratum (rammyps, 2026-09-04). BL carries UsedInBook = 0 - PVR defines it "only for the sake of completeness".'),
+        ('HORA_LAGNA', 'SUN_AT_SUNRISE', 0.500000,
+            N'Hora Lagna (HL) = Sun''s nirayana longitude at the day''s opening sunrise + 0.5 deg per minute elapsed since that sunrise, mod 360 (one rasi per hour). PVR sec 5.3. Matches the shipped HoraLagnaCalculator.cs and its verify-jaimini golden value (23 Pi 55'' 08'').'),
+        ('GHATI_LAGNA', 'SUN_AT_SUNRISE', 1.250000,
+            N'Ghati Lagna (GL) = Sun''s nirayana longitude at the day''s opening sunrise + 1.25 deg per minute elapsed since that sunrise, mod 360 (one rasi per ghati = 24 minutes; PVR''s step multiplies the minute difference by 5 and divides by 4). PVR sec 5.4.')
+    ) v (LagnaCode, AnchorPoint, DegreesPerMinute, Narrative)
+    JOIN dbo.tbl_Dim_SpecialLagnas l ON l.LagnaCode = v.LagnaCode;
+GO
+IF OBJECT_ID('dbo.tbl_Rule_SpecialLagnaFraction', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_SpecialLagnaFraction (
+        Id                    INT IDENTITY(1,1) NOT NULL
+                                  CONSTRAINT PK_Rule_SpecialLagnaFraction PRIMARY KEY,
+        RuleSetId             TINYINT      NOT NULL
+                                  CONSTRAINT FK_Rule_SpecialLagnaFraction_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        SpecialLagnaId        TINYINT      NOT NULL
+                                  CONSTRAINT FK_Rule_SpecialLagnaFraction_Lagna FOREIGN KEY REFERENCES dbo.tbl_Dim_SpecialLagnas (Id),
+        AnchorPoint           VARCHAR(20)  NOT NULL,
+        IncrementBodyPlanetId TINYINT      NOT NULL
+                                  CONSTRAINT FK_Rule_SpecialLagnaFraction_Body FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        FractionBasis         VARCHAR(16)  NOT NULL,
+        ScaleDegrees          DECIMAL(9,6) NOT NULL,
+        NormalizationMethod   VARCHAR(12)  NOT NULL CONSTRAINT DF_Rule_SpecialLagnaFraction_Norm DEFAULT 'MOD_360',
+        MethodCode            VARCHAR(30)  NULL,
+        RuleParametersJson    NVARCHAR(MAX) NULL,
+        CalculationNarrative  NVARCHAR(MAX) NULL,
+        SourceRefCode         VARCHAR(40)  NULL,
+        IsActive              BIT          NOT NULL CONSTRAINT DF_Rule_SpecialLagnaFraction_IsActive DEFAULT 1,
+        CONSTRAINT CK_Rule_SpecialLagnaFraction_Anchor CHECK (AnchorPoint IN ('NATAL_LAGNA')),
+        CONSTRAINT CK_Rule_SpecialLagnaFraction_Basis  CHECK (FractionBasis IN ('NAKSHATRA')),
+        CONSTRAINT CK_Rule_SpecialLagnaFraction_Scale  CHECK (ScaleDegrees > 0),
+        CONSTRAINT CK_Rule_SpecialLagnaFraction_Json   CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_Rule_SpecialLagnaFraction_Src    CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_SpecialLagnaFraction UNIQUE (RuleSetId, SpecialLagnaId)
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_SpecialLagnaFraction)
+    INSERT dbo.tbl_Rule_SpecialLagnaFraction
+        (RuleSetId, SpecialLagnaId, AnchorPoint, IncrementBodyPlanetId, FractionBasis, ScaleDegrees,
+         NormalizationMethod, MethodCode, CalculationNarrative, SourceRefCode, IsActive)
+    SELECT 1, l.Id, 'NATAL_LAGNA', p.Id, 'NAKSHATRA', CONVERT(DECIMAL(9,6), 360.000000), 'MOD_360',
+           'LAGNA_PLUS_NAK_FRACTION',
+           N'Sree Lagna (SL), PVR sec 5.7: (1) find the nakshatra occupied by the Moon; (2) find the fraction of that nakshatra the Moon has traversed; (3) take the same fraction of 360 deg; (4) add it to the natal lagna longitude, mod 360. Example 10: Moon 13 Li 06 in Swati (6 deg 40 min - 20 deg 00 min Li), fraction (6 deg 26 min)/(13 deg 20 min) = 0.4825, x 360 = 173 deg 42 min, + lagna 25 Vi 05 (175 deg 05 min) = 348 deg 47 min = 18 Pi 47.',
+           'SRC_PVR_INTEGRATED', 1
+    FROM dbo.tbl_Dim_SpecialLagnas l
+    JOIN dbo.tbl_Planets p ON p.PlanetName = 'Moon'
+    WHERE l.LagnaCode = 'SREE_LAGNA';
+GO
+
+-- =====================================================================
+-- 30 - Life-area taxonomy (PVR Table 11 / sec 6.3-6.4). Folded from
+-- db/30_life_area_taxonomy.sql. tbl_Dim_LifeArea (20 spheres) + FK from
+-- tbl_Dim_ChartType.PrimaryLifeAreaId (21 mapped, D2-US shares D2) and
+-- tbl_Dim_SpecialLagnas.LifeAreaId (replaces the migration-29
+-- LifeAreaFocus text; GL RelatedVargaChartId corrected D-10 -> D-5).
+-- Taxonomy: Category 'LifeArea' (added to the CK above) + 20 LifeArea
+-- concepts + 4 plane Concepts, sa/en - addendum, not in TerminologySeed.cs.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Dim_LifeArea', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_LifeArea (
+        Id                 TINYINT       NOT NULL
+                               CONSTRAINT PK_Dim_LifeArea PRIMARY KEY,
+        AreaCode           VARCHAR(24)   NOT NULL
+                               CONSTRAINT UQ_Dim_LifeArea_Code UNIQUE,
+        AreaName           VARCHAR(40)   NOT NULL
+                               CONSTRAINT UQ_Dim_LifeArea_Name UNIQUE,
+        Description        NVARCHAR(200)  NOT NULL,
+        PlaneOfExistence   VARCHAR(12)    NOT NULL,
+        WorkspaceGroupCode VARCHAR(20)    NOT NULL,
+        SortOrder          TINYINT        NOT NULL,
+        IsActive           BIT            NOT NULL CONSTRAINT DF_Dim_LifeArea_IsActive DEFAULT 1,
+        SourceRefCode      VARCHAR(40)    NULL,
+        CONSTRAINT CK_Dim_LifeArea_Plane CHECK (PlaneOfExistence IN ('Physical','Mental','SubConscious','Karmic')),
+        CONSTRAINT CK_Dim_LifeArea_Group CHECK (WorkspaceGroupCode IN ('PersonalityHealth','Relationships','Career','Money','Other')),
+        CONSTRAINT CK_Dim_LifeArea_Src   CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%')
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_LifeArea)
+    INSERT dbo.tbl_Dim_LifeArea
+        (Id, AreaCode, AreaName, Description, PlaneOfExistence, WorkspaceGroupCode, SortOrder, SourceRefCode)
+    VALUES
+        ( 1,'PHYSICAL_EXISTENCE',   'Physical existence',        N'Existence at the physical level; general matters (PVR Table 11, D-1).',                       'Physical',    'PersonalityHealth',  1,'SRC_PVR_INTEGRATED'),
+        ( 2,'WEALTH',               'Wealth and money',          N'Wealth and money (PVR Table 11, D-2).',                                                       'Physical',    'Money',              2,'SRC_PVR_INTEGRATED'),
+        ( 3,'SIBLINGS',             'Siblings',                  N'Everything related to brothers and sisters (PVR Table 11, D-3).',                             'Physical',    'Relationships',      3,'SRC_PVR_INTEGRATED'),
+        ( 4,'PROPERTY_FORTUNE',     'Property and fortune',      N'Residence, houses owned, properties and fortune (PVR Table 11, D-4).',                        'Physical',    'Money',              4,'SRC_PVR_INTEGRATED'),
+        ( 5,'FAME_POWER',           'Fame, authority and power', N'Fame, authority and power (PVR Table 11, D-5).',                                              'Physical',    'Career',             5,'SRC_PVR_INTEGRATED'),
+        ( 6,'HEALTH_TROUBLES',      'Health troubles',           N'Health troubles (PVR Table 11, D-6).',                                                        'Physical',    'PersonalityHealth',  6,'SRC_PVR_INTEGRATED'),
+        ( 7,'CHILDREN',             'Children',                  N'Everything related to children and grand-children (PVR Table 11, D-7).',                      'Physical',    'Relationships',      7,'SRC_PVR_INTEGRATED'),
+        ( 8,'SUDDEN_TROUBLES',      'Sudden troubles',           N'Sudden and unexpected troubles, litigation etc (PVR Table 11, D-8).',                         'Physical',    'PersonalityHealth',  8,'SRC_PVR_INTEGRATED'),
+        ( 9,'MARRIAGE_SPOUSE',      'Marriage and spouse',       N'Marriage and everything related to spouse(s); dharma, interaction with others, basic skills, inner self (PVR Table 11, D-9).', 'Physical','Relationships', 9,'SRC_PVR_INTEGRATED'),
+        (10,'CAREER',               'Career and achievements',   N'Career, activities and achievements in society (PVR Table 11, D-10).',                        'Physical',    'Career',            10,'SRC_PVR_INTEGRATED'),
+        (11,'DEATH_DESTRUCTION',    'Death and destruction',     N'Death and destruction (PVR Table 11, D-11).',                                                 'Physical',    'PersonalityHealth', 11,'SRC_PVR_INTEGRATED'),
+        (12,'PARENTS',              'Parents',                   N'Everything related to parents, and to uncles, aunts and grand-parents - the blood-relatives of parents (PVR Table 11, D-12).', 'Physical','Relationships', 12,'SRC_PVR_INTEGRATED'),
+        (13,'VEHICLES_COMFORTS',    'Vehicles and comforts',     N'Vehicles, pleasures, comforts and discomforts (PVR Table 11, D-16).',                         'Mental',      'Other',             13,'SRC_PVR_INTEGRATED'),
+        (14,'RELIGION_SPIRITUALITY','Religion and spirituality', N'Religious activities and spiritual matters (PVR Table 11, D-20).',                            'Mental',      'Other',             14,'SRC_PVR_INTEGRATED'),
+        (15,'EDUCATION',            'Learning and education',     N'Learning, knowledge and education (PVR Table 11, D-24).',                                     'Mental',      'Career',            15,'SRC_PVR_INTEGRATED'),
+        (16,'INNATE_NATURE',        'Strengths and inherent nature', N'Strengths and weaknesses, inherent nature (PVR Table 11, D-27).',                         'SubConscious','PersonalityHealth', 16,'SRC_PVR_INTEGRATED'),
+        (17,'EVILS_PUNISHMENT',     'Evils and punishment',      N'Evils and punishment, the sub-conscious self, some diseases (PVR Table 11, D-30).',           'SubConscious','PersonalityHealth', 17,'SRC_PVR_INTEGRATED'),
+        (18,'AUSPICIOUS_EVENTS',    'Auspicious and inauspicious events', N'Auspicious and inauspicious events (PVR Table 11, D-40).',                            'Karmic',      'Other',             18,'SRC_PVR_INTEGRATED'),
+        (19,'ALL_MATTERS',          'All matters',               N'All matters (PVR Table 11, D-45).',                                                           'Karmic',      'Other',             19,'SRC_PVR_INTEGRATED'),
+        (20,'PAST_LIFE_KARMA',      'Past-life karma',           N'Karma of past life; all matters (PVR Table 11, D-60).',                                       'Karmic',      'Other',             20,'SRC_PVR_INTEGRATED');
+GO
+IF COL_LENGTH('dbo.tbl_Dim_ChartType', 'PrimaryLifeAreaId') IS NULL
+    ALTER TABLE dbo.tbl_Dim_ChartType ADD PrimaryLifeAreaId TINYINT NULL
+        CONSTRAINT FK_Dim_ChartType_PrimaryLifeArea FOREIGN KEY REFERENCES dbo.tbl_Dim_LifeArea (Id);
+GO
+UPDATE ct
+   SET PrimaryLifeAreaId = la.Id
+  FROM dbo.tbl_Dim_ChartType ct
+  JOIN (VALUES
+        ('D1','PHYSICAL_EXISTENCE'),   ('D2','WEALTH'),        ('D2-US','WEALTH'),
+        ('D3','SIBLINGS'),             ('D4','PROPERTY_FORTUNE'), ('D5','FAME_POWER'),
+        ('D6','HEALTH_TROUBLES'),      ('D7','CHILDREN'),      ('D8','SUDDEN_TROUBLES'),
+        ('D9','MARRIAGE_SPOUSE'),      ('D10','CAREER'),       ('D11','DEATH_DESTRUCTION'),
+        ('D12','PARENTS'),             ('D16','VEHICLES_COMFORTS'), ('D20','RELIGION_SPIRITUALITY'),
+        ('D24','EDUCATION'),           ('D27','INNATE_NATURE'), ('D30','EVILS_PUNISHMENT'),
+        ('D40','AUSPICIOUS_EVENTS'),   ('D45','ALL_MATTERS'),  ('D60','PAST_LIFE_KARMA')
+       ) m (ChartCode, AreaCode) ON m.ChartCode = ct.Code
+  JOIN dbo.tbl_Dim_LifeArea la ON la.AreaCode = m.AreaCode;
+GO
+IF COL_LENGTH('dbo.tbl_Dim_SpecialLagnas', 'LifeAreaId') IS NULL
+    ALTER TABLE dbo.tbl_Dim_SpecialLagnas ADD LifeAreaId TINYINT NULL
+        CONSTRAINT FK_Dim_SpecialLagnas_LifeArea FOREIGN KEY REFERENCES dbo.tbl_Dim_LifeArea (Id);
+GO
+UPDATE l
+   SET LifeAreaId = la.Id
+  FROM dbo.tbl_Dim_SpecialLagnas l
+  JOIN (VALUES ('HORA_LAGNA','WEALTH'), ('GHATI_LAGNA','FAME_POWER'), ('SREE_LAGNA','WEALTH')) m (LagnaCode, AreaCode)
+       ON m.LagnaCode = l.LagnaCode
+  JOIN dbo.tbl_Dim_LifeArea la ON la.AreaCode = m.AreaCode;
+GO
+UPDATE dbo.tbl_Dim_SpecialLagnas
+   SET RelatedVargaChartId = (SELECT Id FROM dbo.tbl_Dim_ChartType WHERE Code = 'D5'),
+       UsageContext = N'Bring in when timing fame / power / authority periods - PVR sec 5.6 weighs it heavily for someone in politics or public office. Its own sphere is D-5 (Panchamsa); read the D-10 (Dasamsa) career chart alongside it (PVR sec 6.5 promotion example). sec 5.5: GL shifts 1 deg 15 min per birthtime minute, so correct the birthtime before trusting it in vargas.'
+ WHERE LagnaCode = 'GHATI_LAGNA';
+GO
+IF COL_LENGTH('dbo.tbl_Dim_SpecialLagnas', 'LifeAreaFocus') IS NOT NULL
+    ALTER TABLE dbo.tbl_Dim_SpecialLagnas DROP COLUMN LifeAreaFocus;
+GO
+MERGE dbo.tbl_Astro_Terminology AS tgt
+USING (
+    SELECT 'LifeArea' AS Category, 'LIFEAREA_' + AreaCode AS Code,
+           CONVERT(VARCHAR(40), NULL) AS ParentCode, 'LIFEAREA' AS EngineCode,
+           CONVERT(INT, NULL) AS NumericKey, 920 + Id AS DisplayOrder
+    FROM dbo.tbl_Dim_LifeArea
+    UNION ALL
+    SELECT * FROM (VALUES
+        ('Concept','PLANE_PHYSICAL',     CONVERT(VARCHAR(40),NULL),'LIFEAREA',CONVERT(INT,NULL),961),
+        ('Concept','PLANE_MENTAL',       NULL,'LIFEAREA',NULL,962),
+        ('Concept','PLANE_SUBCONSCIOUS', NULL,'LIFEAREA',NULL,963),
+        ('Concept','PLANE_KARMIC',       NULL,'LIFEAREA',NULL,964)
+    ) p (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder)
+) AS src (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder)
+ON tgt.Code = src.Code
+WHEN MATCHED THEN UPDATE SET Category = src.Category, ParentCode = src.ParentCode,
+    EngineCode = src.EngineCode, NumericKey = src.NumericKey, DisplayOrder = src.DisplayOrder, IsActive = 1
+WHEN NOT MATCHED THEN INSERT (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder, IsActive)
+    VALUES (src.Category, src.Code, src.ParentCode, src.EngineCode, src.NumericKey, src.DisplayOrder, 1);
+GO
+MERGE dbo.tbl_Astro_TerminologyText AS tgt
+USING (
+  SELECT t.TerminologyId, v.LanguageCode, v.Script, v.Name, v.TraditionalName, v.ShortDescription
+  FROM (VALUES
+   ('LIFEAREA_PHYSICAL_EXISTENCE','sa','Latn',N'Sthula Deha',N'Sthula Deha',NULL),
+   ('LIFEAREA_PHYSICAL_EXISTENCE','en','Latn',N'Physical existence',NULL,N'Existence at the physical level; general matters (PVR Table 11, D-1).'),
+   ('LIFEAREA_WEALTH','sa','Latn',N'Dhana',N'Dhana',NULL),
+   ('LIFEAREA_WEALTH','en','Latn',N'Wealth and money',NULL,N'Wealth and money (PVR Table 11, D-2).'),
+   ('LIFEAREA_SIBLINGS','sa','Latn',N'Sahaja',N'Sahaja',NULL),
+   ('LIFEAREA_SIBLINGS','en','Latn',N'Siblings',NULL,N'Everything related to brothers and sisters (PVR Table 11, D-3).'),
+   ('LIFEAREA_PROPERTY_FORTUNE','sa','Latn',N'Griha Bhagya',N'Griha Bhagya',NULL),
+   ('LIFEAREA_PROPERTY_FORTUNE','en','Latn',N'Property and fortune',NULL,N'Residence, houses owned, properties and fortune (PVR Table 11, D-4).'),
+   ('LIFEAREA_FAME_POWER','sa','Latn',N'Yasha Adhikara',N'Yasha Adhikara',NULL),
+   ('LIFEAREA_FAME_POWER','en','Latn',N'Fame, authority and power',NULL,N'Fame, authority and power (PVR Table 11, D-5).'),
+   ('LIFEAREA_HEALTH_TROUBLES','sa','Latn',N'Roga',N'Roga',NULL),
+   ('LIFEAREA_HEALTH_TROUBLES','en','Latn',N'Health troubles',NULL,N'Health troubles (PVR Table 11, D-6).'),
+   ('LIFEAREA_CHILDREN','sa','Latn',N'Santana',N'Santana',NULL),
+   ('LIFEAREA_CHILDREN','en','Latn',N'Children',NULL,N'Everything related to children and grand-children (PVR Table 11, D-7).'),
+   ('LIFEAREA_SUDDEN_TROUBLES','sa','Latn',N'Akasmika Vighna',N'Akasmika Vighna',NULL),
+   ('LIFEAREA_SUDDEN_TROUBLES','en','Latn',N'Sudden troubles',NULL,N'Sudden and unexpected troubles, litigation etc (PVR Table 11, D-8).'),
+   ('LIFEAREA_MARRIAGE_SPOUSE','sa','Latn',N'Kalatra',N'Kalatra',NULL),
+   ('LIFEAREA_MARRIAGE_SPOUSE','en','Latn',N'Marriage and spouse',NULL,N'Marriage and everything related to spouse(s); dharma, interaction with others, basic skills, inner self (PVR Table 11, D-9).'),
+   ('LIFEAREA_CAREER','sa','Latn',N'Karma Ajiva',N'Karma Ajiva',NULL),
+   ('LIFEAREA_CAREER','en','Latn',N'Career and achievements',NULL,N'Career, activities and achievements in society (PVR Table 11, D-10).'),
+   ('LIFEAREA_DEATH_DESTRUCTION','sa','Latn',N'Mrityu Nasha',N'Mrityu Nasha',NULL),
+   ('LIFEAREA_DEATH_DESTRUCTION','en','Latn',N'Death and destruction',NULL,N'Death and destruction (PVR Table 11, D-11).'),
+   ('LIFEAREA_PARENTS','sa','Latn',N'Matri Pitri',N'Matri Pitri',NULL),
+   ('LIFEAREA_PARENTS','en','Latn',N'Parents',NULL,N'Everything related to parents, and to the blood-relatives of parents (PVR Table 11, D-12).'),
+   ('LIFEAREA_VEHICLES_COMFORTS','sa','Latn',N'Vahana Sukha',N'Vahana Sukha',NULL),
+   ('LIFEAREA_VEHICLES_COMFORTS','en','Latn',N'Vehicles and comforts',NULL,N'Vehicles, pleasures, comforts and discomforts (PVR Table 11, D-16).'),
+   ('LIFEAREA_RELIGION_SPIRITUALITY','sa','Latn',N'Dharma Adhyatma',N'Dharma Adhyatma',NULL),
+   ('LIFEAREA_RELIGION_SPIRITUALITY','en','Latn',N'Religion and spirituality',NULL,N'Religious activities and spiritual matters (PVR Table 11, D-20).'),
+   ('LIFEAREA_EDUCATION','sa','Latn',N'Vidya',N'Vidya',NULL),
+   ('LIFEAREA_EDUCATION','en','Latn',N'Learning and education',NULL,N'Learning, knowledge and education (PVR Table 11, D-24).'),
+   ('LIFEAREA_INNATE_NATURE','sa','Latn',N'Svabhava',N'Svabhava',NULL),
+   ('LIFEAREA_INNATE_NATURE','en','Latn',N'Strengths and inherent nature',NULL,N'Strengths and weaknesses, inherent nature (PVR Table 11, D-27).'),
+   ('LIFEAREA_EVILS_PUNISHMENT','sa','Latn',N'Dushkrita Danda',N'Dushkrita Danda',NULL),
+   ('LIFEAREA_EVILS_PUNISHMENT','en','Latn',N'Evils and punishment',NULL,N'Evils and punishment, the sub-conscious self, some diseases (PVR Table 11, D-30).'),
+   ('LIFEAREA_AUSPICIOUS_EVENTS','sa','Latn',N'Shubha Ashubha',N'Shubha Ashubha',NULL),
+   ('LIFEAREA_AUSPICIOUS_EVENTS','en','Latn',N'Auspicious and inauspicious events',NULL,N'Auspicious and inauspicious events (PVR Table 11, D-40).'),
+   ('LIFEAREA_ALL_MATTERS','sa','Latn',N'Sarva Vishaya',N'Sarva Vishaya',NULL),
+   ('LIFEAREA_ALL_MATTERS','en','Latn',N'All matters',NULL,N'All matters (PVR Table 11, D-45).'),
+   ('LIFEAREA_PAST_LIFE_KARMA','sa','Latn',N'Prarabdha Karma',N'Prarabdha Karma',NULL),
+   ('LIFEAREA_PAST_LIFE_KARMA','en','Latn',N'Past-life karma',NULL,N'Karma of past life; all matters (PVR Table 11, D-60).'),
+   ('PLANE_PHYSICAL','sa','Latn',N'Sthula',N'Sthula',NULL),
+   ('PLANE_PHYSICAL','en','Latn',N'Physical plane',NULL,N'PVR sec 6.4: divisional charts D-1..D-12 - body, wealth, residence, family and other physical-self matters.'),
+   ('PLANE_MENTAL','sa','Latn',N'Manas',N'Manas',NULL),
+   ('PLANE_MENTAL','en','Latn',N'Mental plane',NULL,N'PVR sec 6.4: divisional charts D-16, D-20, D-24 - pleasure, unhappiness, religiousness, learning.'),
+   ('PLANE_SUBCONSCIOUS','sa','Latn',N'Adhomanas',N'Adhomanas',NULL),
+   ('PLANE_SUBCONSCIOUS','en','Latn',N'Sub-conscious plane',NULL,N'PVR sec 6.4: divisional charts D-27, D-30 - inherent nature, strengths, weaknesses, psychological imbalances.'),
+   ('PLANE_KARMIC','sa','Latn',N'Karmika',N'Karmika',NULL),
+   ('PLANE_KARMIC','en','Latn',N'Karmic plane',NULL,N'PVR sec 6.4: divisional charts D-40, D-45, D-60 - existence shaped by the karma of previous lives.')
+  ) AS v (Code, LanguageCode, Script, Name, TraditionalName, ShortDescription)
+  JOIN dbo.tbl_Astro_Terminology t ON t.Code = v.Code
+) AS src
+ON tgt.TerminologyId = src.TerminologyId AND tgt.LanguageCode = src.LanguageCode AND tgt.Script = src.Script
+WHEN MATCHED THEN UPDATE SET Name = src.Name, TraditionalName = src.TraditionalName, ShortDescription = src.ShortDescription
+WHEN NOT MATCHED THEN INSERT (TerminologyId, LanguageCode, Script, Name, TraditionalName, ShortDescription)
+    VALUES (src.TerminologyId, src.LanguageCode, src.Script, src.Name, src.TraditionalName, src.ShortDescription);
+GO
+
+-- =====================================================================
+-- 38 — Divisional subject reference.  The D1 foundation remains the
+-- promise; the primary Varga supplies subject-specific confirmation.
+-- The four interpretation dimensions are shared by house-lord and Varga
+-- readings and are catalog metadata, not computed chart facts.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Dim_DivisionalSubject', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_DivisionalSubject (
+        SubjectCode                VARCHAR(40)   NOT NULL CONSTRAINT PK_Dim_DivisionalSubject PRIMARY KEY,
+        SubjectName                NVARCHAR(80)  NOT NULL CONSTRAINT UQ_Dim_DivisionalSubject_Name UNIQUE,
+        D1Foundation               NVARCHAR(500) NOT NULL,
+        PrimaryConfirmationChartId TINYINT       NOT NULL CONSTRAINT FK_Dim_DivisionalSubject_Chart FOREIGN KEY REFERENCES dbo.tbl_Dim_ChartType (Id),
+        ConfirmationAdds           NVARCHAR(500) NOT NULL,
+        SortOrder                  TINYINT       NOT NULL,
+        SourceRefCode              VARCHAR(40)   NULL,
+        IsActive                   BIT           NOT NULL CONSTRAINT DF_Dim_DivisionalSubject_IsActive DEFAULT 1,
+        CONSTRAINT CK_Dim_DivisionalSubject_Source CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%')
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_DivisionalSubject)
+INSERT dbo.tbl_Dim_DivisionalSubject
+    (SubjectCode, SubjectName, D1Foundation, PrimaryConfirmationChartId, ConfirmationAdds, SortOrder, SourceRefCode)
+SELECT v.SubjectCode, v.SubjectName, v.D1Foundation, ct.Id, v.ConfirmationAdds, v.SortOrder, 'SRC_PVR_INTEGRATED'
+FROM (VALUES
+    ('OVERALL_STRENGTH_DHARMA', N'Overall strength and dharma', N'Lagna, Lagna lord, Sun, 9th house and their dignity, aspects and lordship.', 'D9', N'Planetary maturity, inner strength, dharma and the deeper expression of the D1 promise.', 1),
+    ('WEALTH', N'Wealth', N'2nd and 11th houses, their lords, Jupiter, Venus and links to income or assets.', 'D2', N'Capacity to accumulate, preserve and use money and resources.', 2),
+    ('SIBLINGS_COURAGE', N'Siblings and courage', N'3rd house, 3rd lord, Mars and effort-related combinations.', 'D3', N'Siblings, co-born relationships, courage, initiative and sustained effort.', 3),
+    ('PROPERTY_RESIDENCE', N'Property and residence', N'4th house, 4th lord, Moon and fixed-asset combinations.', 'D4', N'Residence, houses, land, property ownership and fortune connected with assets.', 4),
+    ('CHILDREN_PROGENY', N'Children and progeny', N'5th house, 5th lord, Jupiter and progeny combinations.', 'D7', N'Children, fertility, progeny and the relationship with children.', 5),
+    ('MOTHER_PARENTS', N'Mother and parental lineage', N'4th house and Moon for mother; 9th/10th and family factors for parents.', 'D12', N'Parents, ancestry and inherited family patterns; read with the D1 4th and 9th houses.', 6),
+    ('MARRIAGE_RELATIONSHIPS', N'Marriage and relationships', N'7th house, 7th lord, Venus and partnership combinations.', 'D9', N'Spouse, marriage quality, relationship dharma and long-term partnership.', 7),
+    ('CAREER_STATUS', N'Career and status', N'10th house, 10th lord, Sun, Saturn and public-action combinations.', 'D10', N'Profession, authority, achievements, recognition and activity in society.', 8),
+    ('VEHICLES_COMFORTS', N'Vehicles and comforts', N'4th house, Venus, Moon and comfort-related combinations.', 'D16', N'Vehicles, pleasures, comforts and the ability to enjoy material conveniences.', 9),
+    ('EDUCATION_LEARNING', N'Education and learning', N'4th, 5th and 9th houses; Mercury, Jupiter and knowledge combinations.', 'D24', N'Formal education, learning, scholarship, examinations and mastery.', 10),
+    ('KARMIC_ROOTS', N'Karmic roots', N'D1 promise, major life indicators and the condition of the relevant lords and karakas.', 'D60', N'Deep karmic causes and subtle confirmation of major life patterns; birth-time sensitive.', 11)
+) v (SubjectCode, SubjectName, D1Foundation, ChartCode, ConfirmationAdds, SortOrder)
+JOIN dbo.tbl_Dim_ChartType ct ON ct.Code = v.ChartCode;
+GO
+IF OBJECT_ID('dbo.tbl_Dim_InterpretationDimension', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_InterpretationDimension (
+        DimensionCode VARCHAR(32)   NOT NULL CONSTRAINT PK_Dim_InterpretationDimension PRIMARY KEY,
+        DimensionName NVARCHAR(80)  NOT NULL CONSTRAINT UQ_Dim_InterpretationDimension_Name UNIQUE,
+        Description   NVARCHAR(400) NOT NULL,
+        SortOrder     TINYINT       NOT NULL,
+        SourceRefCode VARCHAR(40)   NULL,
+        IsActive      BIT           NOT NULL CONSTRAINT DF_Dim_InterpretationDimension_IsActive DEFAULT 1,
+        CONSTRAINT CK_Dim_InterpretationDimension_Source CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%')
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_InterpretationDimension)
+INSERT dbo.tbl_Dim_InterpretationDimension
+    (DimensionCode, DimensionName, Description, SortOrder, SourceRefCode)
+VALUES
+    ('PLANETARY_DIGNITY',       N'Planetary dignity',       N'Assess exaltation, debilitation, own sign, moolatrikona, friendship, combustion and other strength indicators in the chart under review.', 1, 'SRC_PVR_INTEGRATED'),
+    ('DISPOSITOR_RELATION',     N'Dispositor relation',     N'Follow the result through the lord of the sign occupied by the planet and evaluate that dispositor''s house, sign, dignity and relationships.', 2, 'SRC_PVR_INTEGRATED'),
+    ('HOUSE_LORD_COMBINATION',  N'House-lord combination',  N'Combine every house owned by a planet, then assess conjunction, aspect, exchange, kendra-trikona links and functional nature.', 3, 'SRC_PVR_INTEGRATED'),
+    ('DIVISIONAL_CONFIRMATION', N'Divisional confirmation', N'Confirm the D1 promise in the primary subject Varga by reading that Varga''s Lagna, houses, lords, karakas and planetary dignity.', 4, 'SRC_PVR_INTEGRATED');
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_Catalog WHERE RuleTableName = 'tbl_Dim_DivisionalSubject')
+    INSERT dbo.tbl_Rule_Catalog (RuleTableName, EngineCode, MethodCodes, Purpose, IntroducedIn)
+    VALUES ('tbl_Dim_DivisionalSubject', 'VARGA_REFERENCE', 'SUBJECT_TO_VARGA', 'Reference mapping from a life subject to its D1 foundation and primary confirmation divisional chart.', '38_add_divisional_subject_reference.sql');
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_Catalog WHERE RuleTableName = 'tbl_Dim_InterpretationDimension')
+    INSERT dbo.tbl_Rule_Catalog (RuleTableName, EngineCode, MethodCodes, Purpose, IntroducedIn)
+    VALUES ('tbl_Dim_InterpretationDimension', 'INTERPRETATION', 'DIMENSION_CATALOG', 'Shared interpretation dimensions applied to house-lord and divisional-chart readings.', '38_add_divisional_subject_reference.sql');
+GO
+
+-- =====================================================================
+-- 31 - House model (PVR ch. 7). Folded from db/31_add_house_model.sql.
+-- tbl_Dim_House (12-bhava master: Sanskrit name, purushartha sec 7.4.1,
+-- visible/invisible half sec 7.4.5, Kala Purusha limb sec 7.2, the seven
+-- sec 7.4 category bits + IsMaraka). tbl_Dim_HouseCategory (8-row
+-- descriptive catalogue, sec 7.4.6 effect + deity). tbl_Rule_House-
+-- Signification (reserved above -> here tightened + populated, 121 rows
+-- from sec 7.2). tbl_Dim_HouseAttribute (3) + tbl_Rule_HouseAttribute
+-- (EAV, 24 rows) mirror the graha attribute pair (migration 26).
+-- Taxonomy: Category 'HouseCategory' (in the CK above) + 8 HCAT_* + 4
+-- PURUSHARTHA_* + 2 ZHALF_* concepts, sa/en - addendum, not in
+-- TerminologySeed.cs yet.
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Dim_House', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_House (
+        HouseNumber         TINYINT      NOT NULL
+                                CONSTRAINT PK_Dim_House PRIMARY KEY,
+        BhavaNameSa         VARCHAR(20)  NOT NULL,
+        ShortName           NVARCHAR(40) NOT NULL,
+        PurusharthaCode     VARCHAR(8)   NOT NULL,
+        ZodiacHalf          VARCHAR(10)  NOT NULL,
+        KalapurushaBodyPart NVARCHAR(60) NOT NULL,
+        IsKendra            BIT          NOT NULL,
+        IsTrikona           BIT          NOT NULL,
+        IsPanaphara         BIT          NOT NULL,
+        IsApoklima          BIT          NOT NULL,
+        IsUpachaya          BIT          NOT NULL,
+        IsDusthana          BIT          NOT NULL,
+        IsChaturasra        BIT          NOT NULL,
+        IsMaraka            BIT          NOT NULL,
+        IsActive            BIT          NOT NULL CONSTRAINT DF_Dim_House_IsActive DEFAULT 1,
+        SourceRefCode       VARCHAR(40)  NULL,
+        CONSTRAINT CK_Dim_House_Num         CHECK (HouseNumber BETWEEN 1 AND 12),
+        CONSTRAINT CK_Dim_House_Purushartha CHECK (PurusharthaCode IN ('Dharma','Artha','Kama','Moksha')),
+        CONSTRAINT CK_Dim_House_Half        CHECK (ZodiacHalf IN ('Visible','Invisible')),
+        CONSTRAINT CK_Dim_House_Src         CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%')
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_House)
+    INSERT dbo.tbl_Dim_House
+        (HouseNumber, BhavaNameSa, ShortName, PurusharthaCode, ZodiacHalf, KalapurushaBodyPart,
+         IsKendra, IsTrikona, IsPanaphara, IsApoklima, IsUpachaya, IsDusthana, IsChaturasra, IsMaraka, SourceRefCode)
+    VALUES
+    ( 1,'Tanu',   N'Self, body & vitality',              'Dharma','Invisible',N'Head',                          1,1,0,0,0,0,0,0,'SRC_PVR_INTEGRATED'),
+    ( 2,'Dhana',  N'Wealth, family & speech',            'Artha', 'Invisible',N'Face, right eye, mouth',        0,0,1,0,0,0,0,1,'SRC_PVR_INTEGRATED'),
+    ( 3,'Sahaja', N'Siblings, courage & communication',  'Kama',  'Invisible',N'Arms, shoulders, throat, ears', 0,0,0,1,1,0,0,0,'SRC_PVR_INTEGRATED'),
+    ( 4,'Bandhu', N'Mother, home & happiness',           'Moksha','Invisible',N'Chest, heart',                  1,0,0,0,0,0,1,0,'SRC_PVR_INTEGRATED'),
+    ( 5,'Putra',  N'Children, intellect & merit',        'Dharma','Invisible',N'Stomach, upper abdomen',        0,1,1,0,0,0,0,0,'SRC_PVR_INTEGRATED'),
+    ( 6,'Ari',    N'Enemies, disease & service',         'Artha', 'Invisible',N'Lower abdomen, hips',           0,0,0,1,1,1,0,0,'SRC_PVR_INTEGRATED'),
+    ( 7,'Yuvati', N'Spouse, marriage & partnership',     'Kama',  'Visible',  N'Below the navel, pelvis',       1,0,0,0,0,0,0,1,'SRC_PVR_INTEGRATED'),
+    ( 8,'Randhra',N'Longevity, upheaval & the hidden',   'Moksha','Visible',  N'Genitals, excretory organs',    0,0,1,0,0,1,1,0,'SRC_PVR_INTEGRATED'),
+    ( 9,'Dharma', N'Father, fortune & dharma',           'Dharma','Visible',  N'Thighs',                        0,1,0,1,0,0,0,0,'SRC_PVR_INTEGRATED'),
+    (10,'Karma',  N'Career, action & status',            'Artha', 'Visible',  N'Knees',                         1,0,0,0,1,0,0,0,'SRC_PVR_INTEGRATED'),
+    (11,'Labha',  N'Gains, income & elder siblings',     'Kama',  'Visible',  N'Calves, ankles',               0,0,1,0,1,0,0,0,'SRC_PVR_INTEGRATED'),
+    (12,'Vyaya',  N'Loss, expense & liberation',         'Moksha','Visible',  N'Feet, left eye',               0,0,0,1,0,1,0,0,'SRC_PVR_INTEGRATED');
+GO
+IF OBJECT_ID('dbo.tbl_Dim_HouseCategory', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_HouseCategory (
+        CategoryCode    VARCHAR(16)   NOT NULL
+                            CONSTRAINT PK_Dim_HouseCategory PRIMARY KEY,
+        DisplayName     NVARCHAR(40)  NOT NULL,
+        AltNamesEn      VARCHAR(80)   NULL,
+        EffectSummary   NVARCHAR(200) NOT NULL,
+        PresidingDeity  VARCHAR(20)   NULL,
+        HouseSet        VARCHAR(24)   NOT NULL,
+        IsClassicalOnly BIT           NOT NULL CONSTRAINT DF_Dim_HouseCategory_Classical DEFAULT 0,
+        SortOrder       TINYINT       NOT NULL,
+        SourceRefCode   VARCHAR(40)   NULL,
+        CONSTRAINT CK_Dim_HouseCategory_Src CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%')
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_HouseCategory)
+    INSERT dbo.tbl_Dim_HouseCategory
+        (CategoryCode, DisplayName, AltNamesEn, EffectSummary, PresidingDeity, HouseSet, IsClassicalOnly, SortOrder, SourceRefCode)
+    VALUES
+    ('KENDRA',    N'Kendra',    'quadrant, angle, chatushtaya', N'Sustenance and vital activity; the pillars of the chart. Abode of Vishnu.',           'Vishnu',  '1,4,7,10', 0, 1, 'SRC_PVR_INTEGRATED'),
+    ('TRIKONA',   N'Trikona',   'trine, kona',                  N'Prosperity and flourishing; dharma and grace. Abode of Lakshmi.',                    'Lakshmi', '1,5,9',    0, 2, 'SRC_PVR_INTEGRATED'),
+    ('PANAPHARA', N'Panaphara', 'succedent',                    N'Quadrants counted from the 2nd; accumulation and holding.',                          NULL,      '2,5,8,11', 0, 3, 'SRC_PVR_INTEGRATED'),
+    ('APOKLIMA',  N'Apoklima',  'cadent, precedent',            N'Quadrants counted from the 3rd; seeking, effort and dissipation.',                   NULL,      '3,6,9,12', 0, 4, 'SRC_PVR_INTEGRATED'),
+    ('UPACHAYA',  N'Upachaya',  'house of growth',              N'Gains and growth; matters that improve with time and sustained effort.',             NULL,      '3,6,10,11',0, 5, 'SRC_PVR_INTEGRATED'),
+    ('DUSTHANA',  N'Dusthana',  'trik sthana, evil house',      N'Setbacks and obstacles; suffering, loss and dissolution.',                           NULL,      '6,8,12',   0, 6, 'SRC_PVR_INTEGRATED'),
+    ('CHATURASRA',N'Chaturasra','quadrangle',                   N'The 4th and 8th together; latent strain around home and longevity.',                 NULL,      '4,8',      0, 7, 'SRC_PVR_INTEGRATED'),
+    ('MARAKA',    N'Maraka',    'killer house',                 N'Classical death-inflicting houses; from the longevity chapter, not PVR sec 7.4.',    NULL,      '2,7',      1, 8, 'SRC_PVR_INTEGRATED');
+GO
+IF EXISTS (SELECT 1 FROM sys.columns
+           WHERE object_id = OBJECT_ID('dbo.tbl_Rule_HouseSignification')
+             AND name = 'RuleSetId' AND system_type_id = TYPE_ID('int'))
+    ALTER TABLE dbo.tbl_Rule_HouseSignification ALTER COLUMN RuleSetId TINYINT NOT NULL;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Rule_HouseSignification_RuleSet')
+    ALTER TABLE dbo.tbl_Rule_HouseSignification
+        ADD CONSTRAINT FK_Rule_HouseSignification_RuleSet FOREIGN KEY (RuleSetId) REFERENCES dbo.tbl_Rule_Sets (Id);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Rule_HouseSignification_House')
+    ALTER TABLE dbo.tbl_Rule_HouseSignification
+        ADD CONSTRAINT FK_Rule_HouseSignification_House FOREIGN KEY (HouseNumber) REFERENCES dbo.tbl_Dim_House (HouseNumber);
+GO
+IF COL_LENGTH('dbo.tbl_Rule_HouseSignification', 'SignificationText') IS NULL
+    ALTER TABLE dbo.tbl_Rule_HouseSignification ADD SignificationText NVARCHAR(200) NULL;
+GO
+IF COL_LENGTH('dbo.tbl_Rule_HouseSignification', 'SignificationCategory') IS NULL
+    ALTER TABLE dbo.tbl_Rule_HouseSignification ADD SignificationCategory VARCHAR(20) NULL
+        CONSTRAINT CK_Rule_HouseSignification_Cat
+        CHECK (SignificationCategory IS NULL OR SignificationCategory IN ('Matter','Person','BodyPart','DerivedHouse','Trait'));
+GO
+IF COL_LENGTH('dbo.tbl_Rule_HouseSignification', 'DisplayOrder') IS NULL
+    ALTER TABLE dbo.tbl_Rule_HouseSignification ADD DisplayOrder TINYINT NOT NULL CONSTRAINT DF_Rule_HouseSignification_Order DEFAULT 0;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UQ_Rule_HouseSignification')
+    CREATE UNIQUE INDEX UQ_Rule_HouseSignification
+        ON dbo.tbl_Rule_HouseSignification (RuleSetId, HouseNumber, SignificationCode);
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_HouseSignification)
+BEGIN
+    ;WITH s (HouseNumber, SignificationCode, SignificationText, SignificationCategory, DisplayOrder) AS (
+        SELECT * FROM (VALUES
+        ( 1,'H01_SELF',              N'The self and the "spirit of I"',                       'Matter',      1),
+        ( 1,'H01_PHYSICAL_BODY',     N'Physical body and constitution',                      'Matter',      2),
+        ( 1,'H01_APPEARANCE',        N'Appearance and complexion',                           'Matter',      3),
+        ( 1,'H01_HEAD',              N'Head',                                                'BodyPart',    4),
+        ( 1,'H01_INTELLIGENCE',      N'Intelligence',                                        'Matter',      5),
+        ( 1,'H01_STRENGTH_ENERGY',   N'Strength, vigour and energy',                         'Matter',      6),
+        ( 1,'H01_FAME',              N'Fame and reputation',                                 'Matter',      7),
+        ( 1,'H01_SUCCESS',           N'Success in undertakings',                             'Matter',      8),
+        ( 1,'H01_NATURE_OF_BIRTH',   N'Nature and circumstances of birth',                   'Matter',      9),
+        ( 1,'H01_CASTE',             N'Caste',                                               'Matter',     10),
+        ( 2,'H02_WEALTH',            N'Wealth and accumulated assets',                       'Matter',      1),
+        ( 2,'H02_FAMILY',            N'Family (kutumba)',                                     'Person',      2),
+        ( 2,'H02_SPEECH',            N'Speech',                                              'Matter',      3),
+        ( 2,'H02_EYES',              N'Eyes, especially the right eye',                      'BodyPart',    4),
+        ( 2,'H02_MOUTH_FACE',        N'Mouth and face',                                     'BodyPart',    5),
+        ( 2,'H02_VOICE',             N'Voice',                                              'Matter',      6),
+        ( 2,'H02_FOOD',              N'Food and eating',                                     'Matter',      7),
+        ( 3,'H03_YOUNGER_COBORNS',   N'Younger siblings and co-borns',                       'Person',      1),
+        ( 3,'H03_CONFIDANTS',        N'Confidants',                                          'Person',      2),
+        ( 3,'H03_COURAGE',           N'Courage and valour',                                  'Matter',      3),
+        ( 3,'H03_MENTAL_STRENGTH',   N'Mental strength and resolve',                         'Matter',      4),
+        ( 3,'H03_COMMUNICATION',     N'Communication skills',                                'Matter',      5),
+        ( 3,'H03_CREATIVITY',        N'Creativity and skill with the hands',                 'Matter',      6),
+        ( 3,'H03_ARMS',              N'Arms and shoulders',                                  'BodyPart',    7),
+        ( 3,'H03_THROAT_EARS',       N'Throat and ears',                                     'BodyPart',    8),
+        ( 3,'H03_SHORT_TRAVELS',     N'Short journeys and travels',                          'Matter',      9),
+        ( 3,'H03_FATHERS_DEATH',     N'Father''s death (7th from the 9th)',                  'DerivedHouse',10),
+        ( 3,'H03_VEHICLE_HOUSE_EXPENSE', N'Expenditure on vehicles and house (12th from the 4th)', 'DerivedHouse', 11),
+        ( 4,'H04_MOTHER',            N'Mother',                                              'Person',      1),
+        ( 4,'H04_HAPPINESS',         N'Happiness, comforts and peace of mind',               'Matter',      2),
+        ( 4,'H04_VEHICLES',          N'Vehicles',                                            'Matter',      3),
+        ( 4,'H04_HOUSE_LANDS',       N'House, lands and immovable property',                 'Matter',      4),
+        ( 4,'H04_MOTHERLAND',        N'Motherland',                                          'Matter',      5),
+        ( 4,'H04_CHILDHOOD',         N'Childhood',                                           'Matter',      6),
+        ( 4,'H04_EDUCATION',         N'Education',                                           'Matter',      7),
+        ( 4,'H04_HEART',             N'Heart and chest',                                     'BodyPart',    8),
+        ( 4,'H04_STATE_OF_MIND',     N'State of mind and emotional foundation',              'Matter',      9),
+        ( 4,'H04_REALESTATE_WEALTH', N'Wealth from real estate',                             'Matter',     10),
+        ( 4,'H04_RELATIVES',         N'Relatives',                                           'Person',     11),
+        ( 5,'H05_CHILDREN',          N'Children',                                            'Person',      1),
+        ( 5,'H05_POORVAPUNYA',       N'Merit of past deeds (poorvapunya)',                   'Matter',      2),
+        ( 5,'H05_INTELLIGENCE',      N'Intelligence and discrimination',                     'Matter',      3),
+        ( 5,'H05_KNOWLEDGE',         N'Knowledge and scholarship',                           'Matter',      4),
+        ( 5,'H05_MANTRA',            N'Devotion, mantras and worship',                       'Matter',      5),
+        ( 5,'H05_STOMACH',           N'Stomach and digestive system',                        'BodyPart',    6),
+        ( 5,'H05_AUTHORITY',         N'Authority and power',                                 'Matter',      7),
+        ( 5,'H05_FAME',              N'Fame',                                                'Matter',      8),
+        ( 5,'H05_LOVE_EMOTIONS',     N'Love, affection and emotions',                        'Matter',      9),
+        ( 5,'H05_JUDGMENT',          N'Judgment',                                            'Matter',     10),
+        ( 5,'H05_SPECULATION',       N'Speculation',                                         'Matter',     11),
+        ( 6,'H06_ENEMIES',           N'Enemies',                                             'Person',      1),
+        ( 6,'H06_SERVICE',           N'Service and employment under others',                 'Matter',      2),
+        ( 6,'H06_SERVANTS',          N'Servants and subordinates',                           'Person',      3),
+        ( 6,'H06_RELATIVES',         N'Relatives',                                           'Person',      4),
+        ( 6,'H06_MENTAL_TENSION',    N'Mental tension and affliction',                       'Matter',      5),
+        ( 6,'H06_INJURIES',          N'Injuries and accidents',                              'Matter',      6),
+        ( 6,'H06_DISEASE',           N'Diseases and health troubles',                        'Matter',      7),
+        ( 6,'H06_AGRICULTURE',       N'Agriculture',                                         'Matter',      8),
+        ( 6,'H06_MATERNAL_UNCLE',    N'Mother''s younger brother',                           'Person',      9),
+        ( 6,'H06_HIPS',              N'Hips',                                                'BodyPart',   10),
+        ( 7,'H07_MARRIAGE',          N'Marriage and marital life',                           'Matter',      1),
+        ( 7,'H07_SPOUSE',            N'Life partner and spouse',                             'Person',      2),
+        ( 7,'H07_PASSION',           N'Sex and passion',                                     'Matter',      3),
+        ( 7,'H07_LONG_JOURNEYS',     N'Long journeys',                                       'Matter',      4),
+        ( 7,'H07_PARTNERS',          N'Partners and partnerships',                           'Person',      5),
+        ( 7,'H07_BUSINESS',          N'Business and trade',                                  'Matter',      6),
+        ( 7,'H07_DEATH',             N'Death (a maraka house)',                              'Matter',      7),
+        ( 7,'H07_BELOW_NAVEL',       N'Portion of the body below the navel',                 'BodyPart',    8),
+        ( 8,'H08_LONGEVITY',         N'Longevity and lifespan',                              'Matter',      1),
+        ( 8,'H08_DEBTS',             N'Debts',                                               'Matter',      2),
+        ( 8,'H08_DISEASE',           N'Chronic and lingering disease',                       'Matter',      3),
+        ( 8,'H08_ILL_FAME',          N'Ill fame and disgrace',                               'Matter',      4),
+        ( 8,'H08_INHERITANCE',       N'Inheritance and legacies',                            'Matter',      5),
+        ( 8,'H08_LOSS_OF_FRIENDS',   N'Loss of friends',                                     'Matter',      6),
+        ( 8,'H08_OCCULT',            N'Occult studies',                                      'Matter',      7),
+        ( 8,'H08_UNEARNED_WEALTH',   N'Unearned wealth, windfalls and gifts',                'Matter',      8),
+        ( 8,'H08_SECRETS',           N'Secrets and hidden matters',                          'Matter',      9),
+        ( 8,'H08_GENITALS',          N'Genitals',                                            'BodyPart',   10),
+        ( 9,'H09_FATHER',            N'Father',                                              'Person',      1),
+        ( 9,'H09_GURU',              N'Teacher and guru',                                    'Person',      2),
+        ( 9,'H09_BOSS',              N'Boss and superior',                                   'Person',      3),
+        ( 9,'H09_FORTUNE',           N'Fortune and luck',                                    'Matter',      4),
+        ( 9,'H09_DHARMA',            N'Dharma, religiousness and principles',                'Matter',      5),
+        ( 9,'H09_GOD',               N'God and grace',                                       'Matter',      6),
+        ( 9,'H09_HIGHER_STUDIES',    N'Higher studies and high knowledge',                   'Matter',      7),
+        ( 9,'H09_FOREIGN_FORTUNE',   N'Fortune and trips in a foreign land',                 'Matter',      8),
+        ( 9,'H09_DIKSHA',            N'Diksha and spiritual initiation',                     'Matter',      9),
+        ( 9,'H09_PAST_LIFE',         N'Past life and the cause of the present birth',        'Matter',     10),
+        ( 9,'H09_GRANDCHILDREN',     N'Grandchildren',                                       'Person',     11),
+        ( 9,'H09_INTUITION',         N'Intuition, compassion and sympathy',                  'Matter',     12),
+        ( 9,'H09_CHARITY',           N'Charity and leadership',                              'Matter',     13),
+        ( 9,'H09_THIGHS',            N'Thighs',                                              'BodyPart',   14),
+        (10,'H10_CAREER',            N'Profession and career',                               'Matter',      1),
+        (10,'H10_KARMA',             N'Action and karma',                                    'Matter',      2),
+        (10,'H10_GROWTH',            N'Growth and rise in life',                             'Matter',      3),
+        (10,'H10_CONDUCT',           N'Conduct in society',                                  'Matter',      4),
+        (10,'H10_FAME_HONOURS',      N'Fame and honours',                                    'Matter',      5),
+        (10,'H10_AWARDS',            N'Awards and recognition',                              'Matter',      6),
+        (10,'H10_SELF_RESPECT',      N'Self-respect and dignity',                            'Matter',      7),
+        (10,'H10_KNEES',             N'Knees',                                               'BodyPart',    8),
+        (11,'H11_ELDER_COBORNS',     N'Elder siblings and co-borns',                         'Person',      1),
+        (11,'H11_INCOME',            N'Income and gains',                                    'Matter',      2),
+        (11,'H11_REALIZATION_OF_HOPES', N'Realization of hopes and desires',                 'Matter',      3),
+        (11,'H11_FRIENDS',           N'Friends',                                             'Person',      4),
+        (11,'H11_ANKLES',            N'Ankles',                                              'BodyPart',    5),
+        (12,'H12_LOSSES',            N'Losses',                                              'Matter',      1),
+        (12,'H12_EXPENDITURE',       N'Expenditure',                                         'Matter',      2),
+        (12,'H12_PUNISHMENT',        N'Punishment and imprisonment',                         'Matter',      3),
+        (12,'H12_HOSPITALIZATION',   N'Hospitalization',                                     'Matter',      4),
+        (12,'H12_BED_PLEASURES',     N'Pleasures of the bed',                                'Matter',      5),
+        (12,'H12_MISFORTUNE',        N'Misfortune',                                          'Matter',      6),
+        (12,'H12_BAD_HABITS',        N'Bad habits',                                          'Matter',      7),
+        (12,'H12_SLEEP',             N'Sleep',                                               'Matter',      8),
+        (12,'H12_MEDITATION',        N'Meditation',                                          'Matter',      9),
+        (12,'H12_DONATION',          N'Donation and giving',                                 'Matter',     10),
+        (12,'H12_SECRET_ENEMIES',    N'Secret enemies',                                      'Person',     11),
+        (12,'H12_HEAVEN',            N'Heaven',                                              'Matter',     12),
+        (12,'H12_LEFT_EYE',          N'Left eye',                                            'BodyPart',   13),
+        (12,'H12_FEET',              N'Feet',                                                'BodyPart',   14),
+        (12,'H12_FOREIGN_RESIDENCE', N'Residence away from the birthplace',                  'Matter',     15),
+        (12,'H12_MOKSHA',            N'Liberation (moksha)',                                 'Matter',     16)
+        ) v (HouseNumber, SignificationCode, SignificationText, SignificationCategory, DisplayOrder)
+    )
+    INSERT dbo.tbl_Rule_HouseSignification
+        (RuleSetId, HouseNumber, SignificationCode, SignificationText, SignificationCategory,
+         DisplayOrder, MethodCode, SourceRefCode, IsActive)
+    SELECT 1, s.HouseNumber, s.SignificationCode, s.SignificationText, s.SignificationCategory,
+           s.DisplayOrder, 'MAP_LOOKUP', 'SRC_PVR_INTEGRATED', 1
+    FROM s;
+END
+GO
+IF OBJECT_ID('dbo.tbl_Dim_HouseAttribute', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_HouseAttribute (
+        AttributeCode VARCHAR(30)   NOT NULL CONSTRAINT PK_Dim_HouseAttribute PRIMARY KEY,
+        DisplayName   NVARCHAR(80)  NOT NULL,
+        ValueKind     VARCHAR(10)   NOT NULL CONSTRAINT CK_Dim_HouseAttribute_Kind CHECK (ValueKind IN ('CODE','TEXT','NUMBER')),
+        SortOrder     TINYINT       NOT NULL,
+        Notes         NVARCHAR(400) NULL
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_HouseAttribute)
+    INSERT dbo.tbl_Dim_HouseAttribute (AttributeCode, DisplayName, ValueKind, SortOrder, Notes)
+    VALUES
+    ('GENERAL_CHARACTER',    N'General character of the bhava', 'TEXT', 1, N'Free-text disposition / summary of the house.'),
+    ('CATEGORY_EFFECT',      N'Special-category reading',       'TEXT', 2, N'PVR sec 7.4.6 quick-summary reading implied by the house''s dominant special category.'),
+    ('NATURAL_SIGNIFICATOR', N'Naisargika bhava karaka',       'CODE', 3, N'Planet(s) that are the natural significators of the house; multi-valued via Priority. Seeded from PVR Table 12 in migration 32.');
+GO
+IF OBJECT_ID('dbo.tbl_Rule_HouseAttribute', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_HouseAttribute (
+        Id            INT IDENTITY(1,1) NOT NULL
+                          CONSTRAINT PK_Rule_HouseAttribute PRIMARY KEY,
+        RuleSetId     TINYINT      NOT NULL
+                          CONSTRAINT FK_Rule_HouseAttribute_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        HouseNumber   TINYINT      NOT NULL
+                          CONSTRAINT FK_Rule_HouseAttribute_House FOREIGN KEY REFERENCES dbo.tbl_Dim_House (HouseNumber),
+        AttributeCode VARCHAR(30)  NOT NULL
+                          CONSTRAINT FK_Rule_HouseAttribute_Attr FOREIGN KEY REFERENCES dbo.tbl_Dim_HouseAttribute (AttributeCode),
+        ValueCode     VARCHAR(40)   NULL,
+        ValueText     NVARCHAR(400) NOT NULL,
+        Priority      TINYINT      NOT NULL CONSTRAINT DF_Rule_HouseAttribute_Priority DEFAULT 1,
+        SourceRefCode VARCHAR(40)   NULL,
+        IsActive      BIT          NOT NULL CONSTRAINT DF_Rule_HouseAttribute_IsActive DEFAULT 1,
+        Notes         NVARCHAR(400) NULL,
+        CONSTRAINT CK_RuleHouseAttr_Src CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_HouseAttribute UNIQUE (RuleSetId, HouseNumber, AttributeCode, Priority)
+    );
+    CREATE NONCLUSTERED INDEX IX_Rule_HouseAttribute_Attr
+        ON dbo.tbl_Rule_HouseAttribute (AttributeCode, HouseNumber);
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_HouseAttribute)
+    INSERT dbo.tbl_Rule_HouseAttribute
+        (RuleSetId, HouseNumber, AttributeCode, ValueCode, ValueText, Priority, SourceRefCode, IsActive)
+    SELECT 1, v.HouseNumber, v.AttributeCode, NULL, v.ValueText, 1, 'SRC_PVR_INTEGRATED', 1
+    FROM (VALUES
+    ( 1,'GENERAL_CHARACTER', N'The body and the self; the lens through which the whole chart is read.'),
+    ( 2,'GENERAL_CHARACTER', N'Resources drawn to the self - wealth, family, nourishment and speech.'),
+    ( 3,'GENERAL_CHARACTER', N'Self-driven effort - courage, skill, siblings and the will to act.'),
+    ( 4,'GENERAL_CHARACTER', N'The inner base - mother, home, land and emotional security.'),
+    ( 5,'GENERAL_CHARACTER', N'Creative merit - children, intelligence, devotion and past-life credit.'),
+    ( 6,'GENERAL_CHARACTER', N'Friction and service - enemies, debt, disease and daily work.'),
+    ( 7,'GENERAL_CHARACTER', N'The other - spouse, partners, desire and dealings with the world.'),
+    ( 8,'GENERAL_CHARACTER', N'Rupture and depth - longevity, the occult, inheritance and hidden things.'),
+    ( 9,'GENERAL_CHARACTER', N'Grace and guidance - father, guru, fortune and higher dharma.'),
+    (10,'GENERAL_CHARACTER', N'Action in the world - career, karma, conduct and public standing.'),
+    (11,'GENERAL_CHARACTER', N'Fulfilment - income, gains, friends and elder siblings.'),
+    (12,'GENERAL_CHARACTER', N'Dissolution - loss, expense, seclusion, foreign lands and moksha.'),
+    ( 1,'CATEGORY_EFFECT',   N'Trine and quadrant: prosperity, dharma and vital activity all rest on the 1st.'),
+    ( 2,'CATEGORY_EFFECT',   N'Succedent and a maraka: holds accumulated wealth and family; a death-inflicting house.'),
+    ( 3,'CATEGORY_EFFECT',   N'Upachaya: courage, effort and skills grow with time.'),
+    ( 4,'CATEGORY_EFFECT',   N'Quadrant: sustenance, home and peace of mind; a pillar of the chart.'),
+    ( 5,'CATEGORY_EFFECT',   N'Trine: merit, intelligence and progeny; an abode of Lakshmi.'),
+    ( 6,'CATEGORY_EFFECT',   N'Upachaya dusthana: enemies and disease, but competitive strength grows over time.'),
+    ( 7,'CATEGORY_EFFECT',   N'Quadrant and a maraka: partnership and desire; a death-inflicting house.'),
+    ( 8,'CATEGORY_EFFECT',   N'Dusthana: upheaval, the hidden and longevity; setbacks and transformation.'),
+    ( 9,'CATEGORY_EFFECT',   N'Trine: fortune, dharma and the guru; the strongest trine after the 1st.'),
+    (10,'CATEGORY_EFFECT',   N'Quadrant and upachaya: action and status that build through sustained effort.'),
+    (11,'CATEGORY_EFFECT',   N'Upachaya: gains and fulfilled desires that accumulate over time.'),
+    (12,'CATEGORY_EFFECT',   N'Dusthana: loss and expense, turned toward liberation and the beyond.')
+    ) v (HouseNumber, AttributeCode, ValueText);
+GO
+MERGE dbo.tbl_Astro_Terminology AS tgt
+USING (
+    SELECT 'HouseCategory' AS Category, 'HCAT_' + CategoryCode AS Code,
+           CONVERT(VARCHAR(40), NULL) AS ParentCode, 'HOUSE' AS EngineCode,
+           CONVERT(INT, NULL) AS NumericKey, 969 + SortOrder AS DisplayOrder
+    FROM dbo.tbl_Dim_HouseCategory
+    UNION ALL
+    SELECT * FROM (VALUES
+        ('Concept','PURUSHARTHA_DHARMA', CONVERT(VARCHAR(40),NULL),'HOUSE',CONVERT(INT,NULL),980),
+        ('Concept','PURUSHARTHA_ARTHA',  NULL,'HOUSE',NULL,981),
+        ('Concept','PURUSHARTHA_KAMA',   NULL,'HOUSE',NULL,982),
+        ('Concept','PURUSHARTHA_MOKSHA', NULL,'HOUSE',NULL,983),
+        ('Concept','ZHALF_VISIBLE',      NULL,'HOUSE',NULL,985),
+        ('Concept','ZHALF_INVISIBLE',    NULL,'HOUSE',NULL,986)
+    ) p (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder)
+) AS src (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder)
+ON tgt.Code = src.Code
+WHEN MATCHED THEN UPDATE SET Category = src.Category, ParentCode = src.ParentCode,
+    EngineCode = src.EngineCode, NumericKey = src.NumericKey, DisplayOrder = src.DisplayOrder, IsActive = 1
+WHEN NOT MATCHED THEN INSERT (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder, IsActive)
+    VALUES (src.Category, src.Code, src.ParentCode, src.EngineCode, src.NumericKey, src.DisplayOrder, 1);
+GO
+MERGE dbo.tbl_Astro_TerminologyText AS tgt
+USING (
+  SELECT t.TerminologyId, v.LanguageCode, v.Script, v.Name, v.TraditionalName, v.ShortDescription
+  FROM (VALUES
+   ('HCAT_KENDRA','sa','Latn',N'Kendra',N'Kendra',NULL),
+   ('HCAT_KENDRA','en','Latn',N'Quadrant houses',NULL,N'Houses 1, 4, 7, 10 - the angular houses; sustenance and vital activity, the pillars of the chart (PVR sec 7.4.2).'),
+   ('HCAT_TRIKONA','sa','Latn',N'Trikona',N'Trikona',NULL),
+   ('HCAT_TRIKONA','en','Latn',N'Trine houses',NULL,N'Houses 1, 5, 9 - the trines; prosperity, dharma and grace, an abode of Lakshmi (PVR sec 7.4.1).'),
+   ('HCAT_PANAPHARA','sa','Latn',N'Panaphara',N'Panaphara',NULL),
+   ('HCAT_PANAPHARA','en','Latn',N'Succedent houses',NULL,N'Houses 2, 5, 8, 11 - the quadrants counted from the 2nd; accumulation and holding (PVR sec 7.4.3).'),
+   ('HCAT_APOKLIMA','sa','Latn',N'Apoklima',N'Apoklima',NULL),
+   ('HCAT_APOKLIMA','en','Latn',N'Cadent houses',NULL,N'Houses 3, 6, 9, 12 - the quadrants counted from the 3rd; seeking, effort and dissipation (PVR sec 7.4.4).'),
+   ('HCAT_UPACHAYA','sa','Latn',N'Upachaya',N'Upachaya',NULL),
+   ('HCAT_UPACHAYA','en','Latn',N'Houses of growth',NULL,N'Houses 3, 6, 10, 11 - matters that improve with time and sustained effort (PVR sec 7.4).'),
+   ('HCAT_DUSTHANA','sa','Latn',N'Dusthana',N'Trik Sthana',NULL),
+   ('HCAT_DUSTHANA','en','Latn',N'Trik (evil) houses',NULL,N'Houses 6, 8, 12 - setbacks, suffering, loss and dissolution (PVR sec 7.4).'),
+   ('HCAT_CHATURASRA','sa','Latn',N'Chaturasra',N'Chaturasra',NULL),
+   ('HCAT_CHATURASRA','en','Latn',N'Quadrangle houses',NULL,N'Houses 4 and 8 together; latent strain around home and longevity (PVR sec 7.4).'),
+   ('HCAT_MARAKA','sa','Latn',N'Maraka',N'Maraka',NULL),
+   ('HCAT_MARAKA','en','Latn',N'Maraka (killer) houses',NULL,N'Houses 2 and 7 - the death-inflicting houses; from the longevity chapter, not PVR sec 7.4.'),
+   ('PURUSHARTHA_DHARMA','sa','Latn',N'Dharma',N'Dharma Trikona',NULL),
+   ('PURUSHARTHA_DHARMA','en','Latn',N'Dharma trikona',NULL,N'Houses 1, 5, 9 counted from the 1st - purpose, righteousness and meaning (PVR sec 7.4.1).'),
+   ('PURUSHARTHA_ARTHA','sa','Latn',N'Artha',N'Artha Trikona',NULL),
+   ('PURUSHARTHA_ARTHA','en','Latn',N'Artha trikona',NULL,N'Houses 2, 6, 10 counted from the 2nd - wealth, work and material security (PVR sec 7.4.1).'),
+   ('PURUSHARTHA_KAMA','sa','Latn',N'Kama',N'Kama Trikona',NULL),
+   ('PURUSHARTHA_KAMA','en','Latn',N'Kama trikona',NULL,N'Houses 3, 7, 11 counted from the 3rd - desire, relationship and fulfilment (PVR sec 7.4.1).'),
+   ('PURUSHARTHA_MOKSHA','sa','Latn',N'Moksha',N'Moksha Trikona',NULL),
+   ('PURUSHARTHA_MOKSHA','en','Latn',N'Moksha trikona',NULL,N'Houses 4, 8, 12 counted from the 4th - release, dissolution and liberation (PVR sec 7.4.1).'),
+   ('ZHALF_VISIBLE','sa','Latn',N'Drishya Bhaga',N'Drishya Bhaga',NULL),
+   ('ZHALF_VISIBLE','en','Latn',N'Visible half',NULL,N'Houses 7 to 12 - the half of the zodiac above the horizon at the moment of birth (PVR sec 7.4.5).'),
+   ('ZHALF_INVISIBLE','sa','Latn',N'Adrishya Bhaga',N'Adrishya Bhaga',NULL),
+   ('ZHALF_INVISIBLE','en','Latn',N'Invisible half',NULL,N'Houses 1 to 6 - the half of the zodiac below the horizon at the moment of birth (PVR sec 7.4.5).')
+  ) AS v (Code, LanguageCode, Script, Name, TraditionalName, ShortDescription)
+  JOIN dbo.tbl_Astro_Terminology t ON t.Code = v.Code
+) AS src
+ON tgt.TerminologyId = src.TerminologyId AND tgt.LanguageCode = src.LanguageCode AND tgt.Script = src.Script
+WHEN MATCHED THEN UPDATE SET Name = src.Name, TraditionalName = src.TraditionalName, ShortDescription = src.ShortDescription
+WHEN NOT MATCHED THEN INSERT (TerminologyId, LanguageCode, Script, Name, TraditionalName, ShortDescription)
+    VALUES (src.TerminologyId, src.LanguageCode, src.Script, src.Name, src.TraditionalName, src.ShortDescription);
+GO
+
+-- =====================================================================
+-- 32 - House reference points (PVR sec 7.3). Folded from
+-- db/32_add_house_reference_points.sql. tbl_Dim_HouseReference (17 - the
+-- points houses are counted from: Lagna, Chandra/Ravi/Paaka/Arudha/
+-- Karakamsa lagnas, Ghati/Hora/Bhaava/Sree lagnas, 7 graha lagnas; each
+-- with its sec 7.3 "perspective" + basis + Saturn-transit note).
+-- tbl_Rule_HouseReferenceMatter (PVR Table 12, RuleSetId 1). Empty
+-- tbl_Fact_HouseFromReference (narrow star-schema target; engine is a
+-- later C# follow-on). tbl_Rule_HouseAttribute += 14 NATURAL_SIGNIFICATOR
+-- rows (house -> Table 12 karaka). Taxonomy: Category 'HouseReference'
+-- (in the CK above) + 6 named HREF_* + HREF_GRAHA_LAGNA, sa/en - addendum,
+-- not in TerminologySeed.cs yet. Ghati/Hora/Bhaava/Sree reuse SPT_* (migr 29).
+-- =====================================================================
+IF OBJECT_ID('dbo.tbl_Dim_HouseReference', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Dim_HouseReference (
+        ReferenceCode       VARCHAR(24)   NOT NULL
+                                CONSTRAINT PK_Dim_HouseReference PRIMARY KEY,
+        ReferenceName       NVARCHAR(40)  NOT NULL,
+        BasisKind           VARCHAR(16)   NOT NULL,
+        BasisPlanetId       TINYINT       NULL
+                                CONSTRAINT FK_Dim_HouseReference_Planet FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        BasisSpecialLagnaId TINYINT       NULL
+                                CONSTRAINT FK_Dim_HouseReference_SpecialLagna FOREIGN KEY REFERENCES dbo.tbl_Dim_SpecialLagnas (Id),
+        Perspective         NVARCHAR(300) NOT NULL,
+        AppliesInVarga      VARCHAR(12)   NOT NULL CONSTRAINT DF_Dim_HouseReference_Varga DEFAULT 'Any',
+        SaturnTransitEffect NVARCHAR(200) NULL,
+        IsDefault           BIT           NOT NULL CONSTRAINT DF_Dim_HouseReference_IsDefault DEFAULT 0,
+        SortOrder           TINYINT       NOT NULL,
+        IsActive            BIT           NOT NULL CONSTRAINT DF_Dim_HouseReference_IsActive DEFAULT 1,
+        SourceRefCode       VARCHAR(40)   NULL,
+        CONSTRAINT CK_Dim_HouseReference_Basis CHECK (BasisKind IN ('Ascendant','Planet','SpecialLagna','LagnaLord','Arudha','KarakaInVarga')),
+        CONSTRAINT CK_Dim_HouseReference_Varga CHECK (AppliesInVarga IN ('Any','Navamsa','Rasi')),
+        CONSTRAINT CK_Dim_HouseReference_Src   CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%')
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_HouseReference)
+    INSERT dbo.tbl_Dim_HouseReference
+        (ReferenceCode, ReferenceName, BasisKind, BasisPlanetId, BasisSpecialLagnaId,
+         Perspective, AppliesInVarga, SaturnTransitEffect, IsDefault, SortOrder, SourceRefCode)
+    SELECT v.ReferenceCode, v.ReferenceName, v.BasisKind, p.Id, sl.Id,
+           v.Perspective, v.AppliesInVarga, v.SaturnTransitEffect, v.IsDefault, v.SortOrder, 'SRC_PVR_INTEGRATED'
+    FROM (VALUES
+    ('LAGNA',           N'Lagna',               'Ascendant',    CONVERT(VARCHAR(15),NULL), CONVERT(VARCHAR(20),NULL),
+        N'The true self - the "spirit of I". The default reference; houses counted from here describe the whole of life.',
+        'Any', N'Saturn transiting the lagna sign brings obstructions, delays and physical hardship (part of Sade Sati).', 1, 1),
+    ('CHANDRA_LAGNA',   N'Chandra Lagna (Moon)','Planet',       'Moon', NULL,
+        N'The standpoint of the mind (the Moon signifies the mind). Read for happiness, mental peace, ambition and one''s own view of career. PVR: it should not be ignored.',
+        'Any', N'Saturn transiting the Moon''s sign is Sade Sati proper - mental pressure, frustration and low mood.', 0, 2),
+    ('RAVI_LAGNA',      N'Ravi Lagna (Sun)',    'Planet',       'Sun', NULL,
+        N'The standpoint of the soul (the Sun signifies the self) and of physical vitality.',
+        'Any', NULL, 0, 3),
+    ('ARUDHA_LAGNA',    N'Arudha Lagna',        'Arudha',       NULL, NULL,
+        N'How the native is perceived in the world - image, reputation and material status.',
+        'Any', NULL, 0, 4),
+    ('PAAKA_LAGNA',     N'Paaka Lagna',         'LagnaLord',    NULL, NULL,
+        N'The physical self of the native - the sign occupied by the lord of the lagna.',
+        'Any', N'Saturn transiting the Paaka lagna can bring sickness and loss of vitality (PVR sec 7.3.5).', 0, 5),
+    ('KARAKAMSA_LAGNA', N'Karakamsa Lagna',     'KarakaInVarga',NULL, NULL,
+        N'The inner self - the sign occupied by the Atma Karaka in the navamsa (D-9). The 12th from it shows liberation (moksha).',
+        'Navamsa', NULL, 0, 6),
+    ('GHATI_LAGNA',     N'Ghati Lagna',         'SpecialLagna', NULL, 'GHATI_LAGNA',
+        N'Power, authority and fame - weighed for promotions and political or public life.',
+        'Any', NULL, 0, 7),
+    ('HORA_LAGNA',      N'Hora Lagna',          'SpecialLagna', NULL, 'HORA_LAGNA',
+        N'Wealth and money.',
+        'Any', NULL, 0, 8),
+    ('BHAAVA_LAGNA',    N'Bhaava Lagna',        'SpecialLagna', NULL, 'BHAAVA_LAGNA',
+        N'A general timing reference advancing one rasi per two hours from sunrise. Defined for completeness; not used in PVR''s Integrated Approach.',
+        'Any', NULL, 0, 9),
+    ('SREE_LAGNA',      N'Sree Lagna',          'SpecialLagna', NULL, 'SREE_LAGNA',
+        N'Prosperity - the reference point from which Sudasa is reckoned.',
+        'Rasi', NULL, 0, 10),
+    ('GRAHA_LAGNA_SUN',     N'Graha Lagna - Sun',     'Planet', 'Sun',     NULL, N'Graha lagna: the Sun as reference for the houses it naturally signifies (PVR Table 12: 9, 10, 11).',        'Any', NULL, 0, 11),
+    ('GRAHA_LAGNA_MOON',    N'Graha Lagna - Moon',    'Planet', 'Moon',    NULL, N'Graha lagna: the Moon as reference for the houses it naturally signifies (PVR Table 12: 4, 1, 2, 11, 9).',   'Any', NULL, 0, 12),
+    ('GRAHA_LAGNA_MARS',    N'Graha Lagna - Mars',    'Planet', 'Mars',    NULL, N'Graha lagna: Mars as reference for the house it naturally signifies (PVR Table 12: 3).',                     'Any', NULL, 0, 13),
+    ('GRAHA_LAGNA_MERCURY', N'Graha Lagna - Mercury', 'Planet', 'Mercury', NULL, N'Graha lagna: Mercury as reference for the house it naturally signifies (PVR Table 12: 6).',                  'Any', NULL, 0, 14),
+    ('GRAHA_LAGNA_JUPITER', N'Graha Lagna - Jupiter', 'Planet', 'Jupiter', NULL, N'Graha lagna: Jupiter as reference for the house it naturally signifies (PVR Table 12: 5).',                  'Any', NULL, 0, 15),
+    ('GRAHA_LAGNA_VENUS',   N'Graha Lagna - Venus',   'Planet', 'Venus',   NULL, N'Graha lagna: Venus as reference for the house it naturally signifies (PVR Table 12: 7).',                    'Any', NULL, 0, 16),
+    ('GRAHA_LAGNA_SATURN',  N'Graha Lagna - Saturn',  'Planet', 'Saturn',  NULL, N'Graha lagna: Saturn as reference for the houses it naturally signifies (PVR Table 12: 8, 12).',              'Any', NULL, 0, 17)
+    ) v (ReferenceCode, ReferenceName, BasisKind, PlanetName, LagnaCode, Perspective, AppliesInVarga, SaturnTransitEffect, IsDefault, SortOrder)
+    LEFT JOIN dbo.tbl_Planets p            ON p.PlanetName = v.PlanetName
+    LEFT JOIN dbo.tbl_Dim_SpecialLagnas sl ON sl.LagnaCode = v.LagnaCode;
+GO
+IF OBJECT_ID('dbo.tbl_Rule_HouseReferenceMatter', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Rule_HouseReferenceMatter (
+        Id            INT IDENTITY(1,1) NOT NULL
+                          CONSTRAINT PK_Rule_HouseReferenceMatter PRIMARY KEY,
+        RuleSetId     TINYINT      NOT NULL
+                          CONSTRAINT FK_Rule_HouseRefMatter_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        ReferenceCode VARCHAR(24)  NOT NULL
+                          CONSTRAINT FK_Rule_HouseRefMatter_Reference FOREIGN KEY REFERENCES dbo.tbl_Dim_HouseReference (ReferenceCode),
+        HouseNumber   TINYINT      NOT NULL
+                          CONSTRAINT FK_Rule_HouseRefMatter_House FOREIGN KEY REFERENCES dbo.tbl_Dim_House (HouseNumber),
+        DisplayOrder  TINYINT      NOT NULL CONSTRAINT DF_Rule_HouseRefMatter_Order DEFAULT 1,
+        Notes                NVARCHAR(200) NULL,
+        MethodCode           VARCHAR(30)   NULL,
+        RuleParametersJson   NVARCHAR(MAX) NULL,
+        CalculationNarrative NVARCHAR(MAX) NULL,
+        SourceRefCode        VARCHAR(40)   NULL,
+        IsActive             BIT NOT NULL CONSTRAINT DF_Rule_HouseRefMatter_IsActive DEFAULT 1,
+        CONSTRAINT CK_RuleHouseRefMatter_Json CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+        CONSTRAINT CK_RuleHouseRefMatter_Src  CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%'),
+        CONSTRAINT UQ_Rule_HouseReferenceMatter UNIQUE (RuleSetId, ReferenceCode, HouseNumber)
+    );
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_HouseReferenceMatter)
+    INSERT dbo.tbl_Rule_HouseReferenceMatter
+        (RuleSetId, ReferenceCode, HouseNumber, DisplayOrder, MethodCode, SourceRefCode, IsActive)
+    SELECT 1, v.ReferenceCode, v.HouseNumber, v.DisplayOrder, 'MAP_LOOKUP', 'SRC_PVR_INTEGRATED', 1
+    FROM (VALUES
+    ('GRAHA_LAGNA_SUN',     9,1),('GRAHA_LAGNA_SUN',    10,2),('GRAHA_LAGNA_SUN',    11,3),
+    ('GRAHA_LAGNA_MOON',    4,1),('GRAHA_LAGNA_MOON',    1,2),('GRAHA_LAGNA_MOON',    2,3),('GRAHA_LAGNA_MOON',11,4),('GRAHA_LAGNA_MOON',9,5),
+    ('GRAHA_LAGNA_MARS',    3,1),
+    ('GRAHA_LAGNA_MERCURY', 6,1),
+    ('GRAHA_LAGNA_JUPITER', 5,1),
+    ('GRAHA_LAGNA_VENUS',   7,1),
+    ('GRAHA_LAGNA_SATURN',  8,1),('GRAHA_LAGNA_SATURN', 12,2)
+    ) v (ReferenceCode, HouseNumber, DisplayOrder);
+GO
+IF OBJECT_ID('dbo.tbl_Fact_HouseFromReference', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Fact_HouseFromReference (
+        Id             INT IDENTITY(1,1) NOT NULL
+                           CONSTRAINT PK_Fact_HouseFromReference PRIMARY KEY,
+        ChartResultId  INT          NOT NULL
+                           CONSTRAINT FK_Fact_HouseFromReference_ChartResult FOREIGN KEY REFERENCES dbo.tbl_ChartResults (Id),
+        RuleSetId      TINYINT      NOT NULL
+                           CONSTRAINT FK_Fact_HouseFromReference_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+        ReferenceCode  VARCHAR(24)  NOT NULL
+                           CONSTRAINT FK_Fact_HouseFromReference_Reference FOREIGN KEY REFERENCES dbo.tbl_Dim_HouseReference (ReferenceCode),
+        SubjectKind    VARCHAR(12)  NOT NULL,
+        SubjectKey     VARCHAR(24)  NOT NULL,
+        SubjectPlanetId TINYINT     NULL
+                           CONSTRAINT FK_Fact_HouseFromReference_Planet FOREIGN KEY REFERENCES dbo.tbl_Planets (Id),
+        HouseNumber    TINYINT      NOT NULL,
+        SignId         TINYINT      NULL
+                           CONSTRAINT FK_Fact_HouseFromReference_Sign FOREIGN KEY REFERENCES dbo.tbl_SignAttributes (Id),
+        ChartTypeId    TINYINT      NULL
+                           CONSTRAINT FK_Fact_HouseFromReference_ChartType FOREIGN KEY REFERENCES dbo.tbl_Dim_ChartType (Id),
+        CONSTRAINT CK_Fact_HouseFromReference_House CHECK (HouseNumber BETWEEN 1 AND 12),
+        CONSTRAINT CK_Fact_HouseFromReference_Kind  CHECK (SubjectKind IN ('Graha','SpecialLagna','Arudha','Lagna','Reference')),
+        CONSTRAINT UQ_Fact_HouseFromReference UNIQUE (ChartResultId, ChartTypeId, ReferenceCode, SubjectKind, SubjectKey)
+    );
+    CREATE NONCLUSTERED INDEX IX_Fact_HouseFromReference_ChartResultId ON dbo.tbl_Fact_HouseFromReference (ChartResultId);
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_HouseAttribute WHERE AttributeCode = 'NATURAL_SIGNIFICATOR')
+    INSERT dbo.tbl_Rule_HouseAttribute
+        (RuleSetId, HouseNumber, AttributeCode, ValueCode, ValueText, Priority, SourceRefCode, IsActive, Notes)
+    SELECT 1, v.HouseNumber, 'NATURAL_SIGNIFICATOR', v.PlanetName, v.PlanetName, v.Priority,
+           'SRC_PVR_INTEGRATED', 1, N'PVR Table 12 (sec 7.3.9), house -> graha view.'
+    FROM (VALUES
+    ( 1,'Moon',    1),( 2,'Moon',    1),( 3,'Mars',    1),( 4,'Moon',    1),
+    ( 5,'Jupiter', 1),( 6,'Mercury', 1),( 7,'Venus',   1),( 8,'Saturn',  1),
+    ( 9,'Sun',     1),( 9,'Moon',    2),(10,'Sun',     1),(11,'Sun',     1),
+    (11,'Moon',    2),(12,'Saturn',  1)
+    ) v (HouseNumber, PlanetName, Priority);
+GO
+MERGE dbo.tbl_Astro_Terminology AS tgt
+USING (VALUES
+    ('HouseReference','HREF_LAGNA',            CONVERT(VARCHAR(40),NULL),'HOUSE',CONVERT(INT,NULL),990),
+    ('HouseReference','HREF_CHANDRA_LAGNA',    NULL,'HOUSE',NULL,991),
+    ('HouseReference','HREF_RAVI_LAGNA',       NULL,'HOUSE',NULL,992),
+    ('HouseReference','HREF_ARUDHA_LAGNA',     NULL,'HOUSE',NULL,993),
+    ('HouseReference','HREF_PAAKA_LAGNA',      NULL,'HOUSE',NULL,994),
+    ('HouseReference','HREF_KARAKAMSA_LAGNA',  NULL,'HOUSE',NULL,995),
+    ('HouseReference','HREF_GRAHA_LAGNA',      NULL,'HOUSE',NULL,996)
+) AS src (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder)
+ON tgt.Code = src.Code
+WHEN MATCHED THEN UPDATE SET Category = src.Category, ParentCode = src.ParentCode,
+    EngineCode = src.EngineCode, NumericKey = src.NumericKey, DisplayOrder = src.DisplayOrder, IsActive = 1
+WHEN NOT MATCHED THEN INSERT (Category, Code, ParentCode, EngineCode, NumericKey, DisplayOrder, IsActive)
+    VALUES (src.Category, src.Code, src.ParentCode, src.EngineCode, src.NumericKey, src.DisplayOrder, 1);
+GO
+MERGE dbo.tbl_Astro_TerminologyText AS tgt
+USING (
+  SELECT t.TerminologyId, v.LanguageCode, v.Script, v.Name, v.TraditionalName, v.ShortDescription
+  FROM (VALUES
+   ('HREF_LAGNA','sa','Latn',N'Lagna',N'Lagna',NULL),
+   ('HREF_LAGNA','en','Latn',N'Lagna',NULL,N'The ascendant used as the reference point for counting houses - the true self, the default reference (PVR sec 7.3.1).'),
+   ('HREF_CHANDRA_LAGNA','sa','Latn',N'Chandra Lagna',N'Chandra Lagna',NULL),
+   ('HREF_CHANDRA_LAGNA','en','Latn',N'Chandra Lagna',NULL,N'The Moon''s sign used as the reference point - houses then show matters from the standpoint of the mind (PVR sec 7.3.2).'),
+   ('HREF_RAVI_LAGNA','sa','Latn',N'Ravi Lagna',N'Ravi Lagna',NULL),
+   ('HREF_RAVI_LAGNA','en','Latn',N'Ravi Lagna',NULL,N'The Sun''s sign used as the reference point - houses then show matters from the standpoint of the soul and of physical vitality (PVR sec 7.3.3).'),
+   ('HREF_ARUDHA_LAGNA','sa','Latn',N'Arudha Lagna',N'Arudha Lagna',NULL),
+   ('HREF_ARUDHA_LAGNA','en','Latn',N'Arudha Lagna',NULL,N'The pada of the lagna used as the reference point - how the native is perceived in the world; image and material status (PVR sec 7.3.4).'),
+   ('HREF_PAAKA_LAGNA','sa','Latn',N'Paaka Lagna',N'Paaka Lagna',NULL),
+   ('HREF_PAAKA_LAGNA','en','Latn',N'Paaka Lagna',NULL,N'The sign occupied by the lord of the lagna, used as the reference point - the physical self of the native (PVR sec 7.3.5).'),
+   ('HREF_KARAKAMSA_LAGNA','sa','Latn',N'Karakamsa Lagna',N'Karakamsa Lagna',NULL),
+   ('HREF_KARAKAMSA_LAGNA','en','Latn',N'Karakamsa Lagna',NULL,N'The sign occupied by the Atma Karaka in the navamsa, used as the reference point - the inner self; the 12th from it shows moksha (PVR sec 7.3.6).'),
+   ('HREF_GRAHA_LAGNA','sa','Latn',N'Graha Lagna',N'Graha Lagna',NULL),
+   ('HREF_GRAHA_LAGNA','en','Latn',N'Graha Lagna',NULL,N'A planet used as the reference point for the houses it naturally signifies (PVR sec 7.3.9, Table 12).')
+  ) AS v (Code, LanguageCode, Script, Name, TraditionalName, ShortDescription)
+  JOIN dbo.tbl_Astro_Terminology t ON t.Code = v.Code
+) AS src
+ON tgt.TerminologyId = src.TerminologyId AND tgt.LanguageCode = src.LanguageCode AND tgt.Script = src.Script
+WHEN MATCHED THEN UPDATE SET Name = src.Name, TraditionalName = src.TraditionalName, ShortDescription = src.ShortDescription
+WHEN NOT MATCHED THEN INSERT (TerminologyId, LanguageCode, Script, Name, TraditionalName, ShortDescription)
+    VALUES (src.TerminologyId, src.LanguageCode, src.Script, src.Name, src.TraditionalName, src.ShortDescription);
+GO
+
+-- =====================================================================
 -- vw_Chart_HouseNakshatraSpan — defined here (not with the other views near
 -- the top): after migration 09 it joins tbl_ChartResults + tbl_Dim_ChartType,
 -- both created later than the original position.
@@ -3621,6 +5561,23 @@ JOIN dbo.tbl_SignAttributes  nav  ON nav.Id = p.NavamsaSignId;
 GO
 
 -- =====================================================================
+-- 40 — bilingual taxonomy fields (kept before the final consolidated view)
+IF COL_LENGTH('dbo.tbl_Dim_LifeArea','EnglishName') IS NULL ALTER TABLE dbo.tbl_Dim_LifeArea ADD EnglishName NVARCHAR(160) NULL, SanskritName NVARCHAR(160) NULL;
+IF COL_LENGTH('dbo.tbl_Dim_House','EnglishName') IS NULL ALTER TABLE dbo.tbl_Dim_House ADD EnglishName NVARCHAR(160) NULL, SanskritName NVARCHAR(160) NULL;
+IF COL_LENGTH('dbo.tbl_Dim_HouseCategory','EnglishName') IS NULL ALTER TABLE dbo.tbl_Dim_HouseCategory ADD EnglishName NVARCHAR(160) NULL, SanskritName NVARCHAR(160) NULL;
+IF COL_LENGTH('dbo.tbl_Dim_HouseReference','EnglishName') IS NULL ALTER TABLE dbo.tbl_Dim_HouseReference ADD EnglishName NVARCHAR(160) NULL, SanskritName NVARCHAR(160) NULL;
+IF COL_LENGTH('dbo.tbl_Dim_DivisionalSubject','EnglishName') IS NULL ALTER TABLE dbo.tbl_Dim_DivisionalSubject ADD EnglishName NVARCHAR(160) NULL, SanskritName NVARCHAR(160) NULL;
+IF COL_LENGTH('dbo.tbl_Dim_InterpretationDimension','EnglishName') IS NULL ALTER TABLE dbo.tbl_Dim_InterpretationDimension ADD EnglishName NVARCHAR(160) NULL, SanskritName NVARCHAR(160) NULL;
+UPDATE dbo.tbl_Dim_LifeArea SET EnglishName = AreaName, SanskritName = AreaName WHERE EnglishName IS NULL OR SanskritName IS NULL;
+UPDATE dbo.tbl_Dim_House SET EnglishName = ShortName, SanskritName = BhavaNameSa WHERE EnglishName IS NULL OR SanskritName IS NULL;
+UPDATE dbo.tbl_Dim_HouseCategory SET EnglishName = DisplayName, SanskritName = DisplayName WHERE EnglishName IS NULL OR SanskritName IS NULL;
+UPDATE dbo.tbl_Dim_HouseReference SET EnglishName = ReferenceName, SanskritName = ReferenceName WHERE EnglishName IS NULL OR SanskritName IS NULL;
+UPDATE dbo.tbl_Dim_DivisionalSubject SET EnglishName = SubjectName, SanskritName = SubjectName WHERE EnglishName IS NULL OR SanskritName IS NULL;
+UPDATE dbo.tbl_Dim_InterpretationDimension SET EnglishName = DimensionName, SanskritName = DimensionName WHERE EnglishName IS NULL OR SanskritName IS NULL;
+IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE ScriptName = '40_add_taxonomy_bilingual_fields.sql')
+    INSERT dbo.SchemaMigrations (ScriptName, AppliedAtUtc, Note) VALUES ('40_add_taxonomy_bilingual_fields.sql', SYSUTCDATETIME(), 'Bilingual taxonomy fields');
+GO
+
 -- vw_Chart_Consolidated — defined last: it reads tbl_Fact_PlanetaryState /
 -- tbl_Dim_PlanetaryState (created just above) as well as the tbl_Chart_* tables.
 -- =====================================================================
@@ -3629,6 +5586,30 @@ GO
 SET QUOTED_IDENTIFIER OFF
 GO
 IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[vw_Chart_Consolidated]'))
+CREATE VIEW dbo.vw_SubPlanetCatalog
+AS
+SELECT sp.Id, sp.SubPlanetCode, sp.SubPlanetName, sp.EnglishMeaning,
+       sp.CalculationFamilyCode, sp.CalculationType,
+       ap.PlanetName AS AssociatedPlanetName, sp.AssociationRole,
+       sp.NaturalNature, sp.SortOrder,
+       CASE WHEN sp.CalculationFamilyCode = 'SUN_BASED'
+            THEN 'tbl_Rule_SubPlanetSunLongitude' ELSE 'tbl_Rule_SubPlanetTime' END AS RuleTableName,
+       COALESCE(sl.MethodCode, tm.MethodCode) AS MethodCode,
+       COALESCE(sl.CalculationNarrative, tm.CalculationNarrative) AS CalculationNarrative,
+       COALESCE(sl.SourceRefCode, tm.SourceRefCode) AS SourceRefCode,
+       sp.Notes
+FROM dbo.tbl_Dim_SubPlanets sp
+JOIN dbo.tbl_Planets ap ON ap.Id = sp.AssociatedPlanetId
+OUTER APPLY (SELECT TOP (1) r.MethodCode, r.CalculationNarrative, r.SourceRefCode
+             FROM dbo.tbl_Rule_SubPlanetSunLongitude r
+             WHERE r.SubPlanetId = sp.Id AND r.IsActive = 1
+             ORDER BY r.RuleSetId DESC, r.SequenceNo) sl
+OUTER APPLY (SELECT TOP (1) r.MethodCode, r.CalculationNarrative, r.SourceRefCode
+             FROM dbo.tbl_Rule_SubPlanetTime r
+             WHERE r.SubPlanetId = sp.Id AND r.IsActive = 1
+             ORDER BY r.RuleSetId DESC) tm;
+GO
+
 EXEC dbo.sp_executesql @statement = N'CREATE VIEW [dbo].[vw_Chart_Consolidated] AS
 SELECT
     bd.Id                       AS BirthDetailId,
