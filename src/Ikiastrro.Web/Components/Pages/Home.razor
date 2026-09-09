@@ -38,10 +38,28 @@
 
         <h1 class="home-title">Discover Your Path</h1>
 
-        <MudAutocomplete T="string" Label="Name" Placeholder="Search saved people…"
-                         SearchFunc="SearchNames" Value="_search" ValueChanged="OnNamePicked"
-                         Variant="Variant.Outlined" Dense="true" Strict="false" Clearable="true"
-                         ResetValueOnEmptyText="true" Class="home-name" />
+        <div class="home-name">
+            <MudTextField T="string" @bind-Value="_query" @bind-Value:after="StateHasChanged"
+                          Label="Name" Placeholder="Search saved people…" Immediate="true"
+                          Variant="Variant.Outlined" Clearable="true"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          Class="home-search" />
+
+            @if (!_adding)
+            {
+                <div class="home-results" role="list">
+                    @foreach (var p in Matches)
+                    {
+                        <button type="button" class="home-row" role="listitem" @onclick="@(() => OpenPerson(p))">
+                            <span class="home-row-name">@p.Name</span>
+                            <span class="home-row-birth">@BirthLine(p)</span>
+                            <span class="home-row-open">View chart →</span>
+                        </button>
+                    }
+                    <button type="button" class="home-add-new" @onclick="StartAdd">＋ Add New</button>
+                </div>
+            }
+        </div>
 
         @if (_adding)
         {
@@ -92,9 +110,7 @@
     private AyanamsaDefinition _activeDefault = AyanamsaDefinition.Default;
 
     private readonly AddForm _f = new();
-    private const string AddNewOption = "＋  Add New";
-    private string? _search;      // bound value of the name-search box
-    private string _lastQuery = string.Empty;  // last text typed into the search
+    private string _query = string.Empty; // the name-search text; never triggers navigation on its own
 
     protected override void OnInitialized()
     {
@@ -115,35 +131,25 @@
     private void OnAyanamsaChanged(string value) { _ayanamsaCode = value; _prefsOpen = false; }
     private void OnChartStyleChanged(string value) { _chartStyle = value; _prefsOpen = false; }
 
-    private Task<IEnumerable<string>> SearchNames(string? value, CancellationToken _)
+    // The saved list is only ever *searched* — typing filters, it never navigates. A person is
+    // opened only by an explicit "View chart →" click (docs/ui/components/home.md).
+    private IEnumerable<BirthDetails> Matches =>
+        string.IsNullOrWhiteSpace(_query)
+            ? Enumerable.Empty<BirthDetails>()
+            : _people
+                .Where(p => p.Name.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase))
+                .OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase);
+
+    private static string BirthLine(BirthDetails p) => $"{p.DateOfBirth:dd MMM yyyy} · {p.PlaceCity}";
+
+    private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/transit-wheel/{p.Id}");
+
+    private void StartAdd()
     {
-        _lastQuery = (value ?? string.Empty).Trim();
-        var names = _people
-            .Where(p => _lastQuery.Length == 0 || p.Name.Contains(_lastQuery, StringComparison.OrdinalIgnoreCase))
-            .Select(p => p.Name)
-            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        names.Add(AddNewOption); // always the last selection
-        return Task.FromResult<IEnumerable<string>>(names);
-    }
-
-    private void OnNamePicked(string? value)
-    {
-        if (value == AddNewOption)
-        {
-            _adding = true;
-            _error = null;
-            if (string.IsNullOrWhiteSpace(_f.Name) && !string.IsNullOrWhiteSpace(_lastQuery))
-                _f.Name = _lastQuery;       // seed the new person's name from what was typed
-            _search = null;                 // don't leave "＋ Add New" sitting in the box
-            return;
-        }
-
-        _search = value;
-        if (string.IsNullOrEmpty(value)) return;
-
-        var person = _people.FirstOrDefault(p => string.Equals(p.Name, value, StringComparison.OrdinalIgnoreCase));
-        if (person is not null) Nav.NavigateTo($"/transit-wheel/{person.Id}"); // land on the Transit page (docs/ui/components/home.md)
+        _adding = true;
+        _error = null;
+        if (string.IsNullOrWhiteSpace(_f.Name) && !string.IsNullOrWhiteSpace(_query))
+            _f.Name = _query.Trim(); // seed the new person's name from what was typed
     }
 
     private void CancelAdd()

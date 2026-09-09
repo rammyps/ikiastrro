@@ -118,14 +118,21 @@
 .ik-footer {
     max-width: var(--maxw);
     margin-inline: auto;
-    padding: 24px var(--pad-x) 40px;
+    padding: 28px var(--pad-x) 36px;
     text-align: center;
     color: var(--brand-muted);
     font: 500 var(--font-size-control) / 1.4 'Manrope', 'Segoe UI', sans-serif;
 }
 
+/* One line — never split between the dedication and the "By …" credit. */
+.ik-footer-line {
+    display: inline-block;
+    text-wrap: balance;
+}
+
 .ik-footer-by {
     font-size: 0.82em;
+    white-space: nowrap;
 }
 
 #blazor-error-ui {

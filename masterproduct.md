@@ -350,14 +350,19 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   app shell (HOME pill hard-left, per-person `TRANSIT · ALL CHARTS · KEY INFERENCE` tabs revealed
   once a person is open, context band, `--maxw` / `--pad-x`); a scoped `ActivePerson`; the page
   at `/transit-wheel/{id}` with band heading `TRANSIT - D1 BIRTH CHART`, a static wheel placement,
-  and the **D1 Birth** tab against `vw_ChartPlanetEvidence` (persisted rows only, sorted
-  Lagna → Saturn…Sun); browser smoke + `TransitLandingMath` unit tests. **`Web [ ]`** — open:
-  the **Current Transit** tab is wired to `GocharaRepository` but that source only covers
+  and the **D1 Birth** tab against `vw_ChartPlanetEvidence` via a focused `TransitLandingRepository`
+  (persisted rows only, sorted Lagna → Saturn…Sun — deliberately not `AstrologerEvidenceRepository`,
+  which fans out ~20 sections); browser smoke + `TransitLandingMath` unit tests. **`Web [ ]`** —
+  open: the **Current Transit** tab is wired to `GocharaRepository` but that source only covers
   Saturn/Jupiter/Rahu and returns nothing for "now" (degrades to the `backfill-planet-transits`
   hint); `InSignMotion` / `NextChangeMotion` columns show `—` pending Codex's
   `tbl_TransitPositionReference` boundary-motion merge (`db/055`); the live natal↔transit wheel
   overlay is a Codex `Components/Charts/**` component; `Verify [ ]` until a page-DI bUnit harness
-  covers both tabs. `ALL CHARTS` / `KEY INFERENCE` tabs point at v1 routes until their slices.
+  covers both tabs. `ALL CHARTS` and `KEY INFERENCE` tabs both fall back to `/charts/{id}` (the v1
+  workspace) until their slices — the v1 `/charts/{id}/evidence` route is 500ing on a
+  `database`-workstream regression (migration `db/069` recreated `vw_ChartShadbala` without
+  `BirthDetailId` / `Planet` / `PercentOfMinimum`), and `GocharaRepository.SaveSnapshots` has a
+  latent datetime-precision MERGE bug that can dup-key `tbl_TransitPositionReference`.
   Supersedes `FEAT-UI-10` for `/transit-wheel/{id}` once `Web [x]`.
 
 ## DOCS — cross-cutting

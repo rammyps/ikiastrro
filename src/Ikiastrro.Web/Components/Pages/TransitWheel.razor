@@ -4,7 +4,7 @@
 @using Ikiastrro.Core.Models
 @using Ikiastrro.Core.Engines.Astronomy
 @inject BirthDetailsRepository BirthDetailsRepo
-@inject AstrologerEvidenceRepository EvidenceRepo
+@inject TransitLandingRepository D1Repo
 @inject Ikiastrro.Data.GocharaRepository Gochara
 @inject ActivePerson Active
 @inject NavigationManager Nav
@@ -39,7 +39,7 @@ else
         <div class="tw-tables">
             <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="tw-tabs">
                 <MudTabPanel Text="D1 Birth">
-                    @if (_positions is null || _positions.Rows.Count == 0)
+                    @if (_d1.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="tw-alert">
                             Generate a D1 chart for this person first.
@@ -59,13 +59,13 @@ else
                                     @foreach (var r in D1Rows)
                                     {
                                         <tr>
-                                            <td class="num">@(Str(r, "HouseNumberFromLagna") ?? "—")</td>
-                                            <td>@(Str(r, "Planet") ?? "—")</td>
+                                            <td class="num">@(r.House?.ToString() ?? "—")</td>
+                                            <td>@r.Planet</td>
                                             <td>@MotionCell(r)</td>
-                                            <td class="num">@(Str(r, "DegreesInSignDisplay") ?? "—")</td>
-                                            <td>@(Str(r, "Sign") ?? "—")</td>
-                                            <td>@(Str(r, "Nakshatra") ?? "—")</td>
-                                            <td class="num">@(Str(r, "NakshatraPada") ?? "—")</td>
+                                            <td class="num">@(Dash(r.DegreesInSignDisplay))</td>
+                                            <td>@(Dash(r.Sign))</td>
+                                            <td>@(Dash(r.Nakshatra))</td>
+                                            <td class="num">@(r.NakshatraPada?.ToString() ?? "—")</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -128,7 +128,7 @@ else
     private string? _personName;
     private string? _error;
     private string? _transitError;
-    private EvidenceTableData? _positions;
+    private IReadOnlyList<TransitD1Row> _d1 = Array.Empty<TransitD1Row>();
     private Dictionary<string, string> _natalSignByPlanet = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();
     private DateTime _asOfUtc = DateTime.UtcNow;
@@ -160,12 +160,11 @@ else
             $"{person.DateOfBirth:dd MMM yyyy} · {person.TimeOfBirth:HH\\:mm} · {person.PlaceCity}, {person.PlaceCountry}";
         Active.Set(id, person.Name, birthLine);
 
-        var evidence = EvidenceRepo.Load(id, "D1");
-        _positions = evidence?.Sections.FirstOrDefault(s => s.Code == "positions");
-        _natalSignByPlanet = (_positions?.Rows ?? Enumerable.Empty<IReadOnlyDictionary<string, object?>>())
-            .Where(r => Str(r, "Planet") is not null && Str(r, "Sign") is not null)
-            .GroupBy(r => Str(r, "Planet")!, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => Str(g.First(), "Sign")!, StringComparer.OrdinalIgnoreCase);
+        _d1 = D1Repo.LoadD1Birth(id);
+        _natalSignByPlanet = _d1
+            .Where(r => !string.IsNullOrWhiteSpace(r.Sign))
+            .GroupBy(r => r.Planet, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().Sign!, StringComparer.OrdinalIgnoreCase);
 
         _asOfUtc = DateTime.UtcNow;
         try
@@ -180,17 +179,8 @@ else
     }
 
     // D1 Birth: grahas plus the Lagna row, ordered slow → fast (Lagna first).
-    private IEnumerable<IReadOnlyDictionary<string, object?>> D1Rows =>
-        (_positions?.Rows ?? Enumerable.Empty<IReadOnlyDictionary<string, object?>>())
-        .Where(r =>
-        {
-            var pk = Str(r, "PointKind");
-            var pl = Str(r, "Planet");
-            return string.Equals(pk, "Graha", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(pl, "Lagna", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(pl, "Ascendant", StringComparison.OrdinalIgnoreCase);
-        })
-        .OrderBy(r => TransitLandingMath.PlanetRank(Str(r, "Planet")));
+    private IEnumerable<TransitD1Row> D1Rows =>
+        _d1.OrderBy(r => TransitLandingMath.PlanetRank(r.Planet));
 
     private IEnumerable<PlanetTransitSnapshot> TransitRows =>
         _transits.OrderBy(s => TransitLandingMath.PlanetRank(s.Planet.ToString()));
@@ -199,21 +189,14 @@ else
         TransitLandingMath.HouseFromD1(
             _natalSignByPlanet.GetValueOrDefault(s.Planet.ToString()), SignName(s.SignId));
 
-    private string MotionCell(IReadOnlyDictionary<string, object?> r)
+    private static string MotionCell(TransitD1Row r)
     {
-        var planet = Str(r, "Planet");
-        if (string.Equals(planet, "Lagna", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(planet, "Ascendant", StringComparison.OrdinalIgnoreCase)) return "—";
-        return TransitLandingMath.FormatMotion(Flag(r, "IsRetrograde"), Flag(r, "IsCombust"));
+        if (r.Planet.Equals("Lagna", StringComparison.OrdinalIgnoreCase) ||
+            r.Planet.Equals("Ascendant", StringComparison.OrdinalIgnoreCase)) return "—";
+        return TransitLandingMath.FormatMotion(r.IsRetrograde, r.IsCombust);
     }
 
     private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
 
-    private static string? Str(IReadOnlyDictionary<string, object?> row, string key) =>
-        row.TryGetValue(key, out var v) && v is not null and not DBNull
-            ? Convert.ToString(v, CultureInfo.InvariantCulture)
-            : null;
-
-    private static bool Flag(IReadOnlyDictionary<string, object?> row, string key) =>
-        row.TryGetValue(key, out var v) && v is not null and not DBNull && Convert.ToBoolean(v);
+    private static string Dash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 }

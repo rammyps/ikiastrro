@@ -1,0 +1,39 @@
+using Dapper;
+
+namespace Ikiastrro.Data;
+
+/// <summary>One row of the v2 Transit landing "D1 Birth" tab (docs/ui/components/transit.md) —
+/// a persisted position from <c>vw_ChartPlanetEvidence</c>, no computation. Settable properties
+/// so Dapper name-maps and coerces the view's tinyint / bit columns.</summary>
+public sealed class TransitD1Row
+{
+    public int? House { get; set; }
+    public string Planet { get; set; } = string.Empty;
+    public string PointKind { get; set; } = string.Empty;
+    public bool IsRetrograde { get; set; }
+    public bool IsCombust { get; set; }
+    public string? DegreesInSignDisplay { get; set; }
+    public string? Sign { get; set; }
+    public string? Nakshatra { get; set; }
+    public int? NakshatraPada { get; set; }
+}
+
+/// <summary>
+/// Focused reads for the Transit landing page. Deliberately narrow — the D1 Birth tab needs
+/// only the D1 planetary positions, so it does not go through
+/// <see cref="AstrologerEvidenceRepository"/> (which fans out ~20 evidence sections).
+/// </summary>
+public sealed class TransitLandingRepository(SqlConnectionFactory factory)
+{
+    public IReadOnlyList<TransitD1Row> LoadD1Birth(int birthDetailId)
+    {
+        using var connection = factory.CreateOpenConnection();
+        return connection.Query<TransitD1Row>("""
+            SELECT HouseNumberFromLagna AS House, Planet, PointKind,
+                   IsRetrograde, IsCombust, DegreesInSignDisplay, Sign, Nakshatra, NakshatraPada
+            FROM dbo.vw_ChartPlanetEvidence
+            WHERE BirthDetailId = @birthDetailId AND ChartType = 'D1'
+              AND (PointKind = 'Graha' OR Planet IN ('Lagna', 'Ascendant'))
+            """, new { birthDetailId }).ToList();
+    }
+}

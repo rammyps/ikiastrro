@@ -9,9 +9,12 @@
         @if (Active.Id is int personId)
         {
             <nav class="ik-tabs" aria-label="Person sections">
+                @* ALL CHARTS / KEY INFERENCE fall back to the v1 chart workspace until their own
+                   v2 slices land (the v1 /evidence + /timing routes are unstable right now — a
+                   database-workstream regression). *@
                 <a href="@($"/transit-wheel/{personId}")" class="ik-tab @TabClass("transit")">TRANSIT</a>
                 <a href="@($"/charts/{personId}")" class="ik-tab @TabClass("charts")">ALL CHARTS</a>
-                <a href="@($"/charts/{personId}/evidence")" class="ik-tab @TabClass("evidence")">KEY INFERENCE</a>
+                <a href="@($"/charts/{personId}")" class="ik-tab @TabClass("keyinf")">KEY INFERENCE</a>
             </nav>
         }
         <MudSpacer />
@@ -37,7 +40,7 @@
             @Body
         </div>
         <footer class="ik-footer">
-            Dedicated to my guru (Sundari Hemachandran)<span class="ik-footer-by"> — By Ramakrishnan P</span>
+            <span class="ik-footer-line">Dedicated to my guru (Sundari Hemachandran)<span class="ik-footer-by"> — By Ramakrishnan P</span></span>
         </footer>
     </MudMainContent>
 </MudLayout>
@@ -67,9 +70,11 @@
         var p = CurrentPath;
         var here = key switch
         {
-            "transit"  => p.StartsWith("/transit-wheel", StringComparison.Ordinal),
-            "evidence" => p.Contains("/evidence", StringComparison.Ordinal),
-            "charts"   => p.StartsWith("/charts", StringComparison.Ordinal) && !p.Contains("/evidence", StringComparison.Ordinal),
+            "transit" => p.StartsWith("/transit-wheel", StringComparison.Ordinal),
+            "keyinf"  => p.Contains("/timing", StringComparison.Ordinal) || p.Contains("/key-inference", StringComparison.Ordinal),
+            "charts"  => p.StartsWith("/charts", StringComparison.Ordinal)
+                         && !p.Contains("/timing", StringComparison.Ordinal)
+                         && !p.Contains("/key-inference", StringComparison.Ordinal),
             _ => false
         };
         return here ? "is-here" : "";

@@ -6,10 +6,10 @@
 
 .home {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 44%);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 56%);
     gap: 2rem;
     align-items: start;
-    width: min(94%, 1400px);
+    width: min(94%, 1500px);
     margin: 0 auto;
     min-height: calc(100vh - 160px);
     color: var(--brand-midnight);
@@ -43,8 +43,67 @@
 }
 
 .home-name {
-    max-width: 480px;
+    max-width: 520px;
 }
+
+/* The entered name reads a touch larger than the Preferences toggle above it. */
+.home-search ::deep .mud-input-root {
+    font-size: calc(var(--font-size-control) + 3px);
+}
+
+.home-results {
+    display: grid;
+    gap: 2px;
+    margin-top: 0.75rem;
+}
+
+.home-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: var(--brand-midnight);
+    font: 500 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.home-row:hover,
+.home-row:focus-visible {
+    background: var(--brand-peach);
+    outline: none;
+}
+
+.home-row-name { font-weight: 700; }
+
+.home-row-birth {
+    color: var(--brand-muted);
+    font-size: 0.82em;
+}
+
+.home-row-open {
+    margin-left: auto;
+    color: var(--brand-sunset);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.home-add-new {
+    justify-self: start;
+    margin-top: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    color: var(--brand-sunset);
+    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.home-add-new:hover { text-decoration: underline; }
 
 .home-form {
     display: grid;
@@ -72,18 +131,18 @@
 
 /* Ganesha / Navagraha art — first-class right column */
 .home-art {
-    align-self: stretch;
+    align-self: center;
     display: grid;
-    place-items: start end;
+    place-items: center end;
     overflow: hidden;
 }
 
 .home-art img {
     width: 100%;
-    max-width: 700px;
+    max-width: none;
     height: auto;
     object-fit: contain;
-    object-position: top right;
+    object-position: center right;
 }
 
 /* Primary buttons are sunset-filled via the app theme (IkiastrroTheme). */

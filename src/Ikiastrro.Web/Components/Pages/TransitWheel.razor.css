@@ -2,11 +2,12 @@
    Manrope only; the three --font-size-* tokens only. Sunset = active/hover accent, midnight =
    text + table structure, warm canvas ground. */
 
+/* Standardised page sub-heading — control size, weight + caps + tracking carry the hierarchy. */
 .transit-heading {
-    margin: 0 0 20px;
+    margin: 4px 0 16px;
     color: var(--brand-midnight);
-    font: 700 var(--font-size-tagline) / 1.1 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: 0.06em;
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
@@ -15,15 +16,15 @@
 
 .tw-grid {
     display: grid;
-    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+    grid-template-columns: minmax(380px, 540px) minmax(0, 1fr);
     gap: 32px;
     align-items: start;
 }
 
-/* Left — wheel placement */
+/* Left — wheel placement. Top-aligned with the tab strip on the right. */
 .tw-wheel {
-    position: sticky;
-    top: 88px;
+    min-width: 0;
+    align-self: start;
 }
 
 .tw-wheel img {
@@ -32,7 +33,7 @@
     aspect-ratio: 1;
     object-fit: contain;
     border: 1px solid var(--brand-line);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--brand-canvas);
 }
 
@@ -72,6 +73,7 @@
 
 /* Wide table scrolls inside its own container — the page body never scrolls sideways. */
 .tw-scroll {
+    max-width: 100%;
     overflow-x: auto;
     border: 1px solid var(--brand-line);
     border-radius: 10px;
@@ -100,16 +102,19 @@
 }
 
 .tw-tables ::deep .tw-table td {
-    padding: 9px 14px;
+    padding: 9px 13px;
     color: var(--brand-midnight);
     border-bottom: 1px solid var(--brand-line);
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .tw-tables ::deep .tw-table tbody tr:last-child td { border-bottom: 0; }
 .tw-tables ::deep .tw-table tbody tr:hover td { background: var(--brand-peach); }
 
-.tw-tables ::deep .tw-table .num { font-variant-numeric: tabular-nums; }
+.tw-tables ::deep .tw-table .num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
 
 @media (max-width: 900px) {
     .tw-grid { grid-template-columns: 1fr; gap: 24px; }
