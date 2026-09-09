@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: ui
 component: Home
 route: /
@@ -30,12 +30,14 @@ footer. The Ganesha / Navagraha illustration is a **first-class part of the Home
      default is the active `tbl_Rule_Ayanamsa` row, **Lahiri, fixed**, shown as *Default (Lahiri)*.
      The choice is passed to `ChartGenerationService.GenerateAll(birth, ayanamsa)` for the next
      generation. (`docs/ui/MASTER.md` NFR-UI-03)
-  2. **Choose Chart style** — `MudSelect`: *South Indian* (default) · *North Indian* ·
-     *West Indian*. All three are listed so the setting is forward-compatible; **only the
-     South-Indian renderer exists today** — North / West Indian fall back to it until their
-     `Components/Charts/**` renderers ship (ROADMAP *Later*; `docs/ui/MASTER.md` NFR-UI-02).
-  3. **Choose Language** — `MudSelect`: *English* (default) · *Tamil* (planned — Tamil script or
-     transliteration TBD). Deferred i18n (`docs/ui/MASTER.md` NFR-UI-04).
+  2. **Choose Chart style** — `MudSelect`: *South Indian* (default) · *North Indian (Planned)* ·
+     *West Indian (Planned)*. All three are listed so the setting is forward-compatible, but
+     **North Indian and West Indian are `Disabled` `MudSelectItem`s** — they cannot be picked,
+     so an unrenderable style is never stored. They become selectable when their
+     `Components/Charts/**` renderer ships (ROADMAP *Later*; `docs/ui/MASTER.md` NFR-UI-02).
+  3. **Choose Language** — `MudSelect`: *English* (default) · *Tamil (Planned)*. **Tamil is a
+     `Disabled` `MudSelectItem`** until the localisation ships; English is the only selectable
+     value today. Deferred i18n (`docs/ui/MASTER.md` NFR-UI-04).
 
   **Selecting any preference applies it and collapses the panel** (the dropdowns hide again).
   Persistence: per-browser (`localStorage`) for now; a DB-backed default is a `database`-workstream
@@ -79,10 +81,25 @@ person's Name. `Cancel` hides the fields again. Fields, in order:
 
 **Flow:** completing **Country** is the trigger — on a valid form it resolves the place,
 runs `ChartGenerationService.GenerateAll` (with the chosen ayanāṁśa), sets the new row as the
-active person (revealing the nav tabs), and navigates to **`/charts/{id}`**. A `Generate Chart`
-button is the explicit / accessible fallback.
+active person (revealing the nav tabs), and navigates to **`/transit-wheel/{id}`** (the Transit
+landing — same destination as picking an existing person). A `Generate Chart` button is the
+explicit / accessible fallback.
 
 Geocoding-failure fallback (manual lat / long / offset) is a follow-up, not in the first cut.
+
+## Open decisions — Preferences → chart generation
+
+The ayanāṁśa selector crosses UI → generation service → persisted provenance. Pin these before
+the selector is called "done":
+
+| Question | Current answer |
+|---|---|
+| Where is the choice stored? | Per-browser `localStorage` now. DB-backed per-person default is a `database`-workstream follow-up. |
+| Scope | Per-browser, applied to the **next explicit generation**. Not per-person, not per-generation-history. |
+| Effect on existing charts | None — already-generated charts keep their stored ayanāṁśa; the choice only feeds the next `ChartGenerationService.GenerateAll`. |
+| How is the active choice surfaced? | The selected item shows in the collapsed disclosure's summary line (e.g. *Ayanāṁśa: Default (Lahiri)*). |
+| `localStorage` unavailable | Fall back to the DB default (active `tbl_Rule_Ayanamsa` row = Lahiri); the selector still works for the session. |
+| Does changing it regenerate anything? | **No.** It affects only the next explicit generation the user triggers. |
 
 ## Design system
 

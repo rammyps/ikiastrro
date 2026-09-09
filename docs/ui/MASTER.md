@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: ui
 togaf: C — Application Architecture (UI)
 safe: Solution Intent — UX
@@ -23,10 +23,13 @@ recomputes.
 | [`brand.md`](brand.md) | Canonical palette, typography, lockup, preserved assets |
 | [`design-language.md`](design-language.md) | Token + component authoring rules |
 | [`dataviz.md`](dataviz.md) | Charting approach — hand-rolled SVG now, Syncfusion as a deferred option |
-| [`components/transit-wheel.md`](components/transit-wheel.md) | Natal ↔ transit wheel spec |
+| [`components/transit-wheel.md`](components/transit-wheel.md) | **`status: v1 — live`** — the shipped natal ↔ transit wheel + dasha selectors |
+| [`components/transit.md`](components/transit.md) | **`status: v2 — approved (not yet built)`** — the v2 Transit landing: embedded wheel + two-tab D1 Birth / Current Transit table |
 | [`components/south-indian-grid.md`](components/south-indian-grid.md) | The enriched South-Indian chart grid + template page |
 | [`components/evidence-tables.md`](components/evidence-tables.md) | The astrologer evidence page |
 | [`components/home.md`](components/home.md) | Home / entry screen |
+| [`components/yoga.md`](components/yoga.md) | v2 Key Inference → YOGAS header — coverage summary + source variants |
+| [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers |
 | [`components/chart-catalog.md`](components/chart-catalog.md) | The hand-rolled chart component catalogue + snapshot flow |
 
 ## Screen inventory (live routes)
@@ -42,7 +45,13 @@ recomputes.
 | `/charts/{id}/timing` | `Timing` | Vimśottari dasha tree + Sade Sati + Gochara | verified |
 | `/charts/{id}/evidence` | `AstrologerEvidence` | read-only evidence tables in reading order, chart selector | verified |
 | `/charts/{id}/life-weeks` | `LifeWeeks` | 4000-week grid coloured by Mahādaśā | verified — **retired in v2** |
-| `/transit-wheel` · `/transit-wheel/{id}` | `TransitWheel` | fixed natal ring + transit layer, date + Mahā/Antar selectors, comparison table | verified |
+| `/transit-wheel` · `/transit-wheel/{id}` | `TransitWheel` | fixed natal ring + transit layer, date + Mahā/Antar selectors, comparison table | v1 live — **v2 rebuild pending** ([`components/transit.md`](components/transit.md)) |
+
+**v2 route targets** (not yet built — see [`wkstream_UI_v2.md`](wkstream_UI_v2.md#routes)):
+`/transit-wheel/{id}` → Transit landing · `/charts/{id}` → All Charts (21 grids) ·
+`/key-inference/{id}` → Key Inference (KEY INFERENCE · YOGAS · TIME PERIOD (DASHA) · SATURN
+TIME PERIOD). Retired in v2: `/add`, `/charts/{id}/evidence`, `/charts/{id}/varga/{code}`, the
+`/charts/{id}` hub, `/charts/{id}/life-weeks`, `/charts/{id}/timing`.
 
 ## Navigation
 
@@ -80,7 +89,9 @@ graduates to a [`design-language.md`](design-language.md) rule.
 The divisional / varga charts render **South Indian by default**, with **North Indian** and
 **West Indian** styles selectable from Preferences. Only South Indian renders today; the other
 two renderers are on `ROADMAP.md` *Later* and are a `Components/Charts/**` (Codex-scope) job.
-The Preferences selector already lists all three so the setting is forward-compatible.
+The Preferences selector lists all three for forward-compatibility, but **North Indian and West
+Indian are shown disabled and labelled "Planned"** until their renderer ships — an unrenderable
+style can never be stored as the active choice.
 
 ### NFR-UI-03 — Ayanāṁśa choice
 
@@ -91,10 +102,11 @@ takes the chosen system for that person's next run; the project baseline is unch
 ### NFR-UI-04 — Localisation (Tamil) · **deferred (backlog: Later)**
 
 The app should support **Tamil** — either Tamil script or a Tamil transliteration (decision
-deferred). A **Language** selector in Preferences. This is broad: UI chrome strings, astrology
-terminology (`tbl_Dim_*` display names / a term table), number and date formatting, and
-right-to-left is not needed but glyph coverage in Manrope is (Tamil needs a fallback face).
-Scope this as its own design pass before estimating.
+deferred). A **Language** selector in Preferences, with **Tamil shown disabled and labelled
+"Planned"** until the localisation ships (English is the only selectable value today). This is
+broad: UI chrome strings, astrology terminology (`tbl_Dim_*` display names / a term table),
+number and date formatting, and right-to-left is not needed but glyph coverage in Manrope is
+(Tamil needs a fallback face). Scope this as its own design pass before estimating.
 
 ## In flight — `wkstream_UI_v2`, the Home page
 

@@ -1,12 +1,17 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: ui
 component: TransitWheel
+status: v1 — live
 route: /transit-wheel · /transit-wheel/{id}
 togaf: C — component spec
 ---
 
 # Component — transit wheel
+
+> **v1 — live.** Describes the shipped `TransitWheel.razor`. Superseded by
+> [`transit.md`](transit.md) for v2; this remains the live spec until the v2 Transit landing
+> ships.
 
 Natal ↔ transit comparison over a supplied transparent SVG template
 (`UI_SVG_Templates/…natal-transit.svg`). The SVG is the visual authority: preserve its ring

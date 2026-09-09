@@ -2,11 +2,18 @@
 last_updated: 2026-09-10
 workstream: ui
 component: Transit
+status: v2 — approved (not yet built)
 route: /transit-wheel/{id}
 togaf: C — component spec
 ---
 
 # Component — transit (D1 birth chart landing)
+
+> **v2 — approved, not yet built.** This supersedes [`transit-wheel.md`](transit-wheel.md) as
+> the target for `/transit-wheel/{id}`. `transit-wheel.md` stays the live spec until this ships.
+> The right-hand two-tab table and the `tbl_TransitPositionReference` motion columns are
+> **Codex's** work (`Components/Charts/**` + the reference-table merge); Claude places the page
+> and integrates.
 
 The page a person **lands on** after being opened from Home. Band heading is
 **`TRANSIT - D1 BIRTH CHART`**; there is no separate in-page "Transit" strip.
@@ -55,20 +62,32 @@ first column.
 
 A small caption shows the transit timestamp: *as of `<AsOfUtc>` (local)*.
 
-## † Database change required
+## † Database contract — ingress / next-change motion (Codex + `database`)
 
-`tbl_TransitPositionReference` currently stores **only the current `MotionDirection`**. This
-page needs two more, both for the transit chart:
+`tbl_TransitPositionReference` stored **only the current `MotionDirection`**. Slow planets can
+enter a sign retrograde and later turn direct (or vice-versa), so the current direction alone
+describes neither the ingress nor the exit. The Current Transit tab needs two more:
 
-| New column | Meaning |
-|---|---|
-| `InSignMotion` | the motion direction the graha had **when it entered its current sign** (`InSignSinceUtc`) |
-| `NextChangeMotion` | the motion direction it will have **at the next sign change** (`NextChangeUtc`) |
+| New column | Type | Meaning |
+|---|---|---|
+| `InSignMotion` | `VARCHAR(10) NULL`, CHECK `IN ('Direct','Retrograde','Stationary')` | motion the graha had **when it entered its current sign** (`InSignSinceUtc`) |
+| `NextChangeMotion` | `VARCHAR(10) NULL`, same CHECK | motion it will have **at the next sign change** (`NextChangeUtc`) |
 
-Slow planets can enter a sign retrograde and later turn direct (or vice-versa), so the current
-`MotionDirection` alone does not describe the ingress or the exit. Add both to the merge in
-`GocharaRepository` and to the reference table DDL (`db/`), and note them in
-[`../../database/schema.md`](../../database/schema.md).
+**Status:**
+
+- **DDL — done.** `db/055_add_transit_boundary_motion.sql` (Codex) adds both columns + CHECK
+  constraints, idempotent, self-recording. **To fold forward:** `db/45_create_transit_position_reference.sql`
+  (the table's own CREATE) is not yet in the `db/ikiastrro.sql` baseline — fold both `45` and
+  `055` in the same pass.
+- **Merge + model — pending (Codex).** `GocharaRepository.SaveSnapshots` MERGE and the
+  `PlanetTransitSnapshot` record must carry `InSignMotion` / `NextChangeMotion`.
+- **Flag.** `GocharaRepository` hard-codes `AyanamsaRuleId = 7` (Jagannatha) while migration
+  `054` made Lahiri the DB default — reconcile, or document why, in the same change.
+- **Open question (`database`).** Existing `tbl_TransitPositionReference` rows are written
+  lazily on transit-page render; they carry NULL motion fields until re-fetched. Decide: a
+  one-off backfill, or accept lazy refill.
+
+Noted in [`../../database/schema.md`](../../database/schema.md).
 
 ## Rendering
 

@@ -1,0 +1,1083 @@
+<title>All Charts &amp; Key Inference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+  /* ------------------------------------------------------------------
+     Iki-Astrro v2 — person detail, two header pages:
+       1. All Charts     (/charts)         — 21 divisional South-Indian grids
+       2. Key Inference  (/key-inference)  — 4 headers:
+            · KEY INFERENCE   (8 sub-tabs)
+            · YOGAS
+            · TIME PERIOD (DASHA)
+            · SATURN TIME PERIOD
+     Header bar: nav tabs LEFT (caps), brand lockup + Home RIGHT.
+     Design system fixed by the project (brand.md / wkstream_UI_v2):
+     Manrope only; one warm-canvas ground for page AND panels; sunset
+     orange = accent + button/highlight with midnight text; light-only.
+     ------------------------------------------------------------------ */
+  :root {
+    --canvas:#FAF5EA; --ink:#0F2041; --sunset:#F47A24;
+    --line:#D9D1C7; --muted:#53698D; --peach:#FFF0E5;
+    --ok:#2f7a42; --warn:#9c6800; --bad:#96271e;
+
+    /* graha identity palette (tokens.css --planet-*) — tuned for the warm ground */
+    --pl-sun:#a8531a; --pl-moon:#5b5f6b; --pl-mars:#a3271e; --pl-mercury:#2c7a3d;
+    --pl-jupiter:#8a6a00; --pl-venus:#a13e78; --pl-saturn:#2c4f9e; --pl-rahu:#55586a; --pl-ketu:#7a4a22;
+
+    --fs-display: clamp(28px, 2.4vw, 38px);
+    --fs-tagline: clamp(17px, 1.3vw, 20px);
+    --fs-control: 15px;
+    --fs-cell: 13.5px;
+    --fs-meta: 11.5px;
+
+    --shadow: 0 1px 2px rgba(15,32,65,.06), 0 6px 20px rgba(15,32,65,.06);
+
+    /* one content width + one horizontal gutter for every band and page */
+    --maxw: 1280px;
+    --pad-x: clamp(1rem, 3vw, 1.75rem);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: 'Manrope','Segoe UI',system-ui,sans-serif;
+    font-size: var(--fs-control); line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--sunset); outline-offset: 2px; border-radius: 3px; }
+
+  /* ---- app bar : nav LEFT, brand + Home RIGHT ----------------- */
+  .appbar {
+    position: sticky; top: 0; z-index: 40;
+    background: var(--sunset); color: var(--ink); box-shadow: var(--shadow);
+  }
+  .bar-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: .55rem var(--pad-x);
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .appbar__spacer { flex: 1; }
+  .appbar__brand { font-weight: 800; letter-spacing: -0.01em; }
+  .appbar__brand .pipe { opacity: .5; margin: 0 .5ch; }
+  .appbar__brand .tag { font-weight: 600; }
+  @media (max-width: 820px) { .appbar__brand .tag { display: none; } }
+  .nav { display: flex; gap: .3rem; }
+  .nav a, .nav-home {
+    font: inherit; font-weight: 800; cursor: pointer; text-decoration: none;
+    text-transform: uppercase; letter-spacing: .04em;
+    padding: .35rem .85rem; border-radius: 999px;
+    border: 1.5px solid transparent; background: transparent; color: var(--ink);
+  }
+  .nav a:hover { background: rgba(15,32,65,.08); }
+  .nav a[aria-current="page"] { background: var(--ink); color: var(--canvas); }
+  /* HOME — a fixed pill straddling the app-bar / band edge, hard left */
+  .nav-home {
+    position: absolute; left: 1rem; top: 100%; transform: translateY(-50%); z-index: 45;
+    background: var(--ink); color: var(--canvas); border-color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  .nav-home:hover { background: #1b2f52; }
+  /* when the inner-page tabs are visible, clear the floating HOME */
+  #nav:not([hidden]) { margin-left: 5.5rem; }
+
+  /* ---- merged top band : page title | person | meta chips ----
+     one compact row so the first tables land above the fold. */
+  .topband {
+    position: sticky; top: 47px; z-index: 30;
+    background: var(--canvas); border-bottom: 1px solid var(--line);
+  }
+  .topband-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: .45rem var(--pad-x);
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem;
+  }
+  .tb-title { min-width: 0; }
+  .tb-title h2 {
+    margin: 0; font-size: var(--fs-tagline); font-weight: 800;
+    text-transform: uppercase; letter-spacing: .04em; line-height: 1.1;
+  }
+  .tb-title p { margin: .1rem 0 0; color: var(--muted); font-size: var(--fs-meta); }
+  .tb-person { text-align: center; min-width: 0; }
+  .tb-name {
+    margin: 0; font-size: var(--fs-display); font-weight: 800;
+    letter-spacing: -0.03em; line-height: 1.05;
+  }
+  .tb-birth { display: block; color: var(--muted); font-weight: 600; font-size: var(--fs-meta); }
+  .tb-meta { justify-self: end; display: grid; grid-template-columns: auto auto; gap: .3rem; justify-content: end; }
+  .chip {
+    font-size: 10px; font-weight: 700; letter-spacing: .02em;
+    text-transform: uppercase; padding: .16rem .45rem;
+    border: 1px solid var(--line); border-radius: 999px; color: var(--muted); white-space: nowrap;
+  }
+  .chip strong { color: var(--ink); font-weight: 800; }
+  @media (max-width: 940px) {
+    .topband-inner { grid-template-columns: 1fr; }
+    .tb-person { text-align: left; }
+    .tb-meta { justify-self: start; justify-content: start; }
+  }
+
+  main { max-width: var(--maxw); margin: 0 auto; padding: .8rem var(--pad-x) 2.5rem; }
+  main[hidden] { display: none; }
+
+  /* ---- footer : orange band, centred dedication ---- */
+  .footer { background: var(--sunset); color: var(--ink); }
+  .footer-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 1rem var(--pad-x);
+    display: flex; flex-direction: column; align-items: center; gap: .1rem; text-align: center;
+  }
+  .footer-note { margin: 0; font-weight: 700; font-style: italic; }
+  .footer-note small { font-size: var(--fs-meta); font-weight: 700; font-style: normal; opacity: .82; }
+
+  /* ---- Home : filter + one matched row + Ganesha art ---- */
+  a.tb-name { text-decoration: none; color: var(--ink); cursor: pointer; }
+  a.tb-name::after { content: " \25BE"; color: var(--muted); font-size: .5em; font-weight: 700; vertical-align: middle; }
+  .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 40%); gap: 2rem; align-items: start; }
+  @media (max-width: 860px) { .home-grid { grid-template-columns: 1fr; } .home-art { display: none; } }
+  .home-pick { max-width: 480px; padding-top: 1rem; color: var(--ink); }
+  .home-pick input {
+    width: 100%; font: inherit; font-weight: 600; padding: .6rem .8rem;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); color: var(--ink);
+  }
+  .home-pick input::placeholder { color: var(--ink); opacity: .55; }
+  .home-pick input:focus-visible { border-color: var(--sunset); }
+  #pickRows { display: flex; flex-direction: column; gap: .5rem; margin-top: .6rem; }
+  .pick-hint { color: var(--ink); font-size: var(--fs-meta); font-weight: 700; margin-top: .6rem; }
+  .picker__row {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: .7rem .9rem; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--canvas); cursor: pointer; text-align: left; font: inherit; color: var(--ink); width: 100%;
+  }
+  .picker__row:hover { border-color: var(--sunset); background: var(--peach); }
+  .picker__row .nm { font-weight: 800; }
+  .picker__row .bd { font-size: var(--fs-meta); color: var(--ink); font-weight: 600; }
+  .picker__row .go { flex: none; font-size: var(--fs-meta); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--sunset); }
+  .picker__add { border-style: dashed; color: var(--muted); font-weight: 800; justify-content: flex-start; margin-top: .8rem; max-width: 480px; }
+  .home-art { position: relative; }
+  .home-art svg { width: 100%; height: auto; display: block; }
+  .home-art figcaption { margin-top: .5rem; text-align: center; font-size: var(--fs-meta); color: var(--muted); font-weight: 700; }
+
+  /* ---- transit-wheel landing ---- */
+  .tw-grid { display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+  @media (max-width: 900px) { .tw-grid { grid-template-columns: 1fr; } }
+  .tw-chart { border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); box-shadow: var(--shadow); overflow: hidden; }
+  .tw-wheel { width: 100%; height: auto; display: block; padding: .5rem; }
+  .tw-details { border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); box-shadow: var(--shadow); overflow-x: auto; }
+  .tw-tabs { display: flex; gap: .3rem; padding: .5rem .6rem; border-bottom: 1px solid var(--line); background: var(--peach); position: sticky; left: 0; }
+  .tw-tabs button {
+    font: inherit; font-size: var(--fs-meta); font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+    cursor: pointer; padding: .3rem .65rem; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--canvas); color: var(--ink);
+  }
+  .tw-tabs button[aria-selected="true"] { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
+  .tw-asof { margin: 0; padding: .4rem .7rem; font-size: var(--fs-meta); font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--line); }
+  .tw-details table { table-layout: auto; width: 100%; border-collapse: collapse; font-size: var(--fs-cell); font-variant-numeric: tabular-nums; }
+  .tw-details th, .tw-details td { padding: .4rem .7rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .tw-details thead th { font-size: var(--fs-meta); text-transform: uppercase; letter-spacing: .03em; color: var(--muted); border-bottom: 1.5px solid var(--ink); }
+
+  /* ================= PAGE 1 — ALL CHARTS ==================== */
+  .grid-charts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 900px) { .grid-charts { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid-charts { grid-template-columns: 1fr; } }
+
+  /* only the heading bar is sunset — card + grid are on the plain canvas */
+  .cc {
+    border: 1px solid var(--line); border-radius: 10px; background: var(--canvas);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .cc__head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: .5rem;
+    padding: .5rem .7rem; background: var(--sunset); color: var(--ink);
+  }
+  .cc__code { font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
+  .cc__code small { color: var(--ink); font-weight: 700; margin-left: .4ch; }
+  .cc__sig { font-size: var(--fs-meta); color: var(--ink); font-weight: 800; text-align: right; }
+
+  .si {
+    display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr);
+    aspect-ratio: 1 / 1; gap: 0; margin: .5rem; border: 1.5px solid var(--ink);
+  }
+  .si__cell {
+    background: var(--canvas);
+    border: .5px solid var(--ink); position: relative; overflow: hidden;
+    padding: 1.3rem .22rem .22rem; min-width: 0;
+    display: flex; flex-wrap: wrap; align-content: flex-start; gap: .16rem .3rem;
+  }
+  .si__sign {
+    position: absolute; top: 3px; left: 4px;
+    font-size: 8px; font-weight: 800; letter-spacing: .01em;
+    color: var(--muted);
+  }
+  /* two house numbers, top-right, stacked : Lagna (sunset) over Moon (blue) */
+  .si__hno { position: absolute; top: 3px; right: 4px; display: flex; flex-direction: column; align-items: flex-end; line-height: 1; gap: 1px; }
+  .si__hno b { font-size: 8.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .si__hno .hL { color: var(--sunset); }
+  .si__hno .hM { color: var(--pl-saturn); }
+  .si__center {
+    grid-column: 2 / 4; grid-row: 2 / 4;
+    background: var(--canvas);
+    border: .5px solid var(--ink); overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: .3rem; gap: .1rem;
+  }
+  .si__center b { font-weight: 800; font-size: var(--fs-tagline); letter-spacing: -0.02em; }
+  .si__center span { font-size: var(--fs-meta); color: var(--muted); font-weight: 700; line-height: 1.15; }
+
+  /* Lagna box : peach fill + sunset outline + classic corner tick */
+  .si__cell.is-asc { background: var(--peach); outline: 2px solid var(--sunset); outline-offset: -2px; }
+  .si__cell.is-asc::before {
+    content: ""; position: absolute; top: 0; left: 0; width: 15px; height: 15px;
+    background: linear-gradient(135deg, var(--sunset) 0 46%, transparent 46%);
+  }
+
+  .pl { font-size: 12.5px; font-weight: 800; line-height: 1.05; padding: 1px 2px; border-radius: 3px; }
+  .pl.p-lagna { color: var(--sunset); font-size: 8.5px; letter-spacing: .03em; }
+  .pl.p-su { color: var(--pl-sun); }
+  .pl.p-mo { color: var(--pl-moon); }
+  .pl.p-ma { color: var(--pl-mars); }
+  .pl.p-me { color: var(--pl-mercury); }
+  .pl.p-ju { color: var(--pl-jupiter); }
+  .pl.p-ve { color: var(--pl-venus); }
+  .pl.p-sa { color: var(--pl-saturn); }
+  .pl.p-ra { color: var(--pl-rahu); }
+  .pl.p-ke { color: var(--pl-ketu); }
+  .pl.retro::after { content: "\00A0R"; font-size: 9px; vertical-align: super; color: var(--muted); }
+
+  .legend {
+    margin-top: 1rem; font-size: var(--fs-meta); color: var(--muted); font-weight: 600;
+    display: flex; gap: 1rem; flex-wrap: wrap;
+  }
+  .legend .hL { color: var(--sunset); font-weight: 800; }
+  .legend .hM { color: var(--pl-saturn); font-weight: 800; }
+
+  /* ================= PAGE 2 — KEY INFERENCE ================= */
+  .tabs { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .5rem; }
+  .tabs button {
+    font: inherit; font-size: var(--fs-meta); font-weight: 800; cursor: pointer;
+    letter-spacing: .04em; text-transform: uppercase;
+    padding: .4rem .8rem; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--canvas); color: var(--ink);
+  }
+  .tabs button:hover { border-color: var(--sunset); }
+  .tabs button[aria-selected="true"] { background: var(--sunset); border-color: var(--sunset); color: var(--ink); }
+
+  .subtabs { display: flex; gap: .25rem; flex-wrap: wrap; margin-bottom: .7rem; }
+  .subtabs button {
+    font: inherit; font-size: var(--fs-meta); font-weight: 700; cursor: pointer;
+    letter-spacing: .03em; text-transform: uppercase;
+    padding: .3rem .6rem; border-radius: 6px;
+    border: 1px solid transparent; background: var(--peach); color: var(--muted);
+  }
+  .subtabs button:hover { color: var(--ink); }
+  .subtabs button[aria-selected="true"] { background: var(--ink); color: var(--canvas); }
+
+  .panel { display: flex; flex-direction: column; gap: 1rem; }
+  .card {
+    border: 1px solid var(--line); border-radius: 10px; background: var(--canvas);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .card__hd {
+    display: flex; align-items: baseline; justify-content: space-between; gap: .75rem;
+    flex-wrap: wrap; padding: .55rem .8rem; border-bottom: 1px solid var(--line); background: var(--peach);
+  }
+  .card__hd h3 { margin: 0; font-size: var(--fs-control); font-weight: 800; letter-spacing: -0.01em; }
+  .card__hd h3 .sub { color: var(--muted); font-weight: 700; margin-left: .5ch; }
+  .card__hd .src { font-size: var(--fs-meta); color: var(--muted); font-weight: 700; font-family: ui-monospace, Consolas, monospace; }
+  .chartpick { font-size: var(--fs-meta); color: var(--muted); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+  .chartpick select {
+    font: inherit; font-weight: 800; margin-left: .4ch; padding: .2rem .45rem;
+    border: 1px solid var(--sunset); border-radius: 6px; background: var(--canvas); color: var(--ink);
+  }
+  /* auto column sizing — widths follow content, table only as wide as needed */
+  #view-infer table {
+    table-layout: auto; width: auto; max-width: 100%;
+    border-collapse: collapse; margin: 0;
+    font-size: var(--fs-cell); font-variant-numeric: tabular-nums;
+  }
+  #view-infer th, #view-infer td {
+    padding: .4rem .8rem; text-align: left; vertical-align: top;
+    border-bottom: 1px solid var(--line);
+    white-space: normal; overflow-wrap: break-word;
+  }
+  #view-infer thead th {
+    font-size: var(--fs-meta); font-weight: 800; line-height: 1.15;
+    letter-spacing: .03em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1.5px solid var(--ink); background: var(--canvas);
+  }
+  #view-infer tbody tr:hover { background: var(--peach); }
+  #view-infer tbody tr.is-current, #view-infer tbody tr.is-current:hover {
+    background: var(--sunset); color: var(--ink);
+  }
+  #view-infer tbody tr.is-current .pill { border-color: var(--ink); color: var(--ink); }
+  #view-infer td.num, #view-infer th.num { text-align: right; }
+
+  .facts { display: flex; flex-wrap: wrap; gap: .5rem; padding: .8rem; }
+  .fact { border: 1px solid var(--line); border-radius: 8px; padding: .35rem .6rem; font-size: var(--fs-cell); font-weight: 600; }
+  .fact b { display: block; font-size: var(--fs-meta); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 800; }
+  .empty { padding: .9rem .8rem; color: var(--muted); font-weight: 600; font-size: var(--fs-cell); }
+  .ava-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; padding: .8rem; }
+  .ava-grid span { border: 1px solid var(--line); text-align: center; padding: .3rem 0; font-size: var(--fs-meta); font-weight: 700; color: var(--muted); }
+
+  .pill { display: inline-block; font-size: var(--fs-meta); font-weight: 800; padding: .08rem .45rem; border-radius: 999px; border: 1px solid currentColor; }
+  .pill--ok { color: var(--ok); } .pill--warn { color: var(--warn); }
+  .pill--bad { color: var(--bad); } .pill--flat { color: var(--muted); }
+  .yes { color: var(--ok); font-weight: 800; } .no { color: var(--muted); }
+  .dim { color: var(--muted); }
+
+  /* ---- daśā drill-down tree ---- */
+  .tree { padding: .5rem .4rem .7rem; font-size: var(--fs-cell); }
+  .trow {
+    display: grid; grid-template-columns: 1.4rem 7rem 1fr; align-items: baseline;
+    gap: .5rem; padding: .32rem .5rem; border-radius: 6px;
+  }
+  .trow[data-has="true"] { cursor: pointer; }
+  .trow:hover { background: var(--peach); }
+  .trow.is-current, .trow.is-current:hover { background: var(--sunset); color: var(--ink); }
+  .trow .caret { font-size: 11px; color: var(--muted); }
+  .trow.is-current .caret { color: var(--ink); }
+  .trow .tl { font-weight: 800; }
+  .trow .td { color: var(--muted); font-weight: 600; }
+  .trow.is-current .td { color: var(--ink); }
+  .tchildren { margin-left: 1.1rem; border-left: 2px solid var(--line); }
+  .tlbl { font-size: var(--fs-meta); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 800; padding: .2rem .5rem 0; }
+
+  /* ---- round filter ---- */
+  .rfilter { display: flex; gap: .3rem; flex-wrap: wrap; }
+  .rfilter button {
+    font: inherit; font-size: var(--fs-meta); font-weight: 800; cursor: pointer;
+    text-transform: uppercase; letter-spacing: .03em;
+    padding: .22rem .55rem; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--canvas); color: var(--muted);
+  }
+  .rfilter button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--canvas); }
+
+  /* ---- design notes -------------------------------------- */
+  .notes { max-width: var(--maxw); margin: 0 auto 2rem; padding: 0 var(--pad-x); }
+  .notes details { border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); box-shadow: var(--shadow); }
+  .notes summary { cursor: pointer; padding: .8rem 1rem; font-weight: 800; font-size: var(--fs-tagline); }
+  .notes__body { padding: 0 1.15rem 1.1rem; }
+  .notes__body h4 { font-size: var(--fs-meta); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 1.1rem 0 .3rem; }
+  .notes__body li, .notes__body p { max-width: 74ch; }
+  .notes__body code { font-family: ui-monospace, Consolas, monospace; font-size: .9em; background: var(--peach); padding: .04rem .34rem; border-radius: 4px; }
+</style>
+
+<header class="appbar">
+  <div class="bar-inner">
+    <a class="nav-home" href="#home" data-view="home">Home</a>
+    <nav class="nav" id="nav" hidden>
+      <a href="#transit" data-view="transit">Transit</a>
+      <a href="#all-charts" data-view="charts">All Charts</a>
+      <a href="#key-inference" data-view="infer">Key Inference</a>
+    </nav>
+    <span class="appbar__spacer"></span>
+    <span class="appbar__brand">Iki-Astrro<span class="pipe">|</span><span class="tag">Where Passion, Purpose &amp; Planets Align.</span></span>
+  </div>
+</header>
+
+<section class="topband">
+  <div class="topband-inner">
+    <div class="tb-title">
+      <h2 id="pageTitle">Home</h2>
+      <p id="pageDesc">pick a saved person, or add one</p>
+    </div>
+    <div class="tb-person">
+      <a class="tb-name" id="tbName" href="#home">Select a person</a>
+      <span class="tb-birth" id="tbBirth">no person open</span>
+    </div>
+    <div class="tb-meta">
+      <span class="chip">Ayan&#257;&#7747;&#347;a <strong>Lahiri</strong> 23.595&deg;</span>
+      <span class="chip">Houses <strong>Whole&nbsp;Sign</strong></span>
+      <span class="chip">Rule set <strong>1</strong></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOME (filter + one matched row + art) ============ -->
+<main id="view-home" hidden>
+  <div class="home-grid">
+    <div class="home-pick" id="homePicker"></div>
+    <figure class="home-art">
+      <svg viewBox="0 0 200 200" role="img" aria-label="Navagraha ring — brand illustration placeholder">
+        <circle cx="100" cy="100" r="78" fill="none" stroke="var(--brand-line)" stroke-width="1"/>
+        <circle cx="100" cy="100" r="60" fill="none" stroke="var(--brand-line)" stroke-width="1" stroke-dasharray="2 4"/>
+        <circle cx="100" cy="100" r="20" fill="var(--peach)" stroke="var(--sunset)" stroke-width="1.5"/>
+        <g fill="var(--sunset)">
+          <circle cx="100" cy="22" r="5"/><circle cx="155" cy="45" r="5"/><circle cx="178" cy="100" r="5"/>
+          <circle cx="155" cy="155" r="5"/><circle cx="100" cy="178" r="5"/><circle cx="45" cy="155" r="5"/>
+          <circle cx="22" cy="100" r="5"/><circle cx="45" cy="45" r="5"/>
+        </g>
+        <circle cx="100" cy="100" r="6" fill="var(--sunset)"/>
+      </svg>
+      <figcaption>Ganesha &middot; Navagraha — brand illustration (placeholder)</figcaption>
+    </figure>
+  </div>
+</main>
+
+<!-- ============ TRANSIT — D1 BIRTH CHART ============ -->
+<main id="view-transit" hidden>
+  <div class="tw-grid">
+    <div class="tw-chart" id="twChart"></div>
+    <div class="tw-details" id="twDetails"></div>
+  </div>
+</main>
+
+<!-- ============ PAGE 1 — ALL CHARTS ============ -->
+<main id="view-charts" hidden>
+  <div class="grid-charts" id="gridCharts"></div>
+  <div class="legend">
+    <span>Lagna box = peach fill + <b style="color:var(--sunset)">&#9701;</b> corner tick</span>
+    <span>top-left = sign &middot; top-right = <b class="hL">house from Lagna</b> over <b class="hM">house from Moon</b></span>
+    <span>graha glyphs are colour-coded &middot; small R = retrograde</span>
+    <span>Signs fixed (Aries top-2nd, clockwise). Illustrative placements.</span>
+  </div>
+</main>
+
+<!-- ============ PAGE 2 — KEY INFERENCE ============ -->
+<main id="view-infer" hidden>
+  <div class="tabs" id="inferTabs" role="tablist"></div>
+  <div class="subtabs" id="inferSubtabs" role="tablist" hidden></div>
+  <div class="panel" id="inferPanel"></div>
+</main>
+
+<div class="notes">
+  <details>
+    <summary>Design notes</summary>
+    <div class="notes__body">
+      <h4>Header &amp; layout</h4>
+      <ul>
+        <li>App bar: <code>HOME</code> is the <b>left-most</b> item; then the nav tabs <code>TRANSIT &middot; ALL CHARTS &middot; KEY INFERENCE</code> (caps); the brand lockup sits on the <b>right</b>. <b>The nav tabs are hidden until a person is opened</b> — all three inner pages are per-person.</li>
+        <li>Compact band: page title + descriptor (caps, left) &middot; person name + birth (centre) &middot; meta chips (right, the <i>21 charts / 611 rows</i> chip removed). <b>On Home the centre + right of the band are empty</b> — no person is picked yet.</li>
+        <li>One content width (<code>--maxw 1280px</code>) and one gutter (<code>--pad-x</code>) across app bar, band, pages and footer.</li>
+        <li>Footer: a single centred line — <i>Dedicated to my guru (Sundari Hemachandran) — <small>By Ramakrishnan P</small></i>.</li>
+      </ul>
+      <h4>Home</h4>
+      <ul>
+        <li>Band heading is <b>DISCOVER YOUR PATH</b>, no sub-heading. All explanatory copy removed — just the search field, results and <code>&#65291; Add New</code>. Home text is midnight blue (not muted).</li>
+        <li>A <b>search</b>, not a list. Typing a name shows the match as <b>one row</b> (name &middot; birth &middot; <span style="color:var(--sunset);font-weight:800">View chart &rarr;</span>).</li>
+        <li><code>HOME</code> is pulled into the <b>left margin</b> (centred in the gutter, vertically centred).</li>
+        <li>Ganesha / Navagraha illustration in the <b>right column</b> (placeholder ring here).</li>
+      </ul>
+      <h4>Transit — D1 Birth Chart (landing)</h4>
+      <ul>
+        <li>Band heading <b>TRANSIT - D1 BIRTH CHART</b>; the in-page "Transit" strip is removed.</li>
+        <li>Left: the real <b>transit-wheel SVG</b> (<code>UI_SVG_Templates/ikiastrro-transit-wheel.svg</code>, embedded) in place of the D1 grid.</li>
+        <li>Right: a table with two tabs — <b>D1 Birth</b> (House &middot; Planet &middot; Motion &middot; Degree &middot; Sign &middot; Nakṣatra &middot; Nak. Pad) and <b>Current Transit</b> (House from D1 = houses between the graha's natal and transit house &middot; Planet &middot; Motion &middot; Degree &middot; Speed &deg;/day &middot; In sign since &middot; <b>In-sign motion &dagger;</b> &middot; Next change &middot; <b>Next-change motion &dagger;</b>).</li>
+        <li>Both tables sorted by how long a graha holds a house: <b>Saturn &rarr; Jupiter &rarr; Rahu &rarr; Ketu &rarr; Mars &rarr; Venus &rarr; Mercury &rarr; Moon &rarr; Sun</b> (Lagna first on D1).</li>
+        <li><b>&dagger; DB change needed:</b> the DB holds current motion only for the transit chart. Two new fields — <code>InSignMotion</code> (motion when the graha entered its current sign) and <code>NextChangeMotion</code> (motion at the next sign change). Recorded in <code>docs/ui/components/transit.md</code>.</li>
+      </ul>
+      <h4>All Charts (ready to lock)</h4>
+      <ul>
+        <li>Plain CSS South-Indian grid, square cells, 3 per row. <b>Only the card heading bar is sunset</b>; card, grid and margins are on the canvas; heading text midnight blue.</li>
+        <li>Full sign name top-left; <b class="hL">house from Lagna</b> over <b class="hM">house from Moon</b> top-right. Graha glyphs colour-coded; <code>LAGNA</code> label; Lagna box = peach fill + sunset corner tick.</li>
+      </ul>
+      <h4>Page 2 &mdash; Key Inference : 4 headers</h4>
+      <ul>
+        <li><b>KEY INFERENCE</b> &mdash; 8 sub-tabs: <code>About Sign</code> &middot; <code>About Planet</code> &middot; <code>About Moon</code> &middot; <code>About Houses</code> &middot; <code>Planet Dignity</code> &middot; <code>Planet Strength (Shadbala)</code> &middot; <code>House Strength (Bhava Bala)</code> &middot; <code>Vargottama (D1 &amp; D9)</code>. The <b>chart dropdown</b> shows on <code>About Houses</code> and <code>Planet Dignity</code> (both chart-scoped). Combust planets sort directly under the Sun in Planet Dignity.</li>
+        <li><b>YOGAS</b> &mdash; coverage summary + source variants.</li>
+        <li><b>TIME PERIOD (DASHA)</b> &mdash; Vim&#347;ottari drill-down: Mah&#257;da&#347;&#257; &rarr; Antarda&#347;&#257; &rarr; Pratyantarda&#347;&#257;, each expandable. On load the <b>currently-running</b> chain (1st &rarr; 2nd &rarr; 3rd level) is expanded and highlighted in sunset.</li>
+        <li><b>SATURN TIME PERIOD</b> &mdash; Sade Sati (3 dhaiyas) + Ka&#7751;&#7789;aka &#346;ani + A&#7779;&#7789;ama &#346;ani in <b>one table</b>, ascending from birth to age 75. New <b>Round</b> column (left of &ldquo;From Moon&rdquo;) with <code>1st / 2nd / 3rd round</code> filters. The current or next window is highlighted in sunset. Ashtakavarga stays out of scope (<code>calculations.md &sect;9</code>).</li>
+      </ul>
+      <h4>Renames</h4>
+      <ul>
+        <li>Sign reference &rarr; <b>About Sign</b> &middot; Graha reference &rarr; <b>About Planet</b> &middot; Moon &amp; tithi &rarr; <b>About Moon</b> &middot; House lords/conjunctions/aspects &rarr; <b>About Houses</b> &middot; Dignity &amp; avastha &rarr; <b>Planet Dignity</b> &middot; Shadbala &rarr; <b>Planet Strength</b> &middot; Bhava Bala &rarr; <b>House Strength</b>.</li>
+        <li>Docs updated: <code>docs/ui/components/dasha-sade-sati.md</code>, <code>docs/ui/components/yoga.md</code>, <code>docs/ui/wkstream_UI_v2.md</code>.</li>
+      </ul>
+    </div>
+  </details>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <p class="footer-note">Dedicated to my guru (Sundari Hemachandran) &mdash; <small>By Ramakrishnan P</small></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+  var PL_CLASS = { La:"lagna", Su:"su", Mo:"mo", Ma:"ma", Me:"me", Ju:"ju", Ve:"ve", Sa:"sa", Ra:"ra", Ke:"ke" };
+  var CELLS = [
+    [11,1,1],[0,2,1],[1,3,1],[2,4,1],
+    [10,1,2],[3,4,2],
+    [9,1,3],[4,4,3],
+    [8,1,4],[7,2,4],[6,3,4],[5,4,4]
+  ];
+  var CHARTS = [
+    ["D1","Rāśi","Self / overall life"],["D2","Hora","Wealth"],["D2-US","Hora (Uma Shambu)","Wealth / prosperity"],
+    ["D3","Drekkana","Siblings / courage"],["D4","Chaturthamsa","Property / fortune"],["D5","Panchamsa","Power / influence"],
+    ["D6","Shashtamsa","Health / disease"],["D7","Saptamsa","Children"],["D8","Ashtamsa","Longevity / obstacles"],
+    ["D9","Navamsa","Marriage / dharma"],["D10","Dasamsa","Career / status"],["D11","Rudramsa","Struggle / destruction"],
+    ["D12","Dwadasamsa","Parents / ancestors"],["D16","Shodasamsa","Vehicles / comforts"],["D20","Vimsamsa","Spirituality"],
+    ["D24","Siddhamsa","Education"],["D27","Nakshatramsa","Strength / weakness"],["D30","Trimsamsa","Misfortune / vulnerability"],
+    ["D40","Khavedamsa","Maternal lineage"],["D45","Akshavedamsa","Paternal lineage / character"],["D60","Shashtyamsa","Karma / past-life"]
+  ];
+  var BODIES = [
+    ["La",108.42,false],["Su",115.93,false],["Mo",233.78,false],["Ma",68.21,false],
+    ["Me",122.06,false],["Ju",147.44,false],["Ve",138.63,false],["Sa",162.91,false],
+    ["Ra",96.72,true],["Ke",276.72,true]
+  ];
+  function vargaSign(lon, code) {
+    var within = ((lon % 30) + 30) % 30;
+    if (code === "D1")    return Math.floor(lon / 30) % 12;
+    if (code === "D2")    return within < 15 ? 3 : 4;
+    if (code === "D2-US") return within < 15 ? 4 : 3;
+    var n = parseInt(code.replace(/[^0-9]/g, ""), 10);
+    return Math.floor((lon * n) / 30) % 12;
+  }
+
+  // ---- South-Indian grid (shared by All Charts + the transit landing) ----
+  function siGrid(code) {
+    var placed = {};
+    BODIES.forEach(function (b) { var s = vargaSign(b[1], code); (placed[s] = placed[s] || []).push({ p: b[0], retro: b[2] }); });
+    var ascSign = vargaSign(108.42, code), moonSign = vargaSign(233.78, code), cells = "", nm = "";
+    for (var k = 0; k < CHARTS.length; k++) if (CHARTS[k][0] === code) nm = CHARTS[k][1];
+    CELLS.forEach(function (cd) {
+      var si = cd[0];
+      var hL = ((si - ascSign + 12) % 12) + 1, hM = ((si - moonSign + 12) % 12) + 1;
+      var occ = (placed[si] || []).map(function (o) {
+        var label = o.p === "La" ? "LAGNA" : o.p;
+        return '<span class="pl p-' + PL_CLASS[o.p] + (o.retro ? " retro" : "") + '">' + label + '</span>';
+      }).join("");
+      cells += '<div class="si__cell' + (si === ascSign ? ' is-asc' : '') +
+               '" style="grid-column:' + cd[1] + ';grid-row:' + cd[2] + '">' +
+               '<span class="si__sign">' + SIGNS[si] + '</span>' +
+               '<span class="si__hno"><b class="hL">' + hL + '</b><b class="hM">' + hM + '</b></span>' + occ + '</div>';
+    });
+    return '<div class="si">' + cells + '<div class="si__center"><b>' + code + '</b><span>' + nm + '</span></div></div>';
+  }
+
+  // ---- page 1 : All Charts grid ----
+  var gridHost = document.getElementById("gridCharts");
+  CHARTS.forEach(function (c) {
+    var card = document.createElement("div");
+    card.className = "cc";
+    card.innerHTML = '<div class="cc__head"><span class="cc__code">' + c[0] + ' <small>' + c[1] + '</small></span>' +
+      '<span class="cc__sig">' + c[2] + '</span></div>' + siGrid(c[0]);
+    gridHost.appendChild(card);
+  });
+
+  // ---- TRANSIT — D1 Birth Chart : SVG wheel + tabbed D1 / transit details ----
+  //  Both tables sorted by how long a graha holds a house:
+  //  Saturn → Jupiter → Rahu → Ketu → Mars → Venus → Mercury → Moon → Sun.
+  var TWHEEL_DATAURI = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDEyMDAiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0iSWtpYXN0cnJvIG5hdGFsLCB6b2RpYWMtbmFrc2hhdHJhIGdyaWQgYW5kIHRyYW5zaXQgd2hlZWwiPg0KPGRlZnM+DQogIDxyYWRpYWxHcmFkaWVudCBpZD0ibmF0YWxGaWxsIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI3MCUiPg0KICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmY5ZWEiLz4NCiAgICA8c3RvcCBvZmZzZXQ9IjcyJSIgc3RvcC1jb2xvcj0iI2Y2ZGY5YSIvPg0KICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2U5YmI0ZCIvPg0KICA8L3JhZGlhbEdyYWRpZW50Pg0KICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyaWRGaWxsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+DQogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzA4MGQyZSIvPg0KICAgIDxzdG9wIG9mZnNldD0iNTIlIiBzdG9wLWNvbG9yPSIjMTcxMjRmIi8+DQogICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjkwZjU5Ii8+DQogIDwvbGluZWFyR3JhZGllbnQ+DQogIDxsaW5lYXJHcmFkaWVudCBpZD0idHJhbnNpdEZpbGwiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4NCiAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMTAyZjk5Ii8+DQogICAgPHN0b3Agb2Zmc2V0PSIzNSUiIHN0b3AtY29sb3I9IiMyNjExN2UiLz4NCiAgICA8c3RvcCBvZmZzZXQ9IjcwJSIgc3RvcC1jb2xvcj0iIzVkMTViNyIvPg0KICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwOGQ4ZiIvPg0KICA8L2xpbmVhckdyYWRpZW50Pg0KICA8ZmlsdGVyIGlkPSJnbG93Qmx1ZSIgeD0iLTgwJSIgeT0iLTgwJSIgd2lkdGg9IjI2MCUiIGhlaWdodD0iMjYwJSI+DQogICAgPGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iOCIgcmVzdWx0PSJiIi8+DQogICAgPGZlTWVyZ2U+PGZlTWVyZ2VOb2RlIGluPSJiIi8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPg0KICA8L2ZpbHRlcj4NCiAgPGZpbHRlciBpZD0iZ2xvd0dvbGQiIHg9Ii04MCUiIHk9Ii04MCUiIHdpZHRoPSIyNjAlIiBoZWlnaHQ9IjI2MCUiPg0KICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjYiIHJlc3VsdD0iYiIvPg0KICAgIDxmZU1lcmdlPjxmZU1lcmdlTm9kZSBpbj0iYiIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT4NCiAgPC9maWx0ZXI+DQogIDxmaWx0ZXIgaWQ9Imdsb3dWaW9sZXQiIHg9Ii04MCUiIHk9Ii04MCUiIHdpZHRoPSIyNjAlIiBoZWlnaHQ9IjI2MCUiPg0KICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjEwIiByZXN1bHQ9ImIiLz4NCiAgICA8ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U+DQogIDwvZmlsdGVyPg0KICA8c3R5bGU+DQogICAgLnJhc2kgeyBzdHJva2U6I2ZmZDM2Yjsgc3Ryb2tlLXdpZHRoOjMuMjsgb3BhY2l0eTouOTU7IH0NCiAgICAubmFrIHsgc3Ryb2tlOiM2Yzg0ZmY7IHN0cm9rZS13aWR0aDoxLjU7IG9wYWNpdHk6Ljk1OyB9DQogICAgLnBhZGEgeyBzdHJva2U6Izg5YTBmZjsgc3Ryb2tlLXdpZHRoOi42NTsgb3BhY2l0eTouNjU7IH0NCiAgICAubmF0YWwtcmFzaSB7IHN0cm9rZTojZmZmNGMyOyBzdHJva2Utd2lkdGg6MS44OyBzdHJva2UtZGFzaGFycmF5OjIgNzsgb3BhY2l0eTouOTsgfQ0KICAgIC56b2RpYWMgeyBmb250OiA3MDAgNDJweCAiU2Vnb2UgVUkgU3ltYm9sIiwiTm90byBTYW5zIFN5bWJvbHMgMiIsc2Fucy1zZXJpZjsgdGV4dC1hbmNob3I6bWlkZGxlOyBkb21pbmFudC1iYXNlbGluZTptaWRkbGU7IH0NCiAgICAudGljayB7IHN0cm9rZTojZmZjZTU5OyBzdHJva2Utd2lkdGg6Mjsgb3BhY2l0eTouOTsgfQ0KICA8L3N0eWxlPg0KPC9kZWZzPg0KDQo8IS0tIFRyYW5zcGFyZW50IGJhY2tncm91bmQgLS0+DQoNCjwhLS0gTGF5ZXIgMTogU3RhdGljIG5hdGFsIGxheWVyIC0tPg0KPGcgaWQ9Im5hdGFsLWxheWVyIj4NCiAgPGNpcmNsZSBjeD0iNjAwLjAiIGN5PSI2MDAuMCIgcj0iMzY1IiBmaWxsPSJ1cmwoI25hdGFsRmlsbCkiIHN0cm9rZT0iI2ZmYjUyYyIgc3Ryb2tlLXdpZHRoPSI0IiBmaWx0ZXI9InVybCgjZ2xvd0dvbGQpIi8+DQogIDxjaXJjbGUgY3g9IjYwMC4wIiBjeT0iNjAwLjAiIHI9IjIxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDk5YTJmIiBzdHJva2Utd2lkdGg9IjIuNSIvPg0KDQo8bGluZSB4MT0iNjAwLjAwIiB5MT0iMzkwLjAwIiB4Mj0iNjAwLjAwIiB5Mj0iMjM1LjAwIiBjbGFzcz0ibmF0YWwtcmFzaSIvPg0KPGxpbmUgeDE9IjcwNS4wMCIgeTE9IjQxOC4xMyIgeDI9Ijc4Mi41MCIgeTI9IjI4My45MCIgY2xhc3M9Im5hdGFsLXJhc2kiLz4NCjxsaW5lIHgxPSI3ODEuODciIHkxPSI0OTUuMDAiIHgyPSI5MTYuMTAiIHkyPSI0MTcuNTAiIGNsYXNzPSJuYXRhbC1yYXNpIi8+DQo8bGluZSB4MT0iODEwLjAwIiB5MT0iNjAwLjAwIiB4Mj0iOTY1LjAwIiB5Mj0iNjAwLjAwIiBjbGFzcz0ibmF0YWwtcmFzaSIvPg0KPGxpbmUgeDE9Ijc4MS44NyIgeTE9IjcwNS4wMCIgeDI9IjkxNi4xMCIgeTI9Ijc4Mi41MCIgY2xhc3M9Im5hdGFsLXJhc2kiLz4NCjxsaW5lIHgxPSI3MDUuMDAiIHkxPSI3ODEuODciIHgyPSI3ODIuNTAiIHkyPSI5MTYuMTAiIGNsYXNzPSJuYXRhbC1yYXNpIi8+DQo8bGluZSB4MT0iNjAwLjAwIiB5MT0iODEwLjAwIiB4Mj0iNjAwLjAwIiB5Mj0iOTY1LjAwIiBjbGFzcz0ibmF0YWwtcmFzaSIvPg0KPGxpbmUgeDE9IjQ5NS4wMCIgeTE9Ijc4MS44NyIgeDI9IjQxNy41MCIgeTI9IjkxNi4xMCIgY2xhc3M9Im5hdGFsLXJhc2kiLz4NCjxsaW5lIHgxPSI0MTguMTMiIHkxPSI3MDUuMDAiIHgyPSIyODMuOTAiIHkyPSI3ODIuNTAiIGNsYXNzPSJuYXRhbC1yYXNpIi8+DQo8bGluZSB4MT0iMzkwLjAwIiB5MT0iNjAwLjAwIiB4Mj0iMjM1LjAwIiB5Mj0iNjAwLjAwIiBjbGFzcz0ibmF0YWwtcmFzaSIvPg0KPGxpbmUgeDE9IjQxOC4xMyIgeTE9IjQ5NS4wMCIgeDI9IjI4My45MCIgeTI9IjQxNy41MCIgY2xhc3M9Im5hdGFsLXJhc2kiLz4NCjxsaW5lIHgxPSI0OTUuMDAiIHkxPSI0MTguMTMiIHgyPSI0MTcuNTAiIHkyPSIyODMuOTAiIGNsYXNzPSJuYXRhbC1yYXNpIi8+DQo8L2c+DQoNCjxnIGlkPSJ6b2RpYWMtbmFrc2hhdHJhLWdyaWQiPg0KICA8Y2lyY2xlIGN4PSI2MDAuMCIgY3k9IjYwMC4wIiByPSI1MDAiIGZpbGw9InVybCgjZ3JpZEZpbGwpIiBzdHJva2U9IiM1YjdjZmYiIHN0cm9rZS13aWR0aD0iNCIgZmlsdGVyPSJ1cmwoI2dsb3dCbHVlKSIvPg0KICA8Y2lyY2xlIGN4PSI2MDAuMCIgY3k9IjYwMC4wIiByPSIzNzUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZDE1YSIgc3Ryb2tlLXdpZHRoPSIzIi8+DQoNCjxsaW5lIHgxPSI2MDAuMDAiIHkxPSIyMjUuMDAiIHgyPSI2MDAuMDAiIHkyPSIxMDAuMDAiIGNsYXNzPSJuYWsiLz4NCjxsaW5lIHgxPSI2MjEuODAiIHkxPSIyMjUuNjMiIHgyPSI2MjkuMDciIHkyPSIxMDAuODUiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNjQzLjUzIiB5MT0iMjI3LjU0IiB4Mj0iNjU4LjA1IiB5Mj0iMTAzLjM4IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjY2NS4xMiIgeTE9IjIzMC43MCIgeDI9IjY4Ni44MiIgeTI9IjEwNy42MCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI2ODYuNDgiIHkxPSIyMzUuMTEiIHgyPSI3MTUuMzEiIHkyPSIxMTMuNDgiIGNsYXNzPSJuYWsiLz4NCjxsaW5lIHgxPSI3MDcuNTUiIHkxPSIyNDAuNzUiIHgyPSI3NDMuNDAiIHkyPSIxMjEuMDEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNzI4LjI2IiB5MT0iMjQ3LjYyIiB4Mj0iNzcxLjAxIiB5Mj0iMTMwLjE1IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9Ijc0OC41MyIgeTE9IjI1NS42NyIgeDI9Ijc5OC4wNCIgeTI9IjE0MC44OSIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI3NjguMzAiIHkxPSIyNjQuODkiIHgyPSI4MjQuNDAiIHkyPSIxNTMuMTgiIGNsYXNzPSJuYWsiLz4NCjxsaW5lIHgxPSI3ODcuNTAiIHkxPSIyNzUuMjQiIHgyPSI4NTAuMDAiIHkyPSIxNjYuOTkiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iODA2LjA3IiB5MT0iMjg2LjY5IiB4Mj0iODc0Ljc1IiB5Mj0iMTgyLjI2IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjgyMy45MyIgeTE9IjI5OS4yMCIgeDI9Ijg5OC41OCIgeTI9IjE5OC45NCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI4NDEuMDUiIHkxPSIzMTIuNzMiIHgyPSI5MjEuMzkiIHkyPSIyMTYuOTgiIGNsYXNzPSJuYWsiLz4NCjxsaW5lIHgxPSI4NTcuMzQiIHkxPSIzMjcuMjMiIHgyPSI5NDMuMTIiIHkyPSIyMzYuMzEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iODcyLjc3IiB5MT0iMzQyLjY2IiB4Mj0iOTYzLjY5IiB5Mj0iMjU2Ljg4IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9Ijg4Ny4yNyIgeTE9IjM1OC45NSIgeDI9Ijk4My4wMiIgeTI9IjI3OC42MSIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI5MDAuODAiIHkxPSIzNzYuMDciIHgyPSIxMDAxLjA2IiB5Mj0iMzAxLjQyIiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iOTEzLjMxIiB5MT0iMzkzLjkzIiB4Mj0iMTAxNy43NCIgeTI9IjMyNS4yNSIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI5MjQuNzYiIHkxPSI0MTIuNTAiIHgyPSIxMDMzLjAxIiB5Mj0iMzUwLjAwIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjkzNS4xMSIgeTE9IjQzMS43MCIgeDI9IjEwNDYuODIiIHkyPSIzNzUuNjAiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iOTQ0LjMzIiB5MT0iNDUxLjQ3IiB4Mj0iMTA1OS4xMSIgeTI9IjQwMS45NiIgY2xhc3M9Im5hayIvPg0KPGxpbmUgeDE9Ijk1Mi4zOCIgeTE9IjQ3MS43NCIgeDI9IjEwNjkuODUiIHkyPSI0MjguOTkiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iOTU5LjI1IiB5MT0iNDkyLjQ1IiB4Mj0iMTA3OC45OSIgeTI9IjQ1Ni42MCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI5NjQuODkiIHkxPSI1MTMuNTIiIHgyPSIxMDg2LjUyIiB5Mj0iNDg0LjY5IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9Ijk2OS4zMCIgeTE9IjUzNC44OCIgeDI9IjEwOTIuNDAiIHkyPSI1MTMuMTgiIGNsYXNzPSJuYWsiLz4NCjxsaW5lIHgxPSI5NzIuNDYiIHkxPSI1NTYuNDciIHgyPSIxMDk2LjYyIiB5Mj0iNTQxLjk1IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9Ijk3NC4zNyIgeTE9IjU3OC4yMCIgeDI9IjEwOTkuMTUiIHkyPSI1NzAuOTMiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iOTc1LjAwIiB5MT0iNjAwLjAwIiB4Mj0iMTEwMC4wMCIgeTI9IjYwMC4wMCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI5NzQuMzciIHkxPSI2MjEuODAiIHgyPSIxMDk5LjE1IiB5Mj0iNjI5LjA3IiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iOTcyLjQ2IiB5MT0iNjQzLjUzIiB4Mj0iMTA5Ni42MiIgeTI9IjY1OC4wNSIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI5NjkuMzAiIHkxPSI2NjUuMTIiIHgyPSIxMDkyLjQwIiB5Mj0iNjg2LjgyIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9Ijk2NC44OSIgeTE9IjY4Ni40OCIgeDI9IjEwODYuNTIiIHkyPSI3MTUuMzEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iOTU5LjI1IiB5MT0iNzA3LjU1IiB4Mj0iMTA3OC45OSIgeTI9Ijc0My40MCIgY2xhc3M9Im5hayIvPg0KPGxpbmUgeDE9Ijk1Mi4zOCIgeTE9IjcyOC4yNiIgeDI9IjEwNjkuODUiIHkyPSI3NzEuMDEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iOTQ0LjMzIiB5MT0iNzQ4LjUzIiB4Mj0iMTA1OS4xMSIgeTI9Ijc5OC4wNCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI5MzUuMTEiIHkxPSI3NjguMzAiIHgyPSIxMDQ2LjgyIiB5Mj0iODI0LjQwIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjkyNC43NiIgeTE9Ijc4Ny41MCIgeDI9IjEwMzMuMDEiIHkyPSI4NTAuMDAiIGNsYXNzPSJuYWsiLz4NCjxsaW5lIHgxPSI5MTMuMzEiIHkxPSI4MDYuMDciIHgyPSIxMDE3Ljc0IiB5Mj0iODc0Ljc1IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjkwMC44MCIgeTE9IjgyMy45MyIgeDI9IjEwMDEuMDYiIHkyPSI4OTguNTgiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iODg3LjI3IiB5MT0iODQxLjA1IiB4Mj0iOTgzLjAyIiB5Mj0iOTIxLjM5IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9Ijg3Mi43NyIgeTE9Ijg1Ny4zNCIgeDI9Ijk2My42OSIgeTI9Ijk0My4xMiIgY2xhc3M9Im5hayIvPg0KPGxpbmUgeDE9Ijg1Ny4zNCIgeTE9Ijg3Mi43NyIgeDI9Ijk0My4xMiIgeTI9Ijk2My42OSIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI4NDEuMDUiIHkxPSI4ODcuMjciIHgyPSI5MjEuMzkiIHkyPSI5ODMuMDIiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iODIzLjkzIiB5MT0iOTAwLjgwIiB4Mj0iODk4LjU4IiB5Mj0iMTAwMS4wNiIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI4MDYuMDciIHkxPSI5MTMuMzEiIHgyPSI4NzQuNzUiIHkyPSIxMDE3Ljc0IiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iNzg3LjUwIiB5MT0iOTI0Ljc2IiB4Mj0iODUwLjAwIiB5Mj0iMTAzMy4wMSIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI3NjguMzAiIHkxPSI5MzUuMTEiIHgyPSI4MjQuNDAiIHkyPSIxMDQ2LjgyIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9Ijc0OC41MyIgeTE9Ijk0NC4zMyIgeDI9Ijc5OC4wNCIgeTI9IjEwNTkuMTEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNzI4LjI2IiB5MT0iOTUyLjM4IiB4Mj0iNzcxLjAxIiB5Mj0iMTA2OS44NSIgY2xhc3M9Im5hayIvPg0KPGxpbmUgeDE9IjcwNy41NSIgeTE9Ijk1OS4yNSIgeDI9Ijc0My40MCIgeTI9IjEwNzguOTkiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNjg2LjQ4IiB5MT0iOTY0Ljg5IiB4Mj0iNzE1LjMxIiB5Mj0iMTA4Ni41MiIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI2NjUuMTIiIHkxPSI5NjkuMzAiIHgyPSI2ODYuODIiIHkyPSIxMDkyLjQwIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjY0My41MyIgeTE9Ijk3Mi40NiIgeDI9IjY1OC4wNSIgeTI9IjEwOTYuNjIiIGNsYXNzPSJuYWsiLz4NCjxsaW5lIHgxPSI2MjEuODAiIHkxPSI5NzQuMzciIHgyPSI2MjkuMDciIHkyPSIxMDk5LjE1IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjYwMC4wMCIgeTE9Ijk3NS4wMCIgeDI9IjYwMC4wMCIgeTI9IjExMDAuMDAiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNTc4LjIwIiB5MT0iOTc0LjM3IiB4Mj0iNTcwLjkzIiB5Mj0iMTA5OS4xNSIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI1NTYuNDciIHkxPSI5NzIuNDYiIHgyPSI1NDEuOTUiIHkyPSIxMDk2LjYyIiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iNTM0Ljg4IiB5MT0iOTY5LjMwIiB4Mj0iNTEzLjE4IiB5Mj0iMTA5Mi40MCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI1MTMuNTIiIHkxPSI5NjQuODkiIHgyPSI0ODQuNjkiIHkyPSIxMDg2LjUyIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjQ5Mi40NSIgeTE9Ijk1OS4yNSIgeDI9IjQ1Ni42MCIgeTI9IjEwNzguOTkiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNDcxLjc0IiB5MT0iOTUyLjM4IiB4Mj0iNDI4Ljk5IiB5Mj0iMTA2OS44NSIgY2xhc3M9Im5hayIvPg0KPGxpbmUgeDE9IjQ1MS40NyIgeTE9Ijk0NC4zMyIgeDI9IjQwMS45NiIgeTI9IjEwNTkuMTEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNDMxLjcwIiB5MT0iOTM1LjExIiB4Mj0iMzc1LjYwIiB5Mj0iMTA0Ni44MiIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI0MTIuNTAiIHkxPSI5MjQuNzYiIHgyPSIzNTAuMDAiIHkyPSIxMDMzLjAxIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjM5My45MyIgeTE9IjkxMy4zMSIgeDI9IjMyNS4yNSIgeTI9IjEwMTcuNzQiIGNsYXNzPSJuYWsiLz4NCjxsaW5lIHgxPSIzNzYuMDciIHkxPSI5MDAuODAiIHgyPSIzMDEuNDIiIHkyPSIxMDAxLjA2IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjM1OC45NSIgeTE9Ijg4Ny4yNyIgeDI9IjI3OC42MSIgeTI9Ijk4My4wMiIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSIzNDIuNjYiIHkxPSI4NzIuNzciIHgyPSIyNTYuODgiIHkyPSI5NjMuNjkiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iMzI3LjIzIiB5MT0iODU3LjM0IiB4Mj0iMjM2LjMxIiB5Mj0iOTQzLjEyIiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iMzEyLjczIiB5MT0iODQxLjA1IiB4Mj0iMjE2Ljk4IiB5Mj0iOTIxLjM5IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjI5OS4yMCIgeTE9IjgyMy45MyIgeDI9IjE5OC45NCIgeTI9Ijg5OC41OCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSIyODYuNjkiIHkxPSI4MDYuMDciIHgyPSIxODIuMjYiIHkyPSI4NzQuNzUiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iMjc1LjI0IiB5MT0iNzg3LjUwIiB4Mj0iMTY2Ljk5IiB5Mj0iODUwLjAwIiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iMjY0Ljg5IiB5MT0iNzY4LjMwIiB4Mj0iMTUzLjE4IiB5Mj0iODI0LjQwIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjI1NS42NyIgeTE9Ijc0OC41MyIgeDI9IjE0MC44OSIgeTI9Ijc5OC4wNCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSIyNDcuNjIiIHkxPSI3MjguMjYiIHgyPSIxMzAuMTUiIHkyPSI3NzEuMDEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iMjQwLjc1IiB5MT0iNzA3LjU1IiB4Mj0iMTIxLjAxIiB5Mj0iNzQzLjQwIiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iMjM1LjExIiB5MT0iNjg2LjQ4IiB4Mj0iMTEzLjQ4IiB5Mj0iNzE1LjMxIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjIzMC43MCIgeTE9IjY2NS4xMiIgeDI9IjEwNy42MCIgeTI9IjY4Ni44MiIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSIyMjcuNTQiIHkxPSI2NDMuNTMiIHgyPSIxMDMuMzgiIHkyPSI2NTguMDUiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iMjI1LjYzIiB5MT0iNjIxLjgwIiB4Mj0iMTAwLjg1IiB5Mj0iNjI5LjA3IiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iMjI1LjAwIiB5MT0iNjAwLjAwIiB4Mj0iMTAwLjAwIiB5Mj0iNjAwLjAwIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjIyNS42MyIgeTE9IjU3OC4yMCIgeDI9IjEwMC44NSIgeTI9IjU3MC45MyIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSIyMjcuNTQiIHkxPSI1NTYuNDciIHgyPSIxMDMuMzgiIHkyPSI1NDEuOTUiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iMjMwLjcwIiB5MT0iNTM0Ljg4IiB4Mj0iMTA3LjYwIiB5Mj0iNTEzLjE4IiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iMjM1LjExIiB5MT0iNTEzLjUyIiB4Mj0iMTEzLjQ4IiB5Mj0iNDg0LjY5IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjI0MC43NSIgeTE9IjQ5Mi40NSIgeDI9IjEyMS4wMSIgeTI9IjQ1Ni42MCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSIyNDcuNjIiIHkxPSI0NzEuNzQiIHgyPSIxMzAuMTUiIHkyPSI0MjguOTkiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iMjU1LjY3IiB5MT0iNDUxLjQ3IiB4Mj0iMTQwLjg5IiB5Mj0iNDAxLjk2IiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iMjY0Ljg5IiB5MT0iNDMxLjcwIiB4Mj0iMTUzLjE4IiB5Mj0iMzc1LjYwIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjI3NS4yNCIgeTE9IjQxMi41MCIgeDI9IjE2Ni45OSIgeTI9IjM1MC4wMCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSIyODYuNjkiIHkxPSIzOTMuOTMiIHgyPSIxODIuMjYiIHkyPSIzMjUuMjUiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iMjk5LjIwIiB5MT0iMzc2LjA3IiB4Mj0iMTk4Ljk0IiB5Mj0iMzAxLjQyIiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iMzEyLjczIiB5MT0iMzU4Ljk1IiB4Mj0iMjE2Ljk4IiB5Mj0iMjc4LjYxIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjMyNy4yMyIgeTE9IjM0Mi42NiIgeDI9IjIzNi4zMSIgeTI9IjI1Ni44OCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSIzNDIuNjYiIHkxPSIzMjcuMjMiIHgyPSIyNTYuODgiIHkyPSIyMzYuMzEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iMzU4Ljk1IiB5MT0iMzEyLjczIiB4Mj0iMjc4LjYxIiB5Mj0iMjE2Ljk4IiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iMzc2LjA3IiB5MT0iMjk5LjIwIiB4Mj0iMzAxLjQyIiB5Mj0iMTk4Ljk0IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjM5My45MyIgeTE9IjI4Ni42OSIgeDI9IjMyNS4yNSIgeTI9IjE4Mi4yNiIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI0MTIuNTAiIHkxPSIyNzUuMjQiIHgyPSIzNTAuMDAiIHkyPSIxNjYuOTkiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNDMxLjcwIiB5MT0iMjY0Ljg5IiB4Mj0iMzc1LjYwIiB5Mj0iMTUzLjE4IiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iNDUxLjQ3IiB5MT0iMjU1LjY3IiB4Mj0iNDAxLjk2IiB5Mj0iMTQwLjg5IiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjQ3MS43NCIgeTE9IjI0Ny42MiIgeDI9IjQyOC45OSIgeTI9IjEzMC4xNSIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI0OTIuNDUiIHkxPSIyNDAuNzUiIHgyPSI0NTYuNjAiIHkyPSIxMjEuMDEiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNTEzLjUyIiB5MT0iMjM1LjExIiB4Mj0iNDg0LjY5IiB5Mj0iMTEzLjQ4IiBjbGFzcz0ibmFrIi8+DQo8bGluZSB4MT0iNTM0Ljg4IiB5MT0iMjMwLjcwIiB4Mj0iNTEzLjE4IiB5Mj0iMTA3LjYwIiBjbGFzcz0icGFkYSIvPg0KPGxpbmUgeDE9IjU1Ni40NyIgeTE9IjIyNy41NCIgeDI9IjU0MS45NSIgeTI9IjEwMy4zOCIgY2xhc3M9InBhZGEiLz4NCjxsaW5lIHgxPSI1NzguMjAiIHkxPSIyMjUuNjMiIHgyPSI1NzAuOTMiIHkyPSIxMDAuODUiIGNsYXNzPSJwYWRhIi8+DQo8bGluZSB4MT0iNjAwLjAwIiB5MT0iMjI1LjAwIiB4Mj0iNjAwLjAwIiB5Mj0iMTAwLjAwIiBjbGFzcz0icmFzaSIvPg0KPGxpbmUgeDE9Ijc4Ny41MCIgeTE9IjI3NS4yNCIgeDI9Ijg1MC4wMCIgeTI9IjE2Ni45OSIgY2xhc3M9InJhc2kiLz4NCjxsaW5lIHgxPSI5MjQuNzYiIHkxPSI0MTIuNTAiIHgyPSIxMDMzLjAxIiB5Mj0iMzUwLjAwIiBjbGFzcz0icmFzaSIvPg0KPGxpbmUgeDE9Ijk3NS4wMCIgeTE9IjYwMC4wMCIgeDI9IjExMDAuMDAiIHkyPSI2MDAuMDAiIGNsYXNzPSJyYXNpIi8+DQo8bGluZSB4MT0iOTI0Ljc2IiB5MT0iNzg3LjUwIiB4Mj0iMTAzMy4wMSIgeTI9Ijg1MC4wMCIgY2xhc3M9InJhc2kiLz4NCjxsaW5lIHgxPSI3ODcuNTAiIHkxPSI5MjQuNzYiIHgyPSI4NTAuMDAiIHkyPSIxMDMzLjAxIiBjbGFzcz0icmFzaSIvPg0KPGxpbmUgeDE9IjYwMC4wMCIgeTE9Ijk3NS4wMCIgeDI9IjYwMC4wMCIgeTI9IjExMDAuMDAiIGNsYXNzPSJyYXNpIi8+DQo8bGluZSB4MT0iNDEyLjUwIiB5MT0iOTI0Ljc2IiB4Mj0iMzUwLjAwIiB5Mj0iMTAzMy4wMSIgY2xhc3M9InJhc2kiLz4NCjxsaW5lIHgxPSIyNzUuMjQiIHkxPSI3ODcuNTAiIHgyPSIxNjYuOTkiIHkyPSI4NTAuMDAiIGNsYXNzPSJyYXNpIi8+DQo8bGluZSB4MT0iMjI1LjAwIiB5MT0iNjAwLjAwIiB4Mj0iMTAwLjAwIiB5Mj0iNjAwLjAwIiBjbGFzcz0icmFzaSIvPg0KPGxpbmUgeDE9IjI3NS4yNCIgeTE9IjQxMi41MCIgeDI9IjE2Ni45OSIgeTI9IjM1MC4wMCIgY2xhc3M9InJhc2kiLz4NCjxsaW5lIHgxPSI0MTIuNTAiIHkxPSIyNzUuMjQiIHgyPSIzNTAuMDAiIHkyPSIxNjYuOTkiIGNsYXNzPSJyYXNpIi8+DQo8bGluZSB4MT0iNjAwLjAwIiB5MT0iMTEwLjAwIiB4Mj0iNjAwLjAwIiB5Mj0iMTAwLjAwIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjYyOC40OSIgeTE9IjExMC44MyIgeDI9IjYyOC45NiIgeTI9IjEwMi44NCIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI2NTYuODkiIHkxPSIxMTMuMzEiIHgyPSI2NTcuODEiIHkyPSIxMDUuMzciIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNjg1LjA5IiB5MT0iMTE3LjQ0IiB4Mj0iNjg2LjQ4IiB5Mj0iMTA5LjU3IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjcxMy4wMCIgeTE9IjEyMy4yMSIgeDI9IjcxNS4zMSIgeTI9IjExMy40OCIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI3NDAuNTMiIHkxPSIxMzAuNTkiIHgyPSI3NDIuODMiIHkyPSIxMjIuOTIiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNzY3LjU5IiB5MT0iMTM5LjU1IiB4Mj0iNzcwLjMzIiB5Mj0iMTMyLjAzIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9Ijc5NC4wOCIgeTE9IjE1MC4wNyIgeDI9Ijc5Ny4yNSIgeTI9IjE0Mi43MyIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI4MTkuOTEiIHkxPSIxNjIuMTIiIHgyPSI4MjQuNDAiIHkyPSIxNTMuMTgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iODQ1LjAwIiB5MT0iMTc1LjY1IiB4Mj0iODQ5LjAwIiB5Mj0iMTY4LjcyIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9Ijg2OS4yNiIgeTE9IjE5MC42MSIgeDI9Ijg3My42NiIgeTI9IjE4My45MyIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI4OTIuNjEiIHkxPSIyMDYuOTYiIHgyPSI4OTcuMzgiIHkyPSIyMDAuNTQiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iOTE0Ljk3IiB5MT0iMjI0LjY0IiB4Mj0iOTIxLjM5IiB5Mj0iMjE2Ljk4IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjkzNi4yNiIgeTE9IjI0My41OSIgeDI9Ijk0MS43NSIgeTI9IjIzNy43NyIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI5NTYuNDEiIHkxPSIyNjMuNzQiIHgyPSI5NjIuMjMiIHkyPSIyNTguMjUiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iOTc1LjM2IiB5MT0iMjg1LjAzIiB4Mj0iOTgxLjQ5IiB5Mj0iMjc5Ljg5IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9Ijk5My4wNCIgeTE9IjMwNy4zOSIgeDI9IjEwMDEuMDYiIHkyPSIzMDEuNDIiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTAwOS4zOSIgeTE9IjMzMC43NCIgeDI9IjEwMTYuMDciIHkyPSIzMjYuMzQiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTAyNC4zNSIgeTE9IjM1NS4wMCIgeDI9IjEwMzEuMjgiIHkyPSIzNTEuMDAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTAzNy44OCIgeTE9IjM4MC4wOSIgeDI9IjEwNDUuMDMiIHkyPSIzNzYuNTAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA0OS45MyIgeTE9IjQwNS45MiIgeDI9IjEwNTkuMTEiIHkyPSI0MDEuOTYiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA2MC40NSIgeTE9IjQzMi40MSIgeDI9IjEwNjcuOTciIHkyPSI0MjkuNjciIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA2OS40MSIgeTE9IjQ1OS40NyIgeDI9IjEwNzcuMDgiIHkyPSI0NTcuMTciIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA3Ni43OSIgeTE9IjQ4Ny4wMCIgeDI9IjEwODQuNTgiIHkyPSI0ODUuMTUiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA4Mi41NiIgeTE9IjUxNC45MSIgeDI9IjEwOTIuNDAiIHkyPSI1MTMuMTgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA4Ni42OSIgeTE9IjU0My4xMSIgeDI9IjEwOTQuNjMiIHkyPSI1NDIuMTkiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA4OS4xNyIgeTE9IjU3MS41MSIgeDI9IjEwOTcuMTYiIHkyPSI1NzEuMDQiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA5MC4wMCIgeTE9IjYwMC4wMCIgeDI9IjEwOTguMDAiIHkyPSI2MDAuMDAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA4OS4xNyIgeTE9IjYyOC40OSIgeDI9IjEwOTkuMTUiIHkyPSI2MjkuMDciIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA4Ni42OSIgeTE9IjY1Ni44OSIgeDI9IjEwOTQuNjMiIHkyPSI2NTcuODEiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA4Mi41NiIgeTE9IjY4NS4wOSIgeDI9IjEwOTAuNDMiIHkyPSI2ODYuNDgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA3Ni43OSIgeTE9IjcxMy4wMCIgeDI9IjEwODQuNTgiIHkyPSI3MTQuODUiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA2OS40MSIgeTE9Ijc0MC41MyIgeDI9IjEwNzguOTkiIHkyPSI3NDMuNDAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA2MC40NSIgeTE9Ijc2Ny41OSIgeDI9IjEwNjcuOTciIHkyPSI3NzAuMzMiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTA0OS45MyIgeTE9Ijc5NC4wOCIgeDI9IjEwNTcuMjciIHkyPSI3OTcuMjUiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTAzNy44OCIgeTE9IjgxOS45MSIgeDI9IjEwNDUuMDMiIHkyPSI4MjMuNTAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTAyNC4zNSIgeTE9Ijg0NS4wMCIgeDI9IjEwMzMuMDEiIHkyPSI4NTAuMDAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTAwOS4zOSIgeTE9Ijg2OS4yNiIgeDI9IjEwMTYuMDciIHkyPSI4NzMuNjYiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iOTkzLjA0IiB5MT0iODkyLjYxIiB4Mj0iOTk5LjQ2IiB5Mj0iODk3LjM4IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9Ijk3NS4zNiIgeTE9IjkxNC45NyIgeDI9Ijk4MS40OSIgeTI9IjkyMC4xMSIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI5NTYuNDEiIHkxPSI5MzYuMjYiIHgyPSI5NjMuNjkiIHkyPSI5NDMuMTIiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iOTM2LjI2IiB5MT0iOTU2LjQxIiB4Mj0iOTQxLjc1IiB5Mj0iOTYyLjIzIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjkxNC45NyIgeTE9Ijk3NS4zNiIgeDI9IjkyMC4xMSIgeTI9Ijk4MS40OSIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI4OTIuNjEiIHkxPSI5OTMuMDQiIHgyPSI4OTcuMzgiIHkyPSI5OTkuNDYiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iODY5LjI2IiB5MT0iMTAwOS4zOSIgeDI9Ijg3NC43NSIgeTI9IjEwMTcuNzQiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iODQ1LjAwIiB5MT0iMTAyNC4zNSIgeDI9Ijg0OS4wMCIgeTI9IjEwMzEuMjgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iODE5LjkxIiB5MT0iMTAzNy44OCIgeDI9IjgyMy41MCIgeTI9IjEwNDUuMDMiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNzk0LjA4IiB5MT0iMTA0OS45MyIgeDI9Ijc5Ny4yNSIgeTI9IjEwNTcuMjciIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNzY3LjU5IiB5MT0iMTA2MC40NSIgeDI9Ijc3MS4wMSIgeTI9IjEwNjkuODUiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNzQwLjUzIiB5MT0iMTA2OS40MSIgeDI9Ijc0Mi44MyIgeTI9IjEwNzcuMDgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNzEzLjAwIiB5MT0iMTA3Ni43OSIgeDI9IjcxNC44NSIgeTI9IjEwODQuNTgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNjg1LjA5IiB5MT0iMTA4Mi41NiIgeDI9IjY4Ni40OCIgeTI9IjEwOTAuNDMiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNjU2Ljg5IiB5MT0iMTA4Ni42OSIgeDI9IjY1OC4wNSIgeTI9IjEwOTYuNjIiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNjI4LjQ5IiB5MT0iMTA4OS4xNyIgeDI9IjYyOC45NiIgeTI9IjEwOTcuMTYiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNjAwLjAwIiB5MT0iMTA5MC4wMCIgeDI9IjYwMC4wMCIgeTI9IjEwOTguMDAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNTcxLjUxIiB5MT0iMTA4OS4xNyIgeDI9IjU3MS4wNCIgeTI9IjEwOTcuMTYiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNTQzLjExIiB5MT0iMTA4Ni42OSIgeDI9IjU0MS45NSIgeTI9IjEwOTYuNjIiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNTE0LjkxIiB5MT0iMTA4Mi41NiIgeDI9IjUxMy41MiIgeTI9IjEwOTAuNDMiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNDg3LjAwIiB5MT0iMTA3Ni43OSIgeDI9IjQ4NS4xNSIgeTI9IjEwODQuNTgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNDU5LjQ3IiB5MT0iMTA2OS40MSIgeDI9IjQ1Ny4xNyIgeTI9IjEwNzcuMDgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNDMyLjQxIiB5MT0iMTA2MC40NSIgeDI9IjQyOC45OSIgeTI9IjEwNjkuODUiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNDA1LjkyIiB5MT0iMTA0OS45MyIgeDI9IjQwMi43NSIgeTI9IjEwNTcuMjciIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMzgwLjA5IiB5MT0iMTAzNy44OCIgeDI9IjM3Ni41MCIgeTI9IjEwNDUuMDMiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMzU1LjAwIiB5MT0iMTAyNC4zNSIgeDI9IjM1MS4wMCIgeTI9IjEwMzEuMjgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMzMwLjc0IiB5MT0iMTAwOS4zOSIgeDI9IjMyNS4yNSIgeTI9IjEwMTcuNzQiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMzA3LjM5IiB5MT0iOTkzLjA0IiB4Mj0iMzAyLjYyIiB5Mj0iOTk5LjQ2IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjI4NS4wMyIgeTE9Ijk3NS4zNiIgeDI9IjI3OS44OSIgeTI9Ijk4MS40OSIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIyNjMuNzQiIHkxPSI5NTYuNDEiIHgyPSIyNTguMjUiIHkyPSI5NjIuMjMiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMjQzLjU5IiB5MT0iOTM2LjI2IiB4Mj0iMjM2LjMxIiB5Mj0iOTQzLjEyIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjIyNC42NCIgeTE9IjkxNC45NyIgeDI9IjIxOC41MSIgeTI9IjkyMC4xMSIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIyMDYuOTYiIHkxPSI4OTIuNjEiIHgyPSIyMDAuNTQiIHkyPSI4OTcuMzgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTkwLjYxIiB5MT0iODY5LjI2IiB4Mj0iMTgzLjkzIiB5Mj0iODczLjY2IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjE3NS42NSIgeTE9Ijg0NS4wMCIgeDI9IjE2Ni45OSIgeTI9Ijg1MC4wMCIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIxNjIuMTIiIHkxPSI4MTkuOTEiIHgyPSIxNTQuOTciIHkyPSI4MjMuNTAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTUwLjA3IiB5MT0iNzk0LjA4IiB4Mj0iMTQyLjczIiB5Mj0iNzk3LjI1IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjEzOS41NSIgeTE9Ijc2Ny41OSIgeDI9IjEzMi4wMyIgeTI9Ijc3MC4zMyIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIxMzAuNTkiIHkxPSI3NDAuNTMiIHgyPSIxMjEuMDEiIHkyPSI3NDMuNDAiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTIzLjIxIiB5MT0iNzEzLjAwIiB4Mj0iMTE1LjQyIiB5Mj0iNzE0Ljg1IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjExNy40NCIgeTE9IjY4NS4wOSIgeDI9IjEwOS41NyIgeTI9IjY4Ni40OCIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIxMTMuMzEiIHkxPSI2NTYuODkiIHgyPSIxMDUuMzciIHkyPSI2NTcuODEiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTEwLjgzIiB5MT0iNjI4LjQ5IiB4Mj0iMTAwLjg1IiB5Mj0iNjI5LjA3IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjExMC4wMCIgeTE9IjYwMC4wMCIgeDI9IjEwMi4wMCIgeTI9IjYwMC4wMCIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIxMTAuODMiIHkxPSI1NzEuNTEiIHgyPSIxMDIuODQiIHkyPSI1NzEuMDQiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTEzLjMxIiB5MT0iNTQzLjExIiB4Mj0iMTA1LjM3IiB5Mj0iNTQyLjE5IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjExNy40NCIgeTE9IjUxNC45MSIgeDI9IjEwNy42MCIgeTI9IjUxMy4xOCIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIxMjMuMjEiIHkxPSI0ODcuMDAiIHgyPSIxMTUuNDIiIHkyPSI0ODUuMTUiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTMwLjU5IiB5MT0iNDU5LjQ3IiB4Mj0iMTIyLjkyIiB5Mj0iNDU3LjE3IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjEzOS41NSIgeTE9IjQzMi40MSIgeDI9IjEzMi4wMyIgeTI9IjQyOS42NyIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIxNTAuMDciIHkxPSI0MDUuOTIiIHgyPSIxNDAuODkiIHkyPSI0MDEuOTYiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMTYyLjEyIiB5MT0iMzgwLjA5IiB4Mj0iMTU0Ljk3IiB5Mj0iMzc2LjUwIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjE3NS42NSIgeTE9IjM1NS4wMCIgeDI9IjE2OC43MiIgeTI9IjM1MS4wMCIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIxOTAuNjEiIHkxPSIzMzAuNzQiIHgyPSIxODMuOTMiIHkyPSIzMjYuMzQiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMjA2Ljk2IiB5MT0iMzA3LjM5IiB4Mj0iMTk4Ljk0IiB5Mj0iMzAxLjQyIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjIyNC42NCIgeTE9IjI4NS4wMyIgeDI9IjIxOC41MSIgeTI9IjI3OS44OSIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIyNDMuNTkiIHkxPSIyNjMuNzQiIHgyPSIyMzcuNzciIHkyPSIyNTguMjUiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMjYzLjc0IiB5MT0iMjQzLjU5IiB4Mj0iMjU4LjI1IiB5Mj0iMjM3Ljc3IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjI4NS4wMyIgeTE9IjIyNC42NCIgeDI9IjI3OC42MSIgeTI9IjIxNi45OCIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIzMDcuMzkiIHkxPSIyMDYuOTYiIHgyPSIzMDIuNjIiIHkyPSIyMDAuNTQiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iMzMwLjc0IiB5MT0iMTkwLjYxIiB4Mj0iMzI2LjM0IiB5Mj0iMTgzLjkzIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjM1NS4wMCIgeTE9IjE3NS42NSIgeDI9IjM1MS4wMCIgeTI9IjE2OC43MiIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSIzODAuMDkiIHkxPSIxNjIuMTIiIHgyPSIzNzUuNjAiIHkyPSIxNTMuMTgiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNDA1LjkyIiB5MT0iMTUwLjA3IiB4Mj0iNDAyLjc1IiB5Mj0iMTQyLjczIiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjQzMi40MSIgeTE9IjEzOS41NSIgeDI9IjQyOS42NyIgeTI9IjEzMi4wMyIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI0NTkuNDciIHkxPSIxMzAuNTkiIHgyPSI0NTcuMTciIHkyPSIxMjIuOTIiIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNDg3LjAwIiB5MT0iMTIzLjIxIiB4Mj0iNDg0LjY5IiB5Mj0iMTEzLjQ4IiBjbGFzcz0idGljayIvPg0KPGxpbmUgeDE9IjUxNC45MSIgeTE9IjExNy40NCIgeDI9IjUxMy41MiIgeTI9IjEwOS41NyIgY2xhc3M9InRpY2siLz4NCjxsaW5lIHgxPSI1NDMuMTEiIHkxPSIxMTMuMzEiIHgyPSI1NDIuMTkiIHkyPSIxMDUuMzciIGNsYXNzPSJ0aWNrIi8+DQo8bGluZSB4MT0iNTcxLjUxIiB5MT0iMTEwLjgzIiB4Mj0iNTcxLjA0IiB5Mj0iMTAyLjg0IiBjbGFzcz0idGljayIvPg0KPHRleHQgeD0iNzEzLjIzIiB5PSIxNzcuNDEiIGNsYXNzPSJ6b2RpYWMiIGZpbGw9IiNmZjRhMzgiIGZpbHRlcj0idXJsKCNnbG93Qmx1ZSkiPuKZiDwvdGV4dD4NCjx0ZXh0IHg9IjkwOS4zNiIgeT0iMjkwLjY0IiBjbGFzcz0iem9kaWFjIiBmaWxsPSIjNjVmZmJmIiBmaWx0ZXI9InVybCgjZ2xvd0JsdWUpIj7imYk8L3RleHQ+DQo8dGV4dCB4PSIxMDIyLjU5IiB5PSI0ODYuNzciIGNsYXNzPSJ6b2RpYWMiIGZpbGw9IiNmZmIyNGEiIGZpbHRlcj0idXJsKCNnbG93Qmx1ZSkiPuKZijwvdGV4dD4NCjx0ZXh0IHg9IjEwMjIuNTkiIHk9IjcxMy4yMyIgY2xhc3M9InpvZGlhYyIgZmlsbD0iIzYzYzRmZiIgZmlsdGVyPSJ1cmwoI2dsb3dCbHVlKSI+4pmLPC90ZXh0Pg0KPHRleHQgeD0iOTA5LjM2IiB5PSI5MDkuMzYiIGNsYXNzPSJ6b2RpYWMiIGZpbGw9IiNmZjU3M2QiIGZpbHRlcj0idXJsKCNnbG93Qmx1ZSkiPuKZjDwvdGV4dD4NCjx0ZXh0IHg9IjcxMy4yMyIgeT0iMTAyMi41OSIgY2xhc3M9InpvZGlhYyIgZmlsbD0iIzY1ZWViMCIgZmlsdGVyPSJ1cmwoI2dsb3dCbHVlKSI+4pmNPC90ZXh0Pg0KPHRleHQgeD0iNDg2Ljc3IiB5PSIxMDIyLjU5IiBjbGFzcz0iem9kaWFjIiBmaWxsPSIjZmZkNDVlIiBmaWx0ZXI9InVybCgjZ2xvd0JsdWUpIj7imY48L3RleHQ+DQo8dGV4dCB4PSIyOTAuNjQiIHk9IjkwOS4zNiIgY2xhc3M9InpvZGlhYyIgZmlsbD0iI2JlN2NmZiIgZmlsdGVyPSJ1cmwoI2dsb3dCbHVlKSI+4pmPPC90ZXh0Pg0KPHRleHQgeD0iMTc3LjQxIiB5PSI3MTMuMjMiIGNsYXNzPSJ6b2RpYWMiIGZpbGw9IiNmZjY4NDciIGZpbHRlcj0idXJsKCNnbG93Qmx1ZSkiPuKZkDwvdGV4dD4NCjx0ZXh0IHg9IjE3Ny40MSIgeT0iNDg2Ljc3IiBjbGFzcz0iem9kaWFjIiBmaWxsPSIjZmZjYTY2IiBmaWx0ZXI9InVybCgjZ2xvd0JsdWUpIj7imZE8L3RleHQ+DQo8dGV4dCB4PSIyOTAuNjQiIHk9IjI5MC42NCIgY2xhc3M9InpvZGlhYyIgZmlsbD0iIzU5ZTdmZiIgZmlsdGVyPSJ1cmwoI2dsb3dCbHVlKSI+4pmSPC90ZXh0Pg0KPHRleHQgeD0iNDg2Ljc3IiB5PSIxNzcuNDEiIGNsYXNzPSJ6b2RpYWMiIGZpbGw9IiNkNmExZmYiIGZpbHRlcj0idXJsKCNnbG93Qmx1ZSkiPuKZkzwvdGV4dD4NCjwvZz4NCg0KPGcgaWQ9InRyYW5zaXQtbGF5ZXIiPg0KICA8Y2lyY2xlIGN4PSI2MDAuMCIgY3k9IjYwMC4wIiByPSI1NzAiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCN0cmFuc2l0RmlsbCkiIHN0cm9rZS13aWR0aD0iMzQiIG9wYWNpdHk9Ii45NSIgZmlsdGVyPSJ1cmwoI2dsb3dWaW9sZXQpIi8+DQogIDxjaXJjbGUgY3g9IjYwMC4wIiBjeT0iNjAwLjAiIHI9IjU0OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWFiNmZmIiBzdHJva2Utd2lkdGg9IjQiIG9wYWNpdHk9Ii45Ii8+DQogIDxjaXJjbGUgY3g9IjYwMC4wIiBjeT0iNjAwLjAiIHI9IjUwNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWQ1M2ZmIiBzdHJva2Utd2lkdGg9IjQiIG9wYWNpdHk9Ii44NSIvPg0KDQo8Y2lyY2xlIGN4PSI2MDAuMCIgY3k9IjYwMC4wIiByPSI1MzUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJkYThmZiIgc3Ryb2tlLXdpZHRoPSIzIiBvcGFjaXR5PSIuNDUiLz4NCjxjaXJjbGUgY3g9IjYwMC4wIiBjeT0iNjAwLjAiIHI9IjU1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjVhNjIzIiBzdHJva2Utd2lkdGg9IjMiIG9wYWNpdHk9Ii40NSIvPg0KPGNpcmNsZSBjeD0iNjAwLjAiIGN5PSI2MDAuMCIgcj0iNTY1IiBmaWxsPSJub25lIiBzdHJva2U9IiNhNjI5ZmYiIHN0cm9rZS13aWR0aD0iMyIgb3BhY2l0eT0iLjQ1Ii8+DQo8ZyBpZD0ic2F0dXJuIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMjYuMDAsMTI1LjQyKSBzY2FsZSgxLjI1KSIgZmlsdGVyPSJ1cmwoI2dsb3dCbHVlKSI+DQogICAgICANCjxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyMiIgZmlsbD0iIzBkNDRhNyIgc3Ryb2tlPSIjODljOWZmIiBzdHJva2Utd2lkdGg9IjMiLz4NCjxlbGxpcHNlIGN4PSIwIiBjeT0iMCIgcng9IjM4IiByeT0iMTIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2RmZWZmZiIgc3Ryb2tlLXdpZHRoPSI0IiB0cmFuc2Zvcm09InJvdGF0ZSgtMTgpIi8+DQo8ZWxsaXBzZSBjeD0iMCIgY3k9IjAiIHJ4PSIzMSIgcnk9IjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZiYmNmZiIgc3Ryb2tlLXdpZHRoPSIyIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTgpIi8+DQoNCiAgICA8L2c+DQo8ZyBpZD0ianVwaXRlciIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTA3OC4wNSwzMjQuMDApIHNjYWxlKDEuMjUpIiBmaWx0ZXI9InVybCgjZ2xvd0dvbGQpIj4NCiAgICAgIA0KPGNpcmNsZSBjeD0iMCIgY3k9IjAiIHI9IjI0IiBmaWxsPSIjYTc1YjAwIiBzdHJva2U9IiNmZmQzNmEiIHN0cm9rZS13aWR0aD0iMyIvPg0KPHBhdGggZD0iTS0xOCwtNyBDLTUsLTE2IDgsLTE1IDE4LC03IE0tMjAsMyBDLTYsLTIgOCwtMSAyMSw0IE0tMTUsMTIgQy01LDggNyw5IDE2LDEyIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmUwYTEiIHN0cm9rZS13aWR0aD0iMyIvPg0KPGVsbGlwc2UgY3g9IjAiIGN5PSIwIiByeD0iMzkiIHJ5PSIxMSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTNkIiBzdHJva2Utd2lkdGg9IjQiIHRyYW5zZm9ybT0icm90YXRlKDE0KSIvPg0KPHBhdGggZD0iTS04LC0zMSBMMCwtNDEgTDgsLTMxIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmQ4NmUiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+DQoNCiAgICA8L2c+DQo8ZyBpZD0icmFodSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTEzNi4wOSw3NDMuNjQpIHNjYWxlKDEuMDgpIiBmaWx0ZXI9InVybCgjZ2xvd1Zpb2xldCkiPg0KICAgICAgDQo8Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMjkiIGZpbGw9IiMzYTBiNzIiIHN0cm9rZT0iI2QyNjZmZiIgc3Ryb2tlLXdpZHRoPSIzIi8+DQo8cGF0aCBkPSJNLTE4LDEyIEMtMjUsLTcgLTEwLC0yNCA4LC0xOSBDMjAsLTE2IDI2LC00IDE4LDcgQzExLDE1IDIsMTcgLTcsMTIgQzIsOSA3LDMgOCwtNCBDMywyIC00LDMgLTEwLDAgQy03LDcgLTksMTEgLTE4LDEyIFoiDQogICAgICBmaWxsPSIjMGYwNjFkIiBzdHJva2U9IiNlMTdjZmYiIHN0cm9rZS13aWR0aD0iMiIvPg0KPGNpcmNsZSBjeD0iNyIgY3k9Ii01IiByPSIzLjUiIGZpbGw9IiNmZjRjZmYiLz4NCg0KICAgIDwvZz4NCjxnIGlkPSJrZXR1IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5OTEuMDMsOTkxLjAzKSBzY2FsZSgxLjA4KSIgZmlsdGVyPSJ1cmwoI2dsb3dCbHVlKSI+DQogICAgICANCjxwYXRoIGQ9Ik0tMjQsMCBDLTgsLTIyIDEwLC0yMCAyNCwtMiBDMTEsLTcgNCwtNSAtNSw0IEM2LDAgMTMsMyAxNywxMSBDMiw3IC0xMCwxMyAtMjQsMCBaIg0KICAgICAgZmlsbD0iIzAwM2IzOSIgc3Ryb2tlPSIjNDNmZmU3IiBzdHJva2Utd2lkdGg9IjMiLz4NCjxwYXRoIGQ9Ik0yMCwtMiBDMzYsLTEyIDQ1LC0yMyA1NSwtMzkgTTE4LDMgQzM2LDMgNDgsLTYgNjAsLTE3IE0xNSw4IEMzMSwxNiA0MywxNSA1NywxMCINCiAgICAgIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRhZmZlNyIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4NCg0KICAgIDwvZz4NCjwvZz48L3N2Zz4=";
+  var TRANSIT_AT = "2026-09-09 · 14:30 IST";
+  var D1_BIRTH = {
+    cols: ["House", "Planet", "Motion", "Degree", "Sign", "Nakshatra", "Nak. Pad"],
+    rows: [
+      ["1", "Lagna", "—", "18°25′", "Cancer", "Ashlesha", "2"],
+      ["3", "Saturn", "Direct", "12°55′", "Virgo", "Hasta", "2"],
+      ["2", "Jupiter", "Direct", "27°26′", "Leo", "U. Phalguni", "1"],
+      ["1", "Rahu", "Retro", "6°43′", "Cancer", "Punarvasu", "4"],
+      ["7", "Ketu", "Retro", "6°43′", "Capricorn", "U. Ashadha", "2"],
+      ["12", "Mars", "Direct", "8°13′", "Gemini", "Ardra", "1"],
+      ["2", "Venus", "Direct", "18°38′", "Leo", "P. Phalguni", "4"],
+      ["2", "Mercury", "Direct · combust", "2°04′", "Leo", "Magha", "1"],
+      ["5", "Moon", "Direct", "23°47′", "Scorpio", "Jyeshtha", "3"],
+      ["1", "Sun", "Direct", "25°56′", "Cancer", "Ashlesha", "4"]
+    ]
+  };
+  var TRANSIT_TBL = {
+    cols: ["House from D1", "Planet", "Motion", "Degree", "Speed °/day", "In sign since", "In-sign motion †", "Next change", "Next-change motion †"],
+    rows: [
+      ["7th", "Saturn", "Direct", "Pisces 8°", "0.05", "2025-05-29", "Direct", "2027-06-03", "Direct"],
+      ["11th", "Jupiter", "Direct", "Gemini 19°", "0.21", "2026-05-14", "Direct", "2027-06-30", "Direct"],
+      ["8th", "Rahu", "Retro", "Aquarius 15°", "-0.05", "2025-11-15", "Retro", "2027-05-29", "Retro"],
+      ["8th", "Ketu", "Retro", "Leo 15°", "-0.05", "2025-11-15", "Retro", "2027-05-29", "Retro"],
+      ["4th", "Mars", "Direct", "Virgo 5°", "0.62", "2026-08-27", "Direct", "2026-10-12", "Direct"],
+      ["2nd", "Venus", "Direct", "Virgo 2°", "1.11", "2026-08-29", "Direct", "2026-09-23", "Direct"],
+      ["1st", "Mercury", "Direct", "Leo 28°", "1.46", "2026-08-18", "Direct", "2026-09-14", "Direct"],
+      ["2nd", "Moon", "Direct", "Sagittarius 12°", "13.20", "2026-09-08", "Direct", "2026-09-10", "Direct"],
+      ["2nd", "Sun", "Direct", "Leo 23°", "0.96", "2026-08-17", "Direct", "2026-09-17", "Direct"]
+    ]
+  };
+  var twTab = 0;
+  function twTable(def) {
+    return '<table><thead><tr>' + def.cols.map(function (c) { return '<th>' + c + '</th>'; }).join("") +
+      '</tr></thead><tbody>' + def.rows.map(function (r) {
+        return '<tr>' + r.map(function (v) { return '<td>' + v + '</td>'; }).join("") + '</tr>';
+      }).join("") + '</tbody></table>';
+  }
+  function renderTransit() {
+    document.getElementById("twChart").innerHTML =
+      '<img class="tw-wheel" src="' + TWHEEL_DATAURI + '" alt="natal + transit wheel">';
+    var d = document.getElementById("twDetails");
+    d.innerHTML =
+      '<div class="tw-tabs">' +
+      '<button type="button" data-tw="0" aria-selected="' + (twTab === 0) + '">D1 Birth</button>' +
+      '<button type="button" data-tw="1" aria-selected="' + (twTab === 1) + '">Current Transit</button>' +
+      '</div>' +
+      (twTab === 1
+        ? '<p class="tw-asof">as of <b>' + TRANSIT_AT + '</b> &nbsp;·&nbsp; <span class="dim">† in-sign / next-change motion — new DB fields (see transit.md)</span></p>'
+        : '') +
+      twTable(twTab === 0 ? D1_BIRTH : TRANSIT_TBL);
+    Array.prototype.forEach.call(d.querySelectorAll(".tw-tabs button"), function (b) {
+      b.addEventListener("click", function () { twTab = +b.dataset.tw; renderTransit(); });
+    });
+  }
+
+  // =========================================================
+  //  PAGE 2 — KEY INFERENCE
+  // =========================================================
+  var NUMRE = /^-?\d/;
+  function cell(v) {
+    if (v == null || v === "") return '<td class="dim">&mdash;</td>';
+    if (v === true) return '<td class="yes">Yes</td>';
+    if (v === false) return '<td class="no">No</td>';
+    if (typeof v === "object" && v.pill) return '<td><span class="pill pill--' + v.pill + '">' + v.t + '</span></td>';
+    var s = String(v);
+    return '<td' + (NUMRE.test(s) ? ' class="num"' : '') + '>' + s + '</td>';
+  }
+  function P(t, k) { return { pill: k, t: t }; }
+  function dig(s) {
+    var m = { "Exalted":"ok","Moolatrikona":"ok","Own":"ok","Gt friend":"ok",
+              "Friend":"flat","Neutral":"flat","Enemy":"bad","Gt enemy":"bad","Debilitated":"bad" };
+    return P(s, m[s] || "flat");
+  }
+  var inferChart = "D1";
+
+  var SIGN_REF = {
+    src: "tbl_SignAttributes + tbl_Planets",
+    cols: ["Planet","Sign","Sanskrit","Element","Mode","Gender","Guna","Day / night","Varṇa","Symbol","Body part","Ṛtu"],
+    rows: [
+      ["Mars","Aries","Mesha","Fire","Movable","Male","Rajas","Night","Kshatriya","Ram","Head","Vasanta"],
+      ["Venus","Taurus","Vrishabha","Earth","Fixed","Female","Rajas","Night","Vaishya","Bull","Face","Grishma"],
+      ["Mercury","Gemini","Mithuna","Air","Dual","Male","Rajas","Day","Shudra","Couple","Arms","Grishma"],
+      ["Moon","Cancer","Karka","Water","Movable","Female","Sattva","Night","Brahmana","Crab","Chest","Varsha"],
+      ["Sun","Leo","Simha","Fire","Fixed","Male","Sattva","Day","Kshatriya","Lion","Heart","Varsha"],
+      ["Mercury","Virgo","Kanya","Earth","Dual","Female","Tamas","Day","Vaishya","Maiden","Belly","Sharad"],
+      ["Venus","Libra","Tula","Air","Movable","Male","Tamas","Day","Shudra","Scales","Below navel","Sharad"],
+      ["Mars","Scorpio","Vrischika","Water","Fixed","Female","Sattva","Night","Brahmana","Scorpion","Genitals","Hemanta"],
+      ["Jupiter","Sagittarius","Dhanu","Fire","Dual","Male","Sattva","Day","Kshatriya","Archer","Thighs","Hemanta"],
+      ["Saturn","Capricorn","Makara","Earth","Movable","Female","Tamas","Night","Vaishya","Crocodile","Knees","Shishira"],
+      ["Saturn","Aquarius","Kumbha","Air","Fixed","Male","Tamas","Day","Shudra","Pot-bearer","Ankles","Shishira"],
+      ["Jupiter","Pisces","Meena","Water","Dual","Female","Sattva","Night","Brahmana","Two fish","Feet","Vasanta"]
+    ]
+  };
+  var GRAHA_REF = {
+    src: "tbl_Planets + tbl_Rule_GrahaAttribute + tbl_Chart_HouseLords",
+    cols: ["Planet","Kāraka","House Lord","Nature","Conditional rule"],
+    rows: [
+      ["Sun","Soul, father, authority, vitality","2","Malefic","—"],
+      ["Moon","Mind, mother, emotions, public","1","Benefic","Malefic when waning within 72° of the Sun"],
+      ["Mars","Siblings, courage, land, energy","5, 10","Malefic","—"],
+      ["Mercury","Intellect, speech, commerce","3, 12","Neutral","Takes on the nature of any conjunct planet"],
+      ["Jupiter","Wealth, children, wisdom, dharma","6, 9","Benefic","—"],
+      ["Venus","Spouse, vehicles, luxury, arts","4, 11","Benefic","—"],
+      ["Saturn","Longevity, grief, labour, detachment","7, 8","Malefic","—"],
+      ["Rahu","Obsession, foreign, illusion","—","Malefic","Acts like Saturn / its dispositor"],
+      ["Ketu","Liberation, doubt, occult","—","Malefic","Acts like Mars / its dispositor"]
+    ]
+  };
+  var MOON_SRC = "vw_ChartMoonContext";
+  var MOON_FACTS = [
+    ["Moon", "Scorpio 23°47′ · Jyeshtha pada 3"],
+    ["Sun", "Cancer 25°56′ · Ashlesha pada 4"],
+    ["Tithi", "10 · Shukla Dashamī (elongation 117.85°)"],
+    ["Birth", "Day · waxing Moon"]
+  ];
+  var HOUSES = {
+    src: "tbl_Chart_HouseLords + _Conjunctions + _Aspects",
+    cols: ["House","Sign","Lord","Lord in","Dignity","Conjunctions in house","Aspects to house"],
+    rowsByChart: {
+      D1: [
+        [1,"Cancer","Moon","H5 · Scorpio",dig("Debilitated"),"Su–Ra 19.2°","—"],
+        [2,"Leo","Sun","H1 · Cancer",dig("Friend"),"Ju–Ve 8.8° · Me–Ve 16.6° · Me–Ju 25.4°","Rahu 5th"],
+        [3,"Virgo","Mercury","H2 · Leo",dig("Friend"),"—","Mars 4th"],
+        [4,"Libra","Venus","H2 · Leo",dig("Enemy"),"—","—"],
+        [5,"Scorpio","Mars","H12 · Gemini",dig("Neutral"),"—","Saturn 7th · Jupiter 5th"],
+        [6,"Sagittarius","Jupiter","H2 · Leo",dig("Friend"),"—","—"],
+        [7,"Capricorn","Saturn","H3 · Virgo",dig("Neutral"),"—","Saturn 3rd · Mars 8th · Jupiter 7th"],
+        [8,"Aquarius","Saturn","H3 · Virgo",dig("Neutral"),"—","—"],
+        [9,"Pisces","Jupiter","H2 · Leo",dig("Friend"),"—","—"],
+        [10,"Aries","Mars","H12 · Gemini",dig("Neutral"),"—","—"],
+        [11,"Taurus","Venus","H2 · Leo",dig("Enemy"),"—","—"],
+        [12,"Gemini","Mercury","H2 · Leo",dig("Friend"),"—","—"]
+      ],
+      D9: [
+        [1,"Sagittarius","Jupiter","H5 · Aries",dig("Gt friend"),"Me–Ra 8.1°","—"],
+        [2,"Capricorn","Saturn","H3 · Aquarius",dig("Own"),"—","—"],
+        [3,"Aquarius","Saturn","H3 · Aquarius",dig("Own"),"Su–Mo 9.1° · Su–Sa 7.1° · Mo–Sa 16.2°","Jupiter 9th · Mars 8th"],
+        [4,"Pisces","Jupiter","H5 · Aries",dig("Gt friend"),"—","Saturn 10th"],
+        [5,"Aries","Mars","H4 · Pisces",dig("Friend"),"—","Saturn 3rd · Rahu 7th"],
+        [6,"Taurus","Venus","H2 · Capricorn",dig("Friend"),"—","—"],
+        [7,"Gemini","Mercury","H1 · Sagittarius",dig("Enemy"),"—","—"],
+        [8,"Cancer","Moon","H3 · Aquarius",dig("Neutral"),"—","—"],
+        [9,"Leo","Sun","H3 · Aquarius",dig("Enemy"),"—","—"],
+        [10,"Virgo","Mercury","H1 · Sagittarius",dig("Enemy"),"—","—"],
+        [11,"Libra","Venus","H2 · Capricorn",dig("Friend"),"—","—"],
+        [12,"Scorpio","Mars","H4 · Pisces",dig("Friend"),"—","—"]
+      ]
+    }
+  };
+  var DIGNITY = {
+    src: "vw_ChartPlanetEvidence",
+    cols: ["Planet","Sign","House","Dignity","Retro","Combust","Sun dist °","Age state","Age effect","Wakefulness"],
+    rowsByChart: {
+      D1: [
+        ["Sun","Cancer",1,dig("Friend"),false,false,0.00,"Yuva",0.75,"Jagrat"],
+        ["Moon","Scorpio",5,dig("Debilitated"),false,false,117.85,"Vriddha",0.25,"Svapna"],
+        ["Mars","Gemini",12,dig("Neutral"),false,false,132.28,"Kumara",0.50,"Jagrat"],
+        ["Mercury","Leo",2,dig("Friend"),false,true,6.13,"Bala",1.00,"Jagrat"],
+        ["Jupiter","Leo",2,dig("Friend"),false,false,31.51,"Yuva",0.75,"Svapna"],
+        ["Venus","Leo",2,dig("Enemy"),false,false,22.70,"Vriddha",0.25,"Sushupti"],
+        ["Saturn","Virgo",3,dig("Neutral"),false,false,46.98,"Mrita",0.00,"Svapna"],
+        ["Rahu","Cancer",1,dig("Neutral"),true,false,19.21,"Yuva",0.75,"Jagrat"],
+        ["Ketu","Capricorn",7,dig("Neutral"),true,false,160.79,"Kumara",0.50,"Sushupti"]
+      ],
+      D9: [
+        ["Sun","Aquarius",3,dig("Enemy"),false,false,0.00,"Kumara",0.50,"Jagrat"],
+        ["Moon","Aquarius",3,dig("Neutral"),false,false,117.85,"Bala",1.00,"Svapna"],
+        ["Mars","Pisces",4,dig("Friend"),false,false,132.28,"Yuva",0.75,"Jagrat"],
+        ["Mercury","Sagittarius",1,dig("Enemy"),false,true,6.13,"Vriddha",0.25,"Jagrat"],
+        ["Jupiter","Aries",5,dig("Gt friend"),false,false,31.51,"Bala",1.00,"Jagrat"],
+        ["Venus","Capricorn",2,dig("Friend"),false,false,22.70,"Yuva",0.75,"Svapna"],
+        ["Saturn","Aquarius",3,dig("Own"),false,false,46.98,"Yuva",0.75,"Jagrat"],
+        ["Rahu","Sagittarius",1,dig("Neutral"),true,false,19.21,"Mrita",0.00,"Sushupti"],
+        ["Ketu","Gemini",7,dig("Neutral"),true,false,160.79,"Kumara",0.50,"Svapna"]
+      ]
+    }
+  };
+  function dignityOrdered(rows) {
+    return rows.slice().sort(function (a, b) {
+      var rk = function (r) { return r[0] === "Sun" ? 0 : (r[5] === true ? 1 : 2); };
+      return rk(a) - rk(b);
+    });
+  }
+  var SHADBALA = {
+    src: "vw_ChartShadbala",
+    cols: ["Planet","Sthāna","Dig","Kāla","Cheṣṭā","Naisargika","Dṛk","Total virūpa","Rūpas","Min req","% of min","Profile"],
+    rows: [
+      ["Sun",165.4,42.1,88.7,31.5,60.0,-4.2,383.5,6.39,6.5,98,P("Moderate","warn")],
+      ["Moon",132.8,18.9,102.4,44.8,51.4,6.1,356.4,5.94,6.0,99,P("Moderate","warn")],
+      ["Mars",118.2,51.7,74.6,38.9,42.9,-8.7,317.6,5.29,5.0,106,P("Strong","ok")],
+      ["Mercury",144.6,9.4,79.2,55.1,25.7,12.4,326.4,5.44,7.0,78,P("Weak","bad")],
+      ["Jupiter",151.9,27.3,91.8,49.7,34.3,15.8,370.8,6.18,6.5,95,P("Moderate","warn")],
+      ["Venus",129.4,60.2,68.5,42.2,17.1,-2.6,314.8,5.25,5.5,95,P("Moderate","warn")],
+      ["Saturn",97.6,33.8,83.1,29.4,8.6,-11.9,240.6,4.01,5.0,80,P("Weak","bad")]
+    ]
+  };
+  var BHAVA = {
+    src: "vw_ChartBhavaBala",
+    cols: ["House","Sign","Lord","Lord in","Lord dignity","Bala virūpa","Rūpas","Profile"],
+    rows: [
+      [1,"Cancer","Moon","H5",dig("Debilitated"),412.6,6.88,P("Strong","ok")],
+      [2,"Leo","Sun","H1",dig("Friend"),388.1,6.47,P("Moderate","warn")],
+      [3,"Virgo","Mercury","H2",dig("Friend"),351.9,5.87,P("Moderate","warn")],
+      [4,"Libra","Venus","H2",dig("Enemy"),306.4,5.11,P("Weak","bad")],
+      [5,"Scorpio","Mars","H12",dig("Neutral"),333.7,5.56,P("Moderate","warn")],
+      [6,"Sagittarius","Jupiter","H2",dig("Friend"),364.2,6.07,P("Moderate","warn")],
+      [7,"Capricorn","Saturn","H3",dig("Neutral"),298.8,4.98,P("Weak","bad")],
+      [8,"Aquarius","Saturn","H3",dig("Neutral"),277.3,4.62,P("Weak","bad")],
+      [9,"Pisces","Jupiter","H2",dig("Friend"),379.5,6.33,P("Moderate","warn")],
+      [10,"Aries","Mars","H12",dig("Neutral"),356.0,5.93,P("Moderate","warn")],
+      [11,"Taurus","Venus","H2",dig("Enemy"),321.7,5.36,P("Moderate","warn")],
+      [12,"Gemini","Mercury","H2",dig("Friend"),340.4,5.67,P("Moderate","warn")]
+    ]
+  };
+  var VARGOTTAMA = {
+    src: "tbl_Fact_Vargottama",
+    cols: ["Planet","D1 sign","D9 sign","Vargottama"],
+    rows: [
+      ["Sun","Cancer","Aquarius",false],["Moon","Scorpio","Aquarius",false],["Mars","Gemini","Pisces",false],
+      ["Mercury","Leo","Sagittarius",false],["Jupiter","Leo","Aries",false],["Venus","Leo","Capricorn",false],
+      ["Saturn","Virgo","Aquarius",false],["Rahu","Cancer","Sagittarius",false],["Ketu","Capricorn","Gemini",false]
+    ]
+  };
+  var YOGA_SUMMARY = {
+    src: "vw_ChartYogaEvaluations",
+    cols: ["Total","Present","Absent","Not evaluated","Raman variants","PVR variants"],
+    rows: [[624,53,549,22,300,324]]
+  };
+  var YOGA_VARIANTS = {
+    src: "vw_ChartYogaEvaluations",
+    cols: ["Variant","Yoga","Source","Result","Status","Locator"],
+    rows: [
+      ["RAMAN_300_012","Gaja Kesari","Raman 300",P("Present","ok"),"Evaluated","Raman p.31 #12"],
+      ["RAMAN_300_025","Male branch","Raman 300",P("Not eval","warn"),"Missing context","Raman p.44 #25"],
+      ["RAMAN_300_058","Deep exalt Sun","Raman 300",P("Absent","flat"),"Evaluated","Raman p.61 #58"],
+      ["RAMAN_300_066","Amala (night)","Raman 300",P("Not eval","warn"),"Missing context","Raman p.66 #66"],
+      ["PVR_INT_CHANDRA_MANGALA","Chandra-Mangala","PVR Integrated",P("Present","ok"),"Evaluated","§9.4"],
+      ["PVR_INT_KEMADRUMA","Kemadruma","PVR Integrated",P("Absent","flat"),"Evaluated","§9.7"]
+    ]
+  };
+
+  /* ---- daśā drill-down tree — every Mahādaśā generated & expandable ---- */
+  var TODAY = "2026-09-09";
+  var VIM = [["Ketu",7],["Venus",20],["Sun",6],["Moon",10],["Mars",7],["Rahu",18],["Jupiter",16],["Saturn",19],["Mercury",17]];
+  function vimSeq(l) { var i = 0; VIM.forEach(function (x, k) { if (x[0] === l) i = k; }); return VIM.slice(i).concat(VIM.slice(0, i)); }
+  function ymd(ms) { return new Date(ms).toISOString().slice(0, 10); }
+  function subPeriods(lord, s, e, childKey) {
+    var t0 = Date.parse(s + "T00:00:00Z"), span = Date.parse(e + "T00:00:00Z") - t0, cur = t0;
+    return vimSeq(lord).map(function (x) {
+      var nxt = cur + span * (x[1] / 120);
+      var node = { lord: x[0], start: ymd(cur), end: ymd(nxt) };
+      if (childKey) node[childKey] = subPeriods(x[0], node.start, node.end, null);
+      cur = nxt;
+      return node;
+    });
+  }
+  function markRunning(nodes) {
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i], kids = n.antar || n.prat;
+      if (TODAY >= n.start && TODAY < n.end) {
+        n.current = true;
+        if (kids) { n.open = true; markRunning(kids); }
+        return;
+      }
+    }
+  }
+  var MAHA_LIST = [
+    { lord:"Mercury", start:"1978-04-22", end:"1995-04-22" },
+    { lord:"Ketu",    start:"1995-04-22", end:"2002-04-22" },
+    { lord:"Venus",   start:"2002-04-22", end:"2022-04-22" },
+    { lord:"Sun",     start:"2022-04-22", end:"2028-04-22" },
+    { lord:"Moon",    start:"2028-04-22", end:"2038-04-22" },
+    { lord:"Mars",    start:"2038-04-22", end:"2045-04-22" },
+    { lord:"Rahu",    start:"2045-04-22", end:"2063-04-22" },
+    { lord:"Jupiter", start:"2063-04-22", end:"2079-04-22" },
+    { lord:"Saturn",  start:"2079-04-22", end:"2098-04-22" }
+  ];
+  MAHA_LIST.forEach(function (m) { m.antar = subPeriods(m.lord, m.start, m.end, "prat"); });
+  markRunning(MAHA_LIST);
+  var DASHA_TREE = { src: "tbl_Chart_DashaPeriods (3-level)", maha: MAHA_LIST };
+
+  /* ---- Saturn windows : Sade Sati + Kaṇṭaka + Aṣṭama, birth → age 75 ---- */
+  var SATURN_SRC = "tvf_Chart_SadeSatiPeriods (natal Moon Scorpio)";
+  var saturnRound = 0; // 0 = all
+  var SATURN_WINDOWS = [
+    [1,"Sade Sati · Rising","12th","Libra","1983-01-15","1985-09-06"],
+    [1,"Sade Sati · Peak","1st","Scorpio","1985-09-06","1988-06-21"],
+    [1,"Sade Sati · Setting","2nd","Sagittarius","1988-06-21","1991-03-15"],
+    [1,"Kaṇṭaka Śani","4th","Aquarius","1993-05-21","1996-04-17"],
+    [1,"Aṣṭama Śani","8th","Gemini","2002-04-08","2005-01-05"],
+    [2,"Sade Sati · Rising","12th","Libra","2011-11-15","2014-11-02"],
+    [2,"Sade Sati · Peak","1st","Scorpio","2014-11-02","2017-01-26"],
+    [2,"Sade Sati · Setting","2nd","Sagittarius","2017-01-26","2020-01-24"],
+    [2,"Kaṇṭaka Śani","4th","Aquarius","2022-01-17","2025-03-29"],
+    [2,"Aṣṭama Śani","8th","Gemini","2031-06-11","2034-06-03"],
+    [3,"Sade Sati · Rising","12th","Libra","2040-11-08","2043-10-27"],
+    [3,"Sade Sati · Peak","1st","Scorpio","2043-10-27","2046-01-20"],
+    [3,"Sade Sati · Setting","2nd","Sagittarius","2046-01-20","2049-01-16"],
+    [3,"Kaṇṭaka Śani","4th","Aquarius","2051-01-23","2054-03-05"]
+  ];
+  function saturnCurrentIndex(rows) {
+    for (var i = 0; i < rows.length; i++) {
+      if (TODAY <= rows[i][5]) return i; // first window not yet finished = current / next
+    }
+    return -1;
+  }
+
+  // -------- render helpers --------
+  function tableEl(def, rows, currentIdx) {
+    var head = "<thead><tr>" + def.cols.map(function (c) { return "<th>" + c + "</th>"; }).join("") + "</tr></thead>";
+    var body = "<tbody>" + (rows || def.rows).map(function (r, i) {
+      return '<tr' + (i === currentIdx ? ' class="is-current"' : '') + ">" + r.map(cell).join("") + "</tr>";
+    }).join("") + "</tbody>";
+    return "<table>" + head + body + "</table>";
+  }
+  function card(title, rightHTML, innerHTML, src) {
+    return '<div class="card"><div class="card__hd"><h3>' + title + '</h3>' +
+      (rightHTML || (src ? '<span class="src">' + src + '</span>' : '')) + '</div>' + innerHTML + '</div>';
+  }
+  function byChart(def) { return inferChart === "D1" ? def.rowsByChart.D1 : def.rowsByChart.D9; }
+  function chartPicker() {
+    var opts = CHARTS.map(function (c) {
+      return '<option value="' + c[0] + '"' + (c[0] === inferChart ? ' selected' : '') + '>' + c[0] + ' · ' + c[1] + '</option>';
+    }).join("");
+    return '<span class="chartpick">chart <select id="inferChartSel">' + opts + '</select></span>';
+  }
+
+  // -------- daśā tree --------
+  function nodeAt(path) {
+    var parts = path.split("."), node = DASHA_TREE.maha[+parts[0]];
+    if (parts[1] != null) node = node.antar[+parts[1]];
+    if (parts[2] != null) node = node.prat[+parts[2]];
+    return node;
+  }
+  function treeRows(nodes, level, base) {
+    return nodes.map(function (n, i) {
+      var path = base === "" ? String(i) : base + "." + i;
+      var kids = n.antar || n.prat, has = !!kids;
+      var caret = has ? (n.open ? "▾" : "▸") : "";
+      var html = '<div class="trow' + (n.current ? " is-current" : "") + '" data-has="' + has + '" data-path="' + path + '">' +
+        '<span class="caret">' + caret + '</span>' +
+        '<span class="tl">' + n.lord + '</span>' +
+        '<span class="td">' + n.start + " → " + n.end + '</span></div>';
+      if (has && n.open) {
+        html += '<div class="tchildren"><div class="tlbl">' + (n.antar ? "Antardaśā" : "Pratyantardaśā") + '</div>' +
+          treeRows(kids, level + 1, path) + '</div>';
+      }
+      return html;
+    }).join("");
+  }
+  function dashaHTML() {
+    return card("Vimśottari daśā <span class='sub'>Mahā → Antar → Pratyantar</span>", null,
+      '<div class="tree" id="dashaTree"><div class="tlbl">Mahādaśā</div>' +
+      treeRows(DASHA_TREE.maha, 0, "") + '</div>', DASHA_TREE.src);
+  }
+
+  // -------- Saturn --------
+  function saturnHTML() {
+    var rows = SATURN_WINDOWS.filter(function (w) { return saturnRound === 0 || w[0] === saturnRound; })
+      .map(function (w) { return [w[1], (w[0] === 1 ? "1st" : w[0] === 2 ? "2nd" : "3rd"), w[2], w[3], w[4], w[5]]; });
+    var full = SATURN_WINDOWS.filter(function (w) { return saturnRound === 0 || w[0] === saturnRound; });
+    var curIdx = saturnCurrentIndex(full);
+    var def = { cols: ["Type","Round","From Moon","Saturn sign","Start","End"] };
+    var filter = '<span class="rfilter">' +
+      [[0,"All"],[1,"1st round"],[2,"2nd round"],[3,"3rd round"]].map(function (r) {
+        return '<button type="button" data-round="' + r[0] + '" aria-pressed="' + (saturnRound === r[0]) + '">' + r[1] + '</button>';
+      }).join("") + '</span>';
+    return card("Saturn windows", filter, tableEl(def, rows, curIdx), null) +
+      '<p style="font-size:var(--fs-meta);color:var(--muted);font-weight:700;margin:0">source · <code style="font-family:ui-monospace,Consolas,monospace">' + SATURN_SRC + '</code> · sunset row = current or next window</p>' +
+      card("Ashtakavarga — Saturn", '<span class="src">not computed</span>',
+        '<div class="empty">Bindu-point transit strength is out of scope pending a cited contribution-table source — <code>calculations.md §9</code>. The vendored MIT <code>jyotishganit</code> port unblocks it.</div>' +
+        '<div class="ava-grid">' + "ABCDEFGHIJKL".split("").map(function () { return '<span>–</span>'; }).join("") + '</div>', null);
+  }
+
+  // -------- top tabs + sub tabs --------
+  var TABS = ["Key Inference", "Yogas", "Time Period (Dasha)", "Saturn Time Period"];
+  var SUBTABS = ["About Sign","About Planet","About Moon","About Houses","Planet Dignity","Planet Strength","House Strength","Vargottama"];
+  var activeTab = 0, activeSub = 0;
+
+  function keyInferenceSection() {
+    var s = activeSub, sampleNote = (inferChart !== "D1" && inferChart !== "D9") ? ' <span class="src">sample shown as D9</span>' : '';
+    if (s === 0) return card("About Sign", null, tableEl(SIGN_REF), SIGN_REF.src);
+    if (s === 1) return card("About Planet", null, tableEl(GRAHA_REF), GRAHA_REF.src);
+    if (s === 2) return card("About Moon", null,
+      '<div class="facts">' + MOON_FACTS.map(function (f) { return '<span class="fact"><b>' + f[0] + '</b>' + f[1] + '</span>'; }).join("") + '</div>', MOON_SRC);
+    if (s === 3) return card("About Houses", chartPicker() + sampleNote, tableEl(HOUSES, byChart(HOUSES)), null);
+    if (s === 4) return card("Planet Dignity", chartPicker() + sampleNote, tableEl(DIGNITY, dignityOrdered(byChart(DIGNITY))), null);
+    if (s === 5) return card("Planet Strength <span class='sub'>Shadbala</span>", null, tableEl(SHADBALA), SHADBALA.src);
+    if (s === 6) return card("House Strength <span class='sub'>Bhava Bala</span>", null, tableEl(BHAVA), BHAVA.src);
+    return card("Vargottama <span class='sub'>D1 &amp; D9</span>", null, tableEl(VARGOTTAMA), VARGOTTAMA.src);
+  }
+
+  function renderInfer() {
+    var host = document.getElementById("inferPanel");
+    var subStrip = document.getElementById("inferSubtabs");
+    subStrip.hidden = activeTab !== 0;
+
+    if (activeTab === 0) {
+      subStrip.innerHTML = SUBTABS.map(function (l, i) {
+        return '<button type="button" role="tab" data-sub="' + i + '" aria-selected="' + (i === activeSub) + '">' + l + '</button>';
+      }).join("");
+      host.innerHTML = keyInferenceSection();
+      var cs = document.getElementById("inferChartSel");
+      if (cs) cs.addEventListener("change", function () { inferChart = cs.value; renderInfer(); });
+    }
+    else if (activeTab === 1) {
+      host.innerHTML =
+        card("Yoga coverage", null, tableEl(YOGA_SUMMARY), YOGA_SUMMARY.src) +
+        card("Yoga source variants", null, tableEl(YOGA_VARIANTS), YOGA_VARIANTS.src);
+    }
+    else if (activeTab === 2) {
+      host.innerHTML = dashaHTML();
+      var tree = document.getElementById("dashaTree");
+      tree.addEventListener("click", function (e) {
+        var r = e.target.closest(".trow");
+        if (!r || r.dataset.has !== "true") return;
+        var n = nodeAt(r.dataset.path); n.open = !n.open; renderInfer();
+      });
+    }
+    else {
+      host.innerHTML = saturnHTML();
+      Array.prototype.forEach.call(host.querySelectorAll(".rfilter button"), function (b) {
+        b.addEventListener("click", function () { saturnRound = +b.dataset.round; renderInfer(); });
+      });
+    }
+  }
+
+  // tab strip
+  var tabHost = document.getElementById("inferTabs");
+  tabHost.innerHTML = TABS.map(function (l, i) {
+    return '<button type="button" role="tab" data-tab="' + i + '" aria-selected="' + (i === 0) + '">' + l + '</button>';
+  }).join("");
+  tabHost.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-tab]"); if (!b) return;
+    activeTab = +b.dataset.tab;
+    Array.prototype.forEach.call(tabHost.children, function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); });
+    document.getElementById("pageTitle").textContent = TABS[activeTab];
+    renderInfer();
+  });
+  document.getElementById("inferSubtabs").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-sub]"); if (!b) return;
+    activeSub = +b.dataset.sub; renderInfer();
+  });
+  renderInfer();
+
+  // ---- person context + view switching (hash-routed) ----
+  //  TRANSIT / ALL CHARTS / KEY INFERENCE appear only once a person is
+  //  identified on Home (searched, one row at a time). All are per-person.
+  var PEOPLE = [
+    { id: 88, name: "Ramakrishnan P", birth: "1981-08-12 · 05:30:00 · Chennai, India · 13.0827°N 80.2707°E" },
+    { id: 89, name: "Ananya Iyer",    birth: "1994-11-02 · 14:12:00 · Bengaluru, India · 12.9716°N 77.5946°E" },
+    { id: 90, name: "Sundari H",      birth: "1958-06-19 · 21:40:00 · Madurai, India · 9.9252°N 78.1198°E" }
+  ];
+  var activePerson = null;
+
+  var HASH_TO_VIEW = { "transit": "transit", "all-charts": "charts", "key-inference": "infer", "home": "home" };
+  var META = {
+    home:    ["Discover Your Path", ""],
+    transit: ["Transit - D1 Birth Chart", ""],
+    charts:  ["All Charts", "21 divisional charts · fixed South-Indian layout · divisor order"],
+    infer:   ["Key Inference", "analytical layers — planetary positions live on All Charts"]
+  };
+  var navLinks = document.querySelectorAll("[data-view]");
+
+  function renderHomeRows() {
+    var q = (document.getElementById("pickSearch").value || "").trim();
+    var matches = PEOPLE.filter(function (p) { return q && p.name.toLowerCase().indexOf(q.toLowerCase()) > -1; });
+    document.getElementById("pickRows").innerHTML = !q
+      ? '<p class="pick-hint">Start typing a name — matches appear one row at a time.</p>'
+      : (matches.length
+          ? matches.map(function (p) {
+              return '<button class="picker__row" type="button" data-pid="' + p.id + '">' +
+                '<span><span class="nm">' + p.name + '</span><br><span class="bd">' + p.birth + '</span></span>' +
+                '<span class="go">View chart &rarr;</span></button>';
+            }).join("")
+          : '<p class="pick-hint">No saved person matches &ldquo;' + q + '&rdquo;.</p>');
+  }
+  function renderHome() {
+    document.getElementById("homePicker").innerHTML =
+      '<input id="pickSearch" type="text" placeholder="Type a name…" autocomplete="off">' +
+      '<div id="pickRows"></div>' +
+      '<button class="picker__row picker__add" type="button" data-pid="new" title="Add-New fields are on the Home spec — omitted from this mockup">&#65291;&nbsp; Add New</button>';
+    document.getElementById("pickSearch").addEventListener("input", renderHomeRows);
+    renderHomeRows();
+  }
+  document.getElementById("homePicker").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-pid]"); if (!b || b.dataset.pid === "new") return;
+    var p = PEOPLE.filter(function (x) { return String(x.id) === b.dataset.pid; })[0];
+    if (p) setPerson(p);
+  });
+
+  function setPerson(p) {
+    activePerson = p;
+    document.getElementById("nav").hidden = !p;
+    document.getElementById("tbName").textContent = p ? p.name : "Select a person";
+    document.getElementById("tbBirth").textContent = p ? p.birth : "no person open";
+    if (p) { if (location.hash === "#transit") applyHash(); else location.hash = "#transit"; }
+  }
+
+  function show(v) {
+    if ((v === "transit" || v === "charts" || v === "infer") && !activePerson) v = "home";
+    ["home", "transit", "charts", "infer"].forEach(function (x) { document.getElementById("view-" + x).hidden = (x !== v); });
+    Array.prototype.forEach.call(navLinks, function (a) { a.setAttribute("aria-current", a.dataset.view === v ? "page" : "false"); });
+    var onHome = (v === "home");
+    document.querySelector(".tb-person").style.display = onHome ? "none" : "";
+    document.querySelector(".tb-meta").style.display = onHome ? "none" : "";
+    document.getElementById("pageTitle").textContent = (v === "infer" ? TABS[activeTab] : META[v][0]);
+    document.getElementById("pageDesc").textContent = META[v][1];
+    if (v === "home") renderHome();
+    if (v === "transit") renderTransit();
+    window.scrollTo(0, 0);
+  }
+  function applyHash() {
+    show(HASH_TO_VIEW[(location.hash || "").replace("#", "")] || (activePerson ? "transit" : "home"));
+  }
+  window.addEventListener("hashchange", applyHash);
+  setPerson(null);   // start with no person → Home, nav hidden
+  applyHash();
+})();
+</script>

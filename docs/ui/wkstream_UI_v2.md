@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: ui
 version: v2
 status: scoping
@@ -15,8 +15,8 @@ stays the description of what is **live** until v2 ships; this doc is the increm
 
 > **Status: scoping.** The pattern and the design system below are decided. The delivery list
 > is fixed (ROADMAP *Now* + the open `FEAT-UI` rows). Route consolidation and which v1-dropped
-> surfaces return are the remaining open items — a short pass with the product head. Nothing
-> here is built yet.
+> surfaces return are the remaining open items — a short pass with the product head. Home (`/`)
+> is in progress on this pattern; every other v2 surface is unbuilt.
 
 ## The pattern — AstrologerEvidence, everywhere
 
@@ -46,7 +46,8 @@ Each item is one or more table sections on the pattern above.
 | ROADMAP Now | Avastha display (`FEAT-AVASTHA-01/02`) | rows in the Dignity & Avastha section — AgeState, WakefulnessState | #10 · Planetary-state (avastha) display |
 | ROADMAP Now | Slow-planet transit history (`FEAT-TRANSIT-01`) | a Transit History section — sign-ingress events (planet, from→to, date, retro) with a date-range filter | #11 · Slow-planet transit history view |
 | Open `FEAT-UI` | Add / Edit person (`FEAT-UI-03`) | **inline on Home** — `Add New` unhides Name · Sex · DOB · Time · City · Country; completing Country → `/transit-wheel/{id}` | #4 |
-| Open `FEAT-UI` | Preferences (`FEAT-UI-12`) | **inline on Home, top-left disclosure** — Ayanāṁśa selector (default *Lahiri*) + Chart Type selector (South Indian default / North Indian; extensible) | #5 |
+| Open `FEAT-UI` | Preferences (`FEAT-UI-12`) | **inline on Home, top-left disclosure** — three selector groups: Ayanāṁśa (21 catalogued, *Lahiri* fixed default) · Chart style (South Indian default; North / West Indian listed, renderers deferred) · Language (English; Tamil planned). See [`components/home.md`](components/home.md) | #5 |
+| `wkstream_UI_v2` | Transit landing (`/transit-wheel/{id}`) | the page a person lands on — embedded transit wheel + a two-tab **D1 Birth** / **Current Transit** table; persisted rows only. [`components/transit.md`](components/transit.md) | — |
 
 Also folded in (the "Missing Web" rollup column): Ṣaḍbala / Bhāva Bala already have sections
 7–8 in the AstrologerEvidence plan.
@@ -95,23 +96,23 @@ Extends [`brand.md`](brand.md) / [`design-language.md`](design-language.md). v1'
 
 ## Navigation (v2 route map)
 
-Person detail is **two pages**, both in the header whenever a person is open. `AstrologerEvidence`
-is not a hub route any more — its table set is redistributed across the two pages below. Home
+Person detail is **three pages**, all in the header whenever a person is open. `AstrologerEvidence`
+is not a hub route any more — its table set is redistributed across the three pages below. Home
 absorbs Preferences and Add — no `/preferences`, no `/add`.
 
 ### Header bar
 
-Nav tabs on the **left**, in caps — `ALL CHARTS` · `KEY INFERENCE`. The brand lockup and `HOME`
-sit on the **right**. Each page's sub-heading (`ALL CHARTS` / the active Key-Inference header) is
-caps, left-aligned above the content. (`brand.md`'s lockup copy is unchanged; only its position
-moves.)
+`HOME` is the **left-most** app-bar item — a navy pill straddling the app-bar / band edge; then
+the per-person tabs `TRANSIT · ALL CHARTS · KEY INFERENCE` in caps; the brand lockup is on the
+**right**. Each page's sub-heading (`TRANSIT - D1 BIRTH CHART` / `ALL CHARTS` / the active
+Key-Inference header) is caps, left-aligned above the content. (`brand.md`'s lockup copy is
+unchanged; only its position moves.)
 
-`HOME` is the **left-most** app-bar item; then `TRANSIT · ALL CHARTS · KEY INFERENCE`; the brand
-lockup is on the right. The person strip and the sub-heading are one compact **band** (page
-title + descriptor left · person name + birth centre · meta chips right — the *21 charts / 611
-rows* chip removed). One content width and gutter (`--maxw` / `--pad-x`) run through the app
-bar, the band, every page and the footer. The footer is a **single centred line** —
-*Dedicated to my guru (Sundari Hemachandran) — By Ramakrishnan P* (the "By…" small).
+The person strip and the sub-heading are one compact **band** (page title + descriptor left ·
+person name + birth centre · meta chips right — the *21 charts / 611 rows* chip removed). One
+content width and gutter (`--maxw` / `--pad-x`) run through the app bar, the band, every page
+and the footer. The footer is a **single centred line** — *Dedicated to my guru (Sundari
+Hemachandran) — By Ramakrishnan P* (the "By…" small).
 
 **The nav tabs are hidden until a person is opened**, and on Home the centre + right of the
 band are empty. Every inner page is per-person. Opening a person reveals the tabs and lands on
@@ -166,18 +167,37 @@ unless the pass re-introduces one.
   restyle. *(Proposed subtree; confirm before Codex starts.)* Codex does not touch shell /
   pages / routing / tokens; Claude reviews and integrates every Codex change.
 
+## Acceptance matrix
+
+The HTML mockup ([`../artifacts/ui/v2-mockup/chart-evidence-hub.html`](../artifacts/ui/v2-mockup/chart-evidence-hub.html))
+is the frozen visual reference — open it and switch views by hash. "Verified in HTML" is not a
+completion state — each screen is done only when its row below is fully checked. Test / verify
+cells start `☐` and are checked per slice.
+
+| Screen | Reference | Route / component | Data source | Responsive · empty · error | A11y | bUnit / snapshot | Browser verify |
+|---|---|---|---|---|---|---|---|
+| Home | mockup `#home` | `/` · `Home.razor` | `BirthDetailsRepository` (search only) | ☐ narrow-column · ☐ no-match · ☐ resolver fail | ☐ keyboard search + focus ring | ☐ | ☐ `verify-home-ui.mjs` |
+| Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `TransitWheel.razor` (v2) | `vw_ChartPlanetEvidence` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☐ wide-table scroll-in-container · ☐ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs | ☐ `verify-transit-ui.mjs` (rewritten for 2 tabs) |
+| All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid` | `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas | ☐ 3-per-row reflow · ☐ varga not generated | ☐ grid landmark labels | ☐ per varga | ☐ smoke |
+| Key Inference | mockup `#key-inference` | `/key-inference/{id}` · `KeyInference.razor` | evidence views + dimension tables (per sub-tab) | ☐ auto table widths, no page scroll · ☐ empty section | ☐ header + sub-tab keyboard nav | ☐ per header | ☐ smoke |
+| Preferences | mockup `#home` (disclosure) | inline on Home · `Home.razor` | `AyanamsaDefinition.Catalog` · `localStorage` | ☐ collapse on select · ☐ `localStorage` unavailable → DB default | ☐ disclosure ARIA; disabled "Planned" options not focusable-as-selectable | ☐ | ☐ smoke |
+
 ## Verification
 
-- `tests/Ikiastrro.Web.Tests` (bUnit) — table-section snapshots + the SVG golden snapshots
-  re-minted as components land (`IKIASTRRO_UPDATE_SNAPSHOTS=1`); each diff noted against its
-  `FEAT-…` row.
+- `tests/Ikiastrro.Web.Tests` (bUnit) — a `Verify [x]` needs **all** of: correct persisted-data
+  mapping (value ↔ planet / chart / date), a structural or golden snapshot, interaction
+  behaviour, empty / loading / error states, keyboard + focus, **and** one real browser smoke
+  case. SVG goldens re-minted as components land (`IKIASTRRO_UPDATE_SNAPSHOTS=1`); each diff
+  noted against its `FEAT-…` row.
+- `Web [x]` means the route is live **and** matches its `docs/ui/components/*.md` spec — not
+  merely "it renders".
 - A token-lint check (or review gate): no raw hex, no size literals, one font family.
 - Live browser smoke test against every route + a dense chart + a recent-birth chart.
 - No regression in the 11 `verify-*` CLI modes (UI is read-only over persisted rows).
 
 ## Done when
 
-Every row in *What v2 must deliver* is `Web [x]` in `masterproduct.md`; the hub renders all
-table sections on the design system with zero token violations; retired routes are gone or
-recorded; snapshots re-minted; browser smoke passes; `brand.md` updated for the action-colour
-change.
+Every row in *What v2 must deliver* is `Web [x]` in `masterproduct.md` under the definition
+above; every *Acceptance matrix* row is fully checked; the hub renders all table sections on
+the design system with zero token violations; retired routes are gone or recorded; snapshots
+re-minted; browser smoke passes; `brand.md` updated for the action-colour change.

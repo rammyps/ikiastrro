@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 togaf: Requirements Management
 safe: Feature / Capability register
 ---
@@ -291,20 +291,29 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 
 ## UI — workstream: ui
 
-Checklist for UI features: `DB` / `Core` are `—`; `Verify` = a bUnit / golden-SVG snapshot
-test exists; `Web` = route is live; `Docs` = a `docs/ui/` component doc exists.
+Checklist for UI features: `DB` / `Core` are `—`. `Docs` = a `docs/ui/` component doc exists.
+`Verify [x]` requires **all** of: correct persisted-data mapping (value ↔ planet / chart /
+date), a structural or golden snapshot, interaction behaviour, empty / loading / error states,
+keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and** matches its
+`docs/ui/components/*.md` spec — not merely "it renders". (Full bar: `wkstream_UI_v2.md` →
+*Verification*.)
 
 - **FEAT-UI-01 · App shell + brand system (MudBlazor, `tokens.css`, shared header)** — Verified · 60%
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
-- **FEAT-UI-02 · Home / entry (`/`) — searchable name, saved people, inline Preferences + Add** — In progress · 60%
-  DB [—] · Core [—] · Verify [x] · Web [x] · Docs [x] (`docs/ui/components/home.md`)
+- **FEAT-UI-02 · Home / entry (`/`) — searchable name, saved people, inline Preferences + Add** — In progress · 40%
+  DB [—] · Core [—] · Verify [x] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
   `wkstream_UI_v2` rebuild: MudBlazor shell; `MudAutocomplete` name search; Preferences
-  disclosure top-left (Ayanāṁśa + Chart Type); `Add New` unhides the entry fields inline;
-  completing Country → `/transit-wheel/{id}`. Absorbs FEAT-UI-03 and FEAT-UI-12.
-- **FEAT-UI-03 · Add person — inline on Home (Name · Sex · DOB · Time · City · Country)** — In progress · 40%
-  DB [—] · Core [—] · Verify [ ] · Web [x] · Docs [x] (`docs/ui/components/home.md`)
-  No longer a `/add` route — folded into Home (`FEAT-UI-02`). v1 gaps still open: Sex field
-  (`tbl_BirthDetails.Sex`, migration 052) and geocoding-failure fallback.
+  disclosure top-left (three selector groups — Ayanāṁśa / Chart style / Language); `Add New`
+  unhides the entry fields inline; completing Country → `/transit-wheel/{id}`. Absorbs
+  FEAT-UI-03 and FEAT-UI-12. **`Web [ ]`** — the live page still differs from `components/home.md`:
+  heading not "Discover Your Path", explanatory text not stripped, search shows a list not one
+  matched row, Preferences has 2 selectors not 3, Ganesha art not in the right column, and it
+  lands on `/charts/{id}` not the Transit page.
+- **FEAT-UI-03 · Add person — inline on Home (Name · Sex · DOB · Time · City · Country)** — In progress · 20%
+  DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
+  No longer a `/add` route — folded into Home (`FEAT-UI-02`). **`Web [ ]`** until the mockup Add
+  flow ships — gaps still open: Sex field (`tbl_BirthDetails.Sex`, migration 052) and
+  geocoding-failure fallback.
 - **FEAT-UI-04 · Saved charts list (`/charts`) + inline delete** — Verified · 60%
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
 - **FEAT-UI-05 · Chart workspace (`/charts/{id}`) — D1 hero + grouped varga rail** — Verified · 60%
@@ -323,7 +332,7 @@ test exists; `Web` = route is live; `Docs` = a `docs/ui/` component doc exists.
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
   Live in v1; the v2 re-do drops the route (the Vimśottari timeline is served by
   `/charts/{id}/timing`). `LifeWeeks.razor` + its golden snapshot go when v2 lands.
-- **FEAT-UI-12 · Preferences — inline Home disclosure (top-left)** — In progress · 0%
+- **FEAT-UI-12 · Preferences — inline Home disclosure (top-left)** — In progress · 20%
   DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
   Not a route. A `MudCollapse` at Home top-left with three selector groups:
   **Ayanāṁśa** (all 21 catalogued options; default = active `tbl_Rule_Ayanamsa` = *Lahiri*,

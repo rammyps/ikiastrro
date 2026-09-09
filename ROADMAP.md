@@ -1,3 +1,7 @@
+---
+last_updated: 2026-09-10
+---
+
 # ikiastrro — Roadmap
 
 **Owner:** rammyps
