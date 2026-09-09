@@ -39,7 +39,7 @@ recomputes.
 | `/` | `Home` | brand lockup + Ganesha/Navagraha art; searchable name over saved people; inline Preferences (top-left) + inline Add | **v2 rebuild in progress** ([`components/home.md`](components/home.md)) |
 | ~~`/add`~~ | — | folded into Home in v2 | retired |
 | `/charts` | `SavedCharts` | sortable person table + `MiniGrid` thumbnail + inline-confirm delete | verified |
-| `/charts/{id}` | `Workspace` | D1 hero (`ChartFrame` grid⇄wheel), `VargaRail` over all 21, D1 positions table, compact dasha strip, birth/computation panel | verified |
+| `/charts/{id}` | `AllCharts` (v2) | every stored divisional chart as a plain South-Indian grid, 3 per row, divisor order; sunset card heads on the canvas | **v2 built** (`FEAT-UI-14`) — replaced the v1 `Workspace` hub |
 | `/charts/{id}/varga/{code}` | `VargaView` | one varga in full — grid + wheel, `VargottamaStrip`, positions, house-lordship + conjunctions disclosure, prev/next | verified |
 | `/charts/{id}/south-indian-template` | `SouthIndianTemplate` | the print-style South-Indian D1 template, light/dark toggle | verified |
 | `/charts/{id}/timing` | `Timing` | Vimśottari dasha tree + Sade Sati + Gochara | verified |

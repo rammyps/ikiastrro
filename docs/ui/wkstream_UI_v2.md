@@ -15,10 +15,11 @@ stays the description of what is **live** until v2 ships; this doc is the increm
 
 > **Status: building.** The pattern and the design system below are decided. The delivery list
 > is fixed (ROADMAP *Now* + the open `FEAT-UI` rows). Route consolidation and which v1-dropped
-> surfaces return are the remaining open items — a short pass with the product head. **Slice 1
-> (Home → select person → Transit) is in progress:** the v2 app shell (HOME pill + per-person
-> tabs + context band) and the Transit landing (`/transit-wheel/{id}`) D1 Birth tab are built
-> (`FEAT-UI-13`); Home (`/`) is partly on this pattern; All Charts and Key Inference are unbuilt.
+> surfaces return are the remaining open items — a short pass with the product head. **Built so
+> far:** the v2 app shell (HOME pill + per-person tabs + context band); the Transit landing
+> (`/transit-wheel/{id}`) D1 Birth tab (`FEAT-UI-13`); **All Charts (`/charts/{id}`) — 21
+> divisional grids, divisor order** (`FEAT-UI-14`, the v1 `Workspace` hub retired). Home (`/`) is
+> partly on this pattern; Key Inference is unbuilt.
 
 ## The pattern — AstrologerEvidence, everywhere
 
@@ -180,7 +181,7 @@ cells start `☐` and are checked per slice.
 |---|---|---|---|---|---|---|---|
 | Home | mockup `#home` | `/` · `Home.razor` | `BirthDetailsRepository` (search only) | ☐ narrow-column · ☐ no-match · ☐ resolver fail | ☐ keyboard search + focus ring | ☐ | ☐ `verify-home-ui.mjs` |
 | Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `TransitWheel.razor` (v2) | `vw_ChartPlanetEvidence` via `TransitLandingRepository` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☑ wide-table scroll-in-container · ☑ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs (`TransitLandingMath` unit-tested; render harness pending) | ☑ MCP browser smoke 2026-09-10 · ☐ `verify-transit-ui.mjs` headless run |
-| All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid` | `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas | ☐ 3-per-row reflow · ☐ varga not generated | ☐ grid landmark labels | ☐ per varga | ☐ smoke |
+| All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid` (re-skinned via token overrides) | `WorkspaceData.Load` — `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas, divisor order | ☑ 3→2→1-per-row reflow · ☑ varga not generated → `EmptyState` card | ☐ grid landmark labels | ☐ per varga (page-DI harness pending) | ☑ MCP browser smoke 2026-09-10 |
 | Key Inference | mockup `#key-inference` | `/key-inference/{id}` · `KeyInference.razor` | evidence views + dimension tables (per sub-tab) | ☐ auto table widths, no page scroll · ☐ empty section | ☐ header + sub-tab keyboard nav | ☐ per header | ☐ smoke |
 | Preferences | mockup `#home` (disclosure) | inline on Home · `Home.razor` | `AyanamsaDefinition.Catalog` · `localStorage` | ☐ collapse on select · ☐ `localStorage` unavailable → DB default | ☐ disclosure ARIA; disabled "Planned" options not focusable-as-selectable | ☐ | ☐ smoke |
 

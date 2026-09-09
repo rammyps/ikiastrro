@@ -316,8 +316,10 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   geocoding-failure fallback.
 - **FEAT-UI-04 · Saved charts list (`/charts`) + inline delete** — Verified · 60%
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
-- **FEAT-UI-05 · Chart workspace (`/charts/{id}`) — D1 hero + grouped varga rail** — Verified · 60%
+- **FEAT-UI-05 · Chart workspace (`/charts/{id}`) — D1 hero + grouped varga rail** — **retired in `wkstream_UI_v2`** (replaced by `FEAT-UI-14`)
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
+  `Workspace.razor` + `.razor.css` removed; `/charts/{id}` now serves the v2 All Charts page.
+  `WorkspaceData` / `WorkspaceHeader` / `VargaBundles` are kept — `VargaView` still uses them.
 - **FEAT-UI-06 · Varga view (`/charts/{id}/varga/{code}`) — grid + polar-wheel toggle** — Verified · 60%
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
 - **FEAT-UI-07 · South Indian template (`/charts/{id}/south-indian-template`)** — Verified · 80%
@@ -364,6 +366,19 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   `BirthDetailId` / `Planet` / `PercentOfMinimum`), and `GocharaRepository.SaveSnapshots` has a
   latent datetime-precision MERGE bug that can dup-key `tbl_TransitPositionReference`.
   Supersedes `FEAT-UI-10` for `/transit-wheel/{id}` once `Web [x]`.
+- **FEAT-UI-14 · All Charts (`/charts/{id}`) — v2, every divisional chart as a South-Indian grid** — In progress · 40%
+  DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/wkstream_UI_v2.md`)
+  Second `wkstream_UI_v2` slice. `AllCharts.razor` at `/charts/{id}` (the v1 `Workspace` hub is
+  retired — `FEAT-UI-05`): all 21 divisional chart types in **divisor order**, 3 per row (2 ≤1000px,
+  1 ≤620px), fed by `WorkspaceData.Load` (`tbl_ChartResults` + `tbl_Chart_KeyDetails`). Only the
+  card heading bar is sunset; card, grid and margins on the canvas. The grid is the Codex
+  `SouthIndianGrid` (`Components/Charts/**`) **re-skinned from the page via CSS-custom-property
+  overrides** — no change to that component: sign name top-left, house-from-Lagna (sunset) over
+  house-from-Moon (muted) top-right, colour-coded graha glyphs, `LAGNA` tag, peach + sunset Lagna
+  box. Ungenerated vargas render an `EmptyState` card. Browser-verified (both test people, all 21
+  grids, sunset heads, divisor order, no horizontal overflow, no console errors). **`Verify [ ]`**
+  until a page-DI bUnit harness covers a per-varga render; `SouthIndianGrid`'s LAGNA-tag / sign-name
+  crowding in narrow cells is a `Components/Charts/**` (Codex) polish item.
 
 ## DOCS — cross-cutting
 

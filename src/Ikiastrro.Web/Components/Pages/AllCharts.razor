@@ -1,0 +1,105 @@
+@page "/charts/{Id:int}"
+@using Ikiastrro.Core.Models
+@using Ikiastrro.Web.Components.Workspace
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject ChartResultsRepository ChartResultsRepo
+@inject ChartKeyDetailsRepository ChartKeyDetailsRepo
+@inject ChartHouseLordsRepository ChartHouseLordsRepo
+@inject ChartAspectsRepository ChartAspectsRepo
+@inject ChartConjunctionsRepository ChartConjunctionsRepo
+@inject ChartTypeRepository ChartTypeRepo
+@inject ActivePerson Active
+
+@* v2 All Charts — docs/ui/wkstream_UI_v2.md. Every stored divisional chart as a plain
+   South-Indian grid, 3 per row, divisor order. Only the card heading bar is sunset; card,
+   grid and margins are on the canvas. Persisted rows only. The grid itself is the Codex
+   `SouthIndianGrid` component (Components/Charts/**) — re-skinned here via token overrides,
+   not modified. *@
+
+<PageTitle>@(_data?.Person.Name ?? "Charts") · All Charts</PageTitle>
+
+@if (_data is null)
+{
+    <section class="ac-unavailable" role="status">
+        <h1 class="ac-heading">ALL CHARTS</h1>
+        <p>No saved charts found for that person.</p>
+        <a href="/">Choose a saved person</a>
+    </section>
+}
+else
+{
+    <h1 class="ac-heading">ALL CHARTS</h1>
+
+    <div class="ac-grid">
+        @foreach (var t in Vargas)
+        {
+            var has = _data.Charts.TryGetValue(t.Code, out var lc);
+            <article class="ac-card">
+                <header class="ac-card-head">
+                    <span class="ac-card-code">@t.Code<small>@t.DisplayName</small></span>
+                    <span class="ac-card-sig">@(has ? $"Lagna {Disp(lc!.AscendantSign)}" : "not generated")</span>
+                </header>
+                @if (has)
+                {
+                    <div class="ac-card-grid">
+                        <SouthIndianGrid AscendantSign="@lc!.AscendantSign"
+                                         MoonSign="@lc.MoonSign"
+                                         PlanetsBySign="PlanetsBySign(lc)"
+                                         CenterTitle="@t.Code"
+                                         Compact="true">
+                            <CenterMeta>@(t.ChartShortDescription ?? t.DisplayName)</CenterMeta>
+                        </SouthIndianGrid>
+                    </div>
+                }
+                else
+                {
+                    <div class="ac-card-empty">
+                        <EmptyState Message="@($"{t.Code} not generated")" Cli="backfill-charts" />
+                    </div>
+                }
+            </article>
+        }
+    </div>
+
+    <div class="ac-legend">
+        <span><b class="ac-lg-lagna">LAGNA</b> box = peach fill + sunset outline</span>
+        <span>top-left = sign · top-right = <b class="ac-lg-lagna">house from Lagna</b> over <b class="ac-lg-moon">house from Moon</b></span>
+        <span>graha glyphs colour-coded · (R) = retrograde · 🔥 = combust</span>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private WorkspaceData? _data;
+
+    protected override void OnParametersSet()
+    {
+        _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
+            ChartHouseLordsRepo, ChartAspectsRepo, ChartConjunctionsRepo, ChartTypeRepo.GetAll());
+        if (_data is not null && !_data.Charts.ContainsKey("D1")) _data = null; // no D1 → treat as not found
+
+        if (_data is null)
+        {
+            Active.Clear();
+            return;
+        }
+
+        var p = _data.Person;
+        Active.Set(Id, p.Name,
+            $"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
+    }
+
+    // Every divisional chart type in divisor order (D1, D2, D3 … D60).
+    private IEnumerable<ChartTypeRow> Vargas =>
+        _data!.ChartTypes.Where(t => t.DivisionalFactor is > 0).OrderBy(t => t.DivisionalFactor);
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+
+    private static IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> PlanetsBySign(LoadedChart lc) =>
+        lc.Grahas.Where(k => k.Planet != "Ascendant")
+            .GroupBy(k => k.Sign)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<GridPlanetGlyph>)g.Select(k => new GridPlanetGlyph(
+                k.Planet, ChartViewModel.DignityToken(k.DignityStatus),
+                k.IsRetrograde ?? false, k.IsCombust ?? false)).ToList());
+}

@@ -1,0 +1,106 @@
+/* v2 All Charts — docs/ui/wkstream_UI_v2.md. Tokens only; Manrope only; the three --font-size-*
+   tokens only. Only the card heading bar is sunset; card, grid and margins are on the canvas. */
+
+.ac-heading {
+    margin: 4px 0 20px;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.ac-unavailable p { color: var(--brand-muted); }
+.ac-unavailable a { color: var(--brand-sunset); }
+
+.ac-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.ac-card {
+    border: 1px solid var(--brand-line);
+    border-radius: 12px;
+    background: var(--brand-canvas);
+    box-shadow: 0 6px 18px rgb(15 32 65 / 0.08);
+    overflow: hidden;
+
+    /* Re-skin the Codex `SouthIndianGrid` (Components/Charts/**) from here: CSS custom
+       properties inherit through the real DOM, so remapping its parchment tokens to the
+       brand palette needs no change to that component. */
+    --paper: var(--brand-canvas);
+    --paper-raised: var(--brand-canvas);
+    --paper-line: var(--brand-line);
+    --accent: var(--brand-sunset);
+    --accent-line: var(--brand-line);
+    --asc-glow: var(--brand-peach);
+    --shadow: transparent;
+    --ink: var(--brand-midnight);
+    --ink-soft: var(--brand-midnight);
+    --ink-faint: var(--brand-muted);
+    --house-lagna: transparent;
+    --house-lagna-fg: var(--brand-sunset);
+    --house-moon: transparent;
+    --house-moon-fg: var(--brand-muted);
+}
+
+.ac-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 8px 12px;
+    background: var(--brand-sunset);
+    color: var(--brand-midnight);
+}
+
+.ac-card-code {
+    font: 800 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: -0.01em;
+}
+
+.ac-card-code small {
+    margin-left: 0.5ch;
+    font-size: 0.7em;
+    font-weight: 700;
+}
+
+.ac-card-sig {
+    font-size: 0.76em;
+    font-weight: 800;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.ac-card-grid { padding: 12px; }
+
+/* trim SouthIndianGrid's heavy parchment framing for a gallery card */
+.ac-card-grid ::deep .chart {
+    max-width: none;
+    border-width: 1.5px;
+    box-shadow: none;
+    gap: 1px;
+}
+
+.ac-card-empty { padding: 20px; }
+
+.ac-legend {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    color: var(--brand-muted);
+    font: 600 var(--font-size-control) / 1.4 'Manrope', 'Segoe UI', sans-serif;
+    font-size: 0.82em;
+}
+
+.ac-lg-lagna { color: var(--brand-sunset); font-weight: 800; }
+.ac-lg-moon { color: var(--brand-muted); font-weight: 800; }
+
+@media (max-width: 1000px) {
+    .ac-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+    .ac-grid { grid-template-columns: 1fr; }
+}
