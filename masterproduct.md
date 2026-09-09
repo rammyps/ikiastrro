@@ -311,9 +311,11 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   lands on `/transit-wheel/{id}` (the v2 Transit landing — `FEAT-UI-13`).
 - **FEAT-UI-03 · Add person — inline on Home (Name · Sex · DOB · Time · City · Country)** — In progress · 20%
   DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
-  No longer a `/add` route — folded into Home (`FEAT-UI-02`). **`Web [ ]`** until the mockup Add
-  flow ships — gaps still open: Sex field (`tbl_BirthDetails.Sex`, migration 052) and
-  geocoding-failure fallback.
+  No longer a `/add` route — folded into Home (`FEAT-UI-02`). **Sex** is now an always-visible
+  option box (`MudRadioGroup` Male/Female, `tbl_BirthDetails.Sex`, migration 052) and **every**
+  field — Sex included — is validated non-blank before generation. Typing an unknown name copies
+  it into the Add-New Name. **`Web [ ]`** until the full mockup Add flow ships — remaining gap:
+  geocoding-failure fallback (manual lat/long/offset).
 - **FEAT-UI-04 · Saved charts list (`/charts`) + inline delete** — Verified · 60%
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
 - **FEAT-UI-05 · Chart workspace (`/charts/{id}`) — D1 hero + grouped varga rail** — **retired in `wkstream_UI_v2`** (replaced by `FEAT-UI-14`)

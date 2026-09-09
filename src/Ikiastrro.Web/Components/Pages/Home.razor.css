@@ -119,6 +119,25 @@
     font-weight: 700;
 }
 
+/* Sex — an always-visible option box (no dropdown), required. */
+.home-sex {
+    display: grid;
+    gap: 2px;
+}
+
+.home-sex-label {
+    color: var(--brand-muted);
+}
+
+.home-sex ::deep .mud-input-control {
+    margin: 0;
+}
+
+.home-sex ::deep .mud-radio-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
 .home-form-actions {
     display: flex;
     gap: 0.75rem;

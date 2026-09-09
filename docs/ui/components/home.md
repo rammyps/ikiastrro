@@ -67,17 +67,25 @@ chip is removed everywhere. Footer is a single centred line:
 ## Add-New state — entry fields revealed in place
 
 `＋ Add New` sets `_adding = true`: the **Name search stays visible**, and the entry fields
-appear below it under a *New person* caption. Whatever was typed into the search seeds the new
-person's Name. `Cancel` hides the fields again. Fields, in order:
+appear below it under a *New person* caption. `Cancel` hides the fields again.
+
+**Name carry-over.** Whenever the typed search text matches **no** saved person, that text is
+copied straight into the new person's Name — so the moment you type an unknown name, `＋ Add New`
+already opens pre-filled (and clicking it always overwrites Name with the current search text).
+
+Fields, in order:
 
 | Field | Control | Notes |
 |---|---|---|
-| Name | `MudTextField` | required |
-| Sex | `MudSelect` (option box) | Male · Female |
+| Name | `MudTextField` | required; pre-filled from the search text |
+| Sex | option box — `MudRadioGroup` (Male · Female), always visible, no dropdown | **required** — no chart generates without it |
 | Date of Birth | `MudDatePicker` | required |
 | Time of Birth | `MudTimePicker` | **required** — critical for the Lagna; no chart without it |
 | City | `MudTextField` | required; feeds `IPlaceResolver` |
 | Country | `MudTextField` | required; **the last step** |
+
+Every field is validated non-blank before generation — an incomplete form shows
+*"Fill in name, sex, date, time, city and country — none can be blank."* and does nothing.
 
 **Flow:** completing **Country** is the trigger — on a valid form it resolves the place,
 runs `ChartGenerationService.GenerateAll` (with the chosen ayanāṁśa), sets the new row as the

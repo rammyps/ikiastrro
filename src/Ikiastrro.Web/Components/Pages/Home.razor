@@ -39,7 +39,7 @@
         <h1 class="home-title">Discover Your Path</h1>
 
         <div class="home-name">
-            <MudTextField T="string" @bind-Value="_query" @bind-Value:after="StateHasChanged"
+            <MudTextField T="string" @bind-Value="_query" @bind-Value:after="OnQueryChanged"
                           Label="Name" Placeholder="Search saved people…" Immediate="true"
                           Variant="Variant.Outlined" Clearable="true"
                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
@@ -66,10 +66,13 @@
             <div class="home-form">
                 <MudText Class="home-form-caption">New person</MudText>
                 <MudTextField T="string" Label="Name" @bind-Value="_f.Name" Variant="Variant.Outlined" Dense="true" />
-                <MudSelect T="string" Label="Sex" @bind-Value="_f.Sex" Variant="Variant.Outlined" Dense="true">
-                    <MudSelectItem T="string" Value="@("Male")">Male</MudSelectItem>
-                    <MudSelectItem T="string" Value="@("Female")">Female</MudSelectItem>
-                </MudSelect>
+                <div class="home-sex">
+                    <MudText Typo="Typo.caption" Class="home-sex-label">Sex — required</MudText>
+                    <MudRadioGroup T="string" @bind-Value="_f.Sex" Class="home-sex-group">
+                        <MudRadio T="string" Value="@("Male")" Color="Color.Primary" Size="Size.Small">Male</MudRadio>
+                        <MudRadio T="string" Value="@("Female")" Color="Color.Primary" Size="Size.Small">Female</MudRadio>
+                    </MudRadioGroup>
+                </div>
                 <MudDatePicker Label="Date of Birth" @bind-Date="_f.Dob" Variant="Variant.Outlined" />
                 <MudTimePicker Label="Time of Birth" @bind-Time="_f.Tob" Variant="Variant.Outlined" />
                 <MudTextField T="string" Label="City" @bind-Value="_f.City" Variant="Variant.Outlined" Dense="true" />
@@ -144,12 +147,21 @@
 
     private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/transit-wheel/{p.Id}");
 
+    // Whenever the typed name isn't one of the saved people, carry it straight into the
+    // Add-New form's Name — so "＋ Add New" opens pre-filled (docs/ui/components/home.md).
+    private void OnQueryChanged()
+    {
+        if (!_adding && !string.IsNullOrWhiteSpace(_query) && !Matches.Any())
+            _f.Name = _query.Trim();
+        StateHasChanged();
+    }
+
     private void StartAdd()
     {
         _adding = true;
         _error = null;
-        if (string.IsNullOrWhiteSpace(_f.Name) && !string.IsNullOrWhiteSpace(_query))
-            _f.Name = _query.Trim(); // seed the new person's name from what was typed
+        if (!string.IsNullOrWhiteSpace(_query))
+            _f.Name = _query.Trim(); // the search text is always the new person's Name
     }
 
     private void CancelAdd()
@@ -163,11 +175,12 @@
         if (_busy) return;
         _error = null;
 
-        if (string.IsNullOrWhiteSpace(_f.Name) || _f.Dob is null || _f.Tob is null
+        if (string.IsNullOrWhiteSpace(_f.Name) || string.IsNullOrWhiteSpace(_f.Sex)
+            || _f.Dob is null || _f.Tob is null
             || string.IsNullOrWhiteSpace(_f.City) || string.IsNullOrWhiteSpace(_f.Country))
         {
             // Country can blur before the rest is filled — only nag on an explicit submit.
-            if (showErrors) _error = "Fill in name, date, time, city and country.";
+            if (showErrors) _error = "Fill in name, sex, date, time, city and country — none can be blank.";
             return;
         }
 
