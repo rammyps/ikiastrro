@@ -57,6 +57,12 @@ Acknowledged, deliberately deferred.
   and janma-ghaṭi inputs · `FEAT-AVASTHA-03/04/05`
 - **Selectable house system** — beyond whole-sign
 - **KP system** — sub-lords, significators as a layered sub-system
+- **North-Indian & West-Indian varga chart styles** — renderers beside the default South-Indian
+  grid, picked from Preferences (`FEAT-UI-12`). Only South-Indian renders today
+- **Tamil localisation** — UI strings + astrology terms; Tamil script or transliteration TBD.
+  A Language selector in Preferences. Broad i18n scope — see `docs/ui/MASTER.md` NFRs
+- **Runtime-reorderable tabs** — drag-to-reposition the header tabs / Key-Inference sub-tabs,
+  order remembered per user. Deferred NFR — effort + rationale in `docs/ui/MASTER.md`
 
 ## Cadence
 

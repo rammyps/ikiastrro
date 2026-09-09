@@ -46,9 +46,55 @@ recomputes.
 
 ## Navigation
 
-Shared MudBlazor header (`MudAppBar`): brand lockup **Iki-Astrro | Where Passion, Purpose &
-Planets Align.** Nav order Home · Saved Charts (Preferences is an inline Home control in v2,
-not a nav item). Chart-page person names in sunset orange.
+Shared MudBlazor header (`MudAppBar`). **`HOME`** is a fixed navy pill straddling the app-bar /
+context-band edge, hard left. The per-person tabs — **`TRANSIT` · `ALL CHARTS` · `KEY INFERENCE`**
+— sit next to it and are **hidden until a person is opened** (every inner page is per-person).
+Brand lockup **Iki-Astrro | Where Passion, Purpose & Planets Align.** on the right. Preferences
+is an inline Home control, not a nav item. Person name in the band is a `▾` switch back to Home.
+
+## Non-functional requirements (UI)
+
+Quality attributes the app should hold, tracked apart from feature rows. Backlog status is on
+`ROADMAP.md`.
+
+### NFR-UI-01 — Runtime-reorderable tabs · **deferred (backlog: Later)**
+
+The top-level tabs (and, by extension, the Key-Inference 4 headers and 8 sub-tabs) should be
+**re-orderable at runtime** — drag-to-reposition like browser tabs, order remembered per user.
+Routes/URLs don't change (the tabs are hash-routed), so reordering is purely presentational and
+low-risk. `HOME` stays fixed.
+
+| Scope | Effort | Notes |
+|---|---|---|
+| Nav strip only · drag-reorder · `localStorage` persistence · reset control · bUnit snapshot | **~1.5–2 dev-days** | shares the localStorage layer planned for Preferences (`FEAT-UI-12`) |
+| + Key-Inference headers & sub-tabs (3 strips) · keyboard reorder (a11y) · stale-order degradation | **+1–1.5 days** | drag-only is not accessible — needs move-left/right controls in an "edit tabs" mode |
+| + DB-backed per-user persistence (`tbl_UserUiPreferences` + repo + migration + tests) | **+1.5–2 days** | pulls in the `database` workstream |
+
+Full build ≈ **4–6 dev-days**. **Deferred** until the tab inventory stops changing (it churned
+repeatedly during `wkstream_UI_v2`); every added/renamed tab otherwise means maintaining
+stored-order migration logic. When taken up: the *minimal localStorage* form first; it then
+graduates to a [`design-language.md`](design-language.md) rule.
+
+### NFR-UI-02 — Chart-style choice · **default South Indian, N/W Indian deferred**
+
+The divisional / varga charts render **South Indian by default**, with **North Indian** and
+**West Indian** styles selectable from Preferences. Only South Indian renders today; the other
+two renderers are on `ROADMAP.md` *Later* and are a `Components/Charts/**` (Codex-scope) job.
+The Preferences selector already lists all three so the setting is forward-compatible.
+
+### NFR-UI-03 — Ayanāṁśa choice
+
+Preferences exposes the **full ayanāṁśa catalogue — 21 systems** (`AyanamsaDefinition.Catalog`),
+with **Lahiri fixed as the default** (the active `tbl_Rule_Ayanamsa` row). Chart generation
+takes the chosen system for that person's next run; the project baseline is unchanged.
+
+### NFR-UI-04 — Localisation (Tamil) · **deferred (backlog: Later)**
+
+The app should support **Tamil** — either Tamil script or a Tamil transliteration (decision
+deferred). A **Language** selector in Preferences. This is broad: UI chrome strings, astrology
+terminology (`tbl_Dim_*` display names / a term table), number and date formatting, and
+right-to-left is not needed but glyph coverage in Manrope is (Tamil needs a fallback face).
+Scope this as its own design pass before estimating.
 
 ## In flight — `wkstream_UI_v2`, the Home page
 
@@ -56,8 +102,10 @@ not a nav item). Chart-page person names in sunset orange.
   canvas layout with Ganesha art right; the three size tokens; sunset-orange button fill.
 - **`FEAT-UI-03`** — Add folded into Home: `Add New` unhides Name · Sex · DOB · Time · City ·
   Country; completing Country generates + routes to `/transit-wheel/{id}`.
-- **`FEAT-UI-12`** — Preferences disclosure at Home top-left: Ayanāṁśa (default *Lahiri*) +
-  Chart Type (South Indian default / North Indian; extensible). `localStorage` for now.
+- **`FEAT-UI-12`** — Preferences disclosure at Home top-left, three selector groups:
+  **Ayanāṁśa** (21 systems, *Lahiri* fixed default — NFR-UI-03) · **Chart style** (South Indian
+  default; North / West Indian listed, renderers deferred — NFR-UI-02) · **Language** (Tamil
+  planned — NFR-UI-04). `localStorage` for now; DB-backed default is a `database` follow-up.
 
 ## Planned
 

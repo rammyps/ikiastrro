@@ -22,6 +22,27 @@ One language, everywhere. Detail on colours/type: [`brand.md`](brand.md).
   [`dataviz.md`](dataviz.md).
 - **`dotnet format`** before committing.
 
+## Tables — headers vs. horizontal scroll (implementation note)
+
+A column's width should be set by its **values**, not by a verbose header. Horizontal scroll is
+the last resort, not the first reflex.
+
+When a header is longer than the widest value in its column — e.g. Current Transit's
+`House from D1` (values `7th`, `11th`) — resolve it in this order:
+
+1. **Shorten the header** if a shorter label stays unambiguous in context
+   (`House from D1` → `From D1` / `Δ house`; `In-sign motion` → `In-sign`; `Speed °/day` → `°/day`).
+   A one- or two-word header that the surrounding section already disambiguates is fine.
+2. **If it can't be shortened without losing meaning, wrap it onto 2–3 lines** — `th`
+   gets `white-space: normal; overflow-wrap: break-word; line-height: 1.15;` and a soft cap of
+   ~3 lines. The column then sizes to its values and the header stacks above them.
+3. **Only then** allow horizontal scroll, and confine it to the table's own
+   `overflow-x: auto` container (never the page body) — reserved for genuinely wide tables
+   (many independent numeric columns).
+
+`table-layout: auto` everywhere so step 2 actually narrows the column. Applies to every
+MudBlazor table and every hand-rolled `<table>`.
+
 ## Semantic tokens (over the warm canvas)
 
 | Token family | Use |

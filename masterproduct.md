@@ -325,11 +325,13 @@ test exists; `Web` = route is live; `Docs` = a `docs/ui/` component doc exists.
   `/charts/{id}/timing`). `LifeWeeks.razor` + its golden snapshot go when v2 lands.
 - **FEAT-UI-12 · Preferences — inline Home disclosure (top-left)** — In progress · 0%
   DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
-  Not a route. A `MudCollapse` at Home top-left: **Ayanāṁśa** selector (default = active
-  `tbl_Rule_Ayanamsa` = *Lahiri*, plus the 21 catalogued options) and **Chart Type** selector
-  (South Indian default / North Indian; extensible). Choices apply to the next generation;
-  per-browser persistence now, DB-backed default is a `database` follow-up. North-Indian
-  rendering is a later `FEAT-UI` row.
+  Not a route. A `MudCollapse` at Home top-left with three selector groups:
+  **Ayanāṁśa** (all 21 catalogued options; default = active `tbl_Rule_Ayanamsa` = *Lahiri*,
+  fixed) · **Chart style** (South Indian default; North Indian / West Indian listed for
+  forward-compat — renderers deferred to ROADMAP *Later*) · **Language** (English now; Tamil —
+  script or transliteration TBD — deferred). Choices apply to the next generation; per-browser
+  persistence now, DB-backed default is a `database` follow-up. See `docs/ui/MASTER.md`
+  NFR-UI-02 / -03 / -04, and NFR-UI-01 (runtime tab reorder — deferred).
 
 ## DOCS — cross-cutting
 

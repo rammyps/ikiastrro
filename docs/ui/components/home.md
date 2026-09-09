@@ -25,23 +25,42 @@ footer. The Ganesha / Navagraha illustration is a **first-class part of the Home
 (right column), not tied to any toggle.
 
 - **Preferences — top-left of the content area.** A collapsed disclosure (`MudCollapse` behind
-  a text button). Expands **in place on Home**; nothing navigates. Contents:
-  1. **Choose Ayanāṁśa** — `MudSelect` over `AyanamsaDefinition.Catalog`; default is the active
-     `tbl_Rule_Ayanamsa` row, shown as *Default (Lahiri)*. The choice is passed to
-     `ChartGenerationService.GenerateAll(birth, ayanamsa)` for the next generation.
-  2. **Choose Chart Type** — `MudSelect`: *South Indian* (default) · *North Indian*. Extensible
-     — more styles added when built. North Indian is selectable but its renderer is a later
-     feature; until then it falls back to South Indian.
+  a text button). Expands **in place on Home**; nothing navigates. Three selector groups:
+  1. **Choose Ayanāṁśa** — `MudSelect` over `AyanamsaDefinition.Catalog` (**21 systems**);
+     default is the active `tbl_Rule_Ayanamsa` row, **Lahiri, fixed**, shown as *Default (Lahiri)*.
+     The choice is passed to `ChartGenerationService.GenerateAll(birth, ayanamsa)` for the next
+     generation. (`docs/ui/MASTER.md` NFR-UI-03)
+  2. **Choose Chart style** — `MudSelect`: *South Indian* (default) · *North Indian* ·
+     *West Indian*. All three are listed so the setting is forward-compatible; **only the
+     South-Indian renderer exists today** — North / West Indian fall back to it until their
+     `Components/Charts/**` renderers ship (ROADMAP *Later*; `docs/ui/MASTER.md` NFR-UI-02).
+  3. **Choose Language** — `MudSelect`: *English* (default) · *Tamil* (planned — Tamil script or
+     transliteration TBD). Deferred i18n (`docs/ui/MASTER.md` NFR-UI-04).
 
-  **Selecting either preference applies it and collapses the panel** (the dropdowns hide again).
+  **Selecting any preference applies it and collapses the panel** (the dropdowns hide again).
   Persistence: per-browser (`localStorage`) for now; a DB-backed default is a `database`-workstream
-  follow-up.
+  follow-up. **Header / sub-tab order is fixed** for now — user-reorderable tabs is a deferred
+  NFR (`docs/ui/MASTER.md` NFR-UI-01).
 - **Discover Your Path** — heading (`--font-size-display`), no subheading.
-- **Name — searchable.** `MudAutocomplete` over saved-people names.
-  - Typing filters saved people (contains match).
-  - Selecting a person → `/charts/{id}` (the person hub).
-  - **`＋ Add New` is always the last option** (whether or not anything matched). Choosing it
-    switches Home to the Add-New state.
+- **Name — a search, never a full list.** `MudAutocomplete` over saved-people names; the saved
+  list is only ever *searched*, so it can grow without breaking the page.
+  - Typing filters saved people (contains match); each match renders as **one row** — name ·
+    birth line · *View chart →* — styled like the person rows.
+  - **`＋ Add New`** sits below the results (always available).
+  - **Selecting a person identifies the active person** → the `TRANSIT`, `ALL CHARTS` and
+    `KEY INFERENCE` nav tabs appear in the header (hidden until now — every inner page is
+    per-person) and it **lands on `/transit-wheel/{id}`**. The context band's person name is a
+    `▾` control back here to switch person; `HOME` keeps the person active.
+- The **Ganesha / Navagraha illustration** is the right column of the two-column Home layout
+  (`../brand.md` — a first-class part of the page, not tied to any toggle).
+
+## Header &amp; band on Home
+
+`HOME` is the left-most item in the app bar; the brand lockup is on the right; the nav tabs are
+hidden. The context band shows only the `HOME` title + descriptor on the left — **centre
+(person) and right (meta chips) are empty until a person is opened.** The `21 charts / 611 rows`
+chip is removed everywhere. Footer is a single centred line:
+*Dedicated to my guru (Sundari Hemachandran) — By Ramakrishnan P* (the "By…" in small type).
 
 ## Add-New state — entry fields revealed in place
 
@@ -59,8 +78,9 @@ person's Name. `Cancel` hides the fields again. Fields, in order:
 | Country | `MudTextField` | required; **the last step** |
 
 **Flow:** completing **Country** is the trigger — on a valid form it resolves the place,
-runs `ChartGenerationService.GenerateAll` (with the chosen ayanāṁśa), and navigates to
-**`/transit-wheel/{id}`**. A `Generate Chart` button is the explicit / accessible fallback.
+runs `ChartGenerationService.GenerateAll` (with the chosen ayanāṁśa), sets the new row as the
+active person (revealing the nav tabs), and navigates to **`/charts/{id}`**. A `Generate Chart`
+button is the explicit / accessible fallback.
 
 Geocoding-failure fallback (manual lat / long / offset) is a follow-up, not in the first cut.
 

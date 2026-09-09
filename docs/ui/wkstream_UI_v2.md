@@ -74,6 +74,10 @@ Extends [`brand.md`](brand.md) / [`design-language.md`](design-language.md). v1'
   canvas, so panels / menus / dropdowns match the app and the artwork (no white boxes);
   elevation shadow separates.
 - **Tabular numerals** on every numeric column (degrees, scores, dates, periods).
+- **Column width follows the values, not the header.** When a header is longer than its widest
+  value (e.g. `House from D1` → `7th`, `11th`): shorten the header if it stays unambiguous, else
+  wrap it onto 2–3 lines; horizontal scroll is the last resort and stays inside the table's own
+  container. Full rule in [`design-language.md`](design-language.md#tables--headers-vs-horizontal-scroll-implementation-note).
 - **Tokens only in CSS** — `var(--…)` from `wwwroot/css/tokens.css`. No raw hex, no named
   colours, no inline `<style>`, no per-component size literals. (`IkiastrroTheme.cs` is the one
   place brand hexes are repeated, because a `MudTheme` is C#; keep it in sync with the tokens.)
@@ -91,24 +95,66 @@ Extends [`brand.md`](brand.md) / [`design-language.md`](design-language.md). v1'
 
 ## Navigation (v2 route map)
 
-`AstrologerEvidence` stops being a side route and **becomes the person hub** (`/charts/{id}`).
-Home absorbs Preferences and Add — no `/preferences`, no `/add`.
+Person detail is **two pages**, both in the header whenever a person is open. `AstrologerEvidence`
+is not a hub route any more — its table set is redistributed across the two pages below. Home
+absorbs Preferences and Add — no `/preferences`, no `/add`.
 
-- `/` — **Home**: Preferences disclosure (top-left) + searchable Name + saved-people list +
-  `Add New` → inline entry fields → `/transit-wheel/{id}`. Full spec:
+### Header bar
+
+Nav tabs on the **left**, in caps — `ALL CHARTS` · `KEY INFERENCE`. The brand lockup and `HOME`
+sit on the **right**. Each page's sub-heading (`ALL CHARTS` / the active Key-Inference header) is
+caps, left-aligned above the content. (`brand.md`'s lockup copy is unchanged; only its position
+moves.)
+
+`HOME` is the **left-most** app-bar item; then `TRANSIT · ALL CHARTS · KEY INFERENCE`; the brand
+lockup is on the right. The person strip and the sub-heading are one compact **band** (page
+title + descriptor left · person name + birth centre · meta chips right — the *21 charts / 611
+rows* chip removed). One content width and gutter (`--maxw` / `--pad-x`) run through the app
+bar, the band, every page and the footer. The footer is a **single centred line** —
+*Dedicated to my guru (Sundari Hemachandran) — By Ramakrishnan P* (the "By…" small).
+
+**The nav tabs are hidden until a person is opened**, and on Home the centre + right of the
+band are empty. Every inner page is per-person. Opening a person reveals the tabs and lands on
+`/transit-wheel/{id}`. The band's person name is a **▾ switch** back to Home; `HOME` keeps the
+person active. Deep links `/transit-wheel/{id}`, `/charts/{id}`, `/key-inference/{id}` load a
+person cold.
+
+### Routes
+
+- `/` — **Home**: a saved-people **search** (never a full list, so it can grow) + Preferences
+  disclosure + `Add New`; the Ganesha / Navagraha illustration is the right column. Each match
+  is one row; *View chart* opens the person and lands on `/transit-wheel/{id}`. Full spec:
   [`components/home.md`](components/home.md).
-- `/charts` — saved people, one table
-- `/charts/{id}` — **the hub**: context · moon/tithi · positions (D1 + varga selector) ·
-  dignity & avastha · karakas · shadbala · bhava bala · yoga — all table sections
-- `/charts/{id}/timing` — dasha tree + Sade Sati + gochara (tables)
-- `/charts/{id}/transits` — transit-history table + the wheel as a secondary visual
+- `/transit-wheel/{id}` — **Transit** (the landing), band heading `TRANSIT - D1 BIRTH CHART`.
+  Left: the embedded `ikiastrro-transit-wheel.svg`. Right: a two-tab table — **D1 Birth**
+  (House · Planet · Motion · Degree · Sign · Nakṣatra · Nak. Pad) and **Current Transit**
+  (House from D1 · Planet · Motion · Degree · Speed °/day · In sign since · **In-sign motion†** ·
+  Next change · **Next-change motion†**). Both sorted Saturn → Jupiter → Rahu → Ketu → Mars →
+  Venus → Mercury → Moon → Sun (Lagna first on D1). Full spec + the **†** DB additions
+  (`InSignMotion`, `NextChangeMotion` on `tbl_TransitPositionReference`):
+  [`components/transit.md`](components/transit.md).
+- `/charts/{id}` — **All Charts**: all 21 divisional charts as plain South-Indian grids (not the
+  SVG template), 3 per row, divisor order. **Only the card heading bar is sunset**; card, grid
+  and margins are on the canvas. Each cell: full sign name (top-left), house-from-Lagna over
+  house-from-Moon (top-right), colour-coded graha glyphs, `LAGNA` label, Lagna box = peach fill
+  + sunset corner tick. Replaces the old "Saved Charts" nav slot.
+- `/key-inference/{id}` — **Key Inference**, four headers (below).
 - `/charts/{id}/south-indian-template` — the one print-style visual (Codex scope)
-- `/transit-wheel/{id}` — the post-add landing (wheel; Codex scope)
 
-Retired: `/preferences` and `/add` (inline on Home); `/charts/{id}/evidence` and
-`/charts/{id}/varga/{code}` (folded into the hub); **`/charts/{id}/life-weeks`** — the
-4000-week grid is dropped in v2 (the Vimśottari timeline is served by `/charts/{id}/timing`).
-`wkstream_UI_v1`'s already-dropped surfaces stay dropped unless the pass re-introduces one.
+### Key Inference — 4 headers
+
+| Header | Content |
+|---|---|
+| **KEY INFERENCE** | 8 sub-tabs: *About Sign* (`tbl_SignAttributes` + sign lord) · *About Planet* (Planet · Kāraka · House Lord · Nature · Conditional rule) · *About Moon* (4 facts, `vw_ChartMoonContext`) · *About Houses* (one house-keyed table = lords + conjunctions + aspects; chart dropdown) · *Planet Dignity* (`vw_ChartPlanetEvidence`; chart dropdown; combust rows sorted under the Sun) · *Planet Strength* (Shadbala) · *House Strength* (Bhava Bala) · *Vargottama* (D1 & D9) |
+| **YOGAS** | coverage summary + source variants ([`components/yoga.md`](components/yoga.md)) |
+| **TIME PERIOD (DASHA)** | Vimśottari drill-down: Mahā → Antar → Pratyantar, current chain pre-expanded and sunset-highlighted ([`components/dasha-sade-sati.md`](components/dasha-sade-sati.md)) |
+| **SATURN TIME PERIOD** | Sade Sati + Kaṇṭaka + Aṣṭama Śani in one ascending table (birth → age 75) with a *Round* column + 1st/2nd/3rd-round filter; current / next window sunset-highlighted. Ashtakavarga out of scope. |
+
+Retired: `/preferences` and `/add` (inline on Home); `/charts/{id}/evidence`,
+`/charts/{id}/varga/{code}` and the single `/charts/{id}` hub (redistributed across the two
+pages); **`/charts/{id}/life-weeks`** — the 4000-week grid is dropped in v2 (the Vimśottari
+timeline is the daśā drill-down). `wkstream_UI_v1`'s already-dropped surfaces stay dropped
+unless the pass re-introduces one.
 
 ## Workstream mechanics
 
