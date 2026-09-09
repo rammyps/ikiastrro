@@ -1,13 +1,83 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@inject ActivePerson Active
+@inject NavigationManager Nav
+
 <MudLayout>
-    <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h6" Class="app-brand">Iki-Astrro <span class="app-tagline">| Where Passion, Purpose &amp; Planets Align.</span></MudText>
+    <MudAppBar Elevation="1" Class="ik-appbar">
+        <a href="/" class="ik-home @(CurrentPath == "/" ? "is-here" : "")">HOME</a>
+        @if (Active.Id is int personId)
+        {
+            <nav class="ik-tabs" aria-label="Person sections">
+                <a href="@($"/transit-wheel/{personId}")" class="ik-tab @TabClass("transit")">TRANSIT</a>
+                <a href="@($"/charts/{personId}")" class="ik-tab @TabClass("charts")">ALL CHARTS</a>
+                <a href="@($"/charts/{personId}/evidence")" class="ik-tab @TabClass("evidence")">KEY INFERENCE</a>
+            </nav>
+        }
         <MudSpacer />
-        <MudButton Href="/" Color="Color.Inherit" Variant="Variant.Text">Home</MudButton>
-        <MudButton Href="/charts" Color="Color.Inherit" Variant="Variant.Text">Saved Charts</MudButton>
+        <span class="ik-brand">Iki-Astrro<span class="ik-tagline">&nbsp;| Where Passion, Purpose &amp; Planets Align.</span></span>
     </MudAppBar>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">@Body</MudContainer>
+        @if (Active is { Id: not null, Name: not null })
+        {
+            <div class="ik-band">
+                <div class="ik-band-inner">
+                    <button type="button" class="ik-person" @onclick="SwitchPerson" title="Switch person">
+                        <span class="ik-person-name">@Active.Name</span>
+                        <span class="ik-person-caret" aria-hidden="true">▾</span>
+                    </button>
+                    @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
+                    {
+                        <span class="ik-person-birth">@Active.BirthLine</span>
+                    }
+                </div>
+            </div>
+        }
+        <div class="ik-page">
+            @Body
+        </div>
+        <footer class="ik-footer">
+            Dedicated to my guru (Sundari Hemachandran)<span class="ik-footer-by"> — By Ramakrishnan P</span>
+        </footer>
     </MudMainContent>
 </MudLayout>
-<div id="blazor-error-ui"><MudAlert Severity="Severity.Error">An unhandled error has occurred. <a href="" class="reload">Reload</a></MudAlert></div>
+
+<div id="blazor-error-ui">
+    <MudAlert Severity="Severity.Error">An unhandled error has occurred. <a href="" class="reload">Reload</a></MudAlert>
+</div>
+
+@code {
+    // Route-relative path with no query/hash and no trailing slash, always leading "/".
+    private string CurrentPath =>
+        "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].TrimEnd('/');
+
+    protected override void OnInitialized()
+    {
+        Active.Changed += OnShellChanged;
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnShellChanged() => InvokeAsync(StateHasChanged);
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    private void SwitchPerson() => Nav.NavigateTo("/");
+
+    private string TabClass(string key)
+    {
+        var p = CurrentPath;
+        var here = key switch
+        {
+            "transit"  => p.StartsWith("/transit-wheel", StringComparison.Ordinal),
+            "evidence" => p.Contains("/evidence", StringComparison.Ordinal),
+            "charts"   => p.StartsWith("/charts", StringComparison.Ordinal) && !p.Contains("/evidence", StringComparison.Ordinal),
+            _ => false
+        };
+        return here ? "is-here" : "";
+    }
+
+    public void Dispose()
+    {
+        Active.Changed -= OnShellChanged;
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}

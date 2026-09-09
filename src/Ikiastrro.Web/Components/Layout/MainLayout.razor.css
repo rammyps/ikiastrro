@@ -1,73 +1,147 @@
-.site-nav {
+/* v2 app shell — docs/ui/wkstream_UI_v2.md "Navigation". Tokens only; Manrope only;
+   the three --font-size-* tokens only. HOME pill hard-left, per-person tabs (hidden until a
+   person is open), brand lockup right; one --maxw / --pad-x width through bar, band and page. */
+
+/* One content column through the app bar. */
+::deep .ik-appbar .mud-toolbar {
+    max-width: var(--maxw);
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: var(--pad-x);
+    gap: 18px;
+}
+
+.ik-home {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
+    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+}
+
+.ik-home.is-here {
+    outline: 2px solid var(--brand-canvas);
+    outline-offset: 2px;
+}
+
+.ik-tabs {
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--paper-line);
-    background: var(--paper-raised);
+    gap: 4px;
 }
 
-.site-nav .brand {
-    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
-    color: var(--ink-faint);
-    font-size: 15px;
-    letter-spacing: 0.04em;
-    margin-right: auto;
+.ik-tab {
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: var(--brand-midnight);
+    font: 600 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ik-tab:hover {
+    background: rgb(255 255 255 / 0.28);
+}
+
+.ik-tab.is-here {
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
+}
+
+.ik-brand {
+    flex: none;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.01em;
+}
+
+.ik-tagline {
+    font-weight: 500;
+    opacity: 0.72;
+}
+
+/* Context band — person strip only (empty on Home, so the band is not rendered there). */
+.ik-band {
+    border-bottom: 1px solid var(--brand-line);
+    background: var(--brand-canvas);
+}
+
+.ik-band-inner {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: 14px;
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding: 12px var(--pad-x);
 }
 
-.site-nav .brand-name {
-    color: var(--accent);
-    font-size: 21px;
-    letter-spacing: 0.06em;
+.ik-person {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-tagline) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: -0.01em;
 }
 
-.site-nav .brand-ded {
-    font-style: italic;
+.ik-person:hover .ik-person-name {
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
-/* Nav links are filled accent pills (2026-09-03 varga-centric UI). The old underlined
-   text-link rules (.site-nav a / a:hover / a.active) are gone with them. */
-.site-nav ::deep .nav-pill {
-    padding: .3rem .8rem;
-    border-radius: .4rem;
-    text-decoration: none;
-    font-weight: 600;
-    background: var(--nav-btn);
-    color: var(--nav-btn-fg);
+.ik-person-caret {
+    font-size: 0.6em;
+    color: var(--brand-sunset);
 }
 
-.site-nav ::deep .nav-pill.active {
-    outline: 2px solid var(--accent-line);
+.ik-person-birth {
+    color: var(--brand-muted);
+    font: 500 var(--font-size-control) / 1.1 'Manrope', 'Segoe UI', sans-serif;
 }
 
-.site-body {
-    padding: 32px 24px 64px;
+.ik-page {
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding: 28px var(--pad-x) 40px;
+}
+
+.ik-footer {
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding: 24px var(--pad-x) 40px;
+    text-align: center;
+    color: var(--brand-muted);
+    font: 500 var(--font-size-control) / 1.4 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.ik-footer-by {
+    font-size: 0.82em;
 }
 
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 -1px 2px rgb(0 0 0 / 0.2);
     display: none;
     left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    padding: 0.6rem 1.25rem 0.7rem;
     position: fixed;
     width: 100%;
     z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
-
-@media (max-width: 600px) {
-    .site-nav { flex-wrap: wrap; gap: 12px; padding: 12px 16px; }
-    .site-nav .brand { flex-basis: 100%; flex-wrap: wrap; gap: 4px 10px; }
-    .site-body { padding: 16px 0 32px; }
+@media (max-width: 760px) {
+    .ik-tagline { display: none; }
+    ::deep .ik-appbar .mud-toolbar { gap: 10px; }
+    .ik-tab { padding: 6px 8px; letter-spacing: 0.03em; }
 }

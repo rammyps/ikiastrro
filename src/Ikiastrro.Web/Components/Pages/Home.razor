@@ -5,6 +5,7 @@
 @inject IPlaceResolver PlaceResolver
 @inject NavigationManager Nav
 @inject AyanamsaRuleRepository AyanamsaRules
+@inject ActivePerson Active
 
 <PageTitle>Iki-Astrro · Discover Your Path</PageTitle>
 
@@ -97,6 +98,7 @@
 
     protected override void OnInitialized()
     {
+        Active.Clear(); // Home has no active person — hide the per-person nav tabs and band.
         _people = BirthDetailsRepo.GetAll().ToList();
         try
         {
@@ -141,7 +143,7 @@
         if (string.IsNullOrEmpty(value)) return;
 
         var person = _people.FirstOrDefault(p => string.Equals(p.Name, value, StringComparison.OrdinalIgnoreCase));
-        if (person is not null) Nav.NavigateTo($"/charts/{person.Id}");
+        if (person is not null) Nav.NavigateTo($"/transit-wheel/{person.Id}"); // land on the Transit page (docs/ui/components/home.md)
     }
 
     private void CancelAdd()

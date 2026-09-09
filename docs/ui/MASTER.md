@@ -24,7 +24,7 @@ recomputes.
 | [`design-language.md`](design-language.md) | Token + component authoring rules |
 | [`dataviz.md`](dataviz.md) | Charting approach — hand-rolled SVG now, Syncfusion as a deferred option |
 | [`components/transit-wheel.md`](components/transit-wheel.md) | **`status: v1 — live`** — the shipped natal ↔ transit wheel + dasha selectors |
-| [`components/transit.md`](components/transit.md) | **`status: v2 — approved (not yet built)`** — the v2 Transit landing: embedded wheel + two-tab D1 Birth / Current Transit table |
+| [`components/transit.md`](components/transit.md) | **`status: v2 — building`** — the v2 Transit landing: embedded wheel + two-tab D1 Birth / Current Transit table (`FEAT-UI-13`; D1 Birth tab live) |
 | [`components/south-indian-grid.md`](components/south-indian-grid.md) | The enriched South-Indian chart grid + template page |
 | [`components/evidence-tables.md`](components/evidence-tables.md) | The astrologer evidence page |
 | [`components/home.md`](components/home.md) | Home / entry screen |
@@ -45,7 +45,7 @@ recomputes.
 | `/charts/{id}/timing` | `Timing` | Vimśottari dasha tree + Sade Sati + Gochara | verified |
 | `/charts/{id}/evidence` | `AstrologerEvidence` | read-only evidence tables in reading order, chart selector | verified |
 | `/charts/{id}/life-weeks` | `LifeWeeks` | 4000-week grid coloured by Mahādaśā | verified — **retired in v2** |
-| `/transit-wheel` · `/transit-wheel/{id}` | `TransitWheel` | fixed natal ring + transit layer, date + Mahā/Antar selectors, comparison table | v1 live — **v2 rebuild pending** ([`components/transit.md`](components/transit.md)) |
+| `/transit-wheel/{id}` | `TransitWheel` (v2) | band heading `TRANSIT - D1 BIRTH CHART`, static wheel placement, two-tab **D1 Birth** / **Current Transit** table | **v2 building** — D1 Birth tab live; Current Transit + live wheel pending ([`components/transit.md`](components/transit.md), `FEAT-UI-13`) |
 
 **v2 route targets** (not yet built — see [`wkstream_UI_v2.md`](wkstream_UI_v2.md#routes)):
 `/transit-wheel/{id}` → Transit landing · `/charts/{id}` → All Charts (21 grids) ·

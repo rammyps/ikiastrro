@@ -13,10 +13,12 @@ A ground-up rework of the astrologer-facing app on **one pattern: the
 [`AstrologerEvidence`](components/evidence-tables.md) page**. [`wkstream_UI_v1.md`](wkstream_UI_v1.md)
 stays the description of what is **live** until v2 ships; this doc is the increment.
 
-> **Status: scoping.** The pattern and the design system below are decided. The delivery list
+> **Status: building.** The pattern and the design system below are decided. The delivery list
 > is fixed (ROADMAP *Now* + the open `FEAT-UI` rows). Route consolidation and which v1-dropped
-> surfaces return are the remaining open items — a short pass with the product head. Home (`/`)
-> is in progress on this pattern; every other v2 surface is unbuilt.
+> surfaces return are the remaining open items — a short pass with the product head. **Slice 1
+> (Home → select person → Transit) is in progress:** the v2 app shell (HOME pill + per-person
+> tabs + context band) and the Transit landing (`/transit-wheel/{id}`) D1 Birth tab are built
+> (`FEAT-UI-13`); Home (`/`) is partly on this pattern; All Charts and Key Inference are unbuilt.
 
 ## The pattern — AstrologerEvidence, everywhere
 
@@ -177,7 +179,7 @@ cells start `☐` and are checked per slice.
 | Screen | Reference | Route / component | Data source | Responsive · empty · error | A11y | bUnit / snapshot | Browser verify |
 |---|---|---|---|---|---|---|---|
 | Home | mockup `#home` | `/` · `Home.razor` | `BirthDetailsRepository` (search only) | ☐ narrow-column · ☐ no-match · ☐ resolver fail | ☐ keyboard search + focus ring | ☐ | ☐ `verify-home-ui.mjs` |
-| Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `TransitWheel.razor` (v2) | `vw_ChartPlanetEvidence` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☐ wide-table scroll-in-container · ☐ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs | ☐ `verify-transit-ui.mjs` (rewritten for 2 tabs) |
+| Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `TransitWheel.razor` (v2) | `vw_ChartPlanetEvidence` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☑ wide-table scroll-in-container · ☑ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs (`TransitLandingMath` unit-tested; render harness pending) | ☑ MCP browser smoke 2026-09-10 · ☐ `verify-transit-ui.mjs` headless run |
 | All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid` | `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas | ☐ 3-per-row reflow · ☐ varga not generated | ☐ grid landmark labels | ☐ per varga | ☐ smoke |
 | Key Inference | mockup `#key-inference` | `/key-inference/{id}` · `KeyInference.razor` | evidence views + dimension tables (per sub-tab) | ☐ auto table widths, no page scroll · ☐ empty section | ☐ header + sub-tab keyboard nav | ☐ per header | ☐ smoke |
 | Preferences | mockup `#home` (disclosure) | inline on Home · `Home.razor` | `AyanamsaDefinition.Catalog` · `localStorage` | ☐ collapse on select · ☐ `localStorage` unavailable → DB default | ☐ disclosure ARIA; disabled "Planned" options not focusable-as-selectable | ☐ | ☐ smoke |

@@ -2,18 +2,21 @@
 last_updated: 2026-09-10
 workstream: ui
 component: Transit
-status: v2 — approved (not yet built)
+status: v2 — building (slice 1: shell + D1 Birth tab live; Current Transit + wheel pending)
 route: /transit-wheel/{id}
 togaf: C — component spec
 ---
 
 # Component — transit (D1 birth chart landing)
 
-> **v2 — approved, not yet built.** This supersedes [`transit-wheel.md`](transit-wheel.md) as
-> the target for `/transit-wheel/{id}`. `transit-wheel.md` stays the live spec until this ships.
-> The right-hand two-tab table and the `tbl_TransitPositionReference` motion columns are
-> **Codex's** work (`Components/Charts/**` + the reference-table merge); Claude places the page
-> and integrates.
+> **v2 — building (slice 1).** This supersedes [`transit-wheel.md`](transit-wheel.md) as the
+> target for `/transit-wheel/{id}`; `transit-wheel.md` stays the live spec until this is
+> `Web [x]`. **Built:** the page shell, band heading, static wheel placement, and the **D1
+> Birth** tab against `vw_ChartPlanetEvidence` (`FEAT-UI-13`). **Pending:** the **Current
+> Transit** tab is wired to `GocharaRepository` but that source needs Codex's expansion
+> (Sa/Ju/Ra only today; nothing for "now") + the `tbl_TransitPositionReference` boundary-motion
+> merge (`db/055`); the live natal↔transit wheel overlay is a Codex `Components/Charts/**`
+> component. Claude owns the page and integrates.
 
 The page a person **lands on** after being opened from Home. Band heading is
 **`TRANSIT - D1 BIRTH CHART`**; there is no separate in-page "Transit" strip.

@@ -1,176 +1,219 @@
 @page "/transit-wheel"
 @page "/transit-wheel/{Id:int}"
 @using System.Globalization
-@using System.Text
-@using System.Xml.Linq
 @using Ikiastrro.Core.Models
 @using Ikiastrro.Core.Engines.Astronomy
-@inject Ikiastrro.Data.GocharaRepository Gochara
-@inject IWebHostEnvironment HostEnvironment
 @inject BirthDetailsRepository BirthDetailsRepo
-@inject ChartResultsRepository ChartResultsRepo
-@inject ChartKeyDetailsRepository ChartKeyDetailsRepo
-@inject DashaPeriodsRepository DashaPeriodsRepo
-@inject NavigationManager Navigation
-@inject SqlConnectionFactory Connections
+@inject AstrologerEvidenceRepository EvidenceRepo
+@inject Ikiastrro.Data.GocharaRepository Gochara
+@inject ActivePerson Active
+@inject NavigationManager Nav
 
-<PageTitle>@(PersonName ?? "Natal") ↔ Transit</PageTitle>
+@* v2 Transit landing — docs/ui/components/transit.md. The page a person lands on from Home.
+   Left column places the hand-authored transit wheel (a Codex Components/Charts/** component —
+   static placeholder here); right column is a two-tab persisted-rows table. No astrology is
+   computed on this page (docs/architecture/domain-contracts.md). *@
+
+<PageTitle>@(_personName ?? "Transit") · D1 Birth Chart</PageTitle>
+
 @if (_error is not null)
 {
-  <section class="transit-wheel-page" role="status"><h1>Chart unavailable</h1><p>@_error</p><a href="/">Choose a saved person</a></section>
+    <section class="tw-unavailable" role="status">
+        <h1 class="transit-heading">TRANSIT - D1 BIRTH CHART</h1>
+        <p>@_error</p>
+        <a href="/">Choose a saved person</a>
+    </section>
 }
-else if (_selection is not null)
+else
 {
-<div class="transit-wheel-page">
-  <div class="wheel-shell">
-    <aside class="wheel-sidebar">
-      <p class="eyebrow">ikiastrro / whole-sign view</p><p class="selected-person">@PersonName · D1</p>
-      <h1>Natal <span>↔</span> Transit</h1>
-      <p class="toolbar-note">Natal chart remains fixed. Transit positions update for the selected date or dasha period.</p>
-      <div class="selectors">
-        <label><span>Date of transit</span><input type="date" @bind="TransitDate" @bind:after="ChangeDate" /></label>
-        <label><span>Mahā-daśā</span><select value="@_selection.Maha?.Id" @onchange="ChangeMaha" disabled="@(_selection.Periods.Count == 0)"><option value="">Select a saved period</option>@foreach (var period in _selection.Periods) { <option value="@period.Id">@PeriodLabel(period)</option> }</select></label>
-        <label><span>Antar-daśā</span><select value="@_selection.Antar?.Id" @onchange="ChangeAntar" disabled="@(_selection.AntarPeriods.Count == 0)"><option value="">Select a saved period</option>@foreach (var period in _selection.AntarPeriods) { <option value="@period.Id">@PeriodLabel(period)</option> }</select></label>
-      </div>
-      @if (_selection.Periods.Count == 0) { <p role="status">No saved dasha periods. Date selection is available.</p> }
-      <div class="comparison"><h2>Chart placements</h2><table><thead><tr><th>Planet</th><th>Natal</th><th>Transit</th></tr></thead><tbody>@foreach (var row in ComparisonRows){<tr><td>@row.Name</td><td>@row.Natal</td><td>@row.Transit</td></tr>}</tbody></table></div>
-    </aside>
-    <main class="wheel-card" aria-label="Natal and transit chart">
-      @SvgMarkup
+    <h1 class="transit-heading">TRANSIT - D1 BIRTH CHART</h1>
 
-    </main>
-  </div>
-</div>
+    <div class="tw-grid">
+        <div class="tw-wheel">
+            @* Codex (Components/Charts/**): replace this placeholder with the live natal ↔ transit
+               wheel component. This page only places it (docs/ui/components/transit.md). *@
+            <img src="/ikiastrro-transit-wheel.svg" alt="Natal and transit wheel" />
+            <p class="tw-wheel-note">Natal ↔ transit overlay pending (charts component).</p>
+        </div>
 
+        <div class="tw-tables">
+            <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="tw-tabs">
+                <MudTabPanel Text="D1 Birth">
+                    @if (_positions is null || _positions.Rows.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="tw-alert">
+                            Generate a D1 chart for this person first.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <div class="tw-scroll">
+                            <MudSimpleTable Dense="true" Hover="true" Bordered="false" Class="tw-table">
+                                <thead>
+                                    <tr>
+                                        <th>House</th><th>Planet</th><th>Motion</th><th>Degree</th>
+                                        <th>Sign</th><th>Nakṣatra</th><th>Nak. Pad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var r in D1Rows)
+                                    {
+                                        <tr>
+                                            <td class="num">@(Str(r, "HouseNumberFromLagna") ?? "—")</td>
+                                            <td>@(Str(r, "Planet") ?? "—")</td>
+                                            <td>@MotionCell(r)</td>
+                                            <td class="num">@(Str(r, "DegreesInSignDisplay") ?? "—")</td>
+                                            <td>@(Str(r, "Sign") ?? "—")</td>
+                                            <td>@(Str(r, "Nakshatra") ?? "—")</td>
+                                            <td class="num">@(Str(r, "NakshatraPada") ?? "—")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        </div>
+                    }
+                </MudTabPanel>
+
+                <MudTabPanel Text="Current Transit">
+                    @if (_transitError is not null || _transits.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="tw-alert">
+                            Transit reference not backfilled — run <code>backfill-planet-transits</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <p class="tw-asof">as of @_asOfUtc.ToString("dd MMM yyyy HH:mm 'UTC'", CultureInfo.InvariantCulture)</p>
+                        <div class="tw-scroll">
+                            <MudSimpleTable Dense="true" Hover="true" Bordered="false" Class="tw-table">
+                                <thead>
+                                    <tr>
+                                        <th>House<br />from D1</th><th>Planet</th><th>Motion</th><th>Degree</th>
+                                        <th>Speed<br />°/day</th><th>In sign<br />since</th>
+                                        <th>In-sign<br />motion</th><th>Next<br />change</th><th>Next-change<br />motion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in TransitRows)
+                                    {
+                                        <tr>
+                                            <td class="num">@(HouseFromD1(s)?.ToString() ?? "—")</td>
+                                            <td>@s.Planet</td>
+                                            <td>@s.MotionDirection</td>
+                                            <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
+                                            <td class="num">@s.SpeedDegreesPerDay.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                            <td class="num">@s.InSignSinceUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</td>
+                                            <td>—</td>
+                                            <td class="num">@(s.NextChangeUtc?.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) ?? "—")</td>
+                                            <td>—</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        </div>
+                        <p class="tw-pending">
+                            <em>In-sign motion</em> and <em>Next-change motion</em> arrive with the
+                            <code>tbl_TransitPositionReference</code> boundary-motion columns (Codex).
+                        </p>
+                    }
+                </MudTabPanel>
+            </MudTabs>
+        </div>
+    </div>
 }
 
 @code {
-  [Parameter] public int? Id { get; set; }
-  private string? PersonName { get; set; }
-  private DateTime TransitDate { get; set; }
-  private TransitSelection? _selection;
-  private string? _error;
-  private Ikiastrro.Core.Reference.TerminologyCatalog Terms = null!;
-  private IReadOnlyList<PlanetTransitSnapshot> Snapshots { get; set; } = [];
-  private IReadOnlyDictionary<PlanetName, double> FastTransit { get; set; } = new Dictionary<PlanetName, double>();
-  private IReadOnlyDictionary<PlanetName, double> TransitSpeeds { get; set; } = new Dictionary<PlanetName, double>();
-  private MarkupString SvgMarkup { get; set; }
-  private static readonly string[] Signs = ["Ar","Ta","Ge","Cn","Le","Vi","Li","Sc","Sg","Cp","Aq","Pi"];
-  private static readonly string[] NakshatraShort = ["As","Bh","Kr","Ro","Mr","Ar","Pu","Ps","As","Ma","Ph","Ut","Ha","Ch","Sw","Vi","An","Jy","Mu","Pa","Ut","Sh","Dh","Sa","Pb","Ub","Re"];
-  private Dictionary<string,(string Sign,double Degree)> Natal { get; set; } = new();
-  private string NatalAscSign { get; set; } = "Ar";
-  private IEnumerable<(string Name,string Natal,string Transit)> ComparisonRows => new[]{("Su","Su"),("Mo","Mo"),("Ma","Ma"),("Me","Me"),("Ju","Ju"),("Ve","Ve"),("Sa","Sa"),("Ra","Ra"),("Ke","Ke"),("Gu","Gu"),("Maṇ","Maṇ")}.Select(x => (x.Item1, Natal.TryGetValue(x.Item2, out var n) ? $"{n.Sign} {n.Degree:0.0}°" : "—", TransitText(x.Item2)));
-  protected override void OnParametersSet()
-  {
-    _error = null;
-    Natal.Clear();
-    if (Id is not int id) { Navigation.NavigateTo("/", replace: true); return; }
-    var person = BirthDetailsRepo.GetAll().FirstOrDefault(x => x.Id == id);
-    if (person is null) { _error = "This saved person could not be found."; return; }
-    PersonName = person.Name;
-    Terms = new TerminologyRepository(Connections).BuildCatalog();
-    var chart = ChartResultsRepo.GetByBirthDetailId(id).Where(x => x.ChartType == "D1").OrderByDescending(x => x.ComputedAt).FirstOrDefault();
-    if (chart is null) { _error = "Generate a D1 chart for this person before opening the transit wheel."; return; }
-    var rows = ChartKeyDetailsRepo.GetByChartResultId(chart.Id);
-    var asc = rows.FirstOrDefault(x => x.Planet is "Ascendant" or "Lagna");
-    if (asc is null) { _error = "This D1 chart has no saved Ascendant. Regenerate the chart to continue."; return; }
-    NatalAscSign = ShortSign(asc.Sign);
-    foreach (var row in rows.Where(x => x.PlanetId.HasValue || x.Planet is "Gulika" or "Maandi"))
-      Natal[ShortName(row.Planet)] = (ShortSign(row.Sign), (double?)row.DegreesInSignDecimal ?? row.NirayanaLongitudeDegrees % 30);
-    if (!TimeSpan.TryParse(person.UtcOffset.TrimStart('+'), CultureInfo.InvariantCulture, out var offset))
-    { _error = "This person's saved time-zone offset is invalid. Correct the birth details to continue."; return; }
-    _selection = new TransitSelection(DashaPeriodsRepo.GetTreeByBirthDetailId(id), offset, DateTimeOffset.UtcNow);
-    RefreshTransit();
-  }
-  private string PeriodLabel(DashaPeriodRecord period) => $"{Terms.Label("PLANET_" + period.Lord.ToUpperInvariant(), "en")} · {_selection!.PeriodUtc(period.StartDate).ToOffset(TransitSelection.IstOffset):dd MMM yyyy} – {_selection.PeriodUtc(period.EndDate).ToOffset(TransitSelection.IstOffset):dd MMM yyyy}";
-  private void ChangeDate() { _selection!.SetDate(TransitDate); RefreshTransit(); }
-  private void ChangeMaha(ChangeEventArgs args) { if (int.TryParse(args.Value?.ToString(), out var id)) { _selection!.SelectMaha(id); RefreshTransit(); } }
-  private void ChangeAntar(ChangeEventArgs args) { if (int.TryParse(args.Value?.ToString(), out var id)) { _selection!.SelectAntar(id); RefreshTransit(); } }
-  private void RefreshTransit()
-  {
-    TransitDate = _selection!.ActiveIst.Date;
-    Snapshots = Gochara.GetSnapshots(_selection.ActiveUtc.UtcDateTime);
-    var positions = SwissEphemerisProvider.GetSiderealPositions(_selection.ActiveUtc, 0, 0);
-    FastTransit = positions.PlanetLongitudes;
-    TransitSpeeds = positions.PlanetSpeeds;
-    UpdateSvgTransforms();
-  }
-  private double Longitude(PlanetName p)
-  {
-    return p == PlanetName.Ketu ? (FastTransit[PlanetName.Rahu] + 180) % 360 : FastTransit[p];
-  }
-  private static string ShortName(string value) => value switch { "Sun" => "Su", "Moon" => "Mo", "Mars" => "Ma", "Mercury" => "Me", "Jupiter" => "Ju", "Venus" => "Ve", "Saturn" => "Sa", "Rahu" => "Ra", "Ketu" => "Ke", "Gulika" => "Gu", "Maandi" => "Maṇ", _ => value };
-  private static string ShortSign(string value) => value switch { "Aries" => "Ar", "Taurus" => "Ta", "Gemini" => "Ge", "Cancer" => "Cn", "Leo" => "Le", "Virgo" => "Vi", "Libra" => "Li", "Scorpio" => "Sc", "Sagittarius" => "Sg", "Capricorn" or "Capricornus" => "Cp", "Aquarius" => "Aq", "Pisces" => "Pi", _ => value };
-  private string TransitText(string key)
-  {
-    if (key == "Ke") return SignDegree(Longitude(PlanetName.Ketu));
-    var map = new Dictionary<string, PlanetName> { ["Su"] = PlanetName.Sun, ["Mo"] = PlanetName.Moon, ["Ma"] = PlanetName.Mars, ["Me"] = PlanetName.Mercury, ["Ju"] = PlanetName.Jupiter, ["Ve"] = PlanetName.Venus, ["Sa"] = PlanetName.Saturn, ["Ra"] = PlanetName.Rahu };
-    if (!map.TryGetValue(key, out var p)) return "—";
-    return FastTransit.TryGetValue(p, out var longitude) ? SignDegree(longitude) : "—";
-  }
-  private string SignDegree(double lon) { var sign = (int)Math.Floor((lon + 360) % 360 / 30); return $"{Signs[sign]} {((lon % 30) + 30) % 30:0.0}°"; }
-  private static (double X, double Y) Polar(double longitude, double radius) { var a = (longitude - 90) * Math.PI / 180; return (600 + radius * Math.Cos(a), 600 + radius * Math.Sin(a)); }
-  private void UpdateSvgTransforms()
-  {
-    var path = Path.Combine(HostEnvironment.WebRootPath, "ikiastrro-transit-wheel.svg");
-    var svg = File.ReadAllText(path);
-    var document = System.Xml.Linq.XDocument.Parse(svg);
-    var ns = document.Root!.Name.Namespace;
-    // Replace the reference chart's data labels, retaining its artwork and geometry.
-    document.Descendants(ns + "text").Where(x => (string?)x.Attribute("class") == "d").Remove();
-    var signLabels = document.Descendants(ns + "text").Where(x => (string?)x.Attribute("font-size") == "30").ToList();
-    var signNames = document.Descendants(ns + "text").Where(x => (string?)x.Attribute("font-size") == "12").ToList();
-    for (var i = 0; i < signLabels.Count && i < Signs.Length; i++) signLabels[i].Value = Signs[i];
-    // The nakshatra layer starts at Aries zero; the zodiac labels must use the same origin.
-    foreach (var name in signNames.Where(x => new[] { "CANCER", "LEO", "VIRGO", "LIBRA", "SCORPIO", "SAGITTARIUS", "CAPRICORN", "AQUARIUS", "PISCES", "ARIES", "TAURUS", "GEMINI" }.Contains(x.Value))) name.Remove();
-    svg = document.ToString(System.Xml.Linq.SaveOptions.DisableFormatting);
-    var bases = new Dictionary<string, (double X, double Y)> { ["saturn"] = (360, 184.31), ["jupiter"] = (1015.69, 360), ["rahu"] = (184.31, 840), ["ketu"] = (1015.69, 840) };
-    foreach (var planet in new[] { PlanetName.Jupiter, PlanetName.Rahu, PlanetName.Ketu, PlanetName.Saturn })
+    [Parameter] public int? Id { get; set; }
+
+    private string? _personName;
+    private string? _error;
+    private string? _transitError;
+    private EvidenceTableData? _positions;
+    private Dictionary<string, string> _natalSignByPlanet = new(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();
+    private DateTime _asOfUtc = DateTime.UtcNow;
+
+    private static readonly string[] SignById =
+        { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
+          "Sagittarius", "Capricorn", "Aquarius", "Pisces" };
+
+    protected override void OnParametersSet()
     {
-      var id = planet.ToString().ToLowerInvariant(); var target = Polar(Longitude(planet), 480); var basis = bases[id];
-      var dx = (target.X - basis.X).ToString("F2", CultureInfo.InvariantCulture); var dy = (target.Y - basis.Y).ToString("F2", CultureInfo.InvariantCulture);
-      svg = svg.Replace("<g id=\"" + id + "\">", "<g id=\"" + id + "\" transform=\"translate(" + dx + "," + dy + ")\">");
+        _error = _transitError = null;
+
+        if (Id is not int id)
+        {
+            Nav.NavigateTo("/", replace: true);
+            return;
+        }
+
+        var person = BirthDetailsRepo.GetAll().FirstOrDefault(p => p.Id == id);
+        if (person is null)
+        {
+            Active.Clear();
+            _error = "This saved person could not be found.";
+            return;
+        }
+
+        _personName = person.Name;
+        var birthLine =
+            $"{person.DateOfBirth:dd MMM yyyy} · {person.TimeOfBirth:HH\\:mm} · {person.PlaceCity}, {person.PlaceCountry}";
+        Active.Set(id, person.Name, birthLine);
+
+        var evidence = EvidenceRepo.Load(id, "D1");
+        _positions = evidence?.Sections.FirstOrDefault(s => s.Code == "positions");
+        _natalSignByPlanet = (_positions?.Rows ?? Enumerable.Empty<IReadOnlyDictionary<string, object?>>())
+            .Where(r => Str(r, "Planet") is not null && Str(r, "Sign") is not null)
+            .GroupBy(r => Str(r, "Planet")!, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => Str(g.First(), "Sign")!, StringComparer.OrdinalIgnoreCase);
+
+        _asOfUtc = DateTime.UtcNow;
+        try
+        {
+            _transits = Gochara.GetSnapshots(_asOfUtc);
+        }
+        catch (Exception ex)
+        {
+            _transitError = ex.Message;
+            _transits = Array.Empty<PlanetTransitSnapshot>();
+        }
     }
-    var natalOverlay = new StringBuilder("<g id=\"dynamic-natal\" class=\"d\" font-family=\"Inter,Arial,sans-serif\" text-anchor=\"middle\" fill=\"#0d1d43\">");
-    var ascIndex = Array.IndexOf(Signs, NatalAscSign); if (ascIndex < 0) ascIndex = 0;
-    for (var h = 0; h < 12; h++) { var hp = Polar((ascIndex + h) * 30 + 4, 188); natalOverlay.Append(CultureInfo.InvariantCulture, $"<text x=\"{hp.X:F1}\" y=\"{hp.Y:F1}\" font-size=\"18\" font-weight=\"700\">{h + 1}</text>"); }
-    var slots = new Dictionary<int,int>(); foreach (var item in Natal) { var si = Array.IndexOf(Signs, item.Value.Sign); if (si < 0) continue; slots.TryGetValue(si, out var slot); slots[si] = slot + 1; var np = Polar(si * 30 + (slot % 2 == 0 ? 11 : 21), 275 - slot / 2 * 22); natalOverlay.Append(CultureInfo.InvariantCulture, $"<text x=\"{np.X:F1}\" y=\"{np.Y:F1}\" font-size=\"16\" font-weight=\"700\">{item.Key}</text>"); }
-    natalOverlay.Append("</g>"); svg = svg.Replace("</svg>", natalOverlay + "</svg>");
-    var fastOverlay = new StringBuilder("<g id=\"fast-transits\" font-family=\"Inter,Arial,sans-serif\" text-anchor=\"middle\" fill=\"#f6a23a\">");
-    foreach (var fast in new[] { PlanetName.Moon, PlanetName.Mars, PlanetName.Venus }) if (FastTransit.TryGetValue(fast, out var flon)) { var fp = Polar(flon, 505); fastOverlay.Append(CultureInfo.InvariantCulture, $"<text x=\"{fp.X:F1}\" y=\"{fp.Y:F1}\" font-size=\"15\" font-weight=\"700\">{ShortName(fast.ToString())} {SignDegree(flon)}</text>"); }
-    fastOverlay.Append("</g>"); svg = svg.Replace("</svg>", fastOverlay + "</svg>");
-    var centre = new StringBuilder("<g id=\"active-transit-status\" class=\"d\" text-anchor=\"middle\">");
-    var motion = (PlanetName planet) => TransitSpeeds.GetValueOrDefault(planet) < 0 ? "R" : "D";
-    var moon = Longitude(PlanetName.Moon);
-    var nakshatra = (int)(moon / (360d / 27));
-    var pada = (int)((moon % (360d / 27)) / (360d / 108)) + 1;
-    var status = new[]
+
+    // D1 Birth: grahas plus the Lagna row, ordered slow → fast (Lagna first).
+    private IEnumerable<IReadOnlyDictionary<string, object?>> D1Rows =>
+        (_positions?.Rows ?? Enumerable.Empty<IReadOnlyDictionary<string, object?>>())
+        .Where(r =>
+        {
+            var pk = Str(r, "PointKind");
+            var pl = Str(r, "Planet");
+            return string.Equals(pk, "Graha", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(pl, "Lagna", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(pl, "Ascendant", StringComparison.OrdinalIgnoreCase);
+        })
+        .OrderBy(r => TransitLandingMath.PlanetRank(Str(r, "Planet")));
+
+    private IEnumerable<PlanetTransitSnapshot> TransitRows =>
+        _transits.OrderBy(s => TransitLandingMath.PlanetRank(s.Planet.ToString()));
+
+    private int? HouseFromD1(PlanetTransitSnapshot s) =>
+        TransitLandingMath.HouseFromD1(
+            _natalSignByPlanet.GetValueOrDefault(s.Planet.ToString()), SignName(s.SignId));
+
+    private string MotionCell(IReadOnlyDictionary<string, object?> r)
     {
-      _selection!.ActiveIst.ToString("dd MMM yyyy · HH:mm", CultureInfo.InvariantCulture) + " IST",
-      $"Moon · {NakshatraShort[nakshatra]} · Pada {pada}",
-      $"{Terms.Label("PLANET_SATURN", "en")} ({motion(PlanetName.Saturn)}) · {SignDegree(Longitude(PlanetName.Saturn))}",
-      $"{Terms.Label("PLANET_JUPITER", "en")} ({motion(PlanetName.Jupiter)}) · {SignDegree(Longitude(PlanetName.Jupiter))}",
-      _selection.Maha is null ? "No saved dasha at this date" :
-        Terms.Label("PLANET_" + _selection.Maha.Lord.ToUpperInvariant(), "en") +
-        (_selection.Antar is null ? "" : " · " + Terms.Label("PLANET_" + _selection.Antar.Lord.ToUpperInvariant(), "en"))
-    };
-    for (var i = 0; i < status.Length; i++)
-      centre.Append(CultureInfo.InvariantCulture, $"<text x=\"600\" y=\"{548 + i * 27}\" font-size=\"18\" font-weight=\"600\">{System.Security.SecurityElement.Escape(status[i])}</text>");
-    centre.Append("</g>");
-    svg = svg.Replace("</svg>", centre + "</svg>");
-    SvgMarkup = new MarkupString(svg);
-  }
+        var planet = Str(r, "Planet");
+        if (string.Equals(planet, "Lagna", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(planet, "Ascendant", StringComparison.OrdinalIgnoreCase)) return "—";
+        return TransitLandingMath.FormatMotion(Flag(r, "IsRetrograde"), Flag(r, "IsCombust"));
+    }
+
+    private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
+
+    private static string? Str(IReadOnlyDictionary<string, object?> row, string key) =>
+        row.TryGetValue(key, out var v) && v is not null and not DBNull
+            ? Convert.ToString(v, CultureInfo.InvariantCulture)
+            : null;
+
+    private static bool Flag(IReadOnlyDictionary<string, object?> row, string key) =>
+        row.TryGetValue(key, out var v) && v is not null and not DBNull && Convert.ToBoolean(v);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

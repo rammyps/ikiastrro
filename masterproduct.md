@@ -306,9 +306,9 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   disclosure top-left (three selector groups — Ayanāṁśa / Chart style / Language); `Add New`
   unhides the entry fields inline; completing Country → `/transit-wheel/{id}`. Absorbs
   FEAT-UI-03 and FEAT-UI-12. **`Web [ ]`** — the live page still differs from `components/home.md`:
-  heading not "Discover Your Path", explanatory text not stripped, search shows a list not one
-  matched row, Preferences has 2 selectors not 3, Ganesha art not in the right column, and it
-  lands on `/charts/{id}` not the Transit page.
+  explanatory text not stripped, search shows a list not one matched row, and Preferences has
+  2 selectors not 3 (North/West Indian + Tamil not yet shown disabled). Picking a person now
+  lands on `/transit-wheel/{id}` (the v2 Transit landing — `FEAT-UI-13`).
 - **FEAT-UI-03 · Add person — inline on Home (Name · Sex · DOB · Time · City · Country)** — In progress · 20%
   DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
   No longer a `/add` route — folded into Home (`FEAT-UI-02`). **`Web [ ]`** until the mockup Add
@@ -326,8 +326,11 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
 - **FEAT-UI-09 · Astrologer evidence tables (`/charts/{id}/evidence`)** — Verified · 80%
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [x] (`docs/ui/components/evidence-tables.md`)
-- **FEAT-UI-10 · Transit wheel (`/transit-wheel/{id}`) — natal ↔ transit + dasha selector** — Verified · 80%
+- **FEAT-UI-10 · Transit wheel (`/transit-wheel/{id}`) — natal ↔ transit + dasha selector** — Verified · 80% · **v1; being replaced by `FEAT-UI-13`**
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [x] (`docs/ui/components/transit-wheel.md`)
+  The v2 route now renders the `FEAT-UI-13` landing (D1 Birth tab live). The v1 natal↔transit
+  wheel + dasha/date selectors + comparison table are gone from the page; `TransitSelection.cs`
+  and its tests are kept for the moment (a later slice may reuse the date logic).
 - **FEAT-UI-11 · Life-in-weeks grid (`/charts/{id}/life-weeks`)** — Verified · 60% · **retired in `wkstream_UI_v2`**
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
   Live in v1; the v2 re-do drops the route (the Vimśottari timeline is served by
@@ -341,6 +344,21 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   script or transliteration TBD — deferred). Choices apply to the next generation; per-browser
   persistence now, DB-backed default is a `database` follow-up. See `docs/ui/MASTER.md`
   NFR-UI-02 / -03 / -04, and NFR-UI-01 (runtime tab reorder — deferred).
+- **FEAT-UI-13 · Transit landing (`/transit-wheel/{id}`) — v2, embedded wheel + two-tab table** — In progress · 40%
+  DB [ ] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/transit.md`)
+  First `wkstream_UI_v2` implementation slice (Home → select person → Transit). Landed: the v2
+  app shell (HOME pill hard-left, per-person `TRANSIT · ALL CHARTS · KEY INFERENCE` tabs revealed
+  once a person is open, context band, `--maxw` / `--pad-x`); a scoped `ActivePerson`; the page
+  at `/transit-wheel/{id}` with band heading `TRANSIT - D1 BIRTH CHART`, a static wheel placement,
+  and the **D1 Birth** tab against `vw_ChartPlanetEvidence` (persisted rows only, sorted
+  Lagna → Saturn…Sun); browser smoke + `TransitLandingMath` unit tests. **`Web [ ]`** — open:
+  the **Current Transit** tab is wired to `GocharaRepository` but that source only covers
+  Saturn/Jupiter/Rahu and returns nothing for "now" (degrades to the `backfill-planet-transits`
+  hint); `InSignMotion` / `NextChangeMotion` columns show `—` pending Codex's
+  `tbl_TransitPositionReference` boundary-motion merge (`db/055`); the live natal↔transit wheel
+  overlay is a Codex `Components/Charts/**` component; `Verify [ ]` until a page-DI bUnit harness
+  covers both tabs. `ALL CHARTS` / `KEY INFERENCE` tabs point at v1 routes until their slices.
+  Supersedes `FEAT-UI-10` for `/transit-wheel/{id}` once `Web [x]`.
 
 ## DOCS — cross-cutting
 

@@ -45,6 +45,9 @@ builder.Services.AddScoped<VimshottariDashaService>();
 builder.Services.AddScoped<ChartGenerationService>();
 builder.Services.AddScoped<BirthDetailDeletionService>();
 builder.Services.AddScoped<IPlaceResolver, NominatimPlaceResolver>();
+
+// v2 shell — the person currently opened; read by MainLayout for the header tabs + band.
+builder.Services.AddScoped<Ikiastrro.Web.Components.ActivePerson>();
 builder.Services.AddScoped(sp =>
 {
     var schemes = sp.GetRequiredService<VargaSchemeRepository>().GetAll(1);

@@ -152,4 +152,9 @@ h1, h2, h3 {
     --font-size-display: clamp(38px, 3.05vw, 53px);
     --font-size-tagline: clamp(20px, 2vw, 37px);
     --font-size-control: 19px;
+
+    /* One content width + gutter run through the app bar, the band, every page and the
+       footer (docs/ui/wkstream_UI_v2.md — "Navigation / Header bar"). */
+    --maxw: 1400px;
+    --pad-x: clamp(16px, 4vw, 48px);
 }
