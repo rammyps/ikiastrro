@@ -1,0 +1,25 @@
+.ntw { display: block; width: 100%; height: auto; overflow: visible; font-family: 'Manrope', 'Segoe UI', sans-serif; }
+.ntw-transit { fill: var(--brand-peach); stroke: var(--brand-midnight); stroke-width: 2; }
+.ntw-nak { fill: var(--brand-canvas); stroke: var(--brand-midnight); stroke-width: 2; }
+.ntw-natal { fill: var(--transit-paper); stroke: var(--brand-midnight); stroke-width: 2; }
+.ntw-core { fill: var(--brand-canvas); stroke: var(--brand-line); stroke-width: 1; }
+.ntw-sign-line { stroke: var(--brand-midnight); stroke-width: 2.2; }
+.ntw-nak-line { stroke: var(--brand-midnight); stroke-width: 1.2; }
+.ntw-pada-line { stroke: var(--brand-muted); stroke-width: .55; opacity: .7; }
+.ntw-natal-line { stroke: var(--brand-muted); stroke-width: .8; }
+.ntw-sign, .ntw-house, .ntw-nak-name, .ntw-ring-title, .ntw-ring-sub, .ntw-brand, .ntw-caption, .ntw-meta, .ntw-point text { text-anchor: middle; dominant-baseline: central; }
+.ntw-sign { fill: var(--brand-sunset); font-size: 28px; font-weight: 700; }
+.ntw-house { fill: var(--brand-midnight); font-size: 12px; font-weight: 700; }
+.ntw-nak-name { fill: var(--brand-midnight); font-size: 8px; font-weight: 600; }
+.ntw-ring-title { fill: var(--brand-midnight); font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+.ntw-ring-sub { fill: var(--brand-midnight); font-size: 8px; font-weight: 700; }
+.ntw-dark { fill: var(--brand-midnight); }
+.ntw-brand { fill: var(--brand-midnight); font-size: 28px; font-weight: 700; }
+.ntw-caption { fill: var(--brand-midnight); font-size: 10px; font-weight: 700; letter-spacing: .18em; }
+.ntw-meta { fill: var(--brand-muted); font-size: 9px; font-weight: 600; }
+.ntw-point circle { stroke-width: 2; }
+.ntw-point text { font-size: 12px; font-weight: 800; }
+.ntw-point-natal circle { fill: var(--transit-paper); stroke: var(--brand-sunset); }
+.ntw-point-natal text { fill: var(--brand-midnight); }
+.ntw-point-transit circle { fill: var(--brand-midnight); stroke: var(--brand-sunset); }
+.ntw-point-transit text { fill: var(--brand-canvas); }

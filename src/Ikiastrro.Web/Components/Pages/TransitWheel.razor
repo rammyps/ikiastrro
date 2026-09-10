@@ -30,10 +30,20 @@ else
 
     <div class="tw-grid">
         <div class="tw-wheel">
-            @* Codex (Components/Charts/**): replace this placeholder with the live natal ↔ transit
-               wheel component. This page only places it (docs/ui/components/transit.md). *@
-            <img src="/ikiastrro-transit-wheel.svg" alt="Natal and transit wheel" />
-            <p class="tw-wheel-note">Natal ↔ transit overlay pending (charts component).</p>
+            @* The D1 data loaded for the birth table also drives the shared chart component. *@
+            @if (D1AscendantSign is string ascendantSign)
+            {
+                <NatalTransitWheel AscendantSign="@ascendantSign"
+                                   NatalPoints="@D1WheelPoints"
+                                   TransitPoints="@TransitWheelPoints"
+                                   AsOfUtc="@_asOfUtc" />
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info" Dense="true" Class="tw-alert">
+                    Generate a D1 chart for this person first.
+                </MudAlert>
+            }
         </div>
 
         <div class="tw-tables">
@@ -184,6 +194,16 @@ else
 
     private IEnumerable<PlanetTransitSnapshot> TransitRows =>
         _transits.OrderBy(s => TransitLandingMath.PlanetRank(s.Planet.ToString()));
+
+    private string? D1AscendantSign => _d1.FirstOrDefault(r =>
+        r.Planet.Equals("Lagna", StringComparison.OrdinalIgnoreCase) ||
+        r.Planet.Equals("Ascendant", StringComparison.OrdinalIgnoreCase))?.Sign;
+
+    private IReadOnlyList<NatalTransitWheel.Point> D1WheelPoints => _d1
+        .Select(r => new NatalTransitWheel.Point(r.Planet, r.LongitudeDegrees)).ToList();
+
+    private IReadOnlyList<NatalTransitWheel.Point> TransitWheelPoints => _transits
+        .Select(r => new NatalTransitWheel.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();
 
     private int? HouseFromD1(PlanetTransitSnapshot s) =>
         TransitLandingMath.HouseFromD1(

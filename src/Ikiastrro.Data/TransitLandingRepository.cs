@@ -13,6 +13,7 @@ public sealed class TransitD1Row
     public bool IsRetrograde { get; set; }
     public bool IsCombust { get; set; }
     public string? DegreesInSignDisplay { get; set; }
+    public double LongitudeDegrees { get; set; }
     public string? Sign { get; set; }
     public string? Nakshatra { get; set; }
     public int? NakshatraPada { get; set; }
@@ -31,6 +32,7 @@ public sealed class TransitLandingRepository(SqlConnectionFactory factory)
         return connection.Query<TransitD1Row>("""
             SELECT HouseNumberFromLagna AS House, Planet, PointKind,
                    IsRetrograde, IsCombust, DegreesInSignDisplay, Sign, Nakshatra, NakshatraPada
+                   ,COALESCE(VargaLongitudeDegrees, NirayanaLongitudeDegrees) AS LongitudeDegrees
             FROM dbo.vw_ChartPlanetEvidence
             WHERE BirthDetailId = @birthDetailId AND ChartType = 'D1'
               AND (PointKind = 'Graha' OR Planet IN ('Lagna', 'Ascendant'))

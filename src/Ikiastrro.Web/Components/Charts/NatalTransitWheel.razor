@@ -1,0 +1,97 @@
+@using System.Globalization
+
+<svg class="ntw" viewBox="0 0 800 800" role="img" aria-label="Natal and current transit zodiac wheel">
+    <circle cx="400" cy="400" r="338" class="ntw-transit" />
+    <circle cx="400" cy="400" r="274" class="ntw-nak" />
+    <circle cx="400" cy="400" r="208" class="ntw-natal" />
+    <circle cx="400" cy="400" r="116" class="ntw-core" />
+
+    @for (var i = 0; i < 108; i++)
+    {
+        var longitude = i * (360d / 108d);
+        var inner = i % 9 == 0 ? 208d : 274d;
+        var widthClass = i % 9 == 0 ? "ntw-sign-line" : i % 4 == 0 ? "ntw-nak-line" : "ntw-pada-line";
+        var (x1, y1) = Xy(longitude, inner);
+        var (x2, y2) = Xy(longitude, 338);
+        <line x1="@F(x1)" y1="@F(y1)" x2="@F(x2)" y2="@F(y2)" class="@widthClass" />
+    }
+
+    @for (var i = 0; i < 12; i++)
+    {
+        var longitude = i * 30d;
+        var (x1, y1) = Xy(longitude, 116);
+        var (x2, y2) = Xy(longitude, 208);
+        var (tx, ty) = Xy(longitude + 15, 174);
+        var (sx, sy) = Xy(longitude, 370);
+        <line x1="@F(x1)" y1="@F(y1)" x2="@F(x2)" y2="@F(y2)" class="ntw-natal-line" />
+        <g>
+            <text x="@F(tx)" y="@F(ty)" class="ntw-house">@HouseFor(i)</text>
+            <text x="@F(sx)" y="@F(sy)" class="ntw-sign">@SignGlyphs[i]</text>
+        </g>
+    }
+
+    @for (var i = 0; i < Nakshatras.Length; i++)
+    {
+        var (x, y) = Xy(i * (360d / 27d) + (360d / 54d), 242);
+        <g><text x="@F(x)" y="@F(y)" class="ntw-nak-name">@Nakshatras[i]</text></g>
+    }
+
+    <text x="400" y="88" class="ntw-ring-title">TRANSIT</text>
+    <text x="400" y="108" class="ntw-ring-sub">CURRENT</text>
+    <text x="400" y="218" class="ntw-ring-title ntw-dark">NATAL</text>
+    <text x="400" y="238" class="ntw-ring-sub ntw-dark">D1</text>
+
+    @foreach (var p in NatalPoints)
+    {
+        var (x, y) = Xy(p.LongitudeDegrees, 160);
+        <g class="ntw-point ntw-point-natal">
+            <circle cx="@F(x)" cy="@F(y)" r="13" />
+            <text x="@F(x)" y="@F(y)">@Glyph(p.Label)</text>
+        </g>
+    }
+    @foreach (var p in TransitPoints)
+    {
+        var (x, y) = Xy(p.LongitudeDegrees, 306);
+        <g class="ntw-point ntw-point-transit">
+            <circle cx="@F(x)" cy="@F(y)" r="14" />
+            <text x="@F(x)" y="@F(y)">@Glyph(p.Label)</text>
+        </g>
+    }
+
+    <text x="400" y="378" class="ntw-brand">ikiastrro</text>
+    <text x="400" y="410" class="ntw-caption">NATAL ↔ TRANSIT</text>
+    <text x="400" y="438" class="ntw-meta">@DisplaySign(AscendantSign) Lagna</text>
+    <text x="400" y="460" class="ntw-meta">@AsOfUtc.ToString("dd MMM yyyy · HH:mm 'UTC'", CultureInfo.InvariantCulture)</text>
+</svg>
+
+@code {
+    public sealed record Point(string Label, double LongitudeDegrees);
+
+    [Parameter, EditorRequired] public IReadOnlyList<Point> NatalPoints { get; set; } = Array.Empty<Point>();
+    [Parameter] public IReadOnlyList<Point> TransitPoints { get; set; } = Array.Empty<Point>();
+    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
+    [Parameter] public DateTime AsOfUtc { get; set; }
+
+    private int HouseFor(int signIndex)
+    {
+        var asc = Array.FindIndex(SignNames, s => s.Equals(AscendantSign, StringComparison.OrdinalIgnoreCase));
+        return asc < 0 ? signIndex + 1 : ((signIndex - asc + 12) % 12) + 1;
+    }
+
+    private static (double X, double Y) Xy(double longitude, double radius)
+    {
+        var radians = (longitude - 90) * Math.PI / 180d;
+        return (400 + radius * Math.Cos(radians), 400 + radius * Math.Sin(radians));
+    }
+
+    private static string Glyph(string label) => ChartViewModel.PlanetGlyph(
+        label.Equals("Lagna", StringComparison.OrdinalIgnoreCase) ? "Ascendant" : label);
+    private static string DisplaySign(string sign) => sign == "Capricornus" ? "Capricorn" : sign;
+    private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static readonly string[] SignNames =
+        { "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricornus", "Aquarius", "Pisces" };
+    private static readonly string[] SignGlyphs = { "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓" };
+    private static readonly string[] Nakshatras =
+        { "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha", "P.Phalguni", "U.Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "P.Ashadha", "U.Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "P.Bhadrapada", "U.Bhadrapada", "Revati" };
+}

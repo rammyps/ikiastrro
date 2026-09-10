@@ -27,23 +27,7 @@
     align-self: start;
 }
 
-.tw-wheel img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 1;
-    object-fit: contain;
-    border: 1px solid var(--brand-line);
-    border-radius: 12px;
-    background: var(--brand-canvas);
-}
-
-.tw-wheel-note {
-    margin: 8px 0 0;
-    text-align: center;
-    color: var(--brand-muted);
-    font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
-    font-size: 0.78em;
-}
+.tw-wheel ::deep .ntw { width: 100%; }
 
 /* Right — two-tab table */
 .tw-tables { min-width: 0; }
