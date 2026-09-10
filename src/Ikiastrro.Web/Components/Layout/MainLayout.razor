@@ -3,6 +3,14 @@
 @inject ActivePerson Active
 @inject NavigationManager Nav
 
+@* MudBlazor providers must sit in the interactive render scope (this layout is rendered by
+   the InteractiveServer <Routes>). Kept out of App.razor, which is static SSR — see the note
+   there. Without this, every MudSelect / MudDatePicker / MudTimePicker popover fails to open. *@
+<MudThemeProvider Theme="Ikiastrro.Web.Components.IkiastrroTheme.Value" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
 <MudLayout>
     <MudAppBar Elevation="1" Class="ik-appbar">
         <a href="/" class="ik-home @(CurrentPath == "/" ? "is-here" : "")">HOME</a>

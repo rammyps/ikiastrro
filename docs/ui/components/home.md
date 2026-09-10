@@ -37,7 +37,13 @@ footer. The Ganesha / Navagraha illustration is a **first-class part of the Home
      `Components/Charts/**` renderer ships (ROADMAP *Later*; `docs/ui/MASTER.md` NFR-UI-02).
   3. **Choose Language** — `MudSelect`: *English* (default) · *Tamil (Planned)*. **Tamil is a
      `Disabled` `MudSelectItem`** until the localisation ships; English is the only selectable
-     value today. Deferred i18n (`docs/ui/MASTER.md` NFR-UI-04).
+     value today. Deferred i18n (`docs/ui/MASTER.md` NFR-UI-04). **Not yet built** — only the
+     Ayanāṁśa and Chart-style selectors are wired.
+
+  The selectors are `MudSelect`s and so are the Date/Time pickers below: all render into a
+  `MudPopoverProvider`, which **must sit in the same interactive render scope** as them.
+  It lives in `MainLayout.razor` (with the theme / dialog / snackbar providers) — *not* in the
+  static-SSR `App.razor`, where popovers silently never open.
 
   **Selecting any preference applies it and collapses the panel** (the dropdowns hide again).
   Persistence: per-browser (`localStorage`) for now; a DB-backed default is a `database`-workstream
@@ -69,9 +75,11 @@ chip is removed everywhere. Footer is a single centred line:
 `＋ Add New` sets `_adding = true`: the **Name search stays visible**, and the entry fields
 appear below it under a *New person* caption. `Cancel` hides the fields again.
 
-**Name carry-over.** Whenever the typed search text matches **no** saved person, that text is
-copied straight into the new person's Name — so the moment you type an unknown name, `＋ Add New`
-already opens pre-filled (and clicking it always overwrites Name with the current search text).
+**Auto-reveal on an unmatched search.** A search that matches **no** saved person *is* the
+intent to add that person: the entry fields open automatically, Name pre-filled from the
+search text. They retract again if the search is cleared or starts matching — but only while
+the form is still pristine, so a half-filled form is never yanked away. An explicit `＋ Add New`
+click opens the same form and never auto-retracts.
 
 Fields, in order:
 
@@ -79,8 +87,8 @@ Fields, in order:
 |---|---|---|
 | Name | `MudTextField` | required; pre-filled from the search text |
 | Sex | option box — `MudRadioGroup` (Male · Female), always visible, no dropdown | **required** — no chart generates without it |
-| Date of Birth | `MudDatePicker` | required |
-| Time of Birth | `MudTimePicker` | **required** — critical for the Lagna; no chart without it |
+| Date of Birth | `MudDatePicker` | required; `Editable` (type `dd MMM yyyy` directly) and `OpenTo="Year"` — a calendar click-path back to a 1900s birth year is unusable. `MinDate` 1900-01-01, `MaxDate` today |
+| Time of Birth | `MudTimePicker` | **required** — critical for the Lagna; no chart without it. `Editable`, `AmPm` |
 | City | `MudTextField` | required; feeds `IPlaceResolver` |
 | Country | `MudTextField` | required; **the last step** |
 
@@ -117,6 +125,12 @@ Per [`../wkstream_UI_v2.md`](../wkstream_UI_v2.md): Manrope only; the three size
 accent; midnight blue for text and structure; tokens only, no raw hex or px literals.
 `Home.razor.css` is rewritten from scratch against these rules (the v1 file is the worst
 offender — stacked override blocks, raw px, `!important` MudBlazor patches).
+
+The art column is a fixed `clamp(420px, 46vw, 760px)`; the `1fr` left column absorbs the
+slack so the form stays left-anchored and the illustration is pushed to the page's right
+edge. `.home` fills `.ik-page` (which already caps at `--maxw` + `--pad-x`), the row is
+`align-items: stretch`, and the image is `object-fit: contain` / `object-position: right
+center` with a `min-height: min(78vh, 780px)` — large and edge-hugging, per `HomeScreen-v1`.
 
 ## Retired from v1
 

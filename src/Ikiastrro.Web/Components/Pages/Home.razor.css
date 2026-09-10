@@ -6,11 +6,14 @@
 
 .home {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 56%);
-    gap: 2rem;
-    align-items: start;
-    width: min(94%, 1500px);
-    margin: 0 auto;
+    /* Art is a fixed, generous column; the 1fr left column soaks up the slack, so the form
+       stays left-anchored and the illustration is pushed to the right edge (HomeScreen-v1). */
+    grid-template-columns: minmax(0, 1fr) clamp(420px, 46vw, 760px);
+    gap: 1.5rem;
+    align-items: stretch;
+    /* .ik-page already caps at --maxw + --pad-x; fill it so the art lands on the same right
+       edge as every other page's content (no extra inset of our own). */
+    width: 100%;
     min-height: calc(100vh - 160px);
     color: var(--brand-midnight);
     background: var(--brand-canvas);
@@ -21,6 +24,7 @@
 .home-main {
     max-width: 640px;
     padding-top: 1.5rem;
+    align-self: start;
 }
 
 /* Preferences — top-left disclosure */
@@ -148,20 +152,21 @@
     color: var(--danger, #b3261e);
 }
 
-/* Ganesha / Navagraha art — first-class right column */
+/* Ganesha / Navagraha art — first-class right column, large and hugging the right edge. */
 .home-art {
-    align-self: center;
+    align-self: stretch;
     display: grid;
-    place-items: center end;
+    place-items: stretch;
+    min-height: min(78vh, 780px);
     overflow: hidden;
 }
 
 .home-art img {
     width: 100%;
     max-width: none;
-    height: auto;
+    height: 100%;
     object-fit: contain;
-    object-position: center right;
+    object-position: right center;
 }
 
 /* Primary buttons are sunset-filled via the app theme (IkiastrroTheme). */

@@ -13,7 +13,7 @@
     <div class="home-main">
 
         <div class="home-prefs">
-            <MudButton Variant="Variant.Text" DisableElevation="true" Class="home-prefs-toggle"
+            <MudButton Variant="Variant.Text" DropShadow="false" Class="home-prefs-toggle"
                        StartIcon="@(_prefsOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.Tune)"
                        OnClick="@(() => _prefsOpen = !_prefsOpen)">
                 Preferences
@@ -30,7 +30,8 @@
                     <MudSelect T="string" Label="Choose Chart Type" Value="_chartStyle"
                                ValueChanged="OnChartStyleChanged" Dense="true" Variant="Variant.Outlined">
                         <MudSelectItem T="string" Value="@("south-indian")">South Indian — default</MudSelectItem>
-                        <MudSelectItem T="string" Value="@("north-indian")">North Indian</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("north-indian")" Disabled="true">North Indian — planned</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("west-indian")" Disabled="true">West Indian — planned</MudSelectItem>
                     </MudSelect>
                 </div>
             </MudCollapse>
@@ -65,7 +66,7 @@
         {
             <div class="home-form">
                 <MudText Class="home-form-caption">New person</MudText>
-                <MudTextField T="string" Label="Name" @bind-Value="_f.Name" Variant="Variant.Outlined" Dense="true" />
+                <MudTextField T="string" Label="Name" @bind-Value="_f.Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 <div class="home-sex">
                     <MudText Typo="Typo.caption" Class="home-sex-label">Sex — required</MudText>
                     <MudRadioGroup T="string" @bind-Value="_f.Sex" Class="home-sex-group">
@@ -73,10 +74,15 @@
                         <MudRadio T="string" Value="@("Female")" Color="Color.Primary" Size="Size.Small">Female</MudRadio>
                     </MudRadioGroup>
                 </div>
-                <MudDatePicker Label="Date of Birth" @bind-Date="_f.Dob" Variant="Variant.Outlined" />
-                <MudTimePicker Label="Time of Birth" @bind-Time="_f.Tob" Variant="Variant.Outlined" />
-                <MudTextField T="string" Label="City" @bind-Value="_f.City" Variant="Variant.Outlined" Dense="true" />
-                <MudTextField T="string" Label="Country" @bind-Value="_f.Country" Variant="Variant.Outlined" Dense="true"
+                @* Editable so a birth date/time can be typed straight in — a calendar click-path
+                   back to a 1900s birth year is unusable. OpenTo=Year for the same reason. *@
+                <MudDatePicker Label="Date of Birth" @bind-Date="_f.Dob" Variant="Variant.Outlined"
+                               Editable="true" OpenTo="OpenTo.Year" DateFormat="dd MMM yyyy"
+                               MinDate="_minDob" MaxDate="DateTime.Today" Placeholder="dd MMM yyyy" />
+                <MudTimePicker Label="Time of Birth" @bind-Time="_f.Tob" Variant="Variant.Outlined"
+                               Editable="true" AmPm="true" Placeholder="hh:mm AM/PM" />
+                <MudTextField T="string" Label="City" @bind-Value="_f.City" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField T="string" Label="Country" @bind-Value="_f.Country" Variant="Variant.Outlined" Margin="Margin.Dense"
                               OnBlur="@(() => TryGenerate(showErrors: false))" />
 
                 @if (_error is not null)
@@ -114,6 +120,8 @@
 
     private readonly AddForm _f = new();
     private string _query = string.Empty; // the name-search text; never triggers navigation on its own
+    private bool _autoAdded;               // Add-New form was revealed automatically by an unmatched search
+    private static readonly DateTime _minDob = new(1900, 1, 1);
 
     protected override void OnInitialized()
     {
@@ -147,18 +155,43 @@
 
     private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/transit-wheel/{p.Id}");
 
-    // Whenever the typed name isn't one of the saved people, carry it straight into the
-    // Add-New form's Name — so "＋ Add New" opens pre-filled (docs/ui/components/home.md).
+    // A search that matches no saved person IS the intent to add that person: reveal the
+    // Add-New form, pre-filled from the search text (docs/ui/components/home.md). Retract it
+    // only when the search is cleared or starts matching again — and only while the form is
+    // still untouched, so a half-filled form is never yanked away.
     private void OnQueryChanged()
     {
-        if (!_adding && !string.IsNullOrWhiteSpace(_query) && !Matches.Any())
-            _f.Name = _query.Trim();
+        var q = _query?.Trim() ?? string.Empty;
+
+        if (q.Length == 0)
+        {
+            if (_adding && _autoAdded && FormIsPristine()) CancelAdd();
+            StateHasChanged();
+            return;
+        }
+
+        if (!Matches.Any())
+        {
+            _f.Name = q;
+            if (!_adding) { _adding = true; _autoAdded = true; _error = null; }
+        }
+        else if (_adding && _autoAdded && FormIsPristine())
+        {
+            CancelAdd();
+        }
+
         StateHasChanged();
     }
+
+    // Nothing entered beyond the name that the search itself carried over.
+    private bool FormIsPristine() =>
+        string.IsNullOrWhiteSpace(_f.Sex) && _f.Dob is null && _f.Tob is null
+        && string.IsNullOrWhiteSpace(_f.City) && string.IsNullOrWhiteSpace(_f.Country);
 
     private void StartAdd()
     {
         _adding = true;
+        _autoAdded = false; // explicit click — never auto-retract
         _error = null;
         if (!string.IsNullOrWhiteSpace(_query))
             _f.Name = _query.Trim(); // the search text is always the new person's Name
@@ -167,6 +200,7 @@
     private void CancelAdd()
     {
         _adding = false;
+        _autoAdded = false;
         _error = null;
     }
 

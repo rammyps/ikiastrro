@@ -13,10 +13,10 @@
 </head>
 
 <body>
-    <MudThemeProvider Theme="Ikiastrro.Web.Components.IkiastrroTheme.Value" />
-    <MudPopoverProvider />
-    <MudDialogProvider />
-    <MudSnackbarProvider />
+    @* MudBlazor providers live in MainLayout, not here: popover/dialog/snackbar must render in
+       the SAME interactive render scope as the components that open them. App.razor is static
+       SSR, so providers here never see the InteractiveServer components under <Routes> and
+       MudSelect / MudDatePicker / MudTimePicker popovers silently fail to open. *@
     <Routes @rendermode="InteractiveServer" />
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_framework/blazor.web.js"></script>
