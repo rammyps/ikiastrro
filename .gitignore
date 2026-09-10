@@ -40,3 +40,6 @@
 /reports/edge-*-profile*/
 /reports/*.log
 /reports/*.err.log
+
+# Playwright E2E failure artifacts (tests/Ikiastrro.Web.E2E)
+/reports/e2e/

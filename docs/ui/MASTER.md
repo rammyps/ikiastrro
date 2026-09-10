@@ -8,7 +8,7 @@ safe: Solution Intent — UX
 # UI workstream — MASTER (App UI)
 
 **Branch** `workstream/ui` · **worktree** `D:\@ClaudeSpace\ikiastrro.wt\ui` ·
-**owns** `src/Ikiastrro.Web/`, `tests/Ikiastrro.Web.Tests/`.
+**owns** `src/Ikiastrro.Web/`, `tests/Ikiastrro.Web.Tests/`, `tests/Ikiastrro.Web.E2E/`.
 
 `Ikiastrro.Web` — Blazor Server, MudBlazor, warm light brand. Reads persisted rows only
 ([`../architecture/domain-contracts.md`](../architecture/domain-contracts.md)); never
@@ -27,6 +27,7 @@ recomputes.
 | [`components/spec_SouthIndianGrid_Detailed.md`](components/spec_SouthIndianGrid_Detailed.md) | The enriched South-Indian chart grid + template page |
 | [`components/evidence-tables.md`](components/evidence-tables.md) | The astrologer evidence page |
 | [`components/home.md`](components/home.md) | Home / entry screen |
+| [`testing.md`](testing.md) | The two test layers — bUnit component tests and the Playwright browser E2E suite (`tests/Ikiastrro.Web.E2E`) |
 | [`components/yoga.md`](components/yoga.md) | v2 Key Inference → YOGAS header — coverage summary + source variants |
 | [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers |
 | [`components/chart-catalog.md`](components/chart-catalog.md) | **Chart-module catalogue** — every visual chart component (incl. `SouthIndianGrid_Detailed`, `Natal_Transit_Comp_WheelChart`), dasha module, UI table + helper, as `chart name / spec doc / linked files`; golden-snapshot flow + revert. Naming & versioning: [`../../project_standards.md`](../../project_standards.md) |

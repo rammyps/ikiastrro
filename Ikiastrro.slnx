@@ -6,6 +6,7 @@
     <Project Path="src/Ikiastrro.Web/Ikiastrro.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Ikiastrro.Web.E2E/Ikiastrro.Web.E2E.csproj" />
     <Project Path="tests/Ikiastrro.Web.Tests/Ikiastrro.Web.Tests.csproj" />
     <Project Path="tests/Ikiastrro.Yoga.Tests/Ikiastrro.Yoga.Tests.csproj" />
   </Folder>
