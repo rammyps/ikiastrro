@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: database
 togaf: C — Data Architecture
 safe: Solution Intent (fixed)
@@ -43,7 +43,11 @@ Classical rules as versioned data. Decision: [`decisions/001-star-schema-rules-e
 | `tbl_Rule_CompoundRelationship` | — | Pañchadhā Maitrī compound tiers | live |
 | `tbl_Rule_GrahaAttribute` / `tbl_Dim_GrahaAttribute` | — | normalized graha character grid | seeded |
 | `tbl_Rule_DigBala` | — | directional-strength reference points | seeded |
-| `tbl_Rule_ShadbalaComponent` / `tbl_Rule_BhavaBalaComponent` | — | PVR-first strength formula profile + provenance | live (`ShadbalaCalculator` / `BhavaBalaCalculator`) |
+| `tbl_Rule_ShadbalaComponent` / `tbl_Rule_BhavaBalaComponent` | — | PVR-first strength formula profile + provenance (mig. 072 sets `RuleParametersJson` on the six deferred Kālabala sub-components + corrects the Varṣa cap) | live (`ShadbalaCalculator` / `BhavaBalaCalculator`); Kālabala sub-components + Yuddha pending |
+| `tbl_Rule_ShadbalaMinimumRupas` | 7 | per-planet minimum required Ṣaḍbala (rūpas) → `PercentOfMinimum`; reproduces JHora %Strength | seeded (mig. 071); read pending |
+| `tbl_Rule_PlanetaryWar` | 1 | Graha Yuddha orb + winner criterion + Ṣaḍbala adjustment (Yuddha Bala) | seeded (mig. 072); calculator pending |
+| `tbl_Rule_AshtakavargaContribution` | 56 | Parāśari benefic-places (bindu) matrix — 7 recipients × 8 contributors, SAV total 337 (BPHS, cross-checked vs MIT `jyotishganit`; hand-verified against the JHora export) | seeded (mig. 074/075); `AshtakavargaCalculator` pending |
+| `tbl_Rule_AshtakavargaReduction` | 2 | Trikoṇa + Ekādhipatya Śodhana algorithms for the Sodhya Piṇḍa pipeline | seeded (mig. 074/075); read pending |
 | `tbl_Rule_VimsopakaWeight` | reserved | four varga-group weights | unseeded |
 | `tbl_Rule_SubPlanetSunLongitude` / `SubPlanetTime` / `SubPlanetPartRuler` | — | 11 upagraha longitude/time-point rules (PVR: Gulika = midpoint, Maandi = start) | live (`SubPlanetCalculator`) |
 | `tbl_Rule_SpecialLagnaFraction` / `SpecialLagnaTimeRate` | — | HL and other special-lagna rates | live (HL only) |

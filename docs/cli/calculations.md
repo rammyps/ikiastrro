@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: cli
 togaf: C — Application Architecture (engine)
 ---
@@ -115,9 +115,14 @@ derived (`vw_KetuSignTransitEvents`); point-in-time sign `tvf_PlanetSignAtDate`.
 `tvf_Chart_SadeSatiPeriods(@BirthDetailId)` from the stored natal Moon sign +
 `tbl_PlanetSignTransitEvents` — no new reference data. Sade Sati = Saturn in the 12th / 1st /
 2nd from natal Moon (three Dhaiyas); Kantaka = 4th; Ashtama = 8th. The TVF splits windows on
-retrograde re-entries; the UI re-consolidates. **Ashtakavarga** (bindu-point transit strength)
-is out of scope pending a cited source for the contribution tables — the vendored MIT
-`jyotishganit` now unblocks the port.
+retrograde re-entries; the UI re-consolidates. **Ashtakavarga** — the DB layer now exists
+(migrations 074–076): `tbl_Rule_AshtakavargaContribution` holds the Parāśari benefic-places
+matrix (56 rows, SAV total 337; BPHS, cross-checked vs the vendored MIT `jyotishganit`),
+`tbl_Rule_AshtakavargaReduction` the Trikoṇa/Ekādhipatya Śodhana steps, and
+`tbl_Fact_BhinnaAshtakavarga` / `…Contribution` / `tbl_Fact_SarvaAshtakavarga` /
+`tbl_Fact_AshtakavargaPinda` receive the results. Remaining CLI slice: `AshtakavargaCalculator`
+(BAV → SAV → reductions → Sodhya Piṇḍa), its repository + `GenerateAll` wiring, and
+`verify-ashtakavarga` against the `research.*` JHora benchmark.
 
 ## 10. Functional benefic / malefic
 
@@ -169,8 +174,13 @@ Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_Wakefuln
 / `tbl_Rule_BhavaBalaComponent` with formula provenance, → `tbl_Fact_PlanetaryStrength*` /
 `tbl_Fact_BhavaStrength*`. Available: total Ṣaḍbala, the six sub-totals, named component rows,
 Kālabala, strongest-planet ranking, Bhāva Bala, `tbl_Fact_Vargottama` (explicit D1/D9 same-sign
-facts). Remaining: uncomputed Tribhāga/Varṣa/Māsa/Dina/Horā/Ayana Kālabala; planetary war;
-per-planet minimum-rūpa thresholds; Iṣṭa/Kaṣṭa/Cheṣṭā reconciliation; Vimśopaka Bala.
+facts). **DB contracts landed** (migrations 071–073): `tbl_Rule_ShadbalaMinimumRupas` (the
+classical 5/6/5/7/6.5/5.5/5 rūpa thresholds — reproduce JHora %Strength within rounding),
+`tbl_Rule_PlanetaryWar` (Yuddha orb + adjustment), `RuleParametersJson` on the six deferred
+Kālabala sub-components, and `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden totals).
+Remaining (engine): compute the six Tribhāga/Varṣa/Māsa/Dina/Horā/Ayana Kālabala components;
+planetary-war adjustment; populate `MinimumRequiredRupas` + the Rashmi / Parāśara Iṣṭa/Kaṣṭa
+columns; Cheṣṭā reconciliation; a `verify-shadbala` mode; Vimśopaka Bala.
 
 ## 14. Yoga
 

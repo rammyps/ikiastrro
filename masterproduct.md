@@ -93,7 +93,8 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 | KARAKA | cli | 4 | 55% | 2 | 2 | 2 | 2 | 2 |
 | AVASTHA | cli | 5 | 32% | 3 | 3 | 3 | 5 | 3 |
 | DISPOSITOR | cli | 1 | 0% | 1 | 1 | 1 | 1 | 1 |
-| STRENGTH | cli | 2 | 0% | 2 | 2 | 2 | 2 | 2 |
+| STRENGTH | cli | 2 | 40% | 1 | 2 | 2 | 2 | 1 |
+| ASHTAKAVARGA | cli | 1 | 30% | 0 | 1 | 1 | 1 | 0 |
 | DASHA | cli | 2 | 90% | 0 | 0 | 0 | 0 | 1 |
 | YOGA | cli | 1 | 0% | 1 | 1 | 1 | 1 | 1 |
 | TRANSIT | cli | 2 | 80% | 0 | 0 | 0 | 1 | 0 |
@@ -217,18 +218,37 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 
 ## STRENGTH — workstream: cli
 
-- **FEAT-STRENGTH-01 · Ṣaḍbala (6 components) + Iṣṭa/Kaṣṭa + Bhāva Bala** — In progress · 65% · Research: sourced
-  DB [x] · Core [x] · Verify [x] · Web [x] (summary) · Docs [x]
+- **FEAT-STRENGTH-01 · Ṣaḍbala (6 components) + Iṣṭa/Kaṣṭa + Bhāva Bala** — In progress · 70% · Research: sourced
+  DB [x] · Core [~] · Verify [x] · Web [x] (summary) · Docs [x]
   Available now: total Ṣaḍbala, Sthāna/Dig/Kāla/Cheṣṭā/Naisargika/Dṛk totals, named
   component rows, Kālabala, strongest-planet ranking, exact longitude, Bhāva Bala.
-  Remaining: the seeded-but-uncomputed Tribhāga/Varṣa/Māsa/Dina/Horā/Ayana Kālabala
-  components; planetary-war adjustment; per-planet minimum-rūpa thresholds; replace
-  simplified Iṣṭa/Kaṣṭa/Cheṣṭā conventions after reference reconciliation.
+  **DB slice done** (migrations 071–073, 076): `vw_ChartShadbala` regression (069) fixed;
+  `tbl_Rule_ShadbalaMinimumRupas` seeded (reproduces JHora %Strength within rounding);
+  `tbl_Rule_PlanetaryWar` + the six Kālabala `RuleParametersJson` seeded;
+  `tbl_Dim_ShadbalaBenchmarkValues` holds the seven-planet JHora golden totals.
+  Remaining (CLI): compute the six Tribhāga/Varṣa/Māsa/Dina/Horā/Ayana Kālabala
+  components; planetary-war adjustment; populate `MinimumRequiredRupas` + the Rashmi /
+  Parāśara Iṣṭa/Kaṣṭa columns; a `verify-shadbala` mode against the benchmark.
 - **FEAT-STRENGTH-02 · Vimśopaka Bala + Vaiśeṣikāṃśa grades** — Planned · 15% · Research: partial
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x]
   Prerequisite varga charts exist through the Shodashavarga set. Remaining: source the four
   varga-group weights, compute dignity-weighted scores, define Vaiśeṣikāṃśa membership and
   grade names, persist, expose to Yoga.
+
+## ASHTAKAVARGA — workstream: cli
+
+- **FEAT-ASHTAKAVARGA-01 · Bhinna / Sarva Ashtakavarga + Sodhya Piṇḍa** — DB · 30% · Research: sourced
+  DB [x] · Core [ ] · Verify [ ] · Web [ ] · Docs [x]
+  **DB slice done** (migrations 074–076): production `dbo` schema —
+  `tbl_Rule_AshtakavargaContribution` (56-row Parāśari benefic-places matrix, per-recipient
+  totals 48/49/39/54/56/52/39, SAV grand total 337; BPHS, cross-checked vs the vendored MIT
+  `jyotishganit`, hand-verified against the JHora export — the Saturn BAV row reproduces
+  exactly), `tbl_Rule_AshtakavargaReduction` (Trikoṇa + Ekādhipatya Śodhana),
+  `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`,
+  `tbl_Fact_AshtakavargaPinda`, `vw_ChartAshtakavarga`. The JHora BAV grid + Piṇḍa are
+  seeded into the `research.*` benchmark for `BENCH_RAMAKRISHNAN_P_JHORA_1981`.
+  Remaining (CLI): `AshtakavargaCalculator` (BAV → SAV → Trikoṇa/Ekādhipatya → Sodhya
+  Piṇḍa), repository, `GenerateAll` wiring, `verify-ashtakavarga`, and a UI table.
 
 ## DASHA — workstream: cli
 
@@ -331,7 +351,7 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
 - **FEAT-UI-09 · Astrologer evidence tables (`/charts/{id}/evidence`)** — Verified · 80%
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [x] (`docs/ui/components/evidence-tables.md`)
 - **FEAT-UI-10 · Transit wheel (`/transit-wheel/{id}`) — natal ↔ transit + dasha selector** — Verified · 80% · **v1; being replaced by `FEAT-UI-13`**
-  DB [—] · Core [—] · Verify [x] · Web [x] · Docs [x] (`docs/ui/components/transit-wheel.md`)
+  DB [—] · Core [—] · Verify [x] · Web [x] · Docs [x] (`docs/ui/components/spec_Natal_Transit_Comp_Wheel.md`)
   The v2 route now renders the `FEAT-UI-13` landing (D1 Birth tab live). The v1 natal↔transit
   wheel + dasha/date selectors + comparison table are gone from the page; `TransitSelection.cs`
   and its tests are kept for the moment (a later slice may reuse the date logic).
@@ -349,14 +369,14 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   persistence now, DB-backed default is a `database` follow-up. See `docs/ui/MASTER.md`
   NFR-UI-02 / -03 / -04, and NFR-UI-01 (runtime tab reorder — deferred).
 - **FEAT-UI-13 · Transit landing (`/transit-wheel/{id}`) — v2, embedded wheel + two-tab table** — In progress · 40%
-  DB [ ] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/transit.md`)
+  DB [ ] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/spec_Natal_Transit_Comp_Wheel.md`)
   First `wkstream_UI_v2` implementation slice (Home → select person → Transit). Landed: the v2
   app shell (HOME pill hard-left, per-person `TRANSIT · ALL CHARTS · KEY INFERENCE` tabs revealed
   once a person is open, context band, `--maxw` / `--pad-x`); a scoped `ActivePerson`; the page
   at `/transit-wheel/{id}` with band heading `TRANSIT - D1 BIRTH CHART`, a static wheel placement,
-  and the **D1 Birth** tab against `vw_ChartPlanetEvidence` via a focused `TransitLandingRepository`
+  and the **D1 Birth** tab against `vw_ChartPlanetEvidence` via a focused `Natal_Transit_Comp_WheelRepository`
   (persisted rows only, sorted Lagna → Saturn…Sun — deliberately not `AstrologerEvidenceRepository`,
-  which fans out ~20 sections); browser smoke + `TransitLandingMath` unit tests. **`Web [ ]`** —
+  which fans out ~20 sections); browser smoke + `Natal_Transit_Comp_WheelMath` unit tests. **`Web [ ]`** —
   open: the **Current Transit** tab is wired to `GocharaRepository` but that source only covers
   Saturn/Jupiter/Rahu and returns nothing for "now" (degrades to the `backfill-planet-transits`
   hint); `InSignMotion` / `NextChangeMotion` columns show `—` pending Codex's

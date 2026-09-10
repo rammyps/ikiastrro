@@ -36,8 +36,11 @@ upagrahas** · Ṣaḍbala / Bhāva Bala foundation · source-attributed yoga in
    Jaimini rāśi dashas.
 4. **Strength systems** — Bhinnāṣṭakavarga + Sarvāṣṭakavarga; Trikoṇa / Ekādhipatya Śodhana;
    Piṇḍa reductions; full Ṣaḍbala rūpas + Iṣṭa/Kaṣṭa; Vimśopaka Bala + Vaiśeṣikāṁśa.
-   `jyotishganit` covers BAV/SAV + Ṣaḍbala; Piṇḍa + weighted-varga conventions still need a
-   cited source.
+   **DB layer landed** (migrations 071–076): the Parāśari BAV matrix (`SRC_BPHS_ASHTAKAVARGA`,
+   cross-checked vs `jyotishganit`, SAV total 337), the Śodhana reduction rules, the
+   `tbl_Fact_*Ashtakavarga*` tables, the Ṣaḍbala minimum-rūpa + planetary-war rules, and JHora
+   benchmarks for both. Remaining: the `AshtakavargaCalculator` + Kālabala/Yuddha/Iṣṭa-Kaṣṭa
+   engine work; Vimśopaka + weighted-varga conventions still need a cited source.
 5. **Avastha & karaka reference** — Dīptādi + Lajjitādi (need a shared benefic/malefic
    classifier); Śayanādi (needs persisted janma ghaṭis, source-blocked); apply the designed
    `tbl_Dim_HouseSignification` / Sthira / Naisargika reference data (migration 030) instead

@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: database
 togaf: C — Data Architecture
 ---
@@ -15,7 +15,7 @@ work. One repository per table/view in `src/Ikiastrro.Data/`.
 - **Baseline** `db/ikiastrro.sql` — whole schema + reference/master seed + the
   `tbl_Dim_LifeCalendar` day dimension.
 - **Forward changes** are numbered scripts `db/NN_<slug>.sql`, applied in order, each
-  appending its `ScriptName` to `dbo.SchemaMigrations`. Active range `22`–`054`.
+  appending its `ScriptName` to `dbo.SchemaMigrations`. Active range `22`–`076`.
 - **Never edit an applied migration.** A change is a new script. A rule change is a new
   `RuleSetId`, not an `UPDATE`.
 - `db/_archive/` holds the pre-consolidation `001..034` chain (frozen, historical).
@@ -29,10 +29,10 @@ work. One repository per table/view in `src/Ikiastrro.Data/`.
 | Chart results | `tbl_ChartResults` — one row per person × chart type, one per dasha run; carries `AyanamshaDegrees`, `SiderealTimeHours`, `VargaMethod`, `RuleSetId`, `ResultJson` (frozen audit snapshot) | engine |
 | Chart analytics (chart-type-generic, keyed by `ChartResultId` + `ChartType`) | `tbl_Chart_KeyDetails`, `tbl_Chart_HouseLords`, `tbl_Chart_Conjunctions`, `tbl_Chart_MultiGrahaConjunction` / `…Member`, `tbl_Chart_Aspects` | `ChartAnalyzer` |
 | Dasha | `tbl_Chart_DashaPeriods` (self-referencing via `ParentDashaPeriodId`, 3 levels, age-relative + absolute dates) | `VimshottariDashaService` |
-| Reference / master | `tbl_Planets` (9), `tbl_SignAttributes` (12), `tbl_Nakshatras` (27), `tbl_NakshatraPadas` (108), `tbl_NakshatraSubLords` (243, KP L1–L2), `tbl_PlanetSignTransitEvents` (Sa/Ju/Ra sign-crossing log 1930–2060), `tbl_TransitPositionReference` (currently stores current `MotionDirection` only — **UI needs two new columns: `InSignMotion`, `NextChangeMotion`**; see [`../ui/components/transit.md`](../ui/components/transit.md)) | seed / CLI backfill |
+| Reference / master | `tbl_Planets` (9), `tbl_SignAttributes` (12), `tbl_Nakshatras` (27), `tbl_NakshatraPadas` (108), `tbl_NakshatraSubLords` (243, KP L1–L2), `tbl_PlanetSignTransitEvents` (Sa/Ju/Ra sign-crossing log 1930–2060), `tbl_TransitPositionReference` (currently stores current `MotionDirection` only — **UI needs two new columns: `InSignMotion`, `NextChangeMotion`**; see [`../ui/components/spec_Natal_Transit_Comp_Wheel.md`](../ui/components/spec_Natal_Transit_Comp_Wheel.md)) | seed / CLI backfill |
 | Rules engine (versioned; every row carries `RuleSetId`) | see [`rules-engine.md`](rules-engine.md) | seed |
-| Dimensions | `tbl_Dim_LifeCalendar`, `tbl_Dim_PlanetaryState`, `tbl_Dim_ChartType`, `tbl_Dim_Source`, `tbl_Dim_LifeArea` / `House` / `HouseCategory` / `HouseReference` / `SubPlanets` / `SpecialLagnas` / `DivisionalSubject` / `InterpretationDimension` / `GrahaAttribute`, `tbl_Dim_AyanamsaBenchmark*`, `tbl_Dim_DashaSystems` / `DashaBenchmarkPeriods` | seed / CTE |
-| Facts (per chart, star-schema) | `tbl_Fact_PlanetaryState`, `tbl_Fact_PlanetaryStrength` / `…Component`, `tbl_Fact_BhavaStrength` / `…Component`, `tbl_Fact_Vargottama`, `tbl_Fact_YogaInputEvaluations`, `tbl_Fact_HouseFromReference`, `tbl_Fact_Ayanamsa*` / `Dasha*Comparisons` | computers via `ChartGenerationService` |
+| Dimensions | `tbl_Dim_LifeCalendar`, `tbl_Dim_PlanetaryState`, `tbl_Dim_ChartType`, `tbl_Dim_Source`, `tbl_Dim_LifeArea` / `House` / `HouseCategory` / `HouseReference` / `SubPlanets` / `SpecialLagnas` / `DivisionalSubject` / `InterpretationDimension` / `GrahaAttribute`, `tbl_Dim_AyanamsaBenchmark*`, `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden Ṣaḍbala totals), `tbl_Dim_DashaSystems` / `DashaBenchmarkPeriods` | seed / CTE |
+| Facts (per chart, star-schema) | `tbl_Fact_PlanetaryState`, `tbl_Fact_PlanetaryStrength` / `…Component`, `tbl_Fact_BhavaStrength` / `…Component`, `tbl_Fact_Vargottama`, `tbl_Fact_YogaInputEvaluations`, `tbl_Fact_HouseFromReference`, `tbl_Fact_Ayanamsa*` / `Dasha*Comparisons`, `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda` (Ashtakavarga schema live; calculator pending) | computers via `ChartGenerationService` |
 
 ## Chart-generic analytics — the design
 
@@ -64,7 +64,9 @@ every chart type.
 
 - Views: `vw_Chart_Consolidated`, `vw_Chart_DashaTimeline`, `vw_Chart_HouseNakshatraSpan`,
   `vw_KetuSignTransitEvents`, `vw_NakshatraPadaDetails`, `vw_ChartPlanetEvidence`,
-  `vw_ChartMoonContext`, `vw_ChartShadbala`, `vw_ChartBhavaBala`, `vw_ChartYogaEvaluations`,
+  `vw_ChartMoonContext`, `vw_ChartShadbala` (re-exposes `BirthDetailId` / `Planet` /
+  `PercentOfMinimum` after the migration-069 regression; migration 071), `vw_ChartBhavaBala`,
+  `vw_ChartAshtakavarga` (BAV grid + SAV per sign; migration 074), `vw_ChartYogaEvaluations`,
   `vw_YogaChartApplicability`, `vw_YogaContextRequirements`, `vw_Dignity_Legend`.
 - Functions: `fn_GetNakshatraRulingPlanetId` (scalar); `tvf_Chart_LifeWeeks(@BirthDetailId)`,
   `tvf_Chart_SadeSatiPeriods(@BirthDetailId)`, `tvf_PlanetSignAtDate(@PlanetId, @AsOfUtc)`
