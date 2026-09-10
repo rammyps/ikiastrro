@@ -1,3 +1,4 @@
+using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.PlanetaryStates;
 using Ikiastrro.Core.Engines.Strength;
@@ -31,4 +32,8 @@ public sealed record ChartBundle(
 
     /// <summary>Explicit D1/D9 same-sign results; Vargottama is reported separately from Shadbala points.</summary>
     public IReadOnlyList<VargottamaResult> Vargottama { get; init; } = Array.Empty<VargottamaResult>();
+
+    /// <summary>Parāśari Ashtakavarga (BAV / SAV / Sodhya Piṇḍa) over the D1 chart. Null only when
+    /// no D1 chart is present in <see cref="Charts"/>.</summary>
+    public AshtakavargaResult? Ashtakavarga { get; init; }
 }

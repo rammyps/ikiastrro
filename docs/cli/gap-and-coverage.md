@@ -20,7 +20,9 @@ degree · dignity, whole-sign house lordship (3 reckonings), conjunctions (+ gro
 dṛṣṭi, retrograde, combustion · Vimśottari dasha (3 levels, partial-at-birth) · slow-planet
 transit events · Sade Sati / Kantaka / Ashtama · functional benefic/malefic · Bālādi +
 Jāgradādi avasthas · Chara Karakas (Aṣṭa) · AL + 12 Arudhas + Hora Lagna + **all 11
-upagrahas** · Ṣaḍbala / Bhāva Bala foundation · source-attributed yoga inputs · provenance
+upagrahas** · Ṣaḍbala / Bhāva Bala foundation · **Parāśari Ashtakavarga — BAV / SAV /
+Ṭrikoṇa + Ekādhipatya Śodhana / Rāśi + Graha + Sodhya Piṇḍa** (`verify-ashtakavarga`
+reproduces the JHora export exactly) · source-attributed yoga inputs · provenance
 (ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
 
 ## Priority gaps
@@ -34,13 +36,11 @@ upagrahas** · Ṣaḍbala / Bhāva Bala foundation · source-attributed yoga in
 3. **Jaimini base layer** — Karakāṁśa from AK in D9; the remaining special lagnas (Bhava,
    Ghati, Vighati, Varnada V1–V12, Sree, Pranapada, Indu); Bhṛgu Bindu. Dependency for
    Jaimini rāśi dashas.
-4. **Strength systems** — Bhinnāṣṭakavarga + Sarvāṣṭakavarga; Trikoṇa / Ekādhipatya Śodhana;
-   Piṇḍa reductions; full Ṣaḍbala rūpas + Iṣṭa/Kaṣṭa; Vimśopaka Bala + Vaiśeṣikāṁśa.
-   **DB layer landed** (migrations 071–076): the Parāśari BAV matrix (`SRC_BPHS_ASHTAKAVARGA`,
-   cross-checked vs `jyotishganit`, SAV total 337), the Śodhana reduction rules, the
-   `tbl_Fact_*Ashtakavarga*` tables, the Ṣaḍbala minimum-rūpa + planetary-war rules, and JHora
-   benchmarks for both. Remaining: the `AshtakavargaCalculator` + Kālabala/Yuddha/Iṣṭa-Kaṣṭa
-   engine work; Vimśopaka + weighted-varga conventions still need a cited source.
+4. **Strength systems** — **Ashtakavarga is delivered** (BAV / SAV / Śodhana / Piṇḍa, exact
+   vs the JHora export — migrations 074–078 + `AshtakavargaCalculator` + `verify-ashtakavarga`).
+   Remaining: full Ṣaḍbala rūpas + the six Kālabala sub-components + planetary war +
+   Iṣṭa/Kaṣṭa (DB rules seeded, migrations 071–073, 076); Vimśopaka Bala + Vaiśeṣikāṁśa
+   (four varga-group weights still need a cited source).
 5. **Avastha & karaka reference** — Dīptādi + Lajjitādi (need a shared benefic/malefic
    classifier); Śayanādi (needs persisted janma ghaṭis, source-blocked); apply the designed
    `tbl_Dim_HouseSignification` / Sthira / Naisargika reference data (migration 030) instead

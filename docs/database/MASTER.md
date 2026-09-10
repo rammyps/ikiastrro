@@ -25,8 +25,8 @@ Publishes to the CLI and UI streams under
 ## Current state
 
 - **Baseline** `db/ikiastrro.sql` + numbered migrations `db/NN_*.sql` applied in order,
-  tracked in `dbo.SchemaMigrations` (keyed by `ScriptName`). Migrations `22`–`076` are the
-  active layer; earlier flat history is frozen under `db/_archive/`. `055`–`076` are applied
+  tracked in `dbo.SchemaMigrations` (keyed by `ScriptName`). Migrations `22`–`078` are the
+  active layer; earlier flat history is frozen under `db/_archive/`. `055`–`078` are applied
   to dev but **not yet folded forward** into `db/ikiastrro.sql` — do that once proven on the
   other environments.
 - ~95 tables: input, chart results, chart-generic analytics, dasha, reference/master,
@@ -53,16 +53,17 @@ Publishes to the CLI and UI streams under
   rounding); `tbl_Rule_PlanetaryWar` + the six deferred Kālabala `RuleParametersJson`
   seeded. `tbl_Dim_ShadbalaBenchmarkValues` holds the seven-planet JHora golden totals.
   Calculators that read these are a `cli` follow-up.
-- **`FEAT-ASHTAKAVARGA-01` (DB slice)** — migrations 074–076: production `dbo` schema
+- **`FEAT-ASHTAKAVARGA-01`** — migrations 074–078: production `dbo` schema
   (`tbl_Rule_AshtakavargaContribution` — 56-row Parāśari matrix, SAV total 337;
-  `tbl_Rule_AshtakavargaReduction`; `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`,
-  `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda`; `vw_ChartAshtakavarga`).
-  Matrix hand-verified against the JHora export (Saturn BAV row reproduced exactly). JHora
-  BAV grid + Piṇḍa seeded into the `research.*` benchmark. `AshtakavargaCalculator` pending.
-- **Known pre-existing break:** `verify-sources` crashes on `Invalid object name
-  'dbo.tbl_Dim_SourceReferencePlanetText'` — its `SourceRefCode` tripwire loop hard-codes
-  `dbo.` but migrations 056/067/070 put those tables in `research.*`. A `cli` one-liner
-  (schema-filter the loop). Not introduced by 071–076.
+  `tbl_Rule_AshtakavargaReduction` — Ṭrikoṇa / Ekādhipatya / Sodhya-Piṇḍa;
+  `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`,
+  `tbl_Fact_AshtakavargaPinda`; `vw_ChartAshtakavarga`). 077 tightens the reduction rules,
+  078 corrects the Moon/Venus benefic places to the Parāśari variant JHora uses. The `cli`
+  `AshtakavargaCalculator` + `verify-ashtakavarga` now reproduce the JHora export for
+  `1_Ramakrishnan` exactly (BAV, SAV, all seven Rāśi/Graha/Sodhya Piṇḍa).
+- **`verify-sources`** — the `SourceRefCode` tripwire loop is now scoped to schema `dbo`
+  (it was crashing on the `research.*` tables from migrations 056/067/070); green again,
+  and it now also checks the new Ashtakavarga / strength `SourceRefCode`s.
 
 ## Planned
 

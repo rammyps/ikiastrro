@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Dapper;
 using Ikiastrro.Cli;
+using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.DivisionalCharts;
 using Ikiastrro.Core.Pipeline;
@@ -129,7 +130,8 @@ var chartGenerationService = new ChartGenerationService(
     ayanamsaRuleRepo,
     new PlanetaryStrengthRepository(connectionFactory),
     new BhavaStrengthRepository(connectionFactory),
-    new VargottamaRepository(connectionFactory), new YogaInputRepository(connectionFactory));
+    new VargottamaRepository(connectionFactory), new YogaInputRepository(connectionFactory),
+    new AshtakavargaRepository(connectionFactory));
 
 // --- One-off backfill mode: `dotnet run -- backfill-analytics` ---
 // Unconditionally re-derives all four analytics tables (KeyDetails/HouseLords/Conjunctions/Aspects)
@@ -688,6 +690,141 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
+// --- One-off check: `dotnet run -- verify-ashtakavarga` ---
+// Parasari Ashtakavarga (AshtakavargaCalculator) must (1) mirror the seeded rule matrix,
+// (2) reproduce the JHora export for 1_Ramakrishnan — BAV grid, Sarvashtakavarga, and the
+// Rasi/Graha/Sodhya Pinda — exactly, and (3) match what GenerateAll persisted.
+if (args.Length > 0 && args[0] == "verify-ashtakavarga")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+    static string Csv(IEnumerable<int> xs) => string.Join(" ", xs);
+
+    // --- Phase 1: the C# BENEFIC_HOUSES matrix mirrors tbl_Rule_AshtakavargaContribution ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var dbRows = conn.Query<(string RecipientCode, string ContributorCode, string BeneficPlacesJson)>(
+            @"SELECT RecipientCode, ContributorCode, BeneficPlacesJson
+              FROM dbo.tbl_Rule_AshtakavargaContribution
+              WHERE RuleSetId = 1 AND MethodCode = 'PVR_PARASARA_BAV'").ToList();
+        Check("rule matrix row count", dbRows.Count, 56);
+
+        var mismatches = 0;
+        var grand = 0;
+        foreach (var recipient in AshtakavargaTables.Recipients)
+        {
+            var recipientTotal = 0;
+            foreach (var contributor in AshtakavargaTables.Contributors)
+            {
+                var cs = AshtakavargaTables.BeneficPlaces[recipient][contributor];
+                recipientTotal += cs.Length;
+                var row = dbRows.FirstOrDefault(r => r.RecipientCode == recipient && r.ContributorCode == contributor);
+                var db = row.BeneficPlacesJson is null
+                    ? Array.Empty<int>()
+                    : JsonSerializer.Deserialize<int[]>(row.BeneficPlacesJson) ?? Array.Empty<int>();
+                if (Csv(cs.OrderBy(x => x)) != Csv(db.OrderBy(x => x))) mismatches++;
+            }
+            grand += recipientTotal;
+        }
+        Check("C# matrix == DB matrix (per cell)", mismatches, 0);
+        Check("Sarvashtakavarga grand total", grand, 337);
+    }
+
+    var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var bundle = new ChartPipeline(orchestrator, psRules).Run(ram);
+    var av = bundle.Ashtakavarga ?? throw new InvalidOperationException("ChartBundle.Ashtakavarga is null.");
+
+    // --- Phase 2: BAV grid == the JHora benchmark (research.* cells) ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var benchBav = conn.Query<(string RecipientCode, int SignNumber, int BinduValue)>(
+            @"SELECT c.RecipientCode, c.SignNumber, c.BinduValue
+              FROM research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkCell c
+              JOIN research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkRun r ON r.Id = c.RunId
+              JOIN research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkCase cs ON cs.Id = r.CaseId
+              WHERE cs.CaseCode = 'BENCH_RAMAKRISHNAN_P_JHORA_1981' AND c.MetricCode = 'BAV'
+                AND c.RecipientCode <> 'AS'")
+            .ToLookup(x => x.RecipientCode, x => (x.SignNumber, x.BinduValue));
+
+        foreach (var b in av.Bhinna)
+        {
+            var expected = Enumerable.Range(1, 12)
+                .Select(s => benchBav[b.Recipient].First(t => t.SignNumber == s).BinduValue);
+            Check($"BAV {b.Recipient,-8} vs JHora", Csv(b.Bindus), Csv(expected));
+        }
+
+        // --- Phase 3: SAV == column sums of the benchmark BAV; total 337 ---
+        var savExpected = Enumerable.Range(1, 12)
+            .Select(s => AshtakavargaTables.Recipients.Sum(rp => benchBav[rp].First(t => t.SignNumber == s).BinduValue))
+            .ToArray();
+        Check("SAV vs JHora column sums", Csv(av.Sarva.Bindus), Csv(savExpected));
+        Check("SAV total", av.Sarva.Total, 337);
+
+        // --- Phase 4: Rasi / Graha / Sodhya Pinda == the JHora benchmark (exact) ---
+        var notes = conn.ExecuteScalar<string?>(
+            @"SELECT r.Notes
+              FROM research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkRun r
+              JOIN research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkCase cs ON cs.Id = r.CaseId
+              WHERE cs.CaseCode = 'BENCH_RAMAKRISHNAN_P_JHORA_1981' AND r.SourceSystemCode = 'JAGANNATHA_HORA'")
+            ?? throw new InvalidOperationException("JHora Ashtakavarga benchmark run notes (Pinda JSON) not seeded — apply db/075.");
+        var pinda = JsonDocument.Parse(notes).RootElement.GetProperty("pinda");
+        var abbrev = new Dictionary<string, string>
+        {
+            ["SUN"] = "Su", ["MOON"] = "Mo", ["MARS"] = "Ma", ["MERCURY"] = "Me",
+            ["JUPITER"] = "Ju", ["VENUS"] = "Ve", ["SATURN"] = "Sa",
+        };
+        foreach (var p in av.Pinda)
+        {
+            var e = pinda.GetProperty(abbrev[p.Recipient]);
+            Check($"Pinda {p.Recipient,-8} (rasi/graha/sodhya)",
+                $"{p.RasiPinda}/{p.GrahaPinda}/{p.SodhyaPinda}",
+                $"{e.GetProperty("rasi").GetInt32()}/{e.GetProperty("graha").GetInt32()}/{e.GetProperty("sodhya").GetInt32()}");
+        }
+    }
+
+    // --- Phase 5: persisted tbl_Fact_* for the stored Ramakrishnan D1 == the engine ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        const string where =
+            @"JOIN dbo.tbl_ChartResults cr ON cr.Id = f.ChartResultId
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
+              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1'";
+
+        var storedBav = conn.Query<(string RecipientCode, int SignNumber, int BinduCount)>(
+            $"SELECT f.RecipientCode, f.SignNumber, f.BinduCount FROM dbo.tbl_Fact_BhinnaAshtakavarga f {where}")
+            .ToLookup(x => x.RecipientCode, x => (x.SignNumber, x.BinduCount));
+        foreach (var b in av.Bhinna)
+        {
+            var stored = Enumerable.Range(1, 12).Select(s => storedBav[b.Recipient].FirstOrDefault(t => t.SignNumber == s).BinduCount);
+            Check($"persisted BAV {b.Recipient,-8}", Csv(stored), Csv(b.Bindus));
+        }
+
+        var storedSav = conn.Query<int>(
+            $"SELECT f.TotalBindus FROM dbo.tbl_Fact_SarvaAshtakavarga f {where} ORDER BY f.SignNumber").ToArray();
+        Check("persisted SAV", Csv(storedSav), Csv(av.Sarva.Bindus));
+
+        var storedPinda = conn.Query<(string RecipientCode, int RasiPinda, int GrahaPinda, int SodhyaPinda)>(
+            $"SELECT f.RecipientCode, f.RasiPinda, f.GrahaPinda, f.SodhyaPinda FROM dbo.tbl_Fact_AshtakavargaPinda f {where}")
+            .ToDictionary(x => x.RecipientCode);
+        foreach (var p in av.Pinda)
+        {
+            var s = storedPinda.GetValueOrDefault(p.Recipient);
+            Check($"persisted Pinda {p.Recipient,-8}",
+                $"{s.RasiPinda}/{s.GrahaPinda}/{s.SodhyaPinda}",
+                $"{p.RasiPinda}/{p.GrahaPinda}/{p.SodhyaPinda}");
+        }
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-ashtakavarga: ALL PASS" : $"\nverify-ashtakavarga: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
 // --- One-off check: `dotnet run -- verify-pipeline` ---
 // The DB-free ChartPipeline.Run façade must reproduce, for person 1 (Ramakrishnan), the same D1
 // KeyDetails the stored rows hold — proving the compute half of ChartGenerationService is faithfully
@@ -761,12 +898,13 @@ if (args.Length > 0 && args[0] == "verify-sources")
     Check("Code is unique",
         Count("SELECT COUNT(*) - COUNT(DISTINCT Code) FROM dbo.tbl_Dim_Source"));
 
-    // Forward-looking: every SourceRefCode used by a rule/terminology table must resolve.
-    // No such columns exist yet (Plan 1) — this loop is a no-op today, a tripwire later.
+    // Forward-looking: every SourceRefCode used by a dbo rule/fact table must resolve.
+    // Scoped to schema dbo — the research.* corpus (migrations 056/067/070) carries its own
+    // SourceRefCode / SourceRefLocator columns that this dbo-only tripwire must not touch.
     var refColumns = conn.Query<(string TableName, string ColumnName)>(@"
         SELECT t.name, c.name
         FROM sys.columns c JOIN sys.tables t ON t.object_id = c.object_id
-        WHERE c.name = 'SourceRefCode'").ToList();
+        WHERE c.name = 'SourceRefCode' AND t.schema_id = SCHEMA_ID('dbo')").ToList();
     foreach (var (tbl, col) in refColumns)
         Check($"{tbl}.{col} all resolve in tbl_Dim_Source",
             Count($@"SELECT COUNT(*) FROM dbo.[{tbl}] x

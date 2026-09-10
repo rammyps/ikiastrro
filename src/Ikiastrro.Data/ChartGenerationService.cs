@@ -1,3 +1,4 @@
+using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.PlanetaryStates;
 using Ikiastrro.Core.Engines.Relationships;
@@ -38,6 +39,7 @@ public class ChartGenerationService
     private readonly BhavaStrengthRepository _bhavaStrengthRepo;
     private readonly VargottamaRepository _vargottamaRepo;
     private readonly YogaInputRepository _yogaInputRepo;
+    private readonly AshtakavargaRepository _ashtakavargaRepo;
 
     // The avastha rule/dim rows are the same for the whole GenerateAll/Recompute call — load once.
     private PlanetaryStateRuleSet? _planetaryStateRules;
@@ -54,7 +56,8 @@ public class ChartGenerationService
         AyanamsaRuleRepository ayanamsaRuleRepo,
         PlanetaryStrengthRepository planetaryStrengthRepo,
         BhavaStrengthRepository bhavaStrengthRepo,
-        VargottamaRepository vargottamaRepo, YogaInputRepository yogaInputRepo)
+        VargottamaRepository vargottamaRepo, YogaInputRepository yogaInputRepo,
+        AshtakavargaRepository ashtakavargaRepo)
     {
         _orchestrator = orchestrator;
         _dashaService = dashaService;
@@ -73,6 +76,7 @@ public class ChartGenerationService
         _bhavaStrengthRepo = bhavaStrengthRepo;
         _vargottamaRepo = vargottamaRepo;
         _yogaInputRepo = yogaInputRepo;
+        _ashtakavargaRepo = ashtakavargaRepo;
     }
 
     private AyanamsaDefinition ResolveAyanamsa(AyanamsaDefinition? requested) =>
@@ -97,6 +101,7 @@ public class ChartGenerationService
         _planetaryStrengthRepo.DeleteByBirthDetailId(birthDetails.Id);  // FK_Fact_PlanetaryStrength_ChartResult has no cascade
         _bhavaStrengthRepo.DeleteByBirthDetailId(birthDetails.Id);
         _vargottamaRepo.DeleteByBirthDetailId(birthDetails.Id);
+        _ashtakavargaRepo.DeleteByBirthDetailId(birthDetails.Id);  // FKs to tbl_ChartResults have no cascade
         foreach (var calc in _orchestrator.Calculators)
             _chartResultsRepo.DeleteByBirthDetailIdAndChartType(birthDetails.Id, calc.ChartType);
 
@@ -272,6 +277,8 @@ public class ChartGenerationService
             _bhavaStrengthRepo.InsertAll(chartResultId, ruleSetId,
                 BhavaBalaCalculator.Calculate(input, strengths));
             _vargottamaRepo.InsertAll(chartResultId, ruleSetId, VargottamaDetector.Calculate(charts));
+            _ashtakavargaRepo.DeleteByChartResultId(chartResultId);
+            _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input));
         }
     }
 }

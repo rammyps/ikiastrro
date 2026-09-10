@@ -115,14 +115,23 @@ derived (`vw_KetuSignTransitEvents`); point-in-time sign `tvf_PlanetSignAtDate`.
 `tvf_Chart_SadeSatiPeriods(@BirthDetailId)` from the stored natal Moon sign +
 `tbl_PlanetSignTransitEvents` — no new reference data. Sade Sati = Saturn in the 12th / 1st /
 2nd from natal Moon (three Dhaiyas); Kantaka = 4th; Ashtama = 8th. The TVF splits windows on
-retrograde re-entries; the UI re-consolidates. **Ashtakavarga** — the DB layer now exists
-(migrations 074–076): `tbl_Rule_AshtakavargaContribution` holds the Parāśari benefic-places
-matrix (56 rows, SAV total 337; BPHS, cross-checked vs the vendored MIT `jyotishganit`),
-`tbl_Rule_AshtakavargaReduction` the Trikoṇa/Ekādhipatya Śodhana steps, and
-`tbl_Fact_BhinnaAshtakavarga` / `…Contribution` / `tbl_Fact_SarvaAshtakavarga` /
-`tbl_Fact_AshtakavargaPinda` receive the results. Remaining CLI slice: `AshtakavargaCalculator`
-(BAV → SAV → reductions → Sodhya Piṇḍa), its repository + `GenerateAll` wiring, and
-`verify-ashtakavarga` against the `research.*` JHora benchmark.
+retrograde re-entries; the UI re-consolidates.
+
+## 9a. Ashtakavarga (Parāśari)
+
+`AshtakavargaCalculator.Calculate(d1)` — pure, over the D1 natal signs of the seven grahas
++ Lagna → the seven **Bhinnāṣṭakavargas** (7 recipients × 8 contributors), the
+**Sarvāṣṭakavarga** (per-sign total of the seven, Lagna excluded; grand total 337),
+**Ṭrikoṇa + Ekādhipatya Śodhana**, and **Rāśi / Graha / Sodhya Piṇḍa**. The benefic-places
+matrix, rāśimāna `(7,10,8,4,10,5,7,8,9,5,11,12)` and grahamāna `[5,5,8,5,10,7,5]` live in
+`AshtakavargaTables` (the verified mirror of `tbl_Rule_AshtakavargaContribution` /
+`tbl_Rule_AshtakavargaReduction`). Moon and Venus carry the standard Parāśari corrections
+(Moon ±9 from Moon/Mars, +2/−12 from Jupiter; Venus +4/−5 from Mars) — the variant JHora
+uses. `SRC_BPHS_ASHTAKAVARGA`. Persisted on the D1 row: `tbl_Fact_BhinnaAshtakavarga`
+(+ the 1/0 `…Contribution` explain layer), `tbl_Fact_SarvaAshtakavarga`,
+`tbl_Fact_AshtakavargaPinda`; UI view `vw_ChartAshtakavarga`. Check: `verify-ashtakavarga`
+reproduces the JHora export for `1_Ramakrishnan` **exactly** — every BAV cell, the SAV, and
+all seven Rāśi/Graha/Sodhya Piṇḍa triples.
 
 ## 10. Functional benefic / malefic
 

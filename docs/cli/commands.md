@@ -46,10 +46,11 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 | `verify-upagrahas` | live rule loading + in-memory upagraha output, all 21 charts | **PASS** |
 | `verify-vargas` | hand-computed `IVargaSignRule` checks + **the JHora export grid** (180 cells) | **PASS** (on the Lahiri default, `FEAT-DATA-04`) |
 | `verify-jaimini` | HL / Gulika / Maandi longitudes + Chara Karakas vs the JHora export | **PASS** |
+| `verify-ashtakavarga` | C# matrix ⇄ `tbl_Rule_AshtakavargaContribution`, then BAV + SAV + all seven Rāśi/Graha/Sodhya Piṇḍa vs the JHora export for `1_Ramakrishnan` (exact), then vs the persisted `tbl_Fact_*` | **PASS** |
 
 ## Tests
 
-`tests/Ikiastrro.Yoga.Tests` (124) — yoga engine, shadbala, sub-planet, transit selection.
+`tests/Ikiastrro.Yoga.Tests` (130) — yoga engine, shadbala, ashtakavarga, sub-planet, transit selection.
 `tests/Ikiastrro.Web.Tests` (166, bUnit) — golden-SVG snapshots of the hand-rolled chart
 components (`docs/artifacts/ui/README.md`; mint with `IKIASTRRO_UPDATE_SNAPSHOTS=1`).
 

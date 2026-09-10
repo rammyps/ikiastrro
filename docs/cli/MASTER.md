@@ -23,19 +23,20 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
 
 ## Current state
 
-- **`Ikiastrro.Core`** — 13 named engines under `Engines/<Name>/`, `ChartPipeline` /
+- **`Ikiastrro.Core`** — 14 named engines under `Engines/<Name>/`, `ChartPipeline` /
   `ChartBundle` DB-free façade. All classical logic original; only raw longitudes from
   `SwissEphNet` (Moshier mode).
 - **21 position chart types** computed and persisted per person (D1 + 20 vargas), plus
   3-level Vimśottari dasha, dignity, house lordship, conjunctions (+ groups), aspects,
   retrograde / combustion, nakṣatra linkage, Chara Karakas + special points + 11 upagrahas,
-  Bālādi + Jāgradādi avasthas, Ṣaḍbala / Bhāva Bala foundation, source-attributed yoga
-  inputs, slow-planet transits, Sade Sati / Kantaka / Ashtama, functional benefic/malefic.
-- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (124) +
-  `tests/Ikiastrro.Web.Tests` (166). `dotnet build` / `dotnet test` run from the terminal.
-- **Green now:** all 11 `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
-  `verify-dignity`, `verify-rules`, `verify-pipeline`, `verify-sources`, `verify-terminology`,
-  `verify-avastha`, `verify-functional-nature`, `verify-upagrahas`.
+  Bālādi + Jāgradādi avasthas, Ṣaḍbala / Bhāva Bala foundation, **Parāśari Ashtakavarga
+  (BAV / SAV / Sodhya Piṇḍa)**, source-attributed yoga inputs, slow-planet transits,
+  Sade Sati / Kantaka / Ashtama, functional benefic/malefic.
+- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (130) +
+  `tests/Ikiastrro.Web.Tests` (187). `dotnet build` / `dotnet test` run from the terminal.
+- **Green now:** the `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
+  `verify-ashtakavarga`, `verify-dignity`, `verify-rules`, `verify-pipeline`, `verify-sources`,
+  `verify-terminology`, `verify-avastha`, `verify-functional-nature`, `verify-upagrahas`.
 
 ## In flight
 
@@ -44,7 +45,11 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   / `verify-jaimini` green. Still open: re-seed the `BENCH_RAMAKRISHNAN_P_JHORA_1981`
   benchmark case row and add a `verify-ayanamsa` mode (deferred).
 - **`FEAT-STRENGTH-01`** — implement the seeded-but-uncomputed Kālabala components; planetary
-  war; per-planet minimum-rūpa thresholds; reconcile Iṣṭa/Kaṣṭa/Cheṣṭā.
+  war; per-planet minimum-rūpa thresholds; reconcile Iṣṭa/Kaṣṭa/Cheṣṭā. (DB rules seeded,
+  migrations 071–073, 076.)
+- **`FEAT-ASHTAKAVARGA-01`** — DB + Core + Verify **done** (migrations 074–078;
+  `AshtakavargaCalculator`; `verify-ashtakavarga` reproduces the JHora export exactly).
+  Remaining: a UI Ashtakavarga table over `vw_ChartAshtakavarga`.
 - **`FEAT-YOGA-01`** — Raman predicates 201–300, PVR P0 additions, structured
   missing-requirement codes, source-qualified strength policy.
 
@@ -53,5 +58,5 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
 - `ChartGenerationService.GenerateAll` adopts the `ChartPipeline` bundle path.
 - Reserved engine seams: Dispositor, Vimśopaka, Sthira/Naisargika Karaka, additional avasthas
   (Dīptādi / Lajjitādi / Śayanādi).
-- Ashtakavarga + full Ṣaḍbala port from the vendored MIT `jyotishganit` (attribution).
+- Full Ṣaḍbala port from the vendored MIT `jyotishganit` (attribution).
 - Panchanga / time layer (tithi, karana, nitya yoga, Vedic weekday, janma ghaṭis).
