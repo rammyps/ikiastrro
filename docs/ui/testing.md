@@ -34,6 +34,13 @@ dotnet build tests/Ikiastrro.Web.E2E
 pwsh tests/Ikiastrro.Web.E2E/bin/Debug/net10.0/playwright.ps1 install chromium
 ```
 
+**The `install` line is optional** — `PlaywrightFixture` calls the installer itself on the
+first test run, so a cold `dotnet test tests/Ikiastrro.Web.E2E` just pays the one-time
+~115 MB Chromium download inline. Run it up front only to get that out of the way. It is the
+only step that needs PowerShell; `dotnet build` runs in any shell, and the `pwsh ` prefix
+lets the line be pasted from cmd or Git Bash too. Shell-agnostic alternative:
+`dotnet tool install --global Microsoft.Playwright.CLI` once, then `playwright install chromium`.
+
 ### Run
 
 ```
