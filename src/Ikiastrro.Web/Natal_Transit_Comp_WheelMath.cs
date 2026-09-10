@@ -4,11 +4,12 @@ using Ikiastrro.Core.Engines.Houses;
 namespace Ikiastrro.Web;
 
 /// <summary>
-/// Pure display helpers for the v2 Transit landing page (<c>Components/Pages/TransitWheel.razor</c>).
+/// Pure display helpers for the v2 Transit comparison page
+/// (<c>Components/Pages/Natal_Transit_Comp_Wheel.razor</c>).
 /// No astrology is computed here — this only orders and formats rows that are already persisted
-/// (<c>docs/ui/components/transit.md</c>, <c>docs/architecture/domain-contracts.md</c>).
+/// (<c>docs/ui/components/spec_Natal_Transit_Comp_Wheel.md</c>, <c>docs/architecture/domain-contracts.md</c>).
 /// </summary>
-public static class TransitLandingMath
+public static class Natal_Transit_Comp_WheelMath
 {
     // "how long a graha holds a house": Saturn slowest … Sun fastest. Both tabs sort by this;
     // the D1 Birth tab puts Lagna first (rank -1).

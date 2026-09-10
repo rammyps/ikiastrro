@@ -100,7 +100,7 @@ public static class ChartViewModel
     /// that chart's own KeyDetails/Aspects, already scoped by ChartResultId.
     ///
     /// EXTENSION POINT: adding a new divisional chart (D2, D10, ...)? Call this the same way the
-    /// workspace and varga pages do (its own KeyDetails + Aspects in, its own SouthIndianGrid's
+    /// workspace and varga pages do (its own KeyDetails + Aspects in, its own SouthIndianGrid_Detailed's
     /// AspectedByGlyphs out) — see VargaView.razor for the pattern to copy.
     /// </summary>
     /// <summary>

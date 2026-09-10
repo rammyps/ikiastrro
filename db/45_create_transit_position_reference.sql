@@ -14,13 +14,17 @@ BEGIN
         MotionDirection VARCHAR(10) NOT NULL,
         AyanamsaRuleId INT NOT NULL,
         InSignSinceUtc DATETIME2(0) NULL,
+        InSignMotion VARCHAR(10) NULL,
         NextChangeUtc DATETIME2(0) NULL,
+        NextChangeMotion VARCHAR(10) NULL,
         CreatedAtUtc DATETIME2(0) NOT NULL CONSTRAINT DF_tbl_TransitPositionReference_CreatedAtUtc DEFAULT SYSUTCDATETIME(),
         CONSTRAINT UQ_tbl_TransitPositionReference_Planet_AsOf UNIQUE (PlanetId, AsOfUtc),
         CONSTRAINT CK_tbl_TransitPositionReference_Longitude CHECK (LongitudeDegrees >= 0 AND LongitudeDegrees < 360),
         CONSTRAINT CK_tbl_TransitPositionReference_Sign CHECK (SignId BETWEEN 1 AND 12),
         CONSTRAINT CK_tbl_TransitPositionReference_Degree CHECK (DegreeInSign >= 0 AND DegreeInSign < 30),
         CONSTRAINT CK_tbl_TransitPositionReference_Motion CHECK (MotionDirection IN ('Direct','Retrograde','Stationary')),
+        CONSTRAINT CK_TransitPositionReference_InSignMotion CHECK (InSignMotion IS NULL OR InSignMotion IN ('Direct','Retrograde','Stationary')),
+        CONSTRAINT CK_TransitPositionReference_NextChangeMotion CHECK (NextChangeMotion IS NULL OR NextChangeMotion IN ('Direct','Retrograde','Stationary')),
         CONSTRAINT FK_tbl_TransitPositionReference_Nakshatra FOREIGN KEY (NakshatraId) REFERENCES dbo.tbl_Nakshatras(Id),
         CONSTRAINT FK_tbl_TransitPositionReference_Ayanamsa FOREIGN KEY (AyanamsaRuleId) REFERENCES dbo.tbl_Rule_Ayanamsa(Id)
     );

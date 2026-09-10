@@ -17,6 +17,9 @@
 .ntw-brand { fill: var(--brand-midnight); font-size: 28px; font-weight: 700; }
 .ntw-caption { fill: var(--brand-midnight); font-size: 10px; font-weight: 700; letter-spacing: .18em; }
 .ntw-meta { fill: var(--brand-muted); font-size: 9px; font-weight: 600; }
+.ntw-center-date, .ntw-center-time { text-anchor: middle; fill: var(--brand-midnight); }
+.ntw-center-date { font-size: 17px; font-weight: 800; }
+.ntw-center-time { font-size: 12px; font-weight: 650; }
 .ntw-point circle { stroke-width: 2; }
 .ntw-point text { font-size: 12px; font-weight: 800; }
 .ntw-point-natal circle { fill: var(--transit-paper); stroke: var(--brand-sunset); }

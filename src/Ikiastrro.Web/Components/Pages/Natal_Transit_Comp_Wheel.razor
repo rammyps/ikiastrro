@@ -4,15 +4,14 @@
 @using Ikiastrro.Core.Models
 @using Ikiastrro.Core.Engines.Astronomy
 @inject BirthDetailsRepository BirthDetailsRepo
-@inject TransitLandingRepository D1Repo
+@inject Natal_Transit_Comp_WheelRepository D1Repo
+@inject DashaPeriodsRepository DashaRepo
 @inject Ikiastrro.Data.GocharaRepository Gochara
 @inject ActivePerson Active
 @inject NavigationManager Nav
 
-@* v2 Transit landing — docs/ui/components/transit.md. The page a person lands on from Home.
-   Left column places the hand-authored transit wheel (a Codex Components/Charts/** component —
-   static placeholder here); right column is a two-tab persisted-rows table. No astrology is
-   computed on this page (docs/architecture/domain-contracts.md). *@
+@* Natal/transit comparison — docs/ui/components/spec_Natal_Transit_Comp_Wheel.md. Date and
+   dasha controls share one active instant through TransitSelection. *@
 
 <PageTitle>@(_personName ?? "Transit") · D1 Birth Chart</PageTitle>
 
@@ -29,11 +28,40 @@ else
     <h1 class="transit-heading">TRANSIT - D1 BIRTH CHART</h1>
 
     <div class="tw-grid">
+        @if (_selection is not null)
+        {
+            <section class="tw-controls" aria-label="Transit date and dasha filters">
+                    <label class="tw-field">
+                        <span>Current transit date</span>
+                        <input type="date" value="@DateValue" @onchange="OnDateChanged" />
+                    </label>
+                    <label class="tw-field">
+                        <span>Mahadasha</span>
+                        <select value="@(_selection.Maha?.Id.ToString() ?? string.Empty)" @onchange="OnMahaChanged">
+                            <option value="">Select Mahadasha</option>
+                            @foreach (var period in _selection.Periods)
+                            {
+                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="tw-field">
+                        <span>Antardasha</span>
+                        <select value="@(_selection.Antar?.Id.ToString() ?? string.Empty)" @onchange="OnAntarChanged" disabled="@(_selection.Maha is null)">
+                            <option value="">Select Antardasha</option>
+                            @foreach (var period in _selection.AntarPeriods)
+                            {
+                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                            }
+                        </select>
+                    </label>
+            </section>
+        }
         <div class="tw-wheel">
             @* The D1 data loaded for the birth table also drives the shared chart component. *@
             @if (D1AscendantSign is string ascendantSign)
             {
-                <NatalTransitWheel AscendantSign="@ascendantSign"
+                <Natal_Transit_Comp_WheelChart AscendantSign="@ascendantSign"
                                    NatalPoints="@D1WheelPoints"
                                    TransitPoints="@TransitWheelPoints"
                                    AsOfUtc="@_asOfUtc" />
@@ -93,7 +121,6 @@ else
                     }
                     else
                     {
-                        <p class="tw-asof">as of @_asOfUtc.ToString("dd MMM yyyy HH:mm 'UTC'", CultureInfo.InvariantCulture)</p>
                         <div class="tw-scroll">
                             <MudSimpleTable Dense="true" Hover="true" Bordered="false" Class="tw-table">
                                 <thead>
@@ -113,18 +140,14 @@ else
                                             <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
                                             <td class="num">@s.SpeedDegreesPerDay.ToString("0.0000", CultureInfo.InvariantCulture)</td>
                                             <td class="num">@s.InSignSinceUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</td>
-                                            <td>—</td>
+                                            <td>@(s.InSignMotion ?? "—")</td>
                                             <td class="num">@(s.NextChangeUtc?.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) ?? "—")</td>
-                                            <td>—</td>
+                                            <td>@(s.NextChangeMotion ?? "—")</td>
                                         </tr>
                                     }
                                 </tbody>
                             </MudSimpleTable>
                         </div>
-                        <p class="tw-pending">
-                            <em>In-sign motion</em> and <em>Next-change motion</em> arrive with the
-                            <code>tbl_TransitPositionReference</code> boundary-motion columns (Codex).
-                        </p>
                     }
                 </MudTabPanel>
             </MudTabs>
@@ -138,10 +161,11 @@ else
     private string? _personName;
     private string? _error;
     private string? _transitError;
-    private IReadOnlyList<TransitD1Row> _d1 = Array.Empty<TransitD1Row>();
+    private IReadOnlyList<Natal_Transit_Comp_WheelD1Row> _d1 = Array.Empty<Natal_Transit_Comp_WheelD1Row>();
     private Dictionary<string, string> _natalSignByPlanet = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();
     private DateTime _asOfUtc = DateTime.UtcNow;
+    private TransitSelection? _selection;
 
     private static readonly string[] SignById =
         { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
@@ -176,7 +200,16 @@ else
             .GroupBy(r => r.Planet, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First().Sign!, StringComparer.OrdinalIgnoreCase);
 
-        _asOfUtc = DateTime.UtcNow;
+        var offset = TimeSpan.TryParse(person.UtcOffset.TrimStart('+'), out var parsedOffset)
+            ? parsedOffset
+            : TransitSelection.IstOffset;
+        _selection = new TransitSelection(DashaRepo.GetTreeByBirthDetailId(id), offset, DateTimeOffset.UtcNow);
+        _asOfUtc = _selection.ActiveUtc.UtcDateTime;
+        LoadTransits();
+    }
+
+    private void LoadTransits()
+    {
         try
         {
             _transits = Gochara.GetSnapshots(_asOfUtc);
@@ -188,32 +221,68 @@ else
         }
     }
 
+    private string DateValue => _selection?.ActiveIst.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? string.Empty;
+
+    private void OnDateChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !DateTime.TryParseExact(args.Value?.ToString(), "yyyy-MM-dd",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) return;
+        _selection.SetDate(date);
+        RefreshSelection();
+    }
+
+    private void OnMahaChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectMaha(id);
+        RefreshSelection();
+    }
+
+    private void OnAntarChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectAntar(id);
+        RefreshSelection();
+    }
+
+    private void RefreshSelection()
+    {
+        _asOfUtc = _selection!.ActiveUtc.UtcDateTime;
+        LoadTransits();
+    }
+
+    private static string PeriodDates(Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord period) =>
+        $"{period.StartDate:dd MMM yyyy} – {period.EndDate:dd MMM yyyy}";
+
+    private static string PlanetGlyph(string planet) =>
+        Ikiastrro.Core.Presentation.ChartViewModel.PlanetGlyph(planet);
+
     // D1 Birth: grahas plus the Lagna row, ordered slow → fast (Lagna first).
-    private IEnumerable<TransitD1Row> D1Rows =>
-        _d1.OrderBy(r => TransitLandingMath.PlanetRank(r.Planet));
+    private IEnumerable<Natal_Transit_Comp_WheelD1Row> D1Rows =>
+        _d1.OrderBy(r => Natal_Transit_Comp_WheelMath.PlanetRank(r.Planet));
 
     private IEnumerable<PlanetTransitSnapshot> TransitRows =>
-        _transits.OrderBy(s => TransitLandingMath.PlanetRank(s.Planet.ToString()));
+        _transits.OrderBy(s => Natal_Transit_Comp_WheelMath.PlanetRank(s.Planet.ToString()));
 
     private string? D1AscendantSign => _d1.FirstOrDefault(r =>
         r.Planet.Equals("Lagna", StringComparison.OrdinalIgnoreCase) ||
         r.Planet.Equals("Ascendant", StringComparison.OrdinalIgnoreCase))?.Sign;
 
-    private IReadOnlyList<NatalTransitWheel.Point> D1WheelPoints => _d1
-        .Select(r => new NatalTransitWheel.Point(r.Planet, r.LongitudeDegrees)).ToList();
+    private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> D1WheelPoints => _d1
+        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet, r.LongitudeDegrees)).ToList();
 
-    private IReadOnlyList<NatalTransitWheel.Point> TransitWheelPoints => _transits
-        .Select(r => new NatalTransitWheel.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();
+    private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> TransitWheelPoints => _transits
+        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();
 
     private int? HouseFromD1(PlanetTransitSnapshot s) =>
-        TransitLandingMath.HouseFromD1(
+        Natal_Transit_Comp_WheelMath.HouseFromD1(
             _natalSignByPlanet.GetValueOrDefault(s.Planet.ToString()), SignName(s.SignId));
 
-    private static string MotionCell(TransitD1Row r)
+    private static string MotionCell(Natal_Transit_Comp_WheelD1Row r)
     {
         if (r.Planet.Equals("Lagna", StringComparison.OrdinalIgnoreCase) ||
             r.Planet.Equals("Ascendant", StringComparison.OrdinalIgnoreCase)) return "—";
-        return TransitLandingMath.FormatMotion(r.IsRetrograde, r.IsCombust);
+        return Natal_Transit_Comp_WheelMath.FormatMotion(r.IsRetrograde, r.IsCombust);
     }
 
     private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";

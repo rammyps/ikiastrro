@@ -33,7 +33,7 @@ builder.Services.AddScoped<BhavaStrengthRepository>();
 builder.Services.AddScoped<VargottamaRepository>();
 builder.Services.AddScoped<YogaInputRepository>();
 builder.Services.AddScoped<AstrologerEvidenceRepository>();
-builder.Services.AddScoped<TransitLandingRepository>();
+builder.Services.AddScoped<Natal_Transit_Comp_WheelRepository>();
 builder.Services.AddScoped<PlanetSignTransitEventsRepository>();
 builder.Services.AddScoped<GocharaRepository>();
 builder.Services.AddScoped<RuleSetRepository>();

@@ -46,16 +46,18 @@ public class PlanetSignTransitEventsRepository
             new { PlanetId = planetId, AsOf = asOfUtc });
         if (current is null) return null;
 
-        var next = connection.ExecuteScalar<DateTime?>(
-            "SELECT MIN(EventDateTimeUtc) FROM dbo.tbl_PlanetSignTransitEvents " +
-            "WHERE PlanetId = @P AND EventDateTimeUtc > @AsOf",
+        var next = connection.QuerySingleOrDefault<NextRow>(
+            "SELECT TOP (1) EventDateTimeUtc, MotionDirection FROM dbo.tbl_PlanetSignTransitEvents " +
+            "WHERE PlanetId = @P AND EventDateTimeUtc > @AsOf ORDER BY EventDateTimeUtc",
             new { P = eventsPlanetId, AsOf = asOfUtc });
 
         return new PlanetTransitSnapshot(planet, current.SignId, current.EventDateTimeUtc,
-            current.MotionDirection, next);
+            current.MotionDirection, next?.EventDateTimeUtc, InSignMotion: current.MotionDirection,
+            NextChangeMotion: next?.MotionDirection);
     }
 
     private sealed record CurrentRow(byte SignId, DateTime EventDateTimeUtc, string MotionDirection);
+    private sealed record NextRow(DateTime EventDateTimeUtc, string MotionDirection);
 
     public void InsertAll(IEnumerable<(PlanetTransitEvent Event, bool IsReentry)> events)
     {

@@ -41,27 +41,25 @@
     <text x="400" y="218" class="ntw-ring-title ntw-dark">NATAL</text>
     <text x="400" y="238" class="ntw-ring-sub ntw-dark">D1</text>
 
-    @foreach (var p in NatalPoints)
+    @foreach (var p in Positioned(NatalPoints, 127, 22, 4))
     {
-        var (x, y) = Xy(p.LongitudeDegrees, 160);
+        var (x, y) = Xy(p.Point.LongitudeDegrees, p.Radius);
         <g class="ntw-point ntw-point-natal">
-            <circle cx="@F(x)" cy="@F(y)" r="13" />
-            <text x="@F(x)" y="@F(y)">@Glyph(p.Label)</text>
+            <circle cx="@F(x)" cy="@F(y)" r="10" />
+            <text x="@F(x)" y="@F(y)">@Glyph(p.Point.Label)</text>
         </g>
     }
-    @foreach (var p in TransitPoints)
+    @foreach (var p in Positioned(TransitPoints, 286, 20, 3))
     {
-        var (x, y) = Xy(p.LongitudeDegrees, 306);
+        var (x, y) = Xy(p.Point.LongitudeDegrees, p.Radius);
         <g class="ntw-point ntw-point-transit">
-            <circle cx="@F(x)" cy="@F(y)" r="14" />
-            <text x="@F(x)" y="@F(y)">@Glyph(p.Label)</text>
+            <circle cx="@F(x)" cy="@F(y)" r="10" />
+            <text x="@F(x)" y="@F(y)">@Glyph(p.Point.Label)</text>
         </g>
     }
 
-    <text x="400" y="378" class="ntw-brand">ikiastrro</text>
-    <text x="400" y="410" class="ntw-caption">NATAL ↔ TRANSIT</text>
-    <text x="400" y="438" class="ntw-meta">@DisplaySign(AscendantSign) Lagna</text>
-    <text x="400" y="460" class="ntw-meta">@AsOfUtc.ToString("dd MMM yyyy · HH:mm 'UTC'", CultureInfo.InvariantCulture)</text>
+    <text x="400" y="394" class="ntw-center-date">@IndiaTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</text>
+    <text x="400" y="424" class="ntw-center-time">@IndiaTime.ToString("hh:mm tt 'IST'", CultureInfo.InvariantCulture)</text>
 </svg>
 
 @code {
@@ -71,6 +69,39 @@
     [Parameter] public IReadOnlyList<Point> TransitPoints { get; set; } = Array.Empty<Point>();
     [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
     [Parameter] public DateTime AsOfUtc { get; set; }
+
+    private DateTimeOffset IndiaTime =>
+        new DateTimeOffset(DateTime.SpecifyKind(AsOfUtc, DateTimeKind.Utc)).ToOffset(TimeSpan.FromMinutes(330));
+
+    private sealed record PositionedPoint(Point Point, double Radius);
+
+    private static IReadOnlyList<PositionedPoint> Positioned(
+        IReadOnlyList<Point> points, double firstRadius, double laneSpacing, int laneCount)
+    {
+        var occupied = Enumerable.Range(0, laneCount).Select(_ => new List<double>()).ToArray();
+        var result = new List<PositionedPoint>(points.Count);
+        foreach (var point in points.OrderBy(p => PlanetRank(p.Label)))
+        {
+            var lane = Array.FindIndex(occupied, angles => angles.All(a => AngularDistance(a, point.LongitudeDegrees) >= 8));
+            if (lane < 0) lane = occupied.Select((angles, index) => (angles.Count, index)).OrderBy(x => x.Count).First().index;
+            occupied[lane].Add(point.LongitudeDegrees);
+            result.Add(new PositionedPoint(point, firstRadius + lane * laneSpacing));
+        }
+        return result;
+    }
+
+    private static double AngularDistance(double a, double b)
+    {
+        var distance = Math.Abs(a - b) % 360;
+        return Math.Min(distance, 360 - distance);
+    }
+
+    private static int PlanetRank(string label) => label switch
+    {
+        "Ascendant" or "Lagna" => 0, "Saturn" => 1, "Jupiter" => 2, "Rahu" => 3,
+        "Ketu" => 4, "Mars" => 5, "Venus" => 6, "Mercury" => 7, "Moon" => 8, "Sun" => 9,
+        _ => 10
+    };
 
     private int HouseFor(int signIndex)
     {

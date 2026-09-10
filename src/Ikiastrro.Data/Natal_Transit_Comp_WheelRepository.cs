@@ -2,10 +2,11 @@ using Dapper;
 
 namespace Ikiastrro.Data;
 
-/// <summary>One row of the v2 Transit landing "D1 Birth" tab (docs/ui/components/transit.md) —
+/// <summary>One row of the Transit landing "D1 Birth" tab
+/// (<c>docs/ui/components/spec_Natal_Transit_Comp_Wheel.md</c>) —
 /// a persisted position from <c>vw_ChartPlanetEvidence</c>, no computation. Settable properties
 /// so Dapper name-maps and coerces the view's tinyint / bit columns.</summary>
-public sealed class TransitD1Row
+public sealed class Natal_Transit_Comp_WheelD1Row
 {
     public int? House { get; set; }
     public string Planet { get; set; } = string.Empty;
@@ -24,12 +25,12 @@ public sealed class TransitD1Row
 /// only the D1 planetary positions, so it does not go through
 /// <see cref="AstrologerEvidenceRepository"/> (which fans out ~20 evidence sections).
 /// </summary>
-public sealed class TransitLandingRepository(SqlConnectionFactory factory)
+public sealed class Natal_Transit_Comp_WheelRepository(SqlConnectionFactory factory)
 {
-    public IReadOnlyList<TransitD1Row> LoadD1Birth(int birthDetailId)
+    public IReadOnlyList<Natal_Transit_Comp_WheelD1Row> LoadD1Birth(int birthDetailId)
     {
         using var connection = factory.CreateOpenConnection();
-        return connection.Query<TransitD1Row>("""
+        return connection.Query<Natal_Transit_Comp_WheelD1Row>("""
             SELECT HouseNumberFromLagna AS House, Planet, PointKind,
                    IsRetrograde, IsCombust, DegreesInSignDisplay, Sign, Nakshatra, NakshatraPada
                    ,COALESCE(VargaLongitudeDegrees, NirayanaLongitudeDegrees) AS LongitudeDegrees
