@@ -12,6 +12,13 @@ namespace Ikiastrro.Data;
 /// group. Sequential, un-transacted calls — same style as
 /// every other multi-step write in this project (e.g. the CLI/Web save flow), not wrapped in an
 /// explicit SQL transaction.
+///
+/// Every table with a NO_ACTION FK to tbl_ChartResults must be cleared here, or the final
+/// tbl_ChartResults delete throws SqlException 547 and — from the Web delete button — takes the
+/// whole Blazor circuit down ("An unhandled error has occurred"). The strength / bhava-bala /
+/// vargottama fact tables were added after this service and were missed; they are the same set
+/// GenerateAll clears up-front. (tbl_Fact_YogaInputEvaluations FKs with CASCADE, so it needs no
+/// explicit delete; tbl_Fact_HouseFromReference is reserved and never populated.)
 /// </summary>
 public class BirthDetailDeletionService
 {
@@ -21,6 +28,9 @@ public class BirthDetailDeletionService
     private readonly ChartKeyDetailsRepository _keyDetailsRepo;
     private readonly ChartHouseLordsRepository _houseLordsRepo;
     private readonly PlanetaryStateRepository _planetaryStateRepo;
+    private readonly PlanetaryStrengthRepository _planetaryStrengthRepo;
+    private readonly BhavaStrengthRepository _bhavaStrengthRepo;
+    private readonly VargottamaRepository _vargottamaRepo;
     private readonly DashaPeriodsRepository _dashaPeriodsRepo;
     private readonly ChartResultsRepository _chartResultsRepo;
     private readonly BirthDetailsRepository _birthDetailsRepo;
@@ -32,6 +42,9 @@ public class BirthDetailDeletionService
         ChartKeyDetailsRepository keyDetailsRepo,
         ChartHouseLordsRepository houseLordsRepo,
         PlanetaryStateRepository planetaryStateRepo,
+        PlanetaryStrengthRepository planetaryStrengthRepo,
+        BhavaStrengthRepository bhavaStrengthRepo,
+        VargottamaRepository vargottamaRepo,
         DashaPeriodsRepository dashaPeriodsRepo,
         ChartResultsRepository chartResultsRepo,
         BirthDetailsRepository birthDetailsRepo)
@@ -42,6 +55,9 @@ public class BirthDetailDeletionService
         _keyDetailsRepo = keyDetailsRepo;
         _houseLordsRepo = houseLordsRepo;
         _planetaryStateRepo = planetaryStateRepo;
+        _planetaryStrengthRepo = planetaryStrengthRepo;
+        _bhavaStrengthRepo = bhavaStrengthRepo;
+        _vargottamaRepo = vargottamaRepo;
         _dashaPeriodsRepo = dashaPeriodsRepo;
         _chartResultsRepo = chartResultsRepo;
         _birthDetailsRepo = birthDetailsRepo;
@@ -55,6 +71,9 @@ public class BirthDetailDeletionService
         _keyDetailsRepo.DeleteByBirthDetailId(birthDetailId);
         _houseLordsRepo.DeleteByBirthDetailId(birthDetailId);
         _planetaryStateRepo.DeleteByBirthDetailId(birthDetailId);
+        _planetaryStrengthRepo.DeleteByBirthDetailId(birthDetailId);   // FK_Fact_PlanetaryStrength_ChartResult (no cascade)
+        _bhavaStrengthRepo.DeleteByBirthDetailId(birthDetailId);       // FK_Fact_BhavaStrength_ChartResult (no cascade)
+        _vargottamaRepo.DeleteByBirthDetailId(birthDetailId);          // FK_Fact_Vargottama_ChartResult (no cascade)
         _dashaPeriodsRepo.DeleteByBirthDetailId(birthDetailId);
         _chartResultsRepo.DeleteByBirthDetailId(birthDetailId);
         _birthDetailsRepo.Delete(birthDetailId);

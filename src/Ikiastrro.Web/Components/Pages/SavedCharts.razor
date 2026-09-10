@@ -20,12 +20,18 @@ else
                Message="@($"Delete {_pendingDelete?.Person.Name}'s chart and all computed data? This can't be undone.")"
                IsBusy="_isDeleting" OnConfirm="HandleDelete" OnCancel="() => _pendingDelete = null" />
 
+@if (_error is not null)
+{
+    <p class="saved-charts-error" role="alert">@_error</p>
+}
+
 @code {
     private record Row(BirthDetails Person, string Lagna, IReadOnlyDictionary<string, IReadOnlyList<string>> Glyphs);
 
     private readonly List<Row> _rows = new();
     private Row? _pendingDelete;
     private bool _isDeleting;
+    private string? _error;
 
     private IReadOnlyList<DataTable<Row>.Column> Cols => new[]
     {
@@ -56,9 +62,22 @@ else
     {
         if (_pendingDelete is null) return;
         _isDeleting = true;
-        DeletionService.DeleteBirthDetail(_pendingDelete.Person.Id);
-        _pendingDelete = null;
-        _isDeleting = false;
-        Load();
+        _error = null;
+        var name = _pendingDelete.Person.Name;
+        try
+        {
+            DeletionService.DeleteBirthDetail(_pendingDelete.Person.Id);
+            _pendingDelete = null;
+            Load();
+        }
+        catch (Exception ex)
+        {
+            // A delete that throws must not take the whole Blazor circuit down with it.
+            _error = $"Could not delete {name}: {ex.Message}";
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
     }
 }
