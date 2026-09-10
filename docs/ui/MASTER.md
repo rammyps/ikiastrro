@@ -27,6 +27,7 @@ recomputes.
 | [`components/spec_SouthIndianGrid_Detailed.md`](components/spec_SouthIndianGrid_Detailed.md) | The enriched South-Indian chart grid + template page |
 | [`components/evidence-tables.md`](components/evidence-tables.md) | The astrologer evidence page |
 | [`components/home.md`](components/home.md) | Home / entry screen |
+| [`components/saved-people.md`](components/saved-people.md) | `/charts` — the people-management surface: list, Edit / Delete, planned Import / Export + bulk generation ([`decision 002`](../../decisions/002-import-export-and-bulk-chart-generation.md)) |
 | [`testing.md`](testing.md) | The two test layers — bUnit component tests and the Playwright browser E2E suite (`tests/Ikiastrro.Web.E2E`) |
 | [`components/yoga.md`](components/yoga.md) | v2 Key Inference → YOGAS header — coverage summary + source variants |
 | [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers |
@@ -38,7 +39,7 @@ recomputes.
 |---|---|---|---|
 | `/` | `Home` | brand lockup + Ganesha/Navagraha art; searchable name over saved people; inline Preferences (top-left) + inline Add | **v2 rebuild in progress** ([`components/home.md`](components/home.md)) |
 | ~~`/add`~~ | — | folded into Home in v2 | retired |
-| `/charts` | `SavedCharts` | sortable person table + `MiniGrid` thumbnail + inline-confirm delete | verified |
+| `/charts` | `SavedCharts` ("Saved people") | sortable person list, per-row **Edit** (rename / rebuild) + **Delete**; Import / Export + bulk-generate **planned** | edit/delete verified ([`components/saved-people.md`](components/saved-people.md), [`../../decisions/002-import-export-and-bulk-chart-generation.md`](../../decisions/002-import-export-and-bulk-chart-generation.md)) |
 | `/charts/{id}` | `AllCharts` (v2) | every stored divisional chart as a plain South-Indian grid, 3 per row, divisor order; sunset card heads on the canvas | **v2 built** (`FEAT-UI-14`) — replaced the v1 `Workspace` hub |
 | `/charts/{id}/varga/{code}` | `VargaView` | one varga in full — grid + wheel, `VargottamaStrip`, positions, house-lordship + conjunctions disclosure, prev/next | verified |
 | `/charts/{id}/south-indian-template` | `SouthIndianTemplate` | the print-style South-Indian D1 template, light/dark toggle | verified |
