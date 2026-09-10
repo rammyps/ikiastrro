@@ -13,7 +13,11 @@
 
 <MudLayout>
     <MudAppBar Elevation="1" Class="ik-appbar">
-        <a href="/" class="ik-home @(CurrentPath == "/" ? "is-here" : "")">HOME</a>
+        @* App-level nav — always visible, person-independent. *@
+        <nav class="ik-globalnav" aria-label="Main">
+            <a href="/" class="ik-navpill @(CurrentPath == "/" ? "is-here" : "")">HOME</a>
+            <a href="/charts" class="ik-navpill @(CurrentPath == "/charts" ? "is-here" : "")">SAVED CHARTS</a>
+        </nav>
         @if (Active.Id is int personId)
         {
             <nav class="ik-tabs" aria-label="Person sections">

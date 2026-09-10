@@ -11,22 +11,36 @@
     gap: 18px;
 }
 
-.ik-home {
+.ik-globalnav {
     flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* App-level nav pills. Outlined by default; filled dark ONLY on the page you're on — so
+   HOME never reads as "selected" while you're on a person tab. */
+.ik-navpill {
     display: inline-flex;
     align-items: center;
     padding: 6px 16px;
     border-radius: 999px;
-    background: var(--brand-midnight);
-    color: var(--brand-canvas);
+    border: 1.5px solid var(--brand-midnight);
+    background: transparent;
+    color: var(--brand-midnight);
     font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.08em;
     text-decoration: none;
+    white-space: nowrap;
 }
 
-.ik-home.is-here {
-    outline: 2px solid var(--brand-canvas);
-    outline-offset: 2px;
+.ik-navpill:hover {
+    background: rgb(255 255 255 / 0.28);
+}
+
+.ik-navpill.is-here {
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
 }
 
 .ik-tabs {
@@ -151,4 +165,6 @@
     .ik-tagline { display: none; }
     ::deep .ik-appbar .mud-toolbar { gap: 10px; }
     .ik-tab { padding: 6px 8px; letter-spacing: 0.03em; }
+    .ik-globalnav { gap: 5px; }
+    .ik-navpill { padding: 5px 10px; letter-spacing: 0.03em; }
 }

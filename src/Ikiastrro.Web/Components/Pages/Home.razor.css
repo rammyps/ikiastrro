@@ -6,13 +6,12 @@
 
 .home {
     display: grid;
-    /* Art is a fixed, generous column; the 1fr left column soaks up the slack, so the form
-       stays left-anchored and the illustration is pushed to the right edge (HomeScreen-v1). */
-    grid-template-columns: minmax(0, 1fr) clamp(420px, 46vw, 760px);
-    gap: 1.5rem;
-    align-items: stretch;
-    /* .ik-page already caps at --maxw + --pad-x; fill it so the art lands on the same right
-       edge as every other page's content (no extra inset of our own). */
+    /* Controls left, art right. The art is BOUNDED (no bleed) — its right edge sits on the
+       page gutter, and the gap between the two columns equals that same gutter (--pad-x), so
+       the spacing left-of-heading, heading-to-art, and art-to-edge all match. */
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 46%);
+    gap: var(--pad-x);
+    align-items: start;
     width: 100%;
     min-height: calc(100vh - 160px);
     color: var(--brand-midnight);
@@ -152,23 +151,18 @@
     color: var(--danger, #b3261e);
 }
 
-/* Ganesha / Navagraha art — first-class right column. It's a tall, square illustration
-   whose RIGHT edge sits on the browser's right edge (full-bleed, no gutter). The negative
-   right margin equals one side's gutter — (100vw - .home width) / 2 — and html/body clip
-   the resulting overflow (see tokens.css). */
+/* Ganesha / Navagraha art — bounded right column, top-aligned (starts just under the app
+   bar). Its right edge lands on the page gutter; --pad-x of clear space on every side. */
 .home-art {
     align-self: start;
-    height: min(88vh, 900px);
-    margin-right: calc((100% - 100vw) / 2);
     overflow: hidden;
 }
 
 .home-art img {
-    height: 100%;
-    width: auto;
-    max-width: none;
     display: block;
-    margin-left: auto;   /* flush to the right of the bled column */
+    width: 100%;
+    height: auto;
+    max-width: none;
 }
 
 /* Primary buttons are sunset-filled via the app theme (IkiastrroTheme). */
