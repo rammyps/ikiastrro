@@ -1,6 +1,6 @@
 /* Reads --tmpl-* custom properties from the page's own .page-scoped wrapper (SouthIndianTemplate.razor.css)
    — CSS custom-property inheritance follows the real DOM tree, not Blazor's per-component CSS-isolation
-   scope, same cross-scope reasoning SouthIndianGrid.razor.css documents for --paper/--ink.
+   scope, same cross-scope reasoning SouthIndianGrid_Detailed.razor.css documents for --paper/--ink.
 
    Font sizes and the chart's max-width were bumped up across this file (2026-09-05 legibility pass,
    then bumped further + switched to clamp()-based fluid sizing in the 2026-09-05 responsive/size
@@ -67,7 +67,7 @@
 }
 /* Per-cell house-number badges (2026-09-05, rammyps's call) — house counted from the Sun and
    from the Moon, next to the sign name. Two colors/backgrounds so the axes read apart at a
-   glance, the same idea tokens.css's SouthIndianGrid house-number badges already use for
+   glance, the same idea tokens.css's SouthIndianGrid_Detailed house-number badges already use for
    Lagna/Moon (see D1TemplateGrid.razor's own doc comment for why this template uses Sun instead
    of Lagna as the first axis — Lagna's house count already has its own row above, per point). */
 .thousenums { display: inline-flex; gap: 4px; }
@@ -92,7 +92,7 @@
 .pglyph { font-weight: 700; }
 
 /* Dg(+N)/Dg(-N) dignity score (2026-09-05) — muted relative to the degree/combust text ahead of
-   it, same "annotation, not part of the glyph itself" treatment SouthIndianGrid's own direction
+   it, same "annotation, not part of the glyph itself" treatment SouthIndianGrid_Detailed's own direction
    suffix uses. */
 .tdignity { font-size: clamp(15px, 0.6rem + 0.45vw, 18px); font-weight: 600; color: var(--tmpl-ink-soft); margin-left: 4px; }
 

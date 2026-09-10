@@ -13,7 +13,7 @@
 @* v2 All Charts — docs/ui/wkstream_UI_v2.md. Every stored divisional chart as a plain
    South-Indian grid, 3 per row, divisor order. Only the card heading bar is sunset; card,
    grid and margins are on the canvas. Persisted rows only. The grid itself is the Codex
-   `SouthIndianGrid` component (Components/Charts/**) — re-skinned here via token overrides,
+   `SouthIndianGrid_Detailed` component (Components/Charts/**) — re-skinned here via token overrides,
    not modified. *@
 
 <PageTitle>@(_data?.Person.Name ?? "Charts") · All Charts</PageTitle>
@@ -42,13 +42,13 @@ else
                 @if (has)
                 {
                     <div class="ac-card-grid">
-                        <SouthIndianGrid AscendantSign="@lc!.AscendantSign"
+                        <SouthIndianGrid_Detailed AscendantSign="@lc!.AscendantSign"
                                          MoonSign="@lc.MoonSign"
                                          PlanetsBySign="PlanetsBySign(lc)"
                                          CenterTitle="@t.Code"
                                          Compact="true">
                             <CenterMeta>@(t.ChartShortDescription ?? t.DisplayName)</CenterMeta>
-                        </SouthIndianGrid>
+                        </SouthIndianGrid_Detailed>
                     </div>
                 }
                 else

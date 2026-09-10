@@ -14,10 +14,12 @@ One design language, everywhere. Full guide:
   colour, never an inline `<style>` in `.razor` markup.
 - **CSS isolation per component** (`ComponentName.razor.css`). Isolation is what makes bare
   `table` / `th` / `td` / `.cell` selectors safe inside a chart component.
-- **Chart diagrams stay hand-rolled** inline SVG / CSS grid (`SouthIndianGrid`, `PolarWheel`,
-  `MiniGrid`, `ChartFrame`, `LifeWeeks`). No charting library is referenced by
-  `Ikiastrro.Web`; Syncfusion is a deferred option only. See
-  [`../../../docs/ui/dataviz.md`](../../../docs/ui/dataviz.md).
+- **Chart diagrams stay hand-rolled** inline SVG / CSS grid (`SouthIndianGrid_Detailed`, `PolarWheel`,
+  `Natal_Transit_Comp_WheelChart`, `MiniGrid`, `ChartFrame`, `LifeWeeks`). No charting library is referenced
+  by `Ikiastrro.Web`; Syncfusion is a deferred option only. Approach:
+  [`../../../docs/ui/dataviz.md`](../../../docs/ui/dataviz.md); full module catalogue +
+  contracts + routes: [`../../../docs/ui/components/chart-catalog.md`](../../../docs/ui/components/chart-catalog.md)
+  (per-component projection math in [`Charts/README.md`](Charts/README.md)).
 - **Additive change** keeps a revert mechanical: never repurpose a token's meaning (add a new
   one); version geometry helpers by addition (`AngleToXyV2` / a parameter).
 - Run `dotnet format` before committing. If styling can't be expressed with existing tokens,

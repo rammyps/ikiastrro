@@ -39,7 +39,7 @@
     --asc-glow: rgba(140, 47, 57, 0.14);
     --shadow: rgba(90, 70, 40, 0.22);
 
-    /* House-number badges on every South Indian grid cell (SouthIndianGrid): the house counted
+    /* House-number badges on every South Indian grid cell (SouthIndianGrid_Detailed): the house counted
        from the Lagna reads maroon (= --accent), the house counted from the natal Moon reads gold —
        two axes, two colours, so a glance separates them. */
     --house-lagna: #8c2f39;
@@ -103,7 +103,7 @@
     --nav-btn: #8c2f39;
     --nav-btn-fg: #fbeee7;
 
-    /* Semantic South-Indian grid tokens — so SouthIndianGrid/MiniGrid stop reading --paper/--ink
+    /* Semantic South-Indian grid tokens — so SouthIndianGrid_Detailed/MiniGrid stop reading --paper/--ink
        directly (DESIGN.md: name the role, not the raw surface). Values equal the existing
        surfaces today; kept separate so the grid can be retuned without touching page chrome. */
     --cell-fill: #efe4cb;      /* = --paper-raised */

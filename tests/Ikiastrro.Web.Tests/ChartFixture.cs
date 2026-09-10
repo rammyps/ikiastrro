@@ -14,7 +14,7 @@ namespace Ikiastrro.Web.Tests;
 /// </summary>
 internal static class ChartFixture
 {
-    // --- SouthIndianGrid: sign -> dignity-dot glyphs (Ascendant is filtered out upstream) ---
+    // --- SouthIndianGrid_Detailed: sign -> dignity-dot glyphs (Ascendant is filtered out upstream) ---
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> GridGlyphs =
         new Dictionary<string, IReadOnlyList<GridPlanetGlyph>>
         {

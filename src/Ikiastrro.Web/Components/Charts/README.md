@@ -4,8 +4,15 @@ Hand-rolled SVG / CSS-grid visualizations for the ikiastrro workspace. No
 component library draws these; the reusable unit is the **Razor component + its
 projection logic**, not a static `.svg` asset (the picture is data-driven).
 
+> **This file is the per-component projection contract.** The workstream-level
+> catalogue — every module here plus the dasha modules, tables/panels, helpers, the
+> consumer/route matrix and the revert flow, in one place — is
+> [`docs/ui/components/chart-catalog.md`](../../../../docs/ui/components/chart-catalog.md). Keep both in
+> sync when a component is added or its contract changes.
+
 Rules that keep these revertable across releases — see
-`docs/ui/dataviz.md` and `docs/ui/design-language.md`:
+[`docs/ui/dataviz.md`](../../../../docs/ui/dataviz.md) and
+[`docs/ui/design-language.md`](../../../../docs/ui/design-language.md):
 
 - **Tokens are additive.** Never repurpose a `--wheel-*` / `--cell-*` token's
   meaning. New look ⇒ new token or a dated value change.
@@ -34,7 +41,7 @@ All components: **static SSR, no JS** unless noted. Every `.razor` has a
 | **A11y** | `role="img"`, `aria-label="Sidereal longitude wheel"` |
 | **Used by** | `ChartFrame` (wheel view) on `Workspace`, `VargaView` |
 
-### SouthIndianGrid.razor
+### SouthIndianGrid_Detailed.razor
 Fixed 4×4 South-Indian sign grid — the primary per-varga chart. Dignity-dot
 glyphs, gold house-from-Lagna + silver house-from-Moon badges, Lagna highlight,
 2×2 centre info cell, optional "aspected by" strip and special-point labels.
@@ -50,7 +57,7 @@ glyphs, gold house-from-Lagna + silver house-from-Moon badges, Lagna highlight,
 
 ### MiniGrid.razor
 Glyphs-only thumbnail grid; whole grid optionally a link. **Not**
-`SouthIndianGrid(Compact)` — no badges, dots, or centre cell at this size.
+`SouthIndianGrid_Detailed(Compact)` — no badges, dots, or centre cell at this size.
 
 | | |
 |---|---|
@@ -91,5 +98,5 @@ Interactive or tabular; specced in `docs/ui/` (`design-language.md`, `components
 
 ## Helpers
 
-- `GridPlanetGlyph.cs` — record: planet name + dignity token + retrograde + combust flags, consumed by `SouthIndianGrid`.
+- `GridPlanetGlyph.cs` — record: planet name + dignity token + retrograde + combust flags, consumed by `SouthIndianGrid_Detailed`.
 - `ChartViewModel.PlanetGlyph(string)` — `Ikiastrro.Core.Presentation`; canonical glyph for a planet name. Shared by every glyphs-only component.

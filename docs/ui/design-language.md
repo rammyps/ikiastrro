@@ -17,9 +17,9 @@ One language, everywhere. Detail on colours/type: [`brand.md`](brand.md).
   never a raw hex, never a CSS named colour, never an inline `<style>` in `.razor` markup.
 - **CSS isolation per component** (`Component.razor.css`). Isolation is what makes bare
   `table` / `th` / `td` / `.cell` selectors safe inside a chart component.
-- **Chart diagrams stay hand-rolled** inline SVG / CSS grid — `SouthIndianGrid`, `PolarWheel`,
-  `MiniGrid`, `ChartFrame`, `LifeWeeks`. MudBlazor does not draw these. See
-  [`dataviz.md`](dataviz.md).
+- **Chart diagrams stay hand-rolled** inline SVG / CSS grid — `SouthIndianGrid_Detailed`, `PolarWheel`,
+  `Natal_Transit_Comp_WheelChart`, `MiniGrid`, `ChartFrame`, `LifeWeeks`. MudBlazor does not draw these. See
+  [`dataviz.md`](dataviz.md); full catalogue [`components/chart-catalog.md`](components/chart-catalog.md).
 - **`dotnet format`** before committing.
 
 ## Tables — headers vs. horizontal scroll (implementation note)
@@ -53,7 +53,9 @@ MudBlazor table and every hand-rolled `<table>`.
 | `--aspect-faint` | "aspected by" ghost chips |
 | `--vargottama` | `VargottamaStrip` lit-chip state |
 | `--wheel-ring` / `--wheel-tick` | `PolarWheel` ring + degree ticks |
-| `--cell-fill` / `--lagna-fill` / `--grid-stroke` / `--sign-text` | `SouthIndianGrid` cell ground, Lagna cell, borders, labels |
+| `--brand-peach` / `--brand-canvas` / `--brand-midnight` / `--brand-sunset` / `--transit-paper` | `Natal_Transit_Comp_WheelChart` rings, spokes, glyphs (no namespaced `--ntw-*` set — reads brand tokens directly) |
+| `--cell-fill` / `--lagna-fill` / `--grid-stroke` / `--sign-text` | `SouthIndianGrid_Detailed` cell ground, Lagna cell, borders, labels |
+| `--tmpl-*` (+ `--tmpl-rashi-highlight`) | `D1TemplateGrid` light "chart card" palette |
 
 ## Additive-change discipline (keeps a revert mechanical)
 

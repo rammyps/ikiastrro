@@ -2,7 +2,7 @@
  * Two "chart card" palettes for the South Indian chart template, both declared as --tmpl-*
  * custom properties on this page's own top-level wrapper — D1TemplateGrid.razor.css /
  * DashaRoundBox.razor.css read them via var(...) despite being separate CSS-isolation scopes,
- * the same cross-scope trick SouthIndianGrid.razor.css documents for --paper/--ink.
+ * the same cross-scope trick SouthIndianGrid_Detailed.razor.css documents for --paper/--ink.
  *
  * Dark = the app's own existing dark theme (tokens.css's --paper/--ink/--accent/--planet-* etc.,
  * the "earlier dark version" this app already had before this template existed) — reused as-is,
@@ -67,7 +67,7 @@
     /* Per-cell house-number badge pair, next to each sign name (2026-09-05, rammyps's call) — from
        the Sun (copper, matches --tmpl-planet-sun) and from the Moon (gold, matches tokens.css's
        app-wide --house-moon), so the two axes read as distinct at a glance the same way
-       tokens.css's SouthIndianGrid Lagna/Moon badges already do. */
+       tokens.css's SouthIndianGrid_Detailed Lagna/Moon badges already do. */
     --tmpl-housesun-bg: #a8531a;
     --tmpl-housesun-fg: #fbeee7;
     --tmpl-housemoon-bg: #c9932b;
@@ -130,7 +130,7 @@
     --tmpl-badge-bg: #1c1a3a;
     --tmpl-badge-fg: #ece2cb;
 
-    /* Same two-axis idea SouthIndianGrid's own house-number badges used to use on this same
+    /* Same two-axis idea SouthIndianGrid_Detailed's own house-number badges used to use on this same
        dark surface, before tokens.css went light-only. */
     --tmpl-lagna-text: #e2ad4f;
     --tmpl-moon-text: #c7c8d4;

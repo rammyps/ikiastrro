@@ -1,13 +1,13 @@
 @*
     Standalone dense South Indian D1 template grid — deliberately NOT a reskin of
-    SouthIndianGrid.razor (kept separate per an explicit "new dedicated template" call,
+    SouthIndianGrid_Detailed.razor (kept separate per an explicit "new dedicated template" call,
     2026-09-05): this one packs more per cell (a karaka/special-point house-triplet row, whole-
     degree planet lines each ending in a Dg(±N) dignity score, an "ASP:" row, an upagraha row) and
     its own light "chart card" palette
-    (--tmpl-* custom properties, read via var(...) the same cross-scope way SouthIndianGrid reads
+    (--tmpl-* custom properties, read via var(...) the same cross-scope way SouthIndianGrid_Detailed reads
     --paper/--ink — see its own doc comment) instead of the app's dark theme.
 
-    The fixed 12-cell sign layout below is intentionally a small duplicate of SouthIndianGrid's
+    The fixed 12-cell sign layout below is intentionally a small duplicate of SouthIndianGrid_Detailed's
     own GridCells table — stable, unlikely to ever change, and duplicating 12 lines here is
     cheaper than coupling two otherwise-unrelated components.
 
@@ -21,7 +21,7 @@
 
     Per-cell house-number badges (2026-09-05, rammyps's call): each cell also shows its house
     counted from the Sun and from the Moon, next to the sign name — the same
-    AstroMath.CountFromSignToSign two-axis idea SouthIndianGrid already uses for Lagna/Moon, just
+    AstroMath.CountFromSignToSign two-axis idea SouthIndianGrid_Detailed already uses for Lagna/Moon, just
     with Sun instead of Lagna as the first axis (this template shows Lagna/Moon house counts
     separately already, in the Ras(L)/Hor(L) points row above).
 *@

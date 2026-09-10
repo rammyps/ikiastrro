@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: ui
 togaf: C — UI standards
 ---
@@ -9,16 +9,18 @@ togaf: C — UI standards
 ## Current approach: hand-rolled inline SVG / CSS
 
 Every chart surface in the app is hand-drawn — no charting library is referenced by
-`Ikiastrro.Web`:
+`Ikiastrro.Web`. Full catalogue (chart / spec doc / linked files):
+[`components/chart-catalog.md`](components/chart-catalog.md).
 
 | Surface | Component |
 |---|---|
-| South-Indian chart grid (D1…D60) | `SouthIndianGrid` (shared, enriched) |
+| South-Indian chart grid (D1…D60) | `SouthIndianGrid_Detailed` (shared, enriched) |
 | 360° sidereal longitude wheel | `PolarWheel` (inline `<svg>` ring; optional `?aspects=1` chords) |
+| Natal ↔ current-transit wheel | `Natal_Transit_Comp_WheelChart` (four-ring data-driven `<svg>`; `/transit-wheel/{id}`) |
 | Compact chart thumbnail | `MiniGrid` |
+| Dense print-style D1 template | `D1TemplateGrid` |
 | Grid ⇄ wheel toggle frame | `ChartFrame` |
 | 4000-week life calendar | `LifeWeeks` (52-col grid, `--dasha-*` colours) |
-| Natal ↔ transit wheel | `TransitWheel` (over a supplied SVG template) |
 
 Render-ready shapes live in `Ikiastrro.Core` (`ChartViewModel` pattern) — Web only binds.
 Palettes come from `tokens.css` values, never library defaults. Colour is always a scan aid,

@@ -32,13 +32,13 @@ else
 
     <ChartFrame View="@View" BaseHref="@($"/charts/{Id}/varga/{Code}")">
         <GridContent>
-            <SouthIndianGrid AscendantSign="@dn.AscendantSign"
+            <SouthIndianGrid_Detailed AscendantSign="@dn.AscendantSign"
                              PlanetsBySign="PlanetsBySign(dn)"
                              AspectedByGlyphs="ChartViewModel.BuildAspectedByGlyphs(dn.KeyDetails, dn.Aspects)"
                              SpecialPointLabels="SpecialLabels(dn)"
                              CenterTitle="@($"{Code} · {dn.SanskritName}")">
                 <CenterMeta><b>Lagna</b> @Disp(dn.AscendantSign)</CenterMeta>
-            </SouthIndianGrid>
+            </SouthIndianGrid_Detailed>
         </GridContent>
         <WheelContent><PolarWheel Points="WheelPoints(dn)" Chords="@(ShowAspects ? ChordsFor(dn) : Array.Empty<PolarWheel.Chord>())" /></WheelContent>
     </ChartFrame>

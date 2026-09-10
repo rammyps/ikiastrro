@@ -32,16 +32,16 @@ public class ChartSnapshotTests : BunitContext
     }
 
     [Fact]
-    public void SouthIndianGrid()
+    public void SouthIndianGrid_Detailed()
     {
-        var cut = Render<SouthIndianGrid>(ps => ps
+        var cut = Render<SouthIndianGrid_Detailed>(ps => ps
             .Add(p => p.AscendantSign, "Aries")
             .Add(p => p.MoonSign, "Taurus")
             .Add(p => p.PlanetsBySign, ChartFixture.GridGlyphs)
             .Add(p => p.CenterTitle, "D1 · Rasi")
             .Add(p => p.CenterMeta, "<span>Lagna Aries · Moon Taurus</span>"));
 
-        cut.MatchesGolden(nameof(SouthIndianGrid));
+        cut.MatchesGolden(nameof(SouthIndianGrid_Detailed));
     }
 
     [Fact]

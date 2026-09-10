@@ -34,9 +34,10 @@ Every read surface in v2 is the `AstrologerEvidence` shape, restyled to MudBlazo
   `vw_ChartYogaEvaluations`, the reference dimension tables. No page recomputes
   ([`../architecture/domain-contracts.md`](../architecture/domain-contracts.md)).
 - **A chart selector** switches the position-dependent sections between D1 and any stored varga.
-- **Hand-rolled SVG diagrams** (`SouthIndianGrid`, `PolarWheel`, transit wheel)
-  are *secondary* — embedded beside the table where a picture aids reading, never the primary
-  view. They stay in Codex's scope (see Workstream mechanics) and outside the MudBlazor restyle.
+- **Hand-rolled SVG diagrams** (`SouthIndianGrid_Detailed`, `PolarWheel`, `Natal_Transit_Comp_WheelChart`;
+  full catalogue [`components/chart-catalog.md`](components/chart-catalog.md)) are *secondary* — embedded beside the
+  table where a picture aids reading, never the primary view. They stay in Codex's scope (see
+  Workstream mechanics) and outside the MudBlazor restyle.
 
 ## What v2 must deliver
 
@@ -50,7 +51,7 @@ Each item is one or more table sections on the pattern above.
 | ROADMAP Now | Slow-planet transit history (`FEAT-TRANSIT-01`) | a Transit History section — sign-ingress events (planet, from→to, date, retro) with a date-range filter | #11 · Slow-planet transit history view |
 | Open `FEAT-UI` | Add / Edit person (`FEAT-UI-03`) | **inline on Home** — `Add New` unhides Name · Sex · DOB · Time · City · Country; completing Country → `/transit-wheel/{id}` | #4 |
 | Open `FEAT-UI` | Preferences (`FEAT-UI-12`) | **inline on Home, top-left disclosure** — three selector groups: Ayanāṁśa (21 catalogued, *Lahiri* fixed default) · Chart style (South Indian default; North / West Indian listed, renderers deferred) · Language (English; Tamil planned). See [`components/home.md`](components/home.md) | #5 |
-| `wkstream_UI_v2` | Transit landing (`/transit-wheel/{id}`) | the page a person lands on — embedded transit wheel + a two-tab **D1 Birth** / **Current Transit** table; persisted rows only. [`components/transit.md`](components/transit.md) | — |
+| `wkstream_UI_v2` | Transit landing (`/transit-wheel/{id}`) | the page a person lands on — embedded transit wheel + a two-tab **D1 Birth** / **Current Transit** table; persisted rows only. [`components/spec_Natal_Transit_Comp_Wheel.md`](components/spec_Natal_Transit_Comp_Wheel.md) | — |
 
 Also folded in (the "Missing Web" rollup column): Ṣaḍbala / Bhāva Bala already have sections
 7–8 in the AstrologerEvidence plan.
@@ -130,13 +131,15 @@ person cold.
   is one row; *View chart* opens the person and lands on `/transit-wheel/{id}`. Full spec:
   [`components/home.md`](components/home.md).
 - `/transit-wheel/{id}` — **Transit** (the landing), band heading `TRANSIT - D1 BIRTH CHART`.
-  Left: the embedded `ikiastrro-transit-wheel.svg`. Right: a two-tab table — **D1 Birth**
+  Left: the `Natal_Transit_Comp_WheelChart` component ([`components/chart-catalog.md`](components/chart-catalog.md)), fed the
+  person's D1 + current-transit points — superseded the `ikiastrro-transit-wheel.svg` placeholder.
+  Right: a two-tab table — **D1 Birth**
   (House · Planet · Motion · Degree · Sign · Nakṣatra · Nak. Pad) and **Current Transit**
   (House from D1 · Planet · Motion · Degree · Speed °/day · In sign since · **In-sign motion†** ·
   Next change · **Next-change motion†**). Both sorted Saturn → Jupiter → Rahu → Ketu → Mars →
   Venus → Mercury → Moon → Sun (Lagna first on D1). Full spec + the **†** DB additions
   (`InSignMotion`, `NextChangeMotion` on `tbl_TransitPositionReference`):
-  [`components/transit.md`](components/transit.md).
+  [`components/spec_Natal_Transit_Comp_Wheel.md`](components/spec_Natal_Transit_Comp_Wheel.md).
 - `/charts/{id}` — **All Charts**: all 21 divisional charts as plain South-Indian grids (not the
   SVG template), 3 per row, divisor order. **Only the card heading bar is sunset**; card, grid
   and margins are on the canvas. Each cell: full sign name (top-left), house-from-Lagna over
@@ -180,8 +183,8 @@ cells start `☐` and are checked per slice.
 | Screen | Reference | Route / component | Data source | Responsive · empty · error | A11y | bUnit / snapshot | Browser verify |
 |---|---|---|---|---|---|---|---|
 | Home | mockup `#home` | `/` · `Home.razor` | `BirthDetailsRepository` (search only) | ☐ narrow-column · ☐ no-match · ☐ resolver fail | ☐ keyboard search + focus ring | ☐ | ☐ `verify-home-ui.mjs` |
-| Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `TransitWheel.razor` (v2) | `vw_ChartPlanetEvidence` via `TransitLandingRepository` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☑ wide-table scroll-in-container · ☑ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs (`TransitLandingMath` unit-tested; render harness pending) | ☑ MCP browser smoke 2026-09-10 · ☐ `verify-transit-ui.mjs` headless run |
-| All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid` (re-skinned via token overrides) | `WorkspaceData.Load` — `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas, divisor order | ☑ 3→2→1-per-row reflow · ☑ varga not generated → `EmptyState` card | ☐ grid landmark labels | ☐ per varga (page-DI harness pending) | ☑ MCP browser smoke 2026-09-10 |
+| Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `Natal_Transit_Comp_Wheel.razor` + `Natal_Transit_Comp_WheelChart` ([`components/chart-catalog.md`](components/chart-catalog.md)) | `vw_ChartPlanetEvidence` via `Natal_Transit_Comp_WheelRepository` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☑ wide-table scroll-in-container · ☑ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs (`Natal_Transit_Comp_WheelMath` unit-tested; render harness pending) · ☐ golden snapshot not yet minted | ☑ MCP browser smoke 2026-09-10 · ☐ `verify-transit-ui.mjs` headless run |
+| All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid_Detailed` (re-skinned via token overrides) | `WorkspaceData.Load` — `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas, divisor order | ☑ 3→2→1-per-row reflow · ☑ varga not generated → `EmptyState` card | ☐ grid landmark labels | ☐ per varga (page-DI harness pending) | ☑ MCP browser smoke 2026-09-10 |
 | Key Inference | mockup `#key-inference` | `/key-inference/{id}` · `KeyInference.razor` | evidence views + dimension tables (per sub-tab) | ☐ auto table widths, no page scroll · ☐ empty section | ☐ header + sub-tab keyboard nav | ☐ per header | ☐ smoke |
 | Preferences | mockup `#home` (disclosure) | inline on Home · `Home.razor` | `AyanamsaDefinition.Catalog` · `localStorage` | ☐ collapse on select · ☐ `localStorage` unavailable → DB default | ☐ disclosure ARIA; disabled "Planned" options not focusable-as-selectable | ☐ | ☐ smoke |
 

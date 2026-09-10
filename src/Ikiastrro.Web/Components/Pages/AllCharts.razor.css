@@ -25,7 +25,7 @@
     box-shadow: 0 6px 18px rgb(15 32 65 / 0.08);
     overflow: hidden;
 
-    /* Re-skin the Codex `SouthIndianGrid` (Components/Charts/**) from here: CSS custom
+    /* Re-skin the Codex `SouthIndianGrid_Detailed` (Components/Charts/**) from here: CSS custom
        properties inherit through the real DOM, so remapping its parchment tokens to the
        brand palette needs no change to that component. */
     --paper: var(--brand-canvas);
@@ -74,7 +74,7 @@
 
 .ac-card-grid { padding: 12px; }
 
-/* trim SouthIndianGrid's heavy parchment framing for a gallery card */
+/* trim SouthIndianGrid_Detailed's heavy parchment framing for a gallery card */
 .ac-card-grid ::deep .chart {
     max-width: none;
     border-width: 1.5px;

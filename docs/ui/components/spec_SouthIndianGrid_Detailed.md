@@ -1,14 +1,21 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 workstream: ui
-component: SouthIndianGrid · SouthIndianTemplate
+component: SouthIndianGrid_Detailed · SouthIndianTemplate
 route: /charts/{id}/south-indian-template
 togaf: C — component spec
+catalogued_in: chart-catalog.md
 ---
 
-# Component — South-Indian grid & template
+# Specification — SouthIndianGrid_Detailed (grid + template)
 
-## `SouthIndianGrid.razor`
+> Living specification for `SouthIndianGrid_Detailed` and the `SouthIndianTemplate` page.
+> Catalogued in [`chart-catalog.md`](chart-catalog.md) (`SouthIndianGrid_Detailed`, `MiniGrid`,
+> `D1TemplateGrid`, `ChartFrame` rows). Per-component projection math:
+> `src/Ikiastrro.Web/Components/Charts/README.md`. Naming / versioning:
+> [`../../../project_standards.md`](../../../project_standards.md) § 3.
+
+## `SouthIndianGrid_Detailed.razor`
 
 The fixed 4×4 sign-position grid, one component for every chart type (D1…D60). Per cell:
 
@@ -28,7 +35,7 @@ that swaps it with `PolarWheel`.
 
 ## `SouthIndianTemplate` page (`/charts/{id}/south-indian-template`)
 
-The print-style single-chart template — one large `SouthIndianGrid` for D1 with a
+The print-style single-chart template — one large `SouthIndianGrid_Detailed` for D1 with a
 light/dark toggle, the Chara Karaka strip, and the chart's identity/method line. One of the
 four surfaces kept in the current UI (`wkstream_UI_v1`).
 
@@ -36,5 +43,5 @@ four surfaces kept in the current UI (`wkstream_UI_v1`).
 
 Inline SVG / CSS grid, CSS-isolated, all colour from `tokens.css` (`--cell-fill`,
 `--lagna-fill`, `--grid-stroke`, `--sign-text`, `--muted-text`, the dignity ramp). Golden
-snapshot `docs/artifacts/ui/SouthIndianGrid-sample.svg`. Geometry helpers version by addition
+snapshot `docs/artifacts/ui/SouthIndianGrid_Detailed-sample.svg`. Geometry helpers version by addition
 (`docs/ui/design-language.md`). North-Indian style is researched, not built.

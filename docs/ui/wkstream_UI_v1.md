@@ -25,9 +25,10 @@ live-state reference until v2 ships.
 - **The four kept read surfaces** — South-Indian template, transit wheel, astrologer evidence,
   and the Home design — plus the varga-centric workspace (`/charts/{id}`), varga view, timing,
   saved-charts and life-weeks. Full route list: [`MASTER.md`](MASTER.md).
-- **Chart rendering stays hand-rolled** inline SVG / CSS grid (`SouthIndianGrid`, `PolarWheel`,
-  `MiniGrid`, `ChartFrame`, `LifeWeeks`) — MudBlazor does the chrome, not the diagrams.
-  Catalogue + golden-snapshot flow: [`components/chart-catalog.md`](components/chart-catalog.md).
+- **Chart rendering stays hand-rolled** inline SVG / CSS grid (`SouthIndianGrid_Detailed`,
+  `PolarWheel`, `Natal_Transit_Comp_WheelChart`, `MiniGrid`, `ChartFrame`, `LifeWeeks`) —
+  MudBlazor does the chrome, not the diagrams. Catalogue (chart / spec doc / linked files) +
+  golden-snapshot flow: [`components/chart-catalog.md`](components/chart-catalog.md).
 
 ## What v1 deliberately dropped
 

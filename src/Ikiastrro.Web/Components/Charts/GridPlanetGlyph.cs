@@ -1,7 +1,7 @@
 namespace Ikiastrro.Web.Components.Charts;
 
 /// <summary>
-/// One planet glyph to render inside a <see cref="SouthIndianGrid"/> cell — e.g. "Su" with the
+/// One planet glyph to render inside a <see cref="SouthIndianGrid_Detailed"/> cell — e.g. "Su" with the
 /// exalted-dignity dot color, or "As" (the Ascendant) with no dot, since it has no dignity of
 /// its own. <paramref name="DignityToken"/> is the `--dignity-{token}` CSS variable suffix
 /// (see <c>ChartViewModel.DignityToken</c>) — null means "don't render a dot."

@@ -7,7 +7,11 @@ One rendered SVG per visual chart component, refreshed every release:
 ```
 
 Purpose and the revert workflow: `docs/ui/dataviz.md` and `docs/ui/components/chart-catalog.md`.
-Component list and contracts: `src/Ikiastrro.Web/Components/Charts/README.md`.
+Full catalogue (chart / spec doc / linked files): `docs/ui/components/chart-catalog.md`.
+Per-component projection math: `src/Ikiastrro.Web/Components/Charts/README.md`.
+
+**Missing golden:** `Natal_Transit_Comp_WheelChart` (wired into `/transit-wheel/{id}`)
+has no sample SVG yet — add a `[Fact]` to `ChartSnapshotTests` and mint one.
 
 ## The fixture
 
