@@ -1,0 +1,8 @@
+{
+  "enabledCssSnippets": [
+    "table-wrap"
+  ],
+  "baseFontSize": 16,
+  "showViewHeader": true,
+  "nativeMenus": false
+}

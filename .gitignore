@@ -17,8 +17,11 @@
 # git worktrees (isolated task workspaces)
 /.claude/worktrees/
 
-# Obsidian vault config (per-user editor state, not project)
-/.obsidian/
+# Obsidian vault — shared config is committed; only per-user editor state is ignored
+/.obsidian/workspace.json
+/.obsidian/workspace-mobile.json
+/.obsidian/cache
+/.obsidian/plugins/*/data.json
 
 # Throwaway scratch dir (JHora reference exports now live in docs/artifacts/reference-charts/)
 /scratch/

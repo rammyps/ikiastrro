@@ -1,0 +1,31 @@
+/* table-wrap.css — stop Markdown tables from scrolling horizontally.
+   Toggle in Settings → Appearance → CSS snippets. Safe to disable anytime. */
+
+/* Remove the horizontal scrollbar wrapper Obsidian puts around tables */
+.markdown-rendered .table-wrapper,
+.markdown-source-view.mod-cm6 .table-wrapper {
+  overflow-x: visible;
+}
+
+/* Give every column an equal share of the pane and let text wrap */
+.markdown-rendered table {
+  table-layout: fixed;
+  width: 100%;
+  font-size: 0.85em;            /* optional: denser tables; delete this line to keep normal size */
+}
+
+.markdown-rendered table th,
+.markdown-rendered table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  vertical-align: top;
+}
+
+/* Optional: keep the first (label) column narrow so the rest share the width.
+   Uncomment and tune the width if your tables are key/value style.
+.markdown-rendered table th:first-child,
+.markdown-rendered table td:first-child {
+  width: 12em;
+}
+*/

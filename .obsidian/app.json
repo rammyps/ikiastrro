@@ -1,0 +1,30 @@
+{
+  "promptDelete": true,
+  "alwaysUpdateLinks": true,
+  "useMarkdownLinks": true,
+  "newLinkFormat": "relative",
+  "attachmentFolderPath": "docs/artifacts/_attachments",
+  "showUnsupportedFiles": false,
+  "readableLineLength": false,
+  "strictLineBreaks": false,
+  "showFrontmatter": true,
+  "showInlineTitle": true,
+  "defaultViewMode": "source",
+  "livePreview": true,
+  "trashOption": "system",
+  "newFileLocation": "current",
+  "userIgnoreFilters": [
+    "_research/",
+    "UI_SVG_Templates/",
+    "publish/",
+    "scripts/",
+    "tests/",
+    ".vs/",
+    ".claude/",
+    ".superpowers/",
+    ".git/",
+    "src/Ikiastrro.Web/wwwroot/",
+    "/(^|\\/)(bin|obj)(\\/|$)/",
+    "/\\.received\\.svg$/"
+  ]
+}

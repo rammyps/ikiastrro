@@ -1,0 +1,27 @@
+{
+  "items": [
+    { "type": "file", "title": "📍 Doc index (MASTER)", "path": "MASTER.md" },
+    { "type": "file", "title": "Project standards", "path": "project_standards.md" },
+    { "type": "file", "title": "Roadmap", "path": "ROADMAP.md" },
+    { "type": "file", "title": "Feature register (masterproduct)", "path": "masterproduct.md" },
+    { "type": "file", "title": "Architecture", "path": "ARCHITECTURE.md" },
+    {
+      "type": "group",
+      "title": "Workstream masters",
+      "items": [
+        { "type": "file", "title": "UI", "path": "docs/ui/MASTER.md" },
+        { "type": "file", "title": "Database", "path": "docs/database/MASTER.md" },
+        { "type": "file", "title": "CLI", "path": "docs/cli/MASTER.md" }
+      ]
+    },
+    {
+      "type": "group",
+      "title": "Catalogues",
+      "items": [
+        { "type": "file", "title": "Chart modules", "path": "docs/ui/components/chart-catalog.md" },
+        { "type": "file", "title": "DB view catalogue", "path": "docs/database/db_view_catalog.md" },
+        { "type": "file", "title": "DB schema", "path": "docs/database/schema.md" }
+      ]
+    }
+  ]
+}

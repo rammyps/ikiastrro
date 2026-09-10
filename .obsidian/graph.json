@@ -1,0 +1,30 @@
+{
+  "collapse-filter": true,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    { "query": "path:\"docs/ui\"", "color": { "a": 1, "rgb": 16022564 } },
+    { "query": "path:\"docs/database\"", "color": { "a": 1, "rgb": 3108843 } },
+    { "query": "path:\"docs/cli\"", "color": { "a": 1, "rgb": 3055707 } },
+    { "query": "path:\"docs/architecture\" OR path:\"docs/governance\"", "color": { "a": 1, "rgb": 9069010 } },
+    { "query": "path:\"docs/research\"", "color": { "a": 1, "rgb": 8686454 } },
+    { "query": "path:\"decisions\"", "color": { "a": 1, "rgb": 15026765 } },
+    { "query": "file:MASTER OR file:masterproduct OR file:ROADMAP OR file:project_standards", "color": { "a": 1, "rgb": 15055437 } }
+  ],
+  "collapse-display": false,
+  "showArrow": true,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.5,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 1,
+  "close": false
+}
