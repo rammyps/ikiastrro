@@ -16,6 +16,7 @@ public sealed class GenerateChartTests(PlaywrightFixture fixture, ITestOutputHel
 {
     private static readonly System.Text.RegularExpressions.Regex TransitUrl = new(@"/transit-wheel/\d+");
     private const string Person = "E2E GenTest Person";
+    private const string RenamedPerson = "E2E GenTest Renamed";
 
     [SkippableFact]
     public async Task Add_generates_a_rendering_chart_then_delete_removes_it_cleanly()
@@ -56,14 +57,24 @@ public sealed class GenerateChartTests(PlaywrightFixture fixture, ITestOutputHel
         output.WriteLine($"D1 Birth table rows after generate: {d1Rows}");
         Assert.True(d1Rows >= 8, $"expected >= 8 D1 rows on the transit page, got {d1Rows}");
 
-        // ---- delete from /charts -------------------------------------------------
+        // ---- rename from /charts (Edit — name only, no chart rebuild) ----------
         await OpenAsync("/charts");
-        var row = Page.Locator("tr", new() { HasTextString = Person });
-        await Expect(row).ToHaveCountAsync(1);
-        await row.First.GetByRole(AriaRole.Button, new() { Name = $"Delete {Person}" }).ClickAsync();
+        await Expect(Page.Locator("tr", new() { HasTextString = Person })).ToHaveCountAsync(1);
+        await Page.GetByRole(AriaRole.Button, new() { Name = $"Edit {Person}" }).ClickAsync();
+        var editBox = Page.Locator(".edit-box");
+        await Expect(editBox).ToBeVisibleAsync();
+        await editBox.Locator("input[type='text']").First.FillAsync(RenamedPerson);
+        await editBox.Locator("button.btn-confirm").ClickAsync();
+        await Expect(editBox).Not.ToBeVisibleAsync(new() { Timeout = 15_000 });
+        await Expect(Page.Locator("tr", new() { HasTextString = RenamedPerson })).ToHaveCountAsync(1);
+        await Expect(Page.Locator("tr", new() { HasTextString = Person })).ToHaveCountAsync(0);
+
+        // ---- delete from /charts ----------------------------------------------
+        var row = Page.Locator("tr", new() { HasTextString = RenamedPerson });
+        await row.First.GetByRole(AriaRole.Button, new() { Name = $"Delete {RenamedPerson}" }).ClickAsync();
         await Page.Locator(".dialog-box button.btn-confirm").ClickAsync();
 
-        await Expect(Page.Locator("tr", new() { HasTextString = Person })).ToHaveCountAsync(0, new() { Timeout = 20_000 });
+        await Expect(Page.Locator("tr", new() { HasTextString = RenamedPerson })).ToHaveCountAsync(0, new() { Timeout = 20_000 });
         // a delete that throws would blow up the whole circuit
         await Expect(Page.Locator("#blazor-error-ui")).Not.ToBeVisibleAsync();
         await Expect(Page.Locator(".saved-charts-error")).Not.ToBeVisibleAsync();
@@ -78,18 +89,21 @@ public sealed class GenerateChartTests(PlaywrightFixture fixture, ITestOutputHel
     private async Task ForceDeleteTestPerson()
     {
         await OpenAsync("/charts");
-        var row = Page.Locator("tr", new() { HasTextString = Person });
-        if (await row.CountAsync() == 0)
-            return;
-        try
+        foreach (var name in new[] { Person, RenamedPerson })
         {
-            await row.First.GetByRole(AriaRole.Button, new() { Name = $"Delete {Person}" }).ClickAsync();
-            await Page.Locator(".dialog-box button.btn-confirm").ClickAsync();
-            await Expect(Page.Locator("tr", new() { HasTextString = Person })).ToHaveCountAsync(0, new() { Timeout = 20_000 });
-        }
-        catch (Exception ex)
-        {
-            output.WriteLine($"[pre-clean] could not delete leftover '{Person}': {ex.Message}");
+            var row = Page.Locator("tr", new() { HasTextString = name });
+            if (await row.CountAsync() == 0)
+                continue;
+            try
+            {
+                await row.First.GetByRole(AriaRole.Button, new() { Name = $"Delete {name}" }).ClickAsync();
+                await Page.Locator(".dialog-box button.btn-confirm").ClickAsync();
+                await Expect(Page.Locator("tr", new() { HasTextString = name })).ToHaveCountAsync(0, new() { Timeout = 20_000 });
+            }
+            catch (Exception ex)
+            {
+                output.WriteLine($"[pre-clean] could not delete leftover '{name}': {ex.Message}");
+            }
         }
     }
 }

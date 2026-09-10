@@ -3,6 +3,8 @@
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
 @inject BirthDetailDeletionService DeletionService
+@inject ChartGenerationService ChartGenerationService
+@inject IPlaceResolver PlaceResolver
 
 <PageTitle>Saved Charts — ikiastrro</PageTitle>
 <h1>Saved charts</h1>
@@ -20,6 +22,62 @@ else
                Message="@($"Delete {_pendingDelete?.Person.Name}'s chart and all computed data? This can't be undone.")"
                IsBusy="_isDeleting" OnConfirm="HandleDelete" OnCancel="() => _pendingDelete = null" />
 
+@if (_edit is not null)
+{
+    <div class="edit-backdrop" @onclick="CancelEdit">
+        <div class="edit-box" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <h2 class="edit-title">Edit @_editOriginalName</h2>
+
+            <label class="edit-field">
+                <span>Name</span>
+                <input type="text" @bind="_edit.Name" @bind:event="oninput" />
+            </label>
+
+            <div class="edit-field">
+                <span>Sex</span>
+                <div class="edit-radio">
+                    <label><input type="radio" name="sex" value="Male"
+                                  checked="@(_edit.Sex == "Male")" @onchange="@(() => _edit.Sex = "Male")" /> Male</label>
+                    <label><input type="radio" name="sex" value="Female"
+                                  checked="@(_edit.Sex == "Female")" @onchange="@(() => _edit.Sex = "Female")" /> Female</label>
+                </div>
+            </div>
+
+            <div class="edit-birth">
+                <p class="edit-note">Changing any field below rebuilds every chart for this person.</p>
+                <label class="edit-field">
+                    <span>Date of Birth</span>
+                    <input type="date" @bind="_edit.Dob" />
+                </label>
+                <label class="edit-field">
+                    <span>Time of Birth</span>
+                    <input type="time" step="1" @bind="_edit.Tob" />
+                </label>
+                <label class="edit-field">
+                    <span>City</span>
+                    <input type="text" @bind="_edit.City" />
+                </label>
+                <label class="edit-field">
+                    <span>Country</span>
+                    <input type="text" @bind="_edit.Country" />
+                </label>
+            </div>
+
+            @if (_editError is not null)
+            {
+                <p class="edit-error" role="alert">@_editError</p>
+            }
+
+            <div class="edit-actions">
+                <button type="button" class="btn-cancel" @onclick="CancelEdit" disabled="@_isSaving">Cancel</button>
+                <button type="button" class="btn-confirm" @onclick="SaveEdit" disabled="@_isSaving">
+                    @(_isSaving ? (_regenerating ? "Rebuilding charts…" : "Saving…") : "Save")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @if (_error is not null)
 {
     <p class="saved-charts-error" role="alert">@_error</p>
@@ -33,12 +91,24 @@ else
     private bool _isDeleting;
     private string? _error;
 
+    // --- edit state ---
+    private EditForm? _edit;
+    private int _editId;
+    private string _editOriginalName = "";
+    private BirthDetails? _editOriginal;
+    private string? _editError;
+    private bool _isSaving;
+    private bool _regenerating;
+
     private IReadOnlyList<DataTable<Row>.Column> Cols => new[]
     {
         new DataTable<Row>.Column("Name", r => r.Person.Name, r => @<a href="@($"/charts/{r.Person.Id}")">@r.Person.Name</a>),
         new DataTable<Row>.Column("Date of Birth", r => r.Person.DateOfBirth, r => @<text>@r.Person.DateOfBirth.ToString("d MMM yyyy")</text>),
         new DataTable<Row>.Column("Place", r => r.Person.PlaceCity, r => @<text>@r.Person.PlaceCity, @r.Person.PlaceCountry</text>),
-        new DataTable<Row>.Column("", _ => 0, r => @<DeleteIconButton Title="@($"Delete {r.Person.Name}")" OnClick="() => _pendingDelete = r" />),
+        new DataTable<Row>.Column("", _ => 0, r => @<div class="row-actions">
+            <EditIconButton Title="@($"Edit {r.Person.Name}")" OnClick="() => StartEdit(r)" />
+            <DeleteIconButton Title="@($"Delete {r.Person.Name}")" OnClick="() => _pendingDelete = r" />
+        </div>),
     };
 
     protected override void OnInitialized() => Load();
@@ -79,5 +149,107 @@ else
         {
             _isDeleting = false;
         }
+    }
+
+    private void StartEdit(Row r)
+    {
+        var p = r.Person;
+        _editId = p.Id;
+        _editOriginal = p;
+        _editOriginalName = p.Name;
+        _editError = null;
+        _edit = new EditForm
+        {
+            Name = p.Name,
+            Sex = p.Sex ?? "",
+            Dob = p.DateOfBirth,
+            Tob = p.TimeOfBirth,
+            City = p.PlaceCity,
+            Country = p.PlaceCountry,
+        };
+    }
+
+    private void CancelEdit()
+    {
+        if (_isSaving) return;
+        _edit = null;
+        _editError = null;
+    }
+
+    private async Task SaveEdit()
+    {
+        if (_edit is null || _editOriginal is null || _isSaving) return;
+        _editError = null;
+
+        if (string.IsNullOrWhiteSpace(_edit.Name) || string.IsNullOrWhiteSpace(_edit.Sex)
+            || string.IsNullOrWhiteSpace(_edit.City) || string.IsNullOrWhiteSpace(_edit.Country))
+        {
+            _editError = "Name, sex, city and country can't be blank.";
+            return;
+        }
+
+        var dob = _edit.Dob;
+        var tob = _edit.Tob;
+        var birthChanged =
+            dob != _editOriginal.DateOfBirth || tob != _editOriginal.TimeOfBirth
+            || !string.Equals(_edit.City.Trim(), _editOriginal.PlaceCity, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(_edit.Country.Trim(), _editOriginal.PlaceCountry, StringComparison.OrdinalIgnoreCase);
+
+        _isSaving = true;
+        _regenerating = birthChanged;
+        try
+        {
+            var updated = new BirthDetails
+            {
+                Id = _editId,
+                Name = _edit.Name.Trim(),
+                Sex = _edit.Sex,
+                DateOfBirth = dob,
+                TimeOfBirth = tob,
+                PlaceCity = _edit.City.Trim(),
+                PlaceCountry = _edit.Country.Trim(),
+                Latitude = _editOriginal.Latitude,
+                Longitude = _editOriginal.Longitude,
+                UtcOffset = _editOriginal.UtcOffset,
+                IanaTimeZoneId = _editOriginal.IanaTimeZoneId,
+                CreatedAt = _editOriginal.CreatedAt,
+            };
+
+            if (birthChanged)
+            {
+                var place = await PlaceResolver.ResolveAsync(updated.PlaceCity, updated.PlaceCountry, dob);
+                updated.Latitude = place.Latitude;
+                updated.Longitude = place.Longitude;
+                updated.UtcOffset = place.UtcOffset.ToString();
+                updated.IanaTimeZoneId = place.IanaTimeZoneId;
+            }
+
+            BirthDetailsRepo.Update(updated);
+
+            if (birthChanged)
+                ChartGenerationService.GenerateAll(updated);   // delete-first-then-regenerate
+
+            _edit = null;
+            Load();
+        }
+        catch (Exception ex)
+        {
+            _editError = $"Could not save: {ex.Message}";
+        }
+        finally
+        {
+            _isSaving = false;
+            _regenerating = false;
+        }
+    }
+
+    private sealed class EditForm
+    {
+        public string Name { get; set; } = "";
+        public string Sex { get; set; } = "";
+        public DateOnly Dob { get; set; }
+        public TimeOnly Tob { get; set; }
+        public string City { get; set; } = "";
+        public string Country { get; set; } = "";
     }
 }

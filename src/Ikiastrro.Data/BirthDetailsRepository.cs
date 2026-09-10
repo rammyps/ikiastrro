@@ -52,6 +52,39 @@ public class BirthDetailsRepository
         return connection.QuerySingleOrDefault<BirthDetailsRow>(sql, new { Id = id })?.ToModel();
     }
 
+    /// <summary>
+    /// Overwrites the editable columns of one person (identified by <c>Id</c>). Does NOT touch any
+    /// derived chart data — if the caller changed date/time/place, it must re-run
+    /// <c>ChartGenerationService.GenerateAll</c> afterward.
+    /// </summary>
+    public void Update(BirthDetails b)
+    {
+        const string sql = """
+            UPDATE dbo.tbl_BirthDetails SET
+                Name = @Name, Sex = @Sex,
+                DateOfBirth = @DateOfBirth, TimeOfBirth = @TimeOfBirth,
+                PlaceCity = @PlaceCity, PlaceCountry = @PlaceCountry,
+                Latitude = @Latitude, Longitude = @Longitude,
+                UtcOffset = @UtcOffset, IanaTimeZoneId = @IanaTimeZoneId
+            WHERE Id = @Id
+            """;
+        using var connection = _connectionFactory.CreateOpenConnection();
+        connection.Execute(sql, new
+        {
+            b.Id,
+            b.Name,
+            Sex = string.IsNullOrWhiteSpace(b.Sex) ? null : b.Sex,
+            DateOfBirth = b.DateOfBirth.ToDateTime(TimeOnly.MinValue),
+            TimeOfBirth = b.TimeOfBirth.ToTimeSpan(),
+            b.PlaceCity,
+            b.PlaceCountry,
+            b.Latitude,
+            b.Longitude,
+            b.UtcOffset,
+            b.IanaTimeZoneId
+        });
+    }
+
     /// <summary>All BirthDetails rows, alphabetical by Name — backs the "Saved Charts" list page.</summary>
     public IReadOnlyList<BirthDetails> GetAll()
     {

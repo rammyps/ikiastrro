@@ -1,0 +1,14 @@
+@* Icon button for editing a row (pencil). Sits before DeleteIconButton in the actions cell.
+   Renders only the trigger — the caller owns the edit dialog. Mirrors DeleteIconButton. *@
+<button type="button" class="edit-icon-btn" title="@Title" aria-label="@Title" @onclick="OnClick">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+</button>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Edit";
+    [Parameter] public EventCallback OnClick { get; set; }
+}

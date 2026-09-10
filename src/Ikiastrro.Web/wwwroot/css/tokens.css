@@ -122,10 +122,18 @@
 
 /* App-wide base look, shared by every page (scoped-CSS components keep their own copies of
    these rules — harmless duplication, since CSS isolation means they can't read these). */
+html {
+    /* Full-bleed sections (e.g. Home's Ganesha art) push past the centered content column to
+       the viewport edge with a negative margin; clip the resulting horizontal overflow here so
+       no page ever gets a sideways scrollbar. Vertical scrolling is unaffected. */
+    overflow-x: clip;
+}
+
 body {
     background: var(--brand-canvas);
     color: var(--brand-midnight);
     font-family: 'Manrope', 'Segoe UI', sans-serif;
+    overflow-x: clip;
 }
 
 h1, h2, h3 {

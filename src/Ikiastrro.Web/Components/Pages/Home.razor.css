@@ -152,21 +152,23 @@
     color: var(--danger, #b3261e);
 }
 
-/* Ganesha / Navagraha art — first-class right column, large and hugging the right edge. */
+/* Ganesha / Navagraha art — first-class right column. It's a tall, square illustration
+   whose RIGHT edge sits on the browser's right edge (full-bleed, no gutter). The negative
+   right margin equals one side's gutter — (100vw - .home width) / 2 — and html/body clip
+   the resulting overflow (see tokens.css). */
 .home-art {
-    align-self: stretch;
-    display: grid;
-    place-items: stretch;
-    min-height: min(78vh, 780px);
+    align-self: start;
+    height: min(88vh, 900px);
+    margin-right: calc((100% - 100vw) / 2);
     overflow: hidden;
 }
 
 .home-art img {
-    width: 100%;
-    max-width: none;
     height: 100%;
-    object-fit: contain;
-    object-position: right center;
+    width: auto;
+    max-width: none;
+    display: block;
+    margin-left: auto;   /* flush to the right of the bled column */
 }
 
 /* Primary buttons are sunset-filled via the app theme (IkiastrroTheme). */

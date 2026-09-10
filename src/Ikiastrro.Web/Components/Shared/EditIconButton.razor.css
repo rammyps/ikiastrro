@@ -1,0 +1,19 @@
+.edit-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink-faint);
+    cursor: pointer;
+}
+
+.edit-icon-btn:hover,
+.edit-icon-btn:focus-visible {
+    color: var(--accent);
+    background: var(--asc-glow, rgba(140, 47, 57, 0.12));
+}
