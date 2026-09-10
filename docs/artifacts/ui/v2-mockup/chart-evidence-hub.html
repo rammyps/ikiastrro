@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>All Charts &amp; Key Inference</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -7,10 +8,14 @@
      Iki-Astrro v2 — person detail, two header pages:
        1. All Charts     (/charts)         — 21 divisional South-Indian grids
        2. Key Inference  (/key-inference)  — 4 headers:
-            · KEY INFERENCE   (8 sub-tabs)
+            · KEY INFERENCE   (13 sub-tabs — the 8 base + Ṣoḍaśavarga /
+              Vaiśeṣikāṁśa / Varga Dignity / Ashtakavarga / Chara Karaka)
             · YOGAS
             · TIME PERIOD (DASHA)
             · SATURN TIME PERIOD
+       Sample data = Ananya Iyer (id 89), the fully-computed reference row.
+       New divisional + Ashtakavarga tabs carry her REAL persisted values;
+       the 8 base tabs stay illustrative.
      Header bar: nav tabs LEFT (caps), brand lockup + Home RIGHT.
      Design system fixed by the project (brand.md / wkstream_UI_v2):
      Manrope only; one warm-canvas ground for page AND panels; sunset
@@ -317,6 +322,29 @@
   .ava-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; padding: .8rem; }
   .ava-grid span { border: 1px solid var(--line); text-align: center; padding: .3rem 0; font-size: var(--fs-meta); font-weight: 700; color: var(--muted); }
 
+  /* ---- Ashtakavarga bindu grid (rows = recipient, cols = Aries…Pisces) ---- */
+  #view-infer table.bav { table-layout: fixed; width: 100%; }
+  #view-infer table.bav th, #view-infer table.bav td { padding: .32rem .2rem; text-align: center; }
+  #view-infer table.bav th:first-child, #view-infer table.bav td:first-child { text-align: left; padding-left: .6rem; white-space: nowrap; }
+  #view-infer table.bav td.b { font-weight: 700; }
+  #view-infer table.bav td.b0 { color: var(--bad); }
+  #view-infer table.bav td.b-hi { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+  #view-infer table.bav tr.sav td { border-top: 2px solid var(--ink); font-weight: 800; }
+  #view-infer table.bav tr.sav td.tot { color: var(--sunset); }
+  #view-infer .bav-note { font-size: var(--fs-meta); color: var(--muted); font-weight: 700; padding: 0 .8rem .7rem; }
+
+  /* ---- Ṣoḍaśavarga sign grid (rows = graha, cols = 16 vargas) ---- */
+  #view-infer table.sv { table-layout: fixed; width: 100%; }
+  #view-infer table.sv th, #view-infer table.sv td { padding: .3rem .25rem; text-align: center; font-size: var(--fs-meta); }
+  #view-infer table.sv th:first-child, #view-infer table.sv td:first-child { text-align: left; padding-left: .6rem; font-size: var(--fs-cell); font-weight: 700; white-space: nowrap; }
+  #view-infer table.sv td.vg { background: color-mix(in srgb, var(--sunset) 14%, transparent); font-weight: 800; }
+  #view-infer .sv-scroll { overflow-x: auto; }
+
+  .also { padding: .8rem; display: grid; gap: .55rem; }
+  .also .row { display: grid; grid-template-columns: 12rem 1fr; gap: .8rem; align-items: baseline; font-size: var(--fs-cell); }
+  .also .row b { font-weight: 800; }
+  .also code { font-family: ui-monospace, Consolas, monospace; font-size: var(--fs-meta); color: var(--muted); }
+
   .pill { display: inline-block; font-size: var(--fs-meta); font-weight: 800; padding: .08rem .45rem; border-radius: 999px; border: 1px solid currentColor; }
   .pill--ok { color: var(--ok); } .pill--warn { color: var(--warn); }
   .pill--bad { color: var(--bad); } .pill--flat { color: var(--muted); }
@@ -471,7 +499,7 @@
       </ul>
       <h4>Page 2 &mdash; Key Inference : 4 headers</h4>
       <ul>
-        <li><b>KEY INFERENCE</b> &mdash; 8 sub-tabs: <code>About Sign</code> &middot; <code>About Planet</code> &middot; <code>About Moon</code> &middot; <code>About Houses</code> &middot; <code>Planet Dignity</code> &middot; <code>Planet Strength (Shadbala)</code> &middot; <code>House Strength (Bhava Bala)</code> &middot; <code>Vargottama (D1 &amp; D9)</code>. The <b>chart dropdown</b> shows on <code>About Houses</code> and <code>Planet Dignity</code> (both chart-scoped). Combust planets sort directly under the Sun in Planet Dignity.</li>
+        <li><b>KEY INFERENCE</b> &mdash; 13 sub-tabs: the 8 base (<code>About Sign</code> &middot; <code>About Planet</code> &middot; <code>About Moon</code> &middot; <code>About Houses</code> &middot; <code>Planet Dignity</code> &middot; <code>Planet Strength (Shadbala)</code> &middot; <code>House Strength (Bhava Bala)</code> &middot; <code>Vargottama</code>) plus <b>divisional + Ashtakavarga</b>: <code>Ṣoḍaśavarga</code> (graha sign in all 16 vargas, vargottama cells tinted) &middot; <code>Vaiśeṣikāṁśa</code> (strength count over 16 vargas) &middot; <code>Varga Dignity</code> (exalt/own/debil per divisional chart) &middot; <code>Ashtakavarga</code> (BAV grid + SAV row + Piṇḍa) &middot; <code>Chara Karaka</code> (Jaimini 8-karaka, with an &ldquo;also computed&rdquo; panel of DB data not yet surfaced). The <b>chart dropdown</b> shows on <code>About Houses</code> and <code>Planet Dignity</code>. Combust planets sort directly under the Sun in Planet Dignity. <b>The five new tabs carry Ananya Iyer&rsquo;s real persisted values.</b></li>
         <li><b>YOGAS</b> &mdash; coverage summary + source variants.</li>
         <li><b>TIME PERIOD (DASHA)</b> &mdash; Vim&#347;ottari drill-down: Mah&#257;da&#347;&#257; &rarr; Antarda&#347;&#257; &rarr; Pratyantarda&#347;&#257;, each expandable. On load the <b>currently-running</b> chain (1st &rarr; 2nd &rarr; 3rd level) is expanded and highlighted in sunset.</li>
         <li><b>SATURN TIME PERIOD</b> &mdash; Sade Sati (3 dhaiyas) + Ka&#7751;&#7789;aka &#346;ani + A&#7779;&#7789;ama &#346;ani in <b>one table</b>, ascending from birth to age 75. New <b>Round</b> column (left of &ldquo;From Moon&rdquo;) with <code>1st / 2nd / 3rd round</code> filters. The current or next window is highlighted in sunset. Ashtakavarga stays out of scope (<code>calculations.md &sect;9</code>).</li>
@@ -784,6 +812,132 @@
       ["Saturn","Virgo","Aquarius",false],["Rahu","Cancer","Sagittarius",false],["Ketu","Capricorn","Gemini",false]
     ]
   };
+  /* ============================================================
+     Divisional + Ashtakavarga sub-tabs — REAL persisted values for
+     Ananya Iyer (id 89), the fully-computed reference person.
+     ============================================================ */
+  var SIGN3 = ["Ari","Tau","Gem","Can","Leo","Vir","Lib","Sco","Sag","Cap","Aqu","Pis"];
+  var VG_NAMES = ["D1","D2","D3","D4","D7","D9","D10","D12","D16","D20","D24","D27","D30","D40","D45","D60"];
+  var GRAHA_ORDER = ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu"];
+
+  var SODASA = {
+    src: "tbl_Chart_KeyDetails (per divisional chart)",
+    signs: {
+      Sun:     ["Sco","Leo","Can","Leo","Sco","Pis","Ari","Lib","Sco","Can","Tau","Aqu","Sco","Sag","Aqu","Leo"],
+      Moon:    ["Pis","Can","Pis","Gem","Sco","Vir","Aqu","Gem","Tau","Aqu","Aqu","Vir","Vir","Sco","Aqu","Lib"],
+      Mars:    ["Sag","Leo","Ari","Pis","Aqu","Can","Pis","Ari","Tau","Pis","Ari","Cap","Sag","Gem","Ari","Lib"],
+      Mercury: ["Sag","Leo","Ari","Pis","Aqu","Can","Pis","Ari","Tau","Aqu","Ari","Cap","Sag","Tau","Pis","Leo"],
+      Jupiter: ["Pis","Can","Pis","Pis","Vir","Can","Sco","Pis","Sag","Leo","Can","Cap","Tau","Lib","Sag","Ari"],
+      Venus:   ["Lib","Leo","Aqu","Cap","Cap","Aqu","Aqu","Pis","Sco","Cap","Can","Sco","Sag","Sco","Cap","Pis"],
+      Saturn:  ["Vir","Leo","Tau","Pis","Leo","Can","Sag","Tau","Sco","Lib","Sag","Aqu","Cap","Aqu","Leo","Ari"],
+      Rahu:    ["Sag","Leo","Sag","Pis","Aqu","Gem","Pis","Pis","Ari","Aqu","Pis","Sag","Aqu","Ari","Cap","Gem"],
+      Ketu:    ["Gem","Leo","Gem","Vir","Leo","Sag","Vir","Vir","Ari","Aqu","Pis","Gem","Aqu","Ari","Cap","Sag"]
+    }
+  };
+
+  var VAISESIKA = {
+    src: "derived from tbl_Chart_KeyDetails.DignityStatus over the 16 vargas",
+    cols: ["Planet","Exalt / MT / Own","Friend","Debil / Gt-enemy","Neutral / enemy","of"],
+    rows: [
+      ["Sun",4,4,3,5,16],["Moon",2,6,2,6,16],["Mars",5,1,1,9,16],["Mercury",0,2,3,11,16],
+      ["Jupiter",9,1,3,3,16],["Venus",3,5,2,6,16],["Saturn",4,4,4,4,16]
+    ]
+  };
+
+  var VARGA_DIGNITY = {
+    src: "tbl_Chart_KeyDetails.DignityStatus (chart-scoped)",
+    cols: ["Varga","Exalted / Own / MT","Debilitated / Gt-enemy"],
+    rows: [
+      ["D1","Venus — MT, Libra","Ketu — Gemini"],
+      ["D9 · Navāṁśa","Jupiter — exalt Cancer · Rahu — exalt · Ketu — exalt","Mars — debil Cancer"],
+      ["D10 · Daśāṁśa","Sun — exalt Aries","Mercury — debil Pisces"],
+      ["D12 · Dvādaśāṁśa","Jupiter — own Pisces","—"],
+      ["D30 · Triṁśāṁśa","Mercury — own Sagittarius","—"],
+      ["D60 · Ṣaṣṭyāṁśa","Sun · Venus","—"]
+    ]
+  };
+
+  var CHARA_KARAKA = {
+    src: "tbl_Chart_KeyDetails.CharaKaraka (Ashta / 8-karaka scheme)",
+    cols: ["Kāraka","Planet","D1 sign","Deg","Nakṣatra · pāda"],
+    rows: [
+      ["AK — Ātma","Sun","Scorpio","28.50°","Jyeṣṭhā · 4"],
+      ["AmK — Amātya","Saturn","Virgo","21.64°","Hasta · 4"],
+      ["MK — Mātṛ","Venus","Libra","14.56°","Svātī · 3"],
+      ["PiK — Pitṛ","Mars","Sagittarius","11.02°","Mūla · 4"],
+      ["PK — Putra","Mercury","Sagittarius","10.34°","Mūla · 4"],
+      ["GK — Gnāti","Moon","Pisces","9.92°","U.Bhādra · 2"],
+      ["BK — Bhrātṛ","Rahu","Sagittarius","9.21°","Mūla · 3"],
+      ["DK — Dāra","Jupiter","Pisces","0.62°","P.Bhādra · 4"]
+    ]
+  };
+
+  var BAV = {
+    Sun:     [4,5,4,4,5,6,4,3,5,3,2,3],
+    Moon:    [6,4,4,3,3,6,3,2,5,6,4,3],
+    Mars:    [4,5,2,3,4,5,2,0,4,4,2,4],
+    Mercury: [5,4,4,4,6,4,8,2,6,4,4,3],
+    Jupiter: [4,4,4,5,5,5,4,5,5,7,3,5],
+    Venus:   [3,6,4,5,4,2,7,6,3,4,5,3],
+    Saturn:  [2,5,1,4,5,5,3,4,2,3,4,1]
+  };
+  var AV_RECIP = ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn"];
+  var PINDA = {
+    src: "tbl_Fact_AshtakavargaPinda",
+    cols: ["Recipient","Rāśi Piṇḍa","Graha Piṇḍa","Sodhya Piṇḍa"],
+    rows: [
+      ["Sun",52,42,94],["Moon",81,51,132],["Mars",75,65,140],["Mercury",67,56,123],
+      ["Jupiter",46,25,71],["Venus",109,36,145],["Saturn",123,39,162]
+    ]
+  };
+  function savRow() { return SIGN3.map(function (_, c) { return AV_RECIP.reduce(function (s, r) { return s + BAV[r][c]; }, 0); }); }
+
+  var ALSO_COMPUTED = [
+    ["Arudha padas (A1…A12)", "12 rows per chart — not yet surfaced", "tbl_Chart_KeyDetails · PointKind='Arudha'"],
+    ["Upagrahas (Gulika, Māndi, +9)", "11 rows per chart — not yet surfaced", "tbl_Chart_KeyDetails · PointKind='Upagraha'"],
+    ["Special Lagnas (HL, …)", "not yet surfaced", "tbl_Chart_KeyDetails · PointKind='SpecialLagna'"],
+    ["Per-planet nakṣatra + pāda", "only D1, inside Planet Dignity", "tbl_Chart_KeyDetails.Nakshatra / NakshatraPada"],
+    ["Directional aspects (graha dṛṣṭi)", "not surfaced as a table", "tbl_Chart_Aspects"],
+    ["Conjunction groups (≥2 grahas)", "inline in About Houses only", "tbl_Chart_MultiGrahaConjunction / …Member"],
+    ["Planetary avasthās (Bālādi, Jāgradādi)", "columns exist in Planet Dignity (illustrative)", "tbl_Fact_PlanetaryState"]
+  ];
+
+  function ashtakavargaHTML() {
+    var head = '<tr><th>Recipient</th>' + SIGN3.map(function (s) { return '<th>' + s + '</th>'; }).join('') + '<th>Σ</th></tr>';
+    var body = AV_RECIP.map(function (r) {
+      var row = BAV[r], tot = row.reduce(function (a, b) { return a + b; }, 0);
+      return '<tr><td>' + r + '</td>' + row.map(function (v) {
+        return '<td class="b ' + (v === 0 ? 'b0' : (v >= 6 ? 'b-hi' : '')) + '">' + v + '</td>';
+      }).join('') + '<td class="b">' + tot + '</td></tr>';
+    }).join('');
+    var sav = savRow(), savTot = sav.reduce(function (a, b) { return a + b; }, 0);
+    var savTr = '<tr class="sav"><td>SAV · 7 grahas</td>' + sav.map(function (v) { return '<td>' + v + '</td>'; }).join('') +
+      '<td class="tot">' + savTot + '</td></tr>';
+    return card('Ashtakavarga <span class="sub">Bhinna + Sarva</span>', '<span class="src">vw_ChartAshtakavarga</span>',
+      '<table class="bav"><thead>' + head + '</thead><tbody>' + body + savTr + '</tbody></table>' +
+      '<p class="bav-note">bindu 0 → red · ≥ 6 → green tint · per-recipient totals 48 / 49 / 39 / 54 / 56 / 52 / 39 · grand total ' + savTot + '.</p>',
+      null) +
+      card('Piṇḍa <span class="sub">post-śodhana</span>', null, tableEl(PINDA), PINDA.src);
+  }
+  function sodasavargaHTML() {
+    var head = '<tr><th>Graha</th>' + VG_NAMES.map(function (v) { return '<th>' + v + '</th>'; }).join('') + '</tr>';
+    var body = GRAHA_ORDER.map(function (g) {
+      var d1 = SODASA.signs[g][0];
+      return '<tr><td>' + g + '</td>' + SODASA.signs[g].map(function (s, i) {
+        return '<td class="' + (i > 0 && s === d1 ? 'vg' : '') + '">' + s + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+    return card('Ṣoḍaśavarga <span class="sub">graha sign across all 16 vargas</span>', '<span class="src">' + SODASA.src + '</span>',
+      '<div class="sv-scroll"><table class="sv"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' +
+      '<p class="bav-note">tinted cell = vargottama (that varga’s sign matches D1).</p>', null);
+  }
+  function alsoComputedHTML() {
+    return card('Also computed — Key-Inference candidates', '<span class="src">in the DB, not yet on this page</span>',
+      '<div class="also">' + ALSO_COMPUTED.map(function (x) {
+        return '<div class="row"><b>' + x[0] + '</b><span>' + x[1] + ' &nbsp;·&nbsp; <code>' + x[2] + '</code></span></div>';
+      }).join('') + '</div>', null);
+  }
+
   var YOGA_SUMMARY = {
     src: "vw_ChartYogaEvaluations",
     cols: ["Total","Present","Absent","Not evaluated","Raman variants","PVR variants"],
@@ -937,7 +1091,8 @@
 
   // -------- top tabs + sub tabs --------
   var TABS = ["Key Inference", "Yogas", "Time Period (Dasha)", "Saturn Time Period"];
-  var SUBTABS = ["About Sign","About Planet","About Moon","About Houses","Planet Dignity","Planet Strength","House Strength","Vargottama"];
+  var SUBTABS = ["About Sign","About Planet","About Moon","About Houses","Planet Dignity","Planet Strength","House Strength","Vargottama",
+                "Ṣoḍaśavarga","Vaiśeṣikāṁśa","Varga Dignity","Ashtakavarga","Chara Karaka"];
   var activeTab = 0, activeSub = 0;
 
   function keyInferenceSection() {
@@ -950,7 +1105,13 @@
     if (s === 4) return card("Planet Dignity", chartPicker() + sampleNote, tableEl(DIGNITY, dignityOrdered(byChart(DIGNITY))), null);
     if (s === 5) return card("Planet Strength <span class='sub'>Shadbala</span>", null, tableEl(SHADBALA), SHADBALA.src);
     if (s === 6) return card("House Strength <span class='sub'>Bhava Bala</span>", null, tableEl(BHAVA), BHAVA.src);
-    return card("Vargottama <span class='sub'>D1 &amp; D9</span>", null, tableEl(VARGOTTAMA), VARGOTTAMA.src);
+    if (s === 7) return card("Vargottama <span class='sub'>D1 &amp; D9</span>", null, tableEl(VARGOTTAMA), VARGOTTAMA.src);
+    if (s === 8) return sodasavargaHTML();
+    if (s === 9) return card("Vaiśeṣikāṁśa <span class='sub'>strength count across the 16 vargas</span>", null, tableEl(VAISESIKA), VAISESIKA.src);
+    if (s === 10) return card("Varga Dignity <span class='sub'>exalt / own / debil per divisional chart</span>", null, tableEl(VARGA_DIGNITY), VARGA_DIGNITY.src);
+    if (s === 11) return ashtakavargaHTML();
+    if (s === 12) return card("Chara Karakas <span class='sub'>Jaimini 8-karaka</span>", null, tableEl(CHARA_KARAKA), CHARA_KARAKA.src) + alsoComputedHTML();
+    return "";
   }
 
   function renderInfer() {
@@ -1010,9 +1171,9 @@
   //  TRANSIT / ALL CHARTS / KEY INFERENCE appear only once a person is
   //  identified on Home (searched, one row at a time). All are per-person.
   var PEOPLE = [
-    { id: 88, name: "Ramakrishnan P", birth: "1981-08-12 · 05:30:00 · Chennai, India · 13.0827°N 80.2707°E" },
-    { id: 89, name: "Ananya Iyer",    birth: "1994-11-02 · 14:12:00 · Bengaluru, India · 12.9716°N 77.5946°E" },
-    { id: 90, name: "Sundari H",      birth: "1958-06-19 · 21:40:00 · Madurai, India · 9.9252°N 78.1198°E" }
+    { id: 88, name: "Ramakrishnan", birth: "1981-04-22 · 05:30:30 · Chennai, India · 13.08°N 80.27°E" },
+    { id: 89, name: "Ananya",       birth: "2010-12-14 · 20:40:40 · Bangalore, India · 13.00°N 77.58°E" },
+    { id: 90, name: "Sundari H",    birth: "1958-06-19 · 21:40:00 · Madurai, India · 9.93°N 78.12°E" }
   ];
   var activePerson = null;
 
@@ -1078,6 +1239,12 @@
   }
   window.addEventListener("hashchange", applyHash);
   setPerson(null);   // start with no person → Home, nav hidden
+  // Mockup convenience: preselect Ananya (id 89, fully computed) so #key-inference /
+  // #transit deep-links render without going through the Home search first.
+  activePerson = PEOPLE[1];
+  document.getElementById("nav").hidden = false;
+  document.getElementById("tbName").textContent = activePerson.name;
+  document.getElementById("tbBirth").textContent = activePerson.birth;
   applyHash();
 })();
 </script>

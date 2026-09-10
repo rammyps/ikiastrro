@@ -37,7 +37,11 @@
             </MudCollapse>
         </div>
 
-        <h1 class="home-title">Discover Your Path</h1>
+        <h1 class="home-title">Discover Your Path<span class="home-title-sprout" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none">
+            <path d="M16 31V15" stroke="#4c8a52" stroke-width="2.6" stroke-linecap="round" />
+            <path d="M16 18c0-5.2-4.1-9.4-9.3-9.4-1 0-2 .2-2 .2s.1 8.3 5.2 11.4c3.1 1.9 6.1.8 6.1-2.2z" fill="#4c8a52" />
+            <path d="M16 15c0-4.6 3.7-8.3 8.3-8.3.9 0 1.8.2 1.8.2s-.1 7.3-4.6 10.1c-2.8 1.7-5.5.8-5.5-2z" fill="#6cbf73" />
+        </svg></span></h1>
 
         <div class="home-name">
             <MudTextField T="string" @bind-Value="_query" @bind-Value:after="OnQueryChanged"

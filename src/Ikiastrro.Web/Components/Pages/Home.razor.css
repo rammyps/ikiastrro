@@ -45,6 +45,21 @@
     letter-spacing: -0.03em;
 }
 
+/* Small sprout after "…Path" — a growth motif. */
+.home-title-sprout {
+    display: inline-block;
+    width: 0.62em;
+    height: 0.62em;
+    margin-left: 0.16em;
+    vertical-align: baseline;
+}
+
+.home-title-sprout svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
 .home-name {
     max-width: 520px;
 }
