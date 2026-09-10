@@ -1,17 +1,19 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 ---
 
 # ikiastrro — documentation index
 
 One screen. Current state and what's planned — no dated history (Git and
-`D:\@ClaudeSpace\ikiastrro.md` hold that). Conventions: `STANDARDS.md` §E.1 / §E.2 / §M.
+`D:\@ClaudeSpace\ikiastrro.md` hold that). Conventions: `D:\@ClaudeSpace\STANDARDS.md`
+§E.1 / §E.2 / §M, refined for this repo by [`project_standards.md`](project_standards.md).
 
 ## Cross-cutting (root — primary agent only)
 
 | Doc | For |
 |---|---|
 | [`README.md`](README.md) | Public overview — what it is, why it exists |
+| [`project_standards.md`](project_standards.md) | Project standards — doc layout, workstream model, chart-module naming/versioning, UI table ↔ view rule; refines the workspace `STANDARDS.md` |
 | [`masterproduct.md`](masterproduct.md) | Feature & functionality register + completion, by workstream |
 | [`ROADMAP.md`](ROADMAP.md) | Now / Next / Later, velocity, cadence |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | System overview — value streams, engine stack, constraints |
@@ -28,7 +30,7 @@ One screen. Current state and what's planned — no dated history (Git and
 
 | Workstream | Master | Detail |
 |---|---|---|
-| **Database** (`workstream/database` — `db/`, `src/Ikiastrro.Data`) | [`docs/database/MASTER.md`](docs/database/MASTER.md) | `schema.md` · `rules-engine.md` |
+| **Database** (`workstream/database` — `db/`, `src/Ikiastrro.Data`) | [`docs/database/MASTER.md`](docs/database/MASTER.md) | `schema.md` · `rules-engine.md` · `db_view_catalog.md` |
 | **CLI** (`workstream/cli` — `src/Ikiastrro.Core`, `src/Ikiastrro.Cli`) | [`docs/cli/MASTER.md`](docs/cli/MASTER.md) | `calculations.md` · `commands.md` |
 
 ## Value stream · UI
