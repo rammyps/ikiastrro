@@ -85,8 +85,10 @@ Publishes to the CLI and UI streams under
   on rerun. **Deliberately not built** (no PVR ch.1 source found): Karana lord, Nitya Yoga
   lord, Samvatsara, lunar month (PVR Table 4's raw extract is OCR-garbled — needs a clean
   source pass), Mahakala Hora / Kaala Lord (JHora extensions past PVR's 24-hora scheme). See
-  the migration header for the full narrative. Remaining (CLI): the calculator that reads
-  Sun/Moon longitudes + `SunTimes` and populates `tbl_Chart_Panchanga`; `verify-panchanga`.
+  the migration header for the full narrative. CLI side (calculator + `verify-panchanga`) is
+  **done** on `workstream/cli` — see that workstream's `MASTER.md`; `tbl_Rule_PanchangaFormula`
+  and `tbl_Rule_PostureStateFormula` (migration 083) were registered in `tbl_Rule_Catalog` by
+  migration 084 after `verify-rules` caught them missing (a leftover gap from these two turns).
 - **`FEAT-DATA-04`** — ayanāṁśa default fixed (migration 054 repoints `tbl_Rule_Ayanamsa`
   from Jagannatha mode 26 to Lahiri mode 1; `verify-vargas` / `verify-jaimini` green).
   Still open: the reference benchmark harness — `tbl_Dim_AyanamsaBenchmarkCases` is empty
@@ -103,17 +105,20 @@ Publishes to the CLI and UI streams under
   (069) fixed; `tbl_Rule_ShadbalaMinimumRupas` seeded (reproduces JHora %Strength within
   rounding); `tbl_Rule_PlanetaryWar` + the six deferred Kālabala `RuleParametersJson`
   seeded. `tbl_Dim_ShadbalaBenchmarkValues` holds the seven-planet JHora golden totals.
-  Calculators that read these are a `cli` follow-up.
+  CLI side (`workstream/cli`): Dina/Hora/Tribhaga Bala and Graha Yuddha *detection* (latitude
+  winner criterion) are **done** — `ShadbalaCalculator` reuses `PanchangaCalculator`'s own
+  verified weekday/Hora Lord rather than re-deriving them; `verify-strength` checks both the
+  engine and the persisted `tbl_Fact_PlanetaryStrengthComponent` rows. Still open: Varsha/Masa/
+  Ayana Bala, and the Yuddha Bala *magnitude* (`tbl_Rule_PlanetaryWar`'s diameter-based delta
+  formula) — `SRC_RAMAN_GRAHA_BHAVA_BALAS` is a DJVU with no text extract, so both stay
+  deliberately unquantified rather than guessed.
 - **`FEAT-ASHTAKAVARGA-01` (DB slice)** — migrations 074–076: production `dbo` schema
   (`tbl_Rule_AshtakavargaContribution` — 56-row Parāśari matrix, SAV total 337;
   `tbl_Rule_AshtakavargaReduction`; `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`,
   `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda`; `vw_ChartAshtakavarga`).
   Matrix hand-verified against the JHora export (Saturn BAV row reproduced exactly). JHora
-  BAV grid + Piṇḍa seeded into the `research.*` benchmark. `AshtakavargaCalculator` pending.
-- **Known pre-existing break:** `verify-sources` crashes on `Invalid object name
-  'dbo.tbl_Dim_SourceReferencePlanetText'` — its `SourceRefCode` tripwire loop hard-codes
-  `dbo.` but migrations 056/067/070 put those tables in `research.*`. A `cli` one-liner
-  (schema-filter the loop). Not introduced by 071–076.
+  BAV grid + Piṇḍa seeded into the `research.*` benchmark. `AshtakavargaCalculator` **done**
+  (`workstream/cli`; `verify-ashtakavarga` reproduces the JHora export exactly).
 
 ## Planned
 

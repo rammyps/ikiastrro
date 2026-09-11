@@ -49,14 +49,14 @@ Part A:
 | `tbl_Rule_TemporaryFriendshipDistance` | 12 | Tatkālika Maitrī sign-distance rule | mirror |
 | `tbl_Rule_AgeState` | — | Bālādi degree bands + effect fraction | live (`AgeStateCalculator`) |
 | `tbl_Rule_WakefulnessState` | — | Jāgradādi dignity → waking-state map | live (`WakefulnessStateCalculator`) |
-| `tbl_Rule_PostureStateFormula` | 1 | Sayanaadi activity-index formula (`(C×P×A + M + G + L) mod 12`), cross-checked against the JHora Ramakrishnan export | seeded (mig. 083); calculator pending |
+| `tbl_Rule_PostureStateFormula` | 1 | Sayanaadi activity-index formula (`(C×P×A + M + G + L) mod 12`), cross-checked against the JHora Ramakrishnan export | mirror — CLI `verify-avastha` reproduces the JHora export's Activity table exactly (all 9 grahas); `PostureStateCalculator` is 100% hardcoded, zero DB reads |
 | `tbl_Rule_GrahaDignity` | — | PVR Table 6 dignity segments + special degrees | mirror — CLI `verify-dignity` cross-checks seeded segments; `PvrDignityEvaluator` itself is 100% hardcoded, zero DB reads |
 | `tbl_Rule_CompoundRelationship` | — | Pañchadhā Maitrī compound tiers | mirror — same `verify-dignity` check; consumed by `PvrDignityEvaluator`'s hardcoded `CompoundRelationshipCode`, not the table |
 | `tbl_Rule_GrahaAttribute` / `tbl_Dim_GrahaAttribute` | — | normalized graha character grid | seeded |
 | `tbl_Rule_DigBala` | — | directional-strength reference points | seeded |
-| `tbl_Rule_ShadbalaComponent` / `tbl_Rule_BhavaBalaComponent` | — | PVR-first strength formula profile + provenance (mig. 072 sets `RuleParametersJson` on the six deferred Kālabala sub-components + corrects the Varṣa cap) | orphaned — `ShadbalaCalculator`/`BhavaBalaCalculator` are 100% hardcoded, zero DB reads, no CLI check |
-| `tbl_Rule_ShadbalaMinimumRupas` | 7 | per-planet minimum required Ṣaḍbala (rūpas) → `PercentOfMinimum`; reproduces JHora %Strength | seeded (mig. 071); read pending |
-| `tbl_Rule_PlanetaryWar` | 1 | Graha Yuddha orb + winner criterion + Ṣaḍbala adjustment (Yuddha Bala) | seeded (mig. 072); calculator pending |
+| `tbl_Rule_ShadbalaComponent` / `tbl_Rule_BhavaBalaComponent` | — | PVR-first strength formula profile + provenance (mig. 072 sets `RuleParametersJson` on the six deferred Kālabala sub-components + corrects the Varṣa cap) | orphaned for Varṣa/Māsa/Āyana Bala (still uncomputed) — Dina/Hora/Tribhāga Bala are now computed by `ShadbalaCalculator` (100% hardcoded, zero DB reads) and checked by CLI `verify-strength` (self-consistency against the JHora export's own sunrise/sunset/birth-time data, not a `RuleParametersJson` round-trip) |
+| `tbl_Rule_ShadbalaMinimumRupas` | 7 | per-planet minimum required Ṣaḍbala (rūpas) → `PercentOfMinimum`; reproduces JHora %Strength | seeded (mig. 071); read pending — `PlanetaryStrengthRepository.InsertAll` still never populates `MinimumRequiredRupas` on freshly-computed rows |
+| `tbl_Rule_PlanetaryWar` | 1 | Graha Yuddha orb + winner criterion + Ṣaḍbala adjustment (Yuddha Bala) | orphaned for the magnitude (diameter-based delta — `SRC_RAMAN_GRAHA_BHAVA_BALAS` DJVU has no text extract) — detection + the latitude winner criterion are computed by `ShadbalaCalculator.ComputeYuddha` (100% hardcoded) and checked by CLI `verify-strength` (no war for Ramakrishnan; a synthetic case for the winner logic) |
 | `tbl_Rule_AshtakavargaContribution` | 56 | Parāśari benefic-places (bindu) matrix — 7 recipients × 8 contributors, SAV total 337 (BPHS, cross-checked vs MIT `jyotishganit`; hand-verified against the JHora export) | seeded (mig. 074/075); `AshtakavargaCalculator` pending |
 | `tbl_Rule_AshtakavargaReduction` | 2 | Trikoṇa + Ekādhipatya Śodhana algorithms for the Sodhya Piṇḍa pipeline | seeded (mig. 074/075); read pending |
 | `tbl_Rule_VimsopakaWeight` | reserved | four varga-group weights | unseeded |
@@ -67,7 +67,7 @@ Part A:
 | `tbl_Rule_Karaka` | reserved | chara/sthira/naisargika kāraka assignment schemes (Sthira/Naisargika still hardcoded in `LifeAreaMap`) | unseeded — reserved by migration 18 (P2); zero rows |
 | `tbl_Rule_HouseSignification` / `tbl_Rule_HouseReferenceMatter` / `tbl_Rule_HouseAttribute` | — | house reference rules | seeded |
 | `tbl_Rule_DashaApplicability` | reserved | source-attributed applicability conditions for conditional dasha systems | unseeded — table created by migration 46, zero rows, no source cited |
-| `tbl_Rule_PanchangaFormula` | 4 | Tithi / Karana / Nitya Yoga / Hora Lord derivation formulas (PVR §1.3.8–1.3.11); cross-checked against the JHora Ramakrishnan export | seeded (mig. 081); calculator pending |
+| `tbl_Rule_PanchangaFormula` | 4 | Tithi / Karana / Nitya Yoga / Hora Lord derivation formulas (PVR §1.3.8–1.3.11); cross-checked against the JHora Ramakrishnan export | mirror — CLI `verify-panchanga` reproduces the JHora export exactly; `PanchangaCalculator` is 100% hardcoded, zero DB reads |
 
 ## Divisional-chart portability
 
