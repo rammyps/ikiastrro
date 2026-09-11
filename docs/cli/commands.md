@@ -48,10 +48,13 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 | `verify-jaimini` | HL / Gulika / Maandi / BL / GL / SL longitudes + Chara Karakas + Karakamsa vs the JHora export | **PASS** |
 | `verify-ashtakavarga` | C# matrix ⇄ `tbl_Rule_AshtakavargaContribution`, then BAV + SAV + all seven Rāśi/Graha/Sodhya Piṇḍa vs the JHora export for `1_Ramakrishnan` (exact), then vs the persisted `tbl_Fact_*` | **PASS** |
 | `verify-panchanga` | Tithi / Karaṇa / Nitya Yoga / Vedic weekday / Hora Lord / Janma Ghaṭis vs the JHora export for `1_Ramakrishnan` (exact / within rounding), then vs the persisted `tbl_Chart_Panchanga` | **PASS** |
+| `verify-strength` | Dina / Horā / Tribhāga Bala + Graha Yuddha detection, hand-derived from the JHora export's own sunrise/sunset/birth-time data (no per-component breakdown printed to cross-check), then vs the persisted `tbl_Fact_PlanetaryStrengthComponent` | **PASS** |
 
 ## Tests
 
-`tests/Ikiastrro.Yoga.Tests` (142) — yoga engine, shadbala, ashtakavarga, panchanga, Sree Lagna, Sayanaadi avastha, sub-planet, transit selection.
+`tests/Ikiastrro.Yoga.Tests` (147) — yoga engine, shadbala (incl. Dina/Hora/Tribhaga Bala +
+Graha Yuddha detection), ashtakavarga, panchanga, Sree Lagna, Sayanaadi avastha, sub-planet,
+transit selection.
 `tests/Ikiastrro.Web.Tests` (166, bUnit) — golden-SVG snapshots of the hand-rolled chart
 components (`docs/artifacts/ui/README.md`; mint with `IKIASTRRO_UPDATE_SNAPSHOTS=1`).
 

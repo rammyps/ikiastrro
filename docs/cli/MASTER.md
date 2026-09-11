@@ -34,12 +34,12 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   Hora Lord)**, **Karakāṁśa (AK in D9) + Bhaava/Ghati/Sree Lagna**, **Sayanaadi Avastha
   (PostureState)**, source-attributed yoga inputs, slow-planet transits, Sade Sati / Kantaka /
   Ashtama, functional benefic/malefic.
-- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (142) +
+- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (147) +
   `tests/Ikiastrro.Web.Tests` (187). `dotnet build` / `dotnet test` run from the terminal.
 - **Green now:** the `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
-  `verify-ashtakavarga`, `verify-panchanga`, `verify-dignity`, `verify-rules`, `verify-pipeline`,
-  `verify-sources`, `verify-terminology`, `verify-avastha`, `verify-functional-nature`,
-  `verify-upagrahas`.
+  `verify-ashtakavarga`, `verify-panchanga`, `verify-strength`, `verify-dignity`, `verify-rules`,
+  `verify-pipeline`, `verify-sources`, `verify-terminology`, `verify-avastha`,
+  `verify-functional-nature`, `verify-upagrahas`.
 
 ## In flight
 
@@ -87,6 +87,25 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (PVR's Table 37 sound-map is OCR-ambiguous in the
   raw extract). Deeptādi/Lajjitādi (`FEAT-AVASTHA-03/04`) remain unbuilt — real precedence-order
   ambiguity in the source, not a missing-input blocker like this one was.
+- **`FEAT-STRENGTH-01` (CLI slice)** — Dina / Horā / Tribhāga Bala + Graha Yuddha detection
+  **done** (migrations 072/076/084 on `workstream/database`; `ShadbalaCalculator` extended,
+  `verify-strength` new, `tests/Ikiastrro.Yoga.Tests/ShadbalaKalaBalaTests` (5)). Dina Bala (45
+  virupas to the weekday lord) and Hora Bala (60 to the running hora lord) reuse
+  `PanchangaCalculator`'s own verified `VedicWeekdayId`/`HoraLordPlanetId` rather than
+  re-deriving them — `ShadbalaCalculator.Calculate` now takes a `PanchangaResult` parameter;
+  Tribhaga Bala (day/night thirds, Mercury/Sun/Saturn by day, Moon/Venus/Mars by night, 60
+  virupas to the part's lord, Jupiter classically exempt and always 60) reuses `JanmaGhatis`.
+  `ComputeYuddha` detects the five tara grahas within 1° of D1 longitude and picks the winner
+  by ecliptic latitude; the diameter-based delta *magnitude* is deliberately left at 0 — the
+  Raman DJVU has no text extract, and 1_Ramakrishnan has no war either way (Mars/Mercury/Venus
+  are all >2° apart in Aries; Jupiter/Saturn are 2°14' apart in Virgo), so nothing forced a
+  guess. Also fixed along the way: `verify-rules` (tbl_Rule_PanchangaFormula/PostureStateFormula
+  were never registered in `tbl_Rule_Catalog` — migration 084) and `verify-terminology` (the 12
+  Sayanadi `tbl_Dim_PlanetaryState` rows from migration 083 were never terminology-seeded — ran
+  `seed-terminology` + added their English glosses to `TerminologySeed.cs`), both leftover gaps
+  from the two prior turns, not from this one. Remaining: Varsa/Masa/Ayana Bala and the Yuddha
+  Bala magnitude both need `SRC_RAMAN_GRAHA_BHAVA_BALAS` (DJVU, no text extract); populate
+  `MinimumRequiredRupas` on newly-computed rows; Cheshta reconciliation; Vimsopaka Bala.
 - **`FEAT-YOGA-01`** — Raman predicates 201–300, PVR P0 additions, structured
   missing-requirement codes, source-qualified strength policy.
 

@@ -18,6 +18,7 @@ public sealed record PlanetaryStrengthResult(
     double CheshtaBalaVirupas,
     double NaisargikaBalaVirupas,
     double DrikBalaVirupas,
+    double YuddhaBalaVirupas,
     double ShadbalaVirupas,
     double ShadbalaRupas,
     double? IshtaBala,

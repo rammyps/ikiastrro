@@ -276,7 +276,8 @@ public class ChartGenerationService
             _bhavaStrengthRepo.DeleteByChartResultId(chartResultId);
             _vargottamaRepo.DeleteByChartResultId(chartResultId);
             var charts = allCharts ?? new[] { input };
-            var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes);
+            var panchanga = PanchangaCalculator.Calculate(bd, positions, sunTimes);
+            var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes, panchanga);
             _yogaInputRepo.Replace(chartResultId, ruleSetId, positions, charts, sunTimes, strengths);
             _planetaryStrengthRepo.InsertAll(chartResultId, ruleSetId, strengths);
             _bhavaStrengthRepo.InsertAll(chartResultId, ruleSetId,
@@ -285,7 +286,7 @@ public class ChartGenerationService
             _ashtakavargaRepo.DeleteByChartResultId(chartResultId);
             _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input));
             _panchangaRepo.DeleteByChartResultId(chartResultId);
-            _panchangaRepo.Insert(chartResultId, ruleSetId, PanchangaCalculator.Calculate(bd, positions, sunTimes));
+            _panchangaRepo.Insert(chartResultId, ruleSetId, panchanga);
         }
     }
 }

@@ -19,11 +19,11 @@ public sealed class PlanetaryStrengthRepository
             INSERT dbo.tbl_Fact_PlanetaryStrength
                 (ChartResultId, PlanetId, RuleSetId, StrengthProfileCode, FormulaSourceRefCode,
                  SthanaBalaVirupas, DigBalaVirupas, KalaBalaVirupas, CheshtaBalaVirupas,
-                 NaisargikaBalaVirupas, DrikBalaVirupas, ShadbalaVirupas, ShadbalaRupas,
+                 NaisargikaBalaVirupas, DrikBalaVirupas, YuddhaBalaVirupas, ShadbalaVirupas, ShadbalaRupas,
                  IshtaBala, KashtaBala)
             VALUES
                 (@ChartResultId, @PlanetId, @RuleSetId, 'PVR_INTEGRATED_STRENGTH', 'SRC_RAMAN_GRAHA_BHAVA_BALAS',
-                 @Sthana, @Dig, @Kala, @Cheshta, @Naisargika, @Drik, @Total, @Rupas, @Ishta, @Kashta)
+                 @Sthana, @Dig, @Kala, @Cheshta, @Naisargika, @Drik, @Yuddha, @Total, @Rupas, @Ishta, @Kashta)
             """;
         connection.Execute(summarySql, rows.Select(r => new
         {
@@ -36,6 +36,7 @@ public sealed class PlanetaryStrengthRepository
             Cheshta = r.CheshtaBalaVirupas,
             Naisargika = r.NaisargikaBalaVirupas,
             Drik = r.DrikBalaVirupas,
+            Yuddha = r.YuddhaBalaVirupas,
             Total = r.ShadbalaVirupas,
             Rupas = r.ShadbalaRupas,
             Ishta = r.IshtaBala,

@@ -27,8 +27,9 @@ Nitya Yoga + fraction, Vedic weekday, Hora Lord, Sunrise/Sunset, Janma Ghaṭis*
 (`verify-panchanga` reproduces the JHora export exactly) · **Karakāṁśa (AK in D9) + Bhaava /
 Ghati / Sree Lagna** (`verify-jaimini` reproduces the JHora export exactly) · **Sayanaadi
 Avastha (PostureState, all 12 states)** (`verify-avastha` reproduces the JHora export's
-Activity table exactly, all 9 grahas) · source-attributed yoga inputs · provenance (ayanāṁśa
-degrees, sidereal time, rule set, method) on every chart.
+Activity table exactly, all 9 grahas) · **Dina / Horā / Tribhāga Bala + Graha Yuddha
+detection** (`verify-strength` all green) · source-attributed yoga inputs · provenance
+(ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
 
 ## Priority gaps
 
@@ -51,8 +52,15 @@ degrees, sidereal time, rule set, method) on every chart.
    which is delivered).
 4. **Strength systems** — **Ashtakavarga is delivered** (BAV / SAV / Śodhana / Piṇḍa, exact
    vs the JHora export — migrations 074–078 + `AshtakavargaCalculator` + `verify-ashtakavarga`).
-   Remaining: full Ṣaḍbala rūpas + the six Kālabala sub-components + planetary war +
-   Iṣṭa/Kaṣṭa (DB rules seeded, migrations 071–073, 076); Vimśopaka Bala + Vaiśeṣikāṁśa
+   **Dina / Horā / Tribhāga Bala and Graha Yuddha detection are delivered** (migration 072/076/084
+   + `ShadbalaCalculator` extended + `verify-strength`) — Dina/Hora reuse `PanchangaCalculator`'s
+   verified weekday lord and Hora Lord, Tribhaga reuses its Janma Ghaṭis; Graha Yuddha detects
+   the five tara grahas within 1° and picks the winner by ecliptic latitude. Remaining, source-
+   blocked — `SRC_RAMAN_GRAHA_BHAVA_BALAS` is a DJVU with no text extract: **Varṣa/Māsa/Ayana
+   Bala** (three more Kālabala sub-components) and the **Yuddha Bala magnitude** (the
+   diameter-based delta formula; detection and the winner criterion are already computed,
+   1_Ramakrishnan has no war to verify a magnitude against either way). Also remaining:
+   Iṣṭa/Kaṣṭa reconciliation, `MinimumRequiredRupas` population; Vimśopaka Bala + Vaiśeṣikāṁśa
    (four varga-group weights still need a cited source).
 5. **Avastha & karaka reference — Śayanādi (PostureState) is delivered** (migration 083
    `tbl_Rule_PostureStateFormula`; `PostureStateCalculator`; `verify-avastha` reproduces the

@@ -239,9 +239,24 @@ facts). **DB contracts landed** (migrations 071–073): `tbl_Rule_ShadbalaMinimu
 classical 5/6/5/7/6.5/5.5/5 rūpa thresholds — reproduce JHora %Strength within rounding),
 `tbl_Rule_PlanetaryWar` (Yuddha orb + adjustment), `RuleParametersJson` on the six deferred
 Kālabala sub-components, and `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden totals).
-Remaining (engine): compute the six Tribhāga/Varṣa/Māsa/Dina/Horā/Ayana Kālabala components;
-planetary-war adjustment; populate `MinimumRequiredRupas` + the Rashmi / Parāśara Iṣṭa/Kaṣṭa
-columns; Cheṣṭā reconciliation; a `verify-shadbala` mode; Vimśopaka Bala.
+**Dina / Horā / Tribhāga Bala and Graha Yuddha detection landed** (`FEAT-STRENGTH-01`, CLI
+slice): `ShadbalaCalculator` reuses `PanchangaCalculator`'s own verified weekday lord and Hora
+Lord (no re-derivation) for Dina Bala (45 virupas to the weekday lord) and Hora Bala (60 to the
+running hora lord); Tribhāga Bala (day/night split into thirds ruled Mercury/Sun/Saturn by day,
+Moon/Venus/Mars by night, 60 virupas to the part's lord, Jupiter classically exempt and always
+scoring 60) reuses the Panchanga layer's Janma Ghaṭis. Graha Yuddha (`ComputeYuddha`) detects
+the five tara grahas within 1° of D1 longitude and picks the winner by ecliptic latitude
+(further north wins) — the diameter-based delta *magnitude* is deliberately left at 0 virupas
+(no war present in `1_Ramakrishnan`'s chart either way): `SRC_RAMAN_GRAHA_BHAVA_BALAS` is a
+DJVU with no text extract, so fabricating a number for it would violate this engine's
+source-honesty rule. `verify-strength` checks both the engine (self-consistency against the
+JHora export's own sunrise/sunset/birth-time data — the export prints only the Shadbala grand
+total, no per-component breakdown to cross-check against) and the persisted
+`tbl_Fact_PlanetaryStrengthComponent` rows; `tests/Ikiastrro.Yoga.Tests/ShadbalaKalaBalaTests`
+(5) cover the same ground plus a synthetic war-winner case. Remaining (engine): Varṣa / Māsa /
+Ayana Bala (need the cited Raman edition); the Yuddha Bala magnitude (same source blocker);
+populate `MinimumRequiredRupas` + the Rashmi / Parāśara Iṣṭa/Kaṣṭa columns; Cheṣṭā
+reconciliation; Vimśopaka Bala.
 
 ## 14. Yoga
 

@@ -59,7 +59,8 @@ public sealed class ChartPipeline
             states.AddRange(PlanetaryStateComputer.Compute(input, keyDetails, _planetaryStateRules, janmaGhatis));
         }
 
-        var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes);
+        var panchanga = PanchangaCalculator.Calculate(birth, positions, sunTimes);
+        var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes, panchanga);
         var d1 = charts.First(c => c.ChartType.Equals("D1", StringComparison.OrdinalIgnoreCase));
         return new ChartBundle(birth, positions, sunTimes, charts, charaKarakaByPlanet, states)
         {
@@ -67,7 +68,7 @@ public sealed class ChartPipeline
             BhavaStrengths = BhavaBalaCalculator.Calculate(d1, strengths),
             Vargottama = VargottamaDetector.Calculate(charts),
             Ashtakavarga = AshtakavargaCalculator.Calculate(d1),
-            Panchanga = PanchangaCalculator.Calculate(birth, positions, sunTimes)
+            Panchanga = panchanga
         };
     }
 

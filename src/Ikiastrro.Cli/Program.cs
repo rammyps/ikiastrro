@@ -943,6 +943,79 @@ if (args.Length > 0 && args[0] == "verify-panchanga")
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
+// --- `dotnet run -- verify-strength` : the FEAT-STRENGTH-01 Kaala Bala slice
+// (Dina/Hora/Tribhaga Bala + Graha Yuddha detection) for 1_Ramakrishnan. No JHora per-component
+// breakdown is printed in the export (only the Shadbala grand total is), so this is a
+// self-consistency check against the classical formula applied to this specific birth, not a
+// cross-tool numeric match — see ShadbalaCalculator.ComputeYuddha's doc comment for why the
+// Yuddha Bala *magnitude* stays 0 (Raman DJVU has no text extract).
+if (args.Length > 0 && args[0] == "verify-strength")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var bundle = new ChartPipeline(orchestrator, psRules).Run(ram);
+    var strengths = bundle.Strengths ?? throw new InvalidOperationException("ChartBundle.Strengths is null.");
+
+    double Component(string planet, string subComponentCode) =>
+        strengths.Single(r => r.Planet == planet).Components
+            .SingleOrDefault(c => c.SubComponentCode == subComponentCode)?.ValueVirupas ?? 0;
+
+    Console.WriteLine("-- Phase 1: the engine, hand-derived from the JHora export's own printed times --");
+    // Weekday Tuesday -> Mars (verify-panchanga).
+    Check("Dina Bala Mars (weekday lord)", Component("Mars", "DINA_BALA"), 45);
+    foreach (var p in new[] { "Sun", "Moon", "Mercury", "Jupiter", "Venus", "Saturn" })
+        Check($"Dina Bala {p} (not weekday lord)", Component(p, "DINA_BALA"), 0);
+
+    // Hora Lord Venus (verify-panchanga).
+    Check("Hora Bala Venus (running hora lord)", Component("Venus", "HORA_BALA"), 60);
+    foreach (var p in new[] { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Saturn" })
+        Check($"Hora Bala {p} (not hora lord)", Component(p, "HORA_BALA"), 0);
+
+    // Janma Ghatis 58.8892 -> 23h33m21s after sunrise, into the night's 3rd third -> Mars;
+    // Jupiter is classically exempt and always scores the full 60.
+    Check("Tribhaga Bala Mars (night-3rd-third lord)", Component("Mars", "TRIBHAGA_BALA"), 60);
+    Check("Tribhaga Bala Jupiter (classical exemption)", Component("Jupiter", "TRIBHAGA_BALA"), 60);
+    foreach (var p in new[] { "Sun", "Moon", "Mercury", "Venus", "Saturn" })
+        Check($"Tribhaga Bala {p} (neither)", Component(p, "TRIBHAGA_BALA"), 0);
+
+    // No Graha Yuddha: Mars/Mercury/Venus are >2 degrees apart in Aries, Jupiter/Saturn 2.23
+    // degrees apart in Virgo -- none within the 1-degree war orb.
+    Check("Yuddha Bala virupas (no war present)", strengths.Sum(r => r.YuddhaBalaVirupas), 0.0);
+
+    Console.WriteLine("\n-- Phase 2: persisted tbl_Fact_PlanetaryStrengthComponent == the engine --");
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var stored = conn.Query<(string Planet, string SubComponentCode, double ValueVirupas)>(
+            @"SELECT p.PlanetName AS Planet, c.SubComponentCode, c.ValueVirupas
+              FROM dbo.tbl_Fact_PlanetaryStrengthComponent c
+              JOIN dbo.tbl_ChartResults cr ON cr.Id = c.ChartResultId
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
+              JOIN dbo.tbl_Planets p ON p.Id = c.PlanetId
+              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1'
+                AND c.SubComponentCode IN ('DINA_BALA', 'HORA_BALA', 'TRIBHAGA_BALA')").ToList();
+        if (stored.Count == 0)
+        {
+            Console.WriteLine("  [SKIP] no persisted tbl_Fact_PlanetaryStrengthComponent rows for Ramakrishnan's D1 — run GenerateAll first.");
+        }
+        else
+        {
+            foreach (var s in stored)
+                Check($"persisted {s.Planet}/{s.SubComponentCode}", s.ValueVirupas, Component(s.Planet, s.SubComponentCode));
+        }
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-strength: ALL PASS" : $"\nverify-strength: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
 // --- One-off check: `dotnet run -- verify-pipeline` ---
 // The DB-free ChartPipeline.Run façade must reproduce, for person 1 (Ramakrishnan), the same D1
 // KeyDetails the stored rows hold — proving the compute half of ChartGenerationService is faithfully
