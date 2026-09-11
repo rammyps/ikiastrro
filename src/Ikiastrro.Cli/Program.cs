@@ -685,6 +685,29 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         CheckLon("HL longitude",     SpLon("HL"),     353.9189, 0.5);
         CheckLon("Gulika longitude", SpLon("Gulika"), 198.1169, 0.5);
         CheckLon("Maandi longitude", SpLon("Maandi"), 187.7439, 0.5);
+
+        // --- Phase 5: Bhaava / Ghati / Sree Lagna (JHora export: BL 0 Ar 35'00" · GL 3 Pi
+        //     55'31" · SL 17 Cn 33'01"; D9 columns Ar/Le/Sg respectively) ---
+        Check("BL (D1) -> Aries",       SpSign("D1", "BL"), "Aries");
+        Check("BL (D9) -> Aries",       SpSign("D9", "BL"), "Aries");
+        Check("GL (D1) -> Pisces",      SpSign("D1", "GL"), "Pisces");
+        Check("GL (D9) -> Leo",         SpSign("D9", "GL"), "Leo");
+        Check("SL (D1) -> Cancer",      SpSign("D1", "SL"), "Cancer");
+        Check("SL (D9) -> Sagittarius", SpSign("D9", "SL"), "Sagittarius");
+        CheckLon("BL longitude", SpLon("BL"), 0.5835,   0.5);
+        CheckLon("GL longitude", SpLon("GL"), 333.9254, 0.5);
+        CheckLon("SL longitude", SpLon("SL"), 107.5502, 0.5);
+    }
+
+    // --- Phase 6: Karakamsa (AK in D9) — JHora export: Rahu (AK) Navamsa column "Li" ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var k = conn.QuerySingle<(string AtmaKarakaPlanet, string KarakamsaSign)>(
+            @"SELECT k.AtmaKarakaPlanet, k.KarakamsaSign FROM dbo.vw_ChartKarakamsa k
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = k.BirthDetailId
+              WHERE bd.Name = 'Ramakrishnan'");
+        Check("Karakamsa AK", k.AtmaKarakaPlanet, "Rahu");
+        Check("Karakamsa sign -> Libra", k.KarakamsaSign, "Libra");
     }
 
     Console.WriteLine(failures == 0 ? "\nverify-jaimini: ALL PASS" : $"\nverify-jaimini: {failures} FAILURE(S)");

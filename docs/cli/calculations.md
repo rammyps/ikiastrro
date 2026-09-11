@@ -194,16 +194,28 @@ Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_Wakefuln
   `IVargaSignRule` a planet uses:
   - **AL + 12 Bhāva Arudhas** (`ArudhaCalculator`, `PointKind = Arudha`) — Parāśari pada per
     house, with the 1st/7th → 10th exception; A1 emitted as `AL`.
-  - **Hora Lagna** (`HoraLagnaCalculator`, `PointKind = SpecialLagna`, code `HL`) — Sun's
-    sidereal longitude at the Vedic day's opening sunrise + 0.5° per clock-minute since it.
+  - **Hora / Bhaava / Ghati Lagna** (`HoraLagnaCalculator` / `BhaavaLagnaCalculator` /
+    `GhatiLagnaCalculator`, `PointKind = SpecialLagna`, codes `HL`/`BL`/`GL`) — Sun's sidereal
+    longitude at the Vedic day's opening sunrise + 0.5° / 0.25° / 1.25° per clock-minute since
+    it (PVR §5.2-5.4; `tbl_Rule_SpecialLagnaTimeRate`). The time-of-day-difference shortcut is
+    valid for all three because each rate × 1440min lands on an exact multiple of 360°.
+  - **Sree Lagna** (`SreeLagnaCalculator`, code `SL`) — natal Lagna + (Moon's fraction of its
+    own nakshatra) × 360° (PVR §5.7; `tbl_Rule_SpecialLagnaFraction`). Pure — no sunrise
+    dependency, unlike BL/HL/GL.
   - **All 11 upagrahas** (`SubPlanetCalculator`, `PointKind = Upagraha`) from migration-27
     rules under `SRC_PVR_INTEGRATED`: Sun chain (Dhūma / Vyatīpāta / Parivesha / Indrachāpa /
     Upaketu) + 6 time points (Kāla / Mṛtyu / Ardhaprahara / Yamaghaṇṭaka / Gulika = Saturn's
     eighth midpoint, Maandi = its start). Check: `verify-upagrahas` (in-memory);
     `verify-jaimini` expects stored charts regenerated under PVR names.
+- **Karakāṁśa** (AK's D9 sign, PVR §7.3.6) — no dedicated calculator: `CharaKaraka` is already
+  stamped onto every chart type's `tbl_Chart_KeyDetails` rows, D9 included, so the D9 row with
+  `CharaKaraka = 'AK'` already carries it. `vw_ChartKarakamsa` (migration 082) is the read.
 - Sunrise/sunset from `SwissEphemerisProvider.GetSunTimes` (`swe_rise_trans`,
   `SE_BIT_DISC_CENTER | SE_BIT_NO_REFRACTION`).
-- Not built: Karakāṁśa / Swāṁśa chart, Jaimini rāśi dashas, other special-lagna families.
+- **Deliberately not built** — `SRC_PVR_INTEGRATED` §5.7 states outright these are "beyond the
+  scope of this book", and no other registered source covers them: Vighati Lagna, Varnada
+  Lagna, Pranapada Lagna, Indu Lagna, Bhṛgu Bindu. Also not built: Swāṁśa chart, Jaimini rāśi
+  dashas.
 
 ## 13. Strength (Ṣaḍbala / Bhāva Bala)
 

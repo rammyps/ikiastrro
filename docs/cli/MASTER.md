@@ -31,9 +31,9 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   retrograde / combustion, nakṣatra linkage, Chara Karakas + special points + 11 upagrahas,
   Bālādi + Jāgradādi avasthas, Ṣaḍbala / Bhāva Bala foundation, **Parāśari Ashtakavarga
   (BAV / SAV / Sodhya Piṇḍa)**, **Pañchāṅga (Tithi / Karaṇa / Nitya Yoga / Vedic weekday /
-  Hora Lord)**, source-attributed yoga inputs, slow-planet transits, Sade Sati / Kantaka /
-  Ashtama, functional benefic/malefic.
-- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (136) +
+  Hora Lord)**, **Karakāṁśa (AK in D9) + Bhaava/Ghati/Sree Lagna**, source-attributed yoga
+  inputs, slow-planet transits, Sade Sati / Kantaka / Ashtama, functional benefic/malefic.
+- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (138) +
   `tests/Ikiastrro.Web.Tests` (187). `dotnet build` / `dotnet test` run from the terminal.
 - **Green now:** the `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
   `verify-ashtakavarga`, `verify-panchanga`, `verify-dignity`, `verify-rules`, `verify-pipeline`,
@@ -61,6 +61,18 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   computed (no PVR §1.3 source): Karana lord, Nitya Yoga lord, Samvatsara, lunar month, Mahakala
   Hora, Kaala Lord — see the migration-081 header. Remaining: a UI Panchanga strip over
   `vw_ChartPanchanga`.
+- **Jaimini special lagnas / Karakamsa** — DB + Core + Verify **done** (migration 082
+  `vw_ChartKarakamsa`; `Engines/Karakas/{BhaavaLagnaCalculator,GhatiLagnaCalculator,
+  SreeLagnaCalculator}`, wired into `SpecialPointCalculator.ComputeSeeds` alongside
+  `HoraLagnaCalculator` — BL/GL/HL/SL all project into every varga via the existing
+  `SpecialPointProjector`; `verify-jaimini` reproduces the JHora export exactly — BL/GL/SL
+  D1+D9 signs and longitudes, Karakamsa AK=Rahu -> Libra;
+  `tests/Ikiastrro.Yoga.Tests/SreeLagnaCalculatorTests` (2) against PVR's own worked example
+  + the JHora export). Karakamsa needed no new computation at all — `CharaKaraka` was already
+  stamped onto every chart type including D9, `vw_ChartKarakamsa` just surfaces it. Deliberately
+  out of scope — `SRC_PVR_INTEGRATED` §5.7 states outright these are "beyond the scope of this
+  book", no other registered source covers them: Vighati Lagna, Varnada Lagna, Pranapada Lagna,
+  Indu Lagna, Bhṛgu Bindu. Remaining: a UI special-lagnas strip.
 - **`FEAT-YOGA-01`** — Raman predicates 201–300, PVR P0 additions, structured
   missing-requirement codes, source-qualified strength policy.
 

@@ -45,13 +45,13 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 | `verify-functional-nature` | `LagnaFunctionalNature` worked examples | **PASS** |
 | `verify-upagrahas` | live rule loading + in-memory upagraha output, all 21 charts | **PASS** |
 | `verify-vargas` | hand-computed `IVargaSignRule` checks + **the JHora export grid** (180 cells) | **PASS** (on the Lahiri default, `FEAT-DATA-04`) |
-| `verify-jaimini` | HL / Gulika / Maandi longitudes + Chara Karakas vs the JHora export | **PASS** |
+| `verify-jaimini` | HL / Gulika / Maandi / BL / GL / SL longitudes + Chara Karakas + Karakamsa vs the JHora export | **PASS** |
 | `verify-ashtakavarga` | C# matrix ⇄ `tbl_Rule_AshtakavargaContribution`, then BAV + SAV + all seven Rāśi/Graha/Sodhya Piṇḍa vs the JHora export for `1_Ramakrishnan` (exact), then vs the persisted `tbl_Fact_*` | **PASS** |
 | `verify-panchanga` | Tithi / Karaṇa / Nitya Yoga / Vedic weekday / Hora Lord / Janma Ghaṭis vs the JHora export for `1_Ramakrishnan` (exact / within rounding), then vs the persisted `tbl_Chart_Panchanga` | **PASS** |
 
 ## Tests
 
-`tests/Ikiastrro.Yoga.Tests` (136) — yoga engine, shadbala, ashtakavarga, panchanga, sub-planet, transit selection.
+`tests/Ikiastrro.Yoga.Tests` (138) — yoga engine, shadbala, ashtakavarga, panchanga, Sree Lagna, sub-planet, transit selection.
 `tests/Ikiastrro.Web.Tests` (166, bUnit) — golden-SVG snapshots of the hand-rolled chart
 components (`docs/artifacts/ui/README.md`; mint with `IKIASTRRO_UPDATE_SNAPSHOTS=1`).
 

@@ -24,8 +24,9 @@ upagrahas** · Ṣaḍbala / Bhāva Bala foundation · **Parāśari Ashtakavarga
 Ṭrikoṇa + Ekādhipatya Śodhana / Rāśi + Graha + Sodhya Piṇḍa** (`verify-ashtakavarga`
 reproduces the JHora export exactly) · **Pañchāṅga — Tithi + fraction, Karaṇa + fraction,
 Nitya Yoga + fraction, Vedic weekday, Hora Lord, Sunrise/Sunset, Janma Ghaṭis**
-(`verify-panchanga` reproduces the JHora export exactly) · source-attributed yoga inputs ·
-provenance (ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
+(`verify-panchanga` reproduces the JHora export exactly) · **Karakāṁśa (AK in D9) + Bhaava /
+Ghati / Sree Lagna** (`verify-jaimini` reproduces the JHora export exactly) · source-attributed
+yoga inputs · provenance (ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
 
 ## Priority gaps
 
@@ -38,9 +39,14 @@ provenance (ayanāṁśa degrees, sidereal time, rule set, method) on every char
    **Nitya Yoga lord**, **Samvatsara** (60-year cycle name), **lunar month** (PVR's own Table 4
    extract is OCR-garbled — needs a clean page-image or 2nd-edition cross-check before seeding),
    **Mahakala Hora / Kaala Lord** (JHora extensions past PVR's 24-hora scheme).
-3. **Jaimini base layer** — Karakāṁśa from AK in D9; the remaining special lagnas (Bhava,
-   Ghati, Vighati, Varnada V1–V12, Sree, Pranapada, Indu); Bhṛgu Bindu. Dependency for
-   Jaimini rāśi dashas.
+3. **Jaimini base layer — Karakāṁśa + Bhaava/Ghati/Sree Lagna are delivered** (migration 082
+   `vw_ChartKarakamsa`; `BhaavaLagnaCalculator`/`GhatiLagnaCalculator`/`SreeLagnaCalculator`;
+   `verify-jaimini` exact vs the JHora export). Remaining, deliberately out of scope —
+   `SRC_PVR_INTEGRATED` §5.7 states outright "there are some more special lagnas defined by
+   Parasara, but they are beyond the scope of this book", and no other registered source covers
+   them: **Vighati Lagna**, **Varnada Lagna**, **Pranapada Lagna**, **Indu Lagna**, **Bhṛgu
+   Bindu**. Jaimini rāśi dashas depend on some of these (e.g. Sudasa already uses Sree Lagna,
+   which is delivered).
 4. **Strength systems** — **Ashtakavarga is delivered** (BAV / SAV / Śodhana / Piṇḍa, exact
    vs the JHora export — migrations 074–078 + `AshtakavargaCalculator` + `verify-ashtakavarga`).
    Remaining: full Ṣaḍbala rūpas + the six Kālabala sub-components + planetary war +

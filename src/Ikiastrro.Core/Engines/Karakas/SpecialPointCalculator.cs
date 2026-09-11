@@ -19,6 +19,11 @@ public static class SpecialPointCalculator
         var seeds = new List<SpecialPointSeed>();
         seeds.AddRange(ArudhaCalculator.Compute(d1));
         seeds.Add(HoraLagnaCalculator.Compute(birthDetails, sun, ayanamsa));
+        seeds.Add(BhaavaLagnaCalculator.Compute(birthDetails, sun, ayanamsa));
+        seeds.Add(GhatiLagnaCalculator.Compute(birthDetails, sun, ayanamsa));
+        seeds.Add(SreeLagnaCalculator.Compute(
+            d1.Planets.Single(p => p.Planet == "Ascendant").NirayanaLongitudeDegrees!.Value,
+            d1.Planets.Single(p => p.Planet == "Moon").NirayanaLongitudeDegrees!.Value));
         if (subPlanetRules is not null)
             seeds.AddRange(SubPlanetCalculator.Compute(birthDetails, sun,
                 d1.Planets.Single(p => p.Planet == "Sun").NirayanaLongitudeDegrees!.Value, subPlanetRules, ayanamsa));
