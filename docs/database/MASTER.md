@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-10
+last_updated: 2026-09-11
 workstream: database
 togaf: C — Data Architecture
 safe: Solution Intent (fixed) — data model
@@ -33,11 +33,19 @@ Publishes to the CLI and UI streams under
 - ~95 tables: input, chart results, chart-generic analytics, dasha, reference/master,
   `tbl_Rule_*` (versioned), `tbl_Dim_*`, `tbl_Fact_*` (star-schema), plus the isolated
   `research.*` reference corpus (migrations 056–070).
-- **Live rule table:** `tbl_Rule_VargaScheme` (the orchestrator builds one `VargaCalculator`
-  per row). All other `tbl_Rule_*` are a verified mirror of the hard-coded C# — Phase 2
-  (calculators reading them) not started.
-- `tbl_Rule_Ayanamsa` — JHora ayanāṁśa catalogue + system default (`Lahiri`, Swiss mode 1;
-  set by migration 054).
+- **Live rule tables** (~6 — calculators actually read these, not just seeded/mirrored):
+  `tbl_Rule_VargaScheme` (orchestrator builds one `VargaCalculator` per row),
+  `tbl_Rule_AgeState` (`AgeStateCalculator`), `tbl_Rule_WakefulnessState`
+  (`WakefulnessStateCalculator`), `tbl_Rule_SubPlanetSunLongitude`/`SubPlanetTime`/
+  `SubPlanetPartRuler` (`SubPlanetCalculator`), `tbl_Rule_Ayanamsa` (`AyanamsaDefinition`;
+  system default `Lahiri`, Swiss mode 1, set by migration 054). Everything else `tbl_Rule_*` is
+  either a CLI-verified mirror of hard-coded C# (Phase 2 wiring not started) or orphaned
+  (seeded or unseeded, zero reads) — full per-table breakdown in
+  [`rules-engine.md`](rules-engine.md), wiring backlog in
+  [`../../decisions/003-rules-audit-content-model-ephemeris-interpreter.md`](../../decisions/003-rules-audit-content-model-ephemeris-interpreter.md).
+  `tbl_Rule_Exaltation` doesn't exist yet — a normal Phase-1 job, exaltation degrees are already
+  hardcoded in `RamanYogaBatchFiveEvaluator.DeepExaltation`/`RamanDhanaYogaEvaluator`, ready to
+  transcribe, same pattern as `db/079`.
 
 ## In flight
 
