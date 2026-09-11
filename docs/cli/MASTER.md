@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-11
 workstream: cli
 togaf: C — Application Architecture (engine)
 safe: Solution Intent (fixed)
@@ -30,13 +30,15 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   3-level Vimśottari dasha, dignity, house lordship, conjunctions (+ groups), aspects,
   retrograde / combustion, nakṣatra linkage, Chara Karakas + special points + 11 upagrahas,
   Bālādi + Jāgradādi avasthas, Ṣaḍbala / Bhāva Bala foundation, **Parāśari Ashtakavarga
-  (BAV / SAV / Sodhya Piṇḍa)**, source-attributed yoga inputs, slow-planet transits,
-  Sade Sati / Kantaka / Ashtama, functional benefic/malefic.
-- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (130) +
+  (BAV / SAV / Sodhya Piṇḍa)**, **Pañchāṅga (Tithi / Karaṇa / Nitya Yoga / Vedic weekday /
+  Hora Lord)**, source-attributed yoga inputs, slow-planet transits, Sade Sati / Kantaka /
+  Ashtama, functional benefic/malefic.
+- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (136) +
   `tests/Ikiastrro.Web.Tests` (187). `dotnet build` / `dotnet test` run from the terminal.
 - **Green now:** the `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
-  `verify-ashtakavarga`, `verify-dignity`, `verify-rules`, `verify-pipeline`, `verify-sources`,
-  `verify-terminology`, `verify-avastha`, `verify-functional-nature`, `verify-upagrahas`.
+  `verify-ashtakavarga`, `verify-panchanga`, `verify-dignity`, `verify-rules`, `verify-pipeline`,
+  `verify-sources`, `verify-terminology`, `verify-avastha`, `verify-functional-nature`,
+  `verify-upagrahas`.
 
 ## In flight
 
@@ -50,6 +52,15 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
 - **`FEAT-ASHTAKAVARGA-01`** — DB + Core + Verify **done** (migrations 074–078;
   `AshtakavargaCalculator`; `verify-ashtakavarga` reproduces the JHora export exactly).
   Remaining: a UI Ashtakavarga table over `vw_ChartAshtakavarga`.
+- **`FEAT-DATA-06` — Pañchāṅga / time layer** — DB + Core + Verify **done** (migration 081;
+  `Engines/Panchanga/{PanchangaModels,PanchangaCalculator}`; `PanchangaRepository`; wired into
+  `ChartBundle.Panchanga`, `ChartPipeline.Run`, and `ChartGenerationService`'s D1 branch;
+  `verify-panchanga` reproduces the JHora export exactly — Krishna Tritiya, Vanija, Vyatipaata,
+  Tuesday, Hora Lord Venus, Janma Ghatis 58.89; `tests/Ikiastrro.Yoga.Tests/PanchangaCalculatorTests`
+  (6) use JHora's own printed longitudes directly, no ephemeris round-trip). Deliberately not
+  computed (no PVR §1.3 source): Karana lord, Nitya Yoga lord, Samvatsara, lunar month, Mahakala
+  Hora, Kaala Lord — see the migration-081 header. Remaining: a UI Panchanga strip over
+  `vw_ChartPanchanga`.
 - **`FEAT-YOGA-01`** — Raman predicates 201–300, PVR P0 additions, structured
   missing-requirement codes, source-qualified strength policy.
 
@@ -59,4 +70,3 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
 - Reserved engine seams: Dispositor, Vimśopaka, Sthira/Naisargika Karaka, additional avasthas
   (Dīptādi / Lajjitādi / Śayanādi).
 - Full Ṣaḍbala port from the vendored MIT `jyotishganit` (attribution).
-- Panchanga / time layer (tithi, karana, nitya yoga, Vedic weekday, janma ghaṭis).

@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-11
 workstream: cli
 togaf: E — gap analysis
 safe: Program backlog input
@@ -22,17 +22,22 @@ transit events · Sade Sati / Kantaka / Ashtama · functional benefic/malefic ·
 Jāgradādi avasthas · Chara Karakas (Aṣṭa) · AL + 12 Arudhas + Hora Lagna + **all 11
 upagrahas** · Ṣaḍbala / Bhāva Bala foundation · **Parāśari Ashtakavarga — BAV / SAV /
 Ṭrikoṇa + Ekādhipatya Śodhana / Rāśi + Graha + Sodhya Piṇḍa** (`verify-ashtakavarga`
-reproduces the JHora export exactly) · source-attributed yoga inputs · provenance
-(ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
+reproduces the JHora export exactly) · **Pañchāṅga — Tithi + fraction, Karaṇa + fraction,
+Nitya Yoga + fraction, Vedic weekday, Hora Lord, Sunrise/Sunset, Janma Ghaṭis**
+(`verify-panchanga` reproduces the JHora export exactly) · source-attributed yoga inputs ·
+provenance (ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
 
 ## Priority gaps
 
 1. **Precision & config foundation** — ayanāṁśa correctness (`FEAT-DATA-04`); ayanāṁśa
    *selectable in the UI* (`FEAT-UI-12`); chart-style selectable; documented selectable D2
    Hora method if JHora's Uma Shambu output must be reconciled.
-2. **Panchanga / time layer** — sunrise/sunset (built for special points; not surfaced),
-   janma ghaṭis, tithi + fraction, karana, nitya yoga, Vedic weekday, samvatsara + lunar-month
-   convention, Hora Lord / Kaala Lord. `jyotishganit` (MIT) is an implementation reference.
+2. **Panchanga / time layer — Tithi/Karana/Nitya-Yoga/weekday/Hora-Lord/Janma-Ghatis are
+   delivered** (migration 081, `PanchangaCalculator`, `verify-panchanga` exact vs the JHora
+   export). Remaining, deliberately deferred — no PVR §1.3 source found: **Karana lord**,
+   **Nitya Yoga lord**, **Samvatsara** (60-year cycle name), **lunar month** (PVR's own Table 4
+   extract is OCR-garbled — needs a clean page-image or 2nd-edition cross-check before seeding),
+   **Mahakala Hora / Kaala Lord** (JHora extensions past PVR's 24-hora scheme).
 3. **Jaimini base layer** — Karakāṁśa from AK in D9; the remaining special lagnas (Bhava,
    Ghati, Vighati, Varnada V1–V12, Sree, Pranapada, Indu); Bhṛgu Bindu. Dependency for
    Jaimini rāśi dashas.

@@ -4,6 +4,7 @@ using System.Text.Json;
 using Dapper;
 using Ikiastrro.Cli;
 using Ikiastrro.Core.Engines.Ashtakavarga;
+using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.DivisionalCharts;
 using Ikiastrro.Core.Pipeline;
@@ -131,7 +132,7 @@ var chartGenerationService = new ChartGenerationService(
     new PlanetaryStrengthRepository(connectionFactory),
     new BhavaStrengthRepository(connectionFactory),
     new VargottamaRepository(connectionFactory), new YogaInputRepository(connectionFactory),
-    new AshtakavargaRepository(connectionFactory));
+    new AshtakavargaRepository(connectionFactory), new PanchangaRepository(connectionFactory));
 
 // --- One-off backfill mode: `dotnet run -- backfill-analytics` ---
 // Unconditionally re-derives all four analytics tables (KeyDetails/HouseLords/Conjunctions/Aspects)
@@ -822,6 +823,70 @@ if (args.Length > 0 && args[0] == "verify-ashtakavarga")
     }
 
     Console.WriteLine(failures == 0 ? "\nverify-ashtakavarga: ALL PASS" : $"\nverify-ashtakavarga: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- One-off check: `dotnet run -- verify-panchanga` ---
+// PanchangaCalculator must reproduce the JHora export for 1_Ramakrishnan (Krishna Tritiya,
+// Vyatipaata, Tuesday, Hora Lord Venus, Janma Ghatis 58.8892 — see the migration-081 header
+// and PanchangaCalculator's doc comment for the source), and what GenerateAll persisted must
+// match what the engine computes.
+if (args.Length > 0 && args[0] == "verify-panchanga")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+    void CheckClose(string label, double actual, double expected, double tolerance)
+    {
+        var ok = Math.Abs(actual - expected) <= tolerance;
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual:F4}, expected {expected:F4} (+/-{tolerance})");
+        if (!ok) failures++;
+    }
+
+    var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var bundle = new ChartPipeline(orchestrator, psRules).Run(ram);
+    var pc = bundle.Panchanga ?? throw new InvalidOperationException("ChartBundle.Panchanga is null.");
+
+    // --- Phase 1: the engine == the JHora export (Rammy_Jagannatha.txt / 1_Ramakrishnan) ---
+    Check("Tithi (18 = Krishna Tritiya)", pc.TithiId, 18);
+    Check("Karana (6 = Vanija)", pc.KaranaId, 6);
+    Check("Nitya Yoga (17 = Vyatipaata)", pc.NityaYogaId, 17);
+    Check("Vedic Weekday (3 = Tuesday)", pc.VedicWeekdayId, 3);
+    Check("Hora Lord (6 = Venus)", pc.HoraLordPlanetId, 6);
+    CheckClose("Janma Ghatis", pc.JanmaGhatis, 58.8892, 0.01);
+
+    // --- Phase 2: persisted tbl_Chart_Panchanga for the stored Ramakrishnan D1 == the engine ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var stored = conn.QuerySingleOrDefault<(int TithiId, int KaranaId, int NityaYogaId,
+                int VedicWeekdayId, int HoraLordPlanetId, double JanmaGhatis)?>(
+            @"SELECT p.TithiId, p.KaranaId, p.NityaYogaId, p.VedicWeekdayId, p.HoraLordPlanetId, p.JanmaGhatis
+              FROM dbo.tbl_Chart_Panchanga p
+              JOIN dbo.tbl_ChartResults cr ON cr.Id = p.ChartResultId
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
+              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1'");
+        if (stored is null)
+        {
+            Console.WriteLine("  [SKIP] no persisted tbl_Chart_Panchanga row for Ramakrishnan's D1 — run GenerateAll first.");
+        }
+        else
+        {
+            var s = stored.Value;
+            Check("persisted TithiId", s.TithiId, pc.TithiId);
+            Check("persisted KaranaId", s.KaranaId, pc.KaranaId);
+            Check("persisted NityaYogaId", s.NityaYogaId, pc.NityaYogaId);
+            Check("persisted VedicWeekdayId", s.VedicWeekdayId, pc.VedicWeekdayId);
+            Check("persisted HoraLordPlanetId", s.HoraLordPlanetId, pc.HoraLordPlanetId);
+            CheckClose("persisted Janma Ghatis", s.JanmaGhatis, pc.JanmaGhatis, 0.001);
+        }
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-panchanga: ALL PASS" : $"\nverify-panchanga: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 

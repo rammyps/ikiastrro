@@ -1,5 +1,6 @@
 using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.PlanetaryStates;
 using Ikiastrro.Core.Engines.Relationships;
 using Ikiastrro.Core.Pipeline;
@@ -40,6 +41,7 @@ public class ChartGenerationService
     private readonly VargottamaRepository _vargottamaRepo;
     private readonly YogaInputRepository _yogaInputRepo;
     private readonly AshtakavargaRepository _ashtakavargaRepo;
+    private readonly PanchangaRepository _panchangaRepo;
 
     // The avastha rule/dim rows are the same for the whole GenerateAll/Recompute call — load once.
     private PlanetaryStateRuleSet? _planetaryStateRules;
@@ -57,7 +59,7 @@ public class ChartGenerationService
         PlanetaryStrengthRepository planetaryStrengthRepo,
         BhavaStrengthRepository bhavaStrengthRepo,
         VargottamaRepository vargottamaRepo, YogaInputRepository yogaInputRepo,
-        AshtakavargaRepository ashtakavargaRepo)
+        AshtakavargaRepository ashtakavargaRepo, PanchangaRepository panchangaRepo)
     {
         _orchestrator = orchestrator;
         _dashaService = dashaService;
@@ -77,6 +79,7 @@ public class ChartGenerationService
         _vargottamaRepo = vargottamaRepo;
         _yogaInputRepo = yogaInputRepo;
         _ashtakavargaRepo = ashtakavargaRepo;
+        _panchangaRepo = panchangaRepo;
     }
 
     private AyanamsaDefinition ResolveAyanamsa(AyanamsaDefinition? requested) =>
@@ -102,6 +105,7 @@ public class ChartGenerationService
         _bhavaStrengthRepo.DeleteByBirthDetailId(birthDetails.Id);
         _vargottamaRepo.DeleteByBirthDetailId(birthDetails.Id);
         _ashtakavargaRepo.DeleteByBirthDetailId(birthDetails.Id);  // FKs to tbl_ChartResults have no cascade
+        _panchangaRepo.DeleteByBirthDetailId(birthDetails.Id);
         foreach (var calc in _orchestrator.Calculators)
             _chartResultsRepo.DeleteByBirthDetailIdAndChartType(birthDetails.Id, calc.ChartType);
 
@@ -135,7 +139,7 @@ public class ChartGenerationService
             result.SiderealTimeHours = ctx.LocalSiderealTimeHours;
             result.Ayanamsha = (ayanamsa ?? AyanamsaDefinition.Default).DisplayName;
             _chartResultsRepo.InsertAll(new[] { result });   // populates result.Id
-            PersistAnalytics(result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId,
+            PersistAnalytics(birthDetails, result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId,
                 input.ChartType == "D1" ? _orchestrator.CalculateAll(birthDetails, ayanamsa).Select(c => c.Input).ToList() : new[] { input });
             written.Add(chartType);
         }
@@ -180,7 +184,7 @@ public class ChartGenerationService
             _multiGrahaConjunctionsRepo.DeleteByChartResultId(result.Id);  // after pair rows (they FK the groups)
             _aspectsRepo.DeleteByChartResultId(result.Id);
             _planetaryStateRepo.DeleteByChartResultId(result.Id);
-            PersistAnalytics(result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId,
+            PersistAnalytics(birthDetails, result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId,
                 input.ChartType == "D1" ? _orchestrator.CalculateAll(birthDetails, ayanamsa).Select(c => c.Input).ToList() : new[] { input });
             written.Add(result.ChartType);
         }
@@ -208,7 +212,7 @@ public class ChartGenerationService
         _chartResultsRepo.InsertAll(computed.Select(c => c.Result));   // populates each Result.Id
         var charaKarakaByPlanet = CharaKarakaByPlanet(ctx);
         foreach (var (result, input) in computed)
-            PersistAnalytics(result.Id, input, charaKarakaByPlanet, ctx, SwissEphemerisProvider.GetSunTimes(bd), activeRuleSetId, computed.Select(c => c.Input).ToList());
+            PersistAnalytics(bd, result.Id, input, charaKarakaByPlanet, ctx, SwissEphemerisProvider.GetSunTimes(bd), activeRuleSetId, computed.Select(c => c.Input).ToList());
         return computed.Select(c => c.Result.ChartType).ToList();
     }
 
@@ -228,7 +232,7 @@ public class ChartGenerationService
             .ToDictionary(kv => kv.Key.ToString(), kv => kv.Value.ToString());
     }
 
-    private void PersistAnalytics(int chartResultId, ChartAnalysisInput input,
+    private void PersistAnalytics(BirthDetails bd, int chartResultId, ChartAnalysisInput input,
         IReadOnlyDictionary<string, string> charaKarakaByPlanet,
         SiderealPositions positions, SunTimes sunTimes, int ruleSetId,
         IReadOnlyList<ChartAnalysisInput>? allCharts = null)
@@ -279,6 +283,8 @@ public class ChartGenerationService
             _vargottamaRepo.InsertAll(chartResultId, ruleSetId, VargottamaDetector.Calculate(charts));
             _ashtakavargaRepo.DeleteByChartResultId(chartResultId);
             _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input));
+            _panchangaRepo.DeleteByChartResultId(chartResultId);
+            _panchangaRepo.Insert(chartResultId, ruleSetId, PanchangaCalculator.Calculate(bd, positions, sunTimes));
         }
     }
 }
