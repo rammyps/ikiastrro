@@ -1,5 +1,6 @@
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Karakas;
+using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.PlanetaryStates;
 using Ikiastrro.Core.Engines.Strength;
 using Ikiastrro.Core.Models;
@@ -62,7 +63,10 @@ public sealed class ChartPipeline
         {
             Strengths = strengths,
             BhavaStrengths = BhavaBalaCalculator.Calculate(d1, strengths),
-            Vargottama = VargottamaDetector.Calculate(charts)
+            Vargottama = VargottamaDetector.Calculate(charts),
+
+
+            Panchanga = PanchangaCalculator.Calculate(birth, positions, sunTimes)
         };
     }
 

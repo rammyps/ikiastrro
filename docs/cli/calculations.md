@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-10
+last_updated: 2026-09-11
 workstream: cli
 togaf: C — Application Architecture (engine)
 ---
@@ -123,6 +123,34 @@ matrix (56 rows, SAV total 337; BPHS, cross-checked vs the vendored MIT `jyotish
 `tbl_Fact_AshtakavargaPinda` receive the results. Remaining CLI slice: `AshtakavargaCalculator`
 (BAV → SAV → reductions → Sodhya Piṇḍa), its repository + `GenerateAll` wiring, and
 `verify-ashtakavarga` against the `research.*` JHora benchmark.
+
+## 9b. Pañchāṅga (Tithi / Karaṇa / Nitya Yoga / Vedic Weekday / Hora Lord)
+
+`PanchangaCalculator.Calculate(birth, positions, sunTimes)` — pure, over the D1 Sun/Moon
+sidereal longitudes and `SunTimes`. `SRC_PVR_INTEGRATED` §1.3.8-1.3.12, the book's only
+panchanga chapter:
+
+- **Tithi** — `floor((Moon−Sun)/12°) + 1` (1-30; 1-15 Śukla, 16-30 Kṛṣṇa). `tbl_Dim_Tithi.Id`
+  is seeded in the same order, so the index is the FK directly.
+- **Nitya Yoga** — `floor((Sun+Moon)/13°20') + 1` (1-27), same direct-FK seeding.
+- **Karaṇa** — each tithi splits into 2 half-tithis; the 7 movable karaṇas
+  (`tbl_Dim_Karana.Id` 1-7) repeat 8× (56 slots) from the 2nd half of the month's 1st tithi;
+  the 4 fixed karaṇas (Id 8-11) cover the 2nd half of tithi 29 through the 1st half of the
+  next month's tithi 1.
+- **Vedic weekday** — the calendar day `SunTimes.Sunrise` falls on; `tbl_Dim_VedicWeekday.Id`
+  1=Sunday..7=Saturday matches `.NET DayOfWeek + 1`.
+- **Hora Lord** — 24 equal horas from sunrise to next sunrise; hora 1 is the weekday lord,
+  then the cycle Saturn→Jupiter→Mars→Sun→Venus→Mercury→Moon (decreasing geocentric speed,
+  mirrors `tbl_Dim_HoraSequence`) repeats.
+- **Janma Ghaṭis** — minutes elapsed since `SunTimes.Sunrise` / 24.
+
+**Deliberately not computed** — no PVR §1.3 source found: Karaṇa lord, Nitya Yoga lord,
+Samvatsara (60-year cycle name), lunar month (PVR's own Table 4 extract is OCR-garbled —
+contradicts classical Pauṣa/Māgha/Phālguna nakṣatra pairings, needs a clean source pass),
+Mahākāla Hora / Kāala Lord (JHora extensions past PVR's 24-hora scheme). Persisted on the D1
+row: `tbl_Chart_Panchanga`; UI view `vw_ChartPanchanga`. Check: `verify-panchanga` reproduces
+the JHora export for `1_Ramakrishnan` — Kṛṣṇa Tritīyā, Vanija, Vyatīpāta, Tuesday, Hora Lord
+Venus **exactly**; Janma Ghaṭis within JHora's own two-decimal rounding.
 
 ## 10. Functional benefic / malefic
 

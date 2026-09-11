@@ -1,4 +1,5 @@
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.PlanetaryStates;
 using Ikiastrro.Core.Engines.Strength;
 using Ikiastrro.Core.Models;
@@ -31,4 +32,8 @@ public sealed record ChartBundle(
 
     /// <summary>Explicit D1/D9 same-sign results; Vargottama is reported separately from Shadbala points.</summary>
     public IReadOnlyList<VargottamaResult> Vargottama { get; init; } = Array.Empty<VargottamaResult>();
+
+    /// <summary>Tithi / Karana / Nitya Yoga / Vedic Weekday / Hora Lord for the birth moment.
+    /// D1-only — never null once <see cref="Run"/> has built it.</summary>
+    public PanchangaResult? Panchanga { get; init; }
 }
