@@ -64,8 +64,9 @@ every chart type.
 ## Views & functions
 
 - Views: `vw_Chart_Consolidated`, `vw_Chart_DashaTimeline`, `vw_Chart_HouseNakshatraSpan`,
-  `vw_KetuSignTransitEvents`, `vw_NakshatraPadaDetails`, `vw_ChartPlanetEvidence`,
-  `vw_ChartMoonContext`, `vw_ChartShadbala` (re-exposes `BirthDetailId` / `Planet` /
+  `vw_KetuSignTransitEvents`, `vw_NakshatraPadaDetails`, `vw_ChartPlanetEvidence`
+  (`PostureState` column added migration 083), `vw_ChartMoonContext`, `vw_ChartShadbala`
+  (re-exposes `BirthDetailId` / `Planet` /
   `PercentOfMinimum` after the migration-069 regression; migration 071), `vw_ChartBhavaBala`,
   `vw_ChartAshtakavarga` (BAV grid + SAV per sign; migration 074), `vw_ChartPanchanga`
   (Tithi/Karana/Nitya Yoga/Vedic Weekday/Hora Lord names; migration 081), `vw_ChartKarakamsa`

@@ -49,6 +49,20 @@ Publishes to the CLI and UI streams under
 
 ## In flight
 
+- **`FEAT-AVASTHA-05` — Sayanaadi (PostureState, DB slice)** — migration 083: 12-state
+  `tbl_Dim_PlanetaryState` seed (`AvasthaSystem = 'Sayanadi'`), `tbl_Rule_PostureStateFormula`
+  (the `(C×P×A + M + G + L) mod 12` index, `SRC_PVR_INTEGRATED` §15.4.4), a nullable
+  `PostureStateId` column on `tbl_Fact_PlanetaryState`, `vw_ChartPlanetEvidence` extended.
+  This was the avastha masterproduct.md flagged "needs persisted janma ghaṭis, source-blocked"
+  — migration 081's `tbl_Chart_Panchanga.JanmaGhatis` removes the first blocker, and §15.4.4
+  turned out to already be a fully-specified, unambiguous formula (hand-verified against the
+  JHora export's printed Activity table: Sun → Aagama, Moon → Kautuka, both exact). Deliberately
+  not seeded: the secondary Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (PVR's Table 37 sound-map)
+  — the raw book extract renders that table's columns OCR-ambiguously, same class of problem as
+  migration 081's deferred lunar month. Deeptādi and Lajjitādi (`FEAT-AVASTHA-03/04`) are
+  **not** unblocked by this — PVR §15.4.3 gives 9 + 6 states but several depend on conjunction/
+  aspect precedence the passage doesn't fully order (e.g. a planet that is both exalted and
+  Sun-conjoined), unlike Sayanaadi's clean arithmetic; still needs a closer read before schema.
 - **Jaimini special lagnas / Karakamsa** — migration 082: `vw_ChartKarakamsa`, the D9 sign of
   AK (PVR sec 7.3.6). No new storage: `ChartGenerationService.PersistAnalytics` already stamps
   `CharaKaraka` onto every chart type, D9 included, so this view is a plain read over
