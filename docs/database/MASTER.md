@@ -47,23 +47,31 @@ Publishes to the CLI and UI streams under
   hardcoded in `RamanYogaBatchFiveEvaluator.DeepExaltation`/`RamanDhanaYogaEvaluator`, ready to
   transcribe, same pattern as `db/079`.
 - **2026-09-11 rule-mapping audit** — every calculator under `Engines/` (`workstream/cli`)
-  cross-referenced against `tbl_Rule_Catalog` (38 tables). Full write-up, including a new
+  cross-referenced against `tbl_Rule_Catalog` (38 tables). Full write-up, including the
   "Formulas computed in C#/SQL with no `tbl_Rule_*` citation at all" section, is in
-  [`rules-engine.md`](rules-engine.md). Highlights:
-  - The exaltation degrees above are duplicated **three** independent times in C#
-    (`DignityEngine.ExaltationSign`, `ShadbalaCalculator.DeepExaltation`,
-    `RamanYogaBatchFiveEvaluator.DeepExaltation`) — the `tbl_Rule_Exaltation` gap noted above
-    isn't just "not yet transcribed", it's a live duplication-drift risk today.
-  - Vimshottari Dasha's own core table (9-planet order, 120-year cycle, per-lord years) has
-    **no `tbl_Rule_*` row anywhere** — only the *conditional*-dasha applicability layer
-    (`tbl_Rule_DashaApplicability`) is modeled, and it's unseeded.
+  [`rules-engine.md`](rules-engine.md). Findings, and same-day closure:
+  - The exaltation degrees above were duplicated **four** independent times in C# (one had no
+    shared field name — found by grepping the magic numbers) — consolidated onto one shared
+    `AstroMath.DeepExaltationPoints` constant; no new table needed, `tbl_Rule_GrahaDignity`
+    already carries the degree. `tbl_Rule_Exaltation` itself still doesn't exist (unchanged).
+  - Vimshottari Dasha's own core table (9-planet order, 120-year cycle, per-lord years) had
+    **no `tbl_Rule_*` row anywhere** — closed: new `tbl_Rule_VimshottariPeriod` (migration 085,
+    SRC_PVR_INTEGRATED §16.2 Table 38, verified against the raw extract).
   - `tbl_Rule_Karaka` (reserved since migration 18, 0 rows) was schema-designed for exactly
-    the Chara Karaka assignment rule `CharaKarakaCalculator` hardcodes — ready to seed, never
-    used.
-  - **Reproducibility gap found, not a mapping gap**: `dbo.SchemaMigrations` records
-    `054_add_yoga_validation_tables.sql` as applied (`tbl_Rule_YogaValidationDefinition`, 1,002
-    rows, live in dev), but no file by that name exists under `db/` — a from-scratch build
-    cannot reproduce it. Needs recovering the script or clearing the stale migration record.
+    the Chara Karaka assignment rule `CharaKarakaCalculator` hardcodes — closed: seeded by
+    migration 085 (SRC_PVR_INTEGRATED §8.2 Table 13, verified against the raw extract).
+  - Arudha Pada's counting rule had no reserved table shape at all — closed: new
+    `tbl_Rule_ArudhaFormula` (migration 085, SRC_PVR_INTEGRATED §9.2, verified against the raw
+    extract).
+  - **Deliberately left open** — both source-honesty calls, not oversights: Sade Sati/Kantaka/
+    Ashtama's `SourceRefCode` (no registered source's raw text actually discusses the offset
+    rule) and `tbl_Rule_YogaValidationDefinition`'s reproducibility gap (`dbo.SchemaMigrations`
+    records `054_add_yoga_validation_tables.sql` as applied — 1,002 rows live in dev — but no
+    file by that name exists under `db/`; a from-scratch build can't reproduce it. Needs
+    recovering the script or clearing the stale migration record).
+  - CLI side: `verify-dasha` (new), `verify-jaimini` and `verify-dignity` (extended) all cross-
+    check the new/consolidated citations against their hardcoded C#. 356 tests + all 15
+    `verify-*` modes green.
 
 ## In flight
 
