@@ -148,14 +148,31 @@ person cold.
 - `/key-inference/{id}` — **Key Inference**, four headers (below).
 - `/charts/{id}/south-indian-template` — the one print-style visual (Codex scope)
 
-### Key Inference — 4 headers
+### Key Inference — round-2 redesign: a 6-step flow, not 4 flat headers
+
+**Superseded 2026-09-11.** The original "4 headers, KEY INFERENCE = 8 flat sub-tabs" shape
+(still summarised in the row below for history) is replaced by a **numbered UX flow** — full
+spec, field sourcing and open questions: [`components/key-inference.md`](components/key-inference.md).
+Mockup: [chart-evidence-hub.html `#key-inference`](../artifacts/ui/v2-mockup/chart-evidence-hub.html)
+(round 1, flat tabs, frozen) → [key-inference-v2.html](../artifacts/ui/v2-mockup/key-inference-v2.html)
+(round 2, this flow, under review).
+
+| Step | Content |
+|---|---|
+| **1 · D1 / Transit** | the D1 South-Indian grid as the chart + the full position table, now carrying nakṣatra + pāda inline; D1 Birth / Current Transit toggle |
+| **2 · Understanding** — 2.1 About Houses | house lords + occupants + aspects + conjunctions in one table, occupancy bar chart; Arudha padas / Upagrahas / Special Lagnas as supporting cards (previously computed, not surfaced) |
+| **2 · Understanding** — 2.2 About Planets | Moon pañchāṅga facts, dignity, Chara Kāraka, **exaltation point + closeness-to-exaltation** (new) |
+| **3 · Strength** | Planet Strength (Shadbala) chart + table, House Strength (Bhava Bala) table alongside |
+| **4 · Planet-Chart** | Vargottama, Ṣoḍaśavarga (16-varga sign grid), Vaiśeṣikāṁśa (+ which vargas each planet's strength comes from), Varga Dignity — one chart, one grid, inline tags |
+| **5 · Ashtakavarga** | Sarvāṣṭakavarga bar chart + Bhinnāṣṭakavarga grid + Piṇḍa table |
+| **6 · Yoga** | Source (1st column) · Yoga · **Type** (Sun/Moon/Lagna, new) · **short Rule** (new) · Result; **Variant dropped**; coverage donut |
+
+**Unchanged by this round** — still separate headers, not folded into the 6-step flow:
 
 | Header | Content |
 |---|---|
-| **KEY INFERENCE** | 8 sub-tabs: *About Sign* (`tbl_SignAttributes` + sign lord) · *About Planet* (Planet · Kāraka · House Lord · Nature · Conditional rule) · *About Moon* (4 facts, `vw_ChartMoonContext`) · *About Houses* (one house-keyed table = lords + conjunctions + aspects; chart dropdown) · *Planet Dignity* (`vw_ChartPlanetEvidence`; chart dropdown; combust rows sorted under the Sun) · *Planet Strength* (Shadbala) · *House Strength* (Bhava Bala) · *Vargottama* (D1 & D9) |
-| **YOGAS** | coverage summary + source variants ([`components/yoga.md`](components/yoga.md)) |
 | **TIME PERIOD (DASHA)** | Vimśottari drill-down: Mahā → Antar → Pratyantar, current chain pre-expanded and sunset-highlighted ([`components/dasha-sade-sati.md`](components/dasha-sade-sati.md)) |
-| **SATURN TIME PERIOD** | Sade Sati + Kaṇṭaka + Aṣṭama Śani in one ascending table (birth → age 75) with a *Round* column + 1st/2nd/3rd-round filter; current / next window sunset-highlighted. Ashtakavarga out of scope. |
+| **SATURN TIME PERIOD** | Sade Sati + Kaṇṭaka + Aṣṭama Śani in one ascending table (birth → age 75) with a *Round* column + 1st/2nd/3rd-round filter; current / next window sunset-highlighted. |
 
 Retired: `/preferences` and `/add` (inline on Home); `/charts/{id}/evidence`,
 `/charts/{id}/varga/{code}` and the single `/charts/{id}` hub (redistributed across the two
@@ -185,7 +202,7 @@ cells start `☐` and are checked per slice.
 | Home | mockup `#home` | `/` · `Home.razor` | `BirthDetailsRepository` (search only) | ☐ narrow-column · ☐ no-match · ☐ resolver fail | ☐ keyboard search + focus ring | ☐ | ☐ `verify-home-ui.mjs` |
 | Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `Natal_Transit_Comp_Wheel.razor` + `Natal_Transit_Comp_WheelChart` ([`components/chart-catalog.md`](components/chart-catalog.md)) | `vw_ChartPlanetEvidence` via `Natal_Transit_Comp_WheelRepository` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☑ wide-table scroll-in-container · ☑ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs (`Natal_Transit_Comp_WheelMath` unit-tested; render harness pending) · ☐ golden snapshot not yet minted | ☑ MCP browser smoke 2026-09-10 · ☐ `verify-transit-ui.mjs` headless run |
 | All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid_Detailed` (re-skinned via token overrides) | `WorkspaceData.Load` — `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas, divisor order | ☑ 3→2→1-per-row reflow · ☑ varga not generated → `EmptyState` card | ☐ grid landmark labels | ☐ per varga (page-DI harness pending) | ☑ MCP browser smoke 2026-09-10 |
-| Key Inference | mockup `#key-inference` | `/key-inference/{id}` · `KeyInference.razor` | evidence views + dimension tables (per sub-tab) | ☐ auto table widths, no page scroll · ☐ empty section | ☐ header + sub-tab keyboard nav | ☐ per header | ☐ smoke |
+| Key Inference | [`key-inference-v2.html`](../artifacts/ui/v2-mockup/key-inference-v2.html) (round 2, under review) | `/key-inference/{id}` · `KeyInference.razor` (unbuilt) | per step — [`components/key-inference.md`](components/key-inference.md) | ☐ auto table widths, no page scroll · ☐ empty step | ☐ step-rail keyboard nav | ☐ per step | ☐ smoke |
 | Preferences | mockup `#home` (disclosure) | inline on Home · `Home.razor` | `AyanamsaDefinition.Catalog` · `localStorage` | ☐ collapse on select · ☐ `localStorage` unavailable → DB default | ☐ disclosure ARIA; disabled "Planned" options not focusable-as-selectable | ☐ | ☐ smoke |
 
 ## Verification

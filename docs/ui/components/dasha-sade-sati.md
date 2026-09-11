@@ -10,9 +10,10 @@ togaf: C — component spec
 
 # Component — time periods (daśā & Saturn)
 
-Two **headers** on the [Key Inference](../wkstream_UI_v2.md#key-inference-4-headers) page — the
-time-axis views. Read-only over persisted rows and one table-valued function; no new
-calculation ([`../../architecture/domain-contracts.md`](../../architecture/domain-contracts.md)).
+Two **headers** on the Key Inference page, alongside — not part of — the round-2 6-step flow
+([`key-inference.md`](key-inference.md#the-flow) covers the flow itself). Read-only over
+persisted rows and one table-valued function; no new calculation
+([`../../architecture/domain-contracts.md`](../../architecture/domain-contracts.md)).
 
 The old `/charts/{id}/life-weeks` route stays retired in v2 (`FEAT-DASHA-02`); the Vimśottari
 timeline is served here as a drill-down tree.

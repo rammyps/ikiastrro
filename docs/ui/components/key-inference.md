@@ -1,0 +1,72 @@
+---
+last_updated: 2026-09-11
+workstream: ui
+component: KeyInference
+route: /key-inference/{id}
+togaf: C — component spec
+---
+
+# Component — Key Inference
+
+`KeyInference.razor` — **not built yet**. This is the spec-of-record for the **round-2
+redesign** (2026-09-11), which restructures the original flat "KEY INFERENCE header, 8
+sub-tabs" shape into a **numbered UX flow**. Mockups:
+
+- Round 1 (flat tabs, frozen): [`../../artifacts/ui/v2-mockup/chart-evidence-hub.html`](../../artifacts/ui/v2-mockup/chart-evidence-hub.html) `#key-inference`
+- **Round 2 (this spec, under review):** [`../../artifacts/ui/v2-mockup/key-inference-v2.html`](../../artifacts/ui/v2-mockup/key-inference-v2.html)
+
+Design rule for this page: **one step, ideally one chart (hand-rolled SVG — bar / stacked
+bar / donut, no library, same discipline as `design-language.md`) + one primary table.**
+Bent twice on purpose, both noted at the step: Strength (two short tables, different
+columns) and Planet-Chart (four related views of one 16-varga dataset share one chart + one
+grid, with the rest as inline tags rather than more tables).
+
+`TIME PERIOD (DASHA)` and `SATURN TIME PERIOD` are **unchanged** by this round — still
+separate headers alongside this flow, not steps in it.
+
+## The flow
+
+| Step | Chart | Table | Source |
+|---|---|---|---|
+| **1 · D1 / Transit** | D1 South-Indian grid | D1 position table (House · Planet · Sign · Degree · **Nakṣatra · Pāda** — moved here from Planet Dignity) + D1 Birth / Current Transit toggle | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
+| **2.1 · About Houses** | occupancy bar (grahas per house) | house lords + occupants + aspects + conjunctions, one row per house | `tbl_Chart_HouseLords` + `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` |
+| — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
+| **2.2 · About Planets** | closeness-to-exaltation bar (7 grahas) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
+| **3 · Strength** | Shadbala bar chart with a minimum-required reference line | Planet Strength table + House Strength table (two, not merged — different columns) | `vw_ChartShadbala` · `vw_ChartBhavaBala` |
+| **4 · Planet-Chart** | Vaiśeṣikāṁśa stacked bar (exalt/own/MT · friend · debil/enemy · neutral, of 16) | Ṣoḍaśavarga sign grid (9 grahas × 16 vargas, vargottama tinted) | `tbl_Chart_KeyDetails` across the 16 divisional `ChartType`s |
+| — inline | — | Vargottama list + Varga-Dignity highlight tags (not separate tables) | `tbl_Fact_Vargottama` · `tbl_Chart_KeyDetails.DignityStatus` |
+| **5 · Ashtakavarga** | Sarvāṣṭakavarga bar (bindus per sign) | Bhinnāṣṭakavarga grid (7×12) + Piṇḍa table | `vw_ChartAshtakavarga` · `tbl_Fact_AshtakavargaPinda` |
+| **6 · Yoga** | coverage donut (Present / Absent / Not evaluated) | Source · Yoga · Type · Rule · Result | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) |
+
+## New fields — sourcing status
+
+| Field | Where | Status |
+|---|---|---|
+| **Exaltation point** | 2.2 | Classical Uchcha Bindu constants (Sun 10° Ari · Moon 3° Tau · Mars 28° Cap · Mercury 15° Vir · Jupiter 5° Can · Venus 27° Pis · Saturn 20° Lib). Rahu/Ketu excluded — no classical exaltation point. **Not a DB column yet** — a real build adds a small `tbl_Rule_Exaltation` (7 rows) rather than hard-coding the constants in a view. |
+| **Δ from exaltation / Closeness %** | 2.2 | Derived: `Δ = min(|natal − exalt|, 360 − |natal − exalt|)` in absolute zodiacal degrees; `closeness% = round((1 − Δ/180) × 100)` (100% = exact exaltation, 0% = exact debilitation point). Computed from `tbl_Chart_KeyDetails.NirayanaLongitudeDegrees` + the exaltation rule table above — no new fact table needed, a read-time calculation. |
+| **Yoga Type** (Sun / Moon / Lagna / combination — which reference point the yoga is judged from) | 6 | **Not in the DB.** `tbl_Rule_Yoga.FormationFamilyCode` is the closest existing column but isn't a clean reference-point tag. Needs either a `RequirementJson` parser or a new column. |
+| **Yoga Rule** (one-line classical rule, e.g. *"7th lord in 5th"*) | 6 | **Not in the DB.** `CalculationNarrative` is prose-length, not a short form. Needs a new short-rule column on `tbl_Rule_Yoga` or hand-authored per yoga. |
+| **Yoga Variant** | 6 | **Dropped from the table** (was `SourceVariantCode`) — stays in the underlying data, just not a visible column. `Source` (`SourceRefCode`) is column 1. |
+
+## Also computed, now surfaced (was hidden pending this redesign)
+
+Carried over from the round-1 review's "also computed" panel — each now has a home in the
+flow above instead of sitting in a side panel:
+
+| Data | New home | Source |
+|---|---|---|
+| Arudha padas (A1…A12, AL) | 2.1 supporting card | `tbl_Chart_KeyDetails · PointKind='Arudha'` |
+| Upagrahas (Gulika, Māndi, +9) | 2.1 supporting card | `tbl_Chart_KeyDetails · PointKind='Upagraha'` |
+| Special Lagnas (Hora Lagna, …) | 2.1 supporting card | `tbl_Chart_KeyDetails · PointKind='SpecialLagna'` |
+| Per-planet nakṣatra + pāda | 1 · D1 position table | `tbl_Chart_KeyDetails.Nakshatra` / `NakshatraPada` |
+| Directional aspects (graha dṛṣṭi) | 2.1, per house | `tbl_Chart_Aspects` |
+| Conjunction groups (≥ 2 grahas) | 2.1, per house | `tbl_Chart_MultiGrahaConjunction(+Member)` |
+| Planetary avasthās (Bālādi, Jāgradādi) | **still no table home** — deferred past this round | `tbl_Fact_PlanetaryState` |
+
+## Open questions
+
+- Does step 1 replace the dedicated `/transit-wheel/{id}` landing, or stay a duplicate light
+  view inside this analytical flow? The mockup keeps it duplicated so the file reviews
+  standalone; not decided for the real build.
+- `tbl_Rule_Exaltation` and the two new `tbl_Rule_Yoga` fields (Type, Rule) are
+  `workstream/database` follow-ups once this flow is approved.

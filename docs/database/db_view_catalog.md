@@ -2,7 +2,7 @@
 last_updated: 2026-09-11
 workstream: database
 togaf: C — Data Architecture
-reflects: UI table components as of master @ cc08ed8 + the planned Key Inference sub-tabs (mockup only)
+reflects: UI table components as of master @ cc08ed8 + the planned Key Inference 6-step flow (round 2, mockup only)
 ---
 
 # Database — view catalogue (UI table ⇄ view binding)
@@ -42,38 +42,33 @@ dedicated view:
 | `SouthIndianGrid_Detailed`, `MiniGrid`, `D1TemplateGrid`, `PolarWheel`, `ChartFrame`, `VargottamaStrip` | `tbl_ChartResults` + `tbl_Chart_KeyDetails` (+ `tbl_Chart_Aspects`, `tbl_Fact_Vargottama`) via `WorkspaceData.Load` |
 | `Natal_Transit_Comp_WheelChart` | D1 `vw_ChartPlanetEvidence` (natal points) + `tbl_TransitPositionReference` via `GocharaRepository` (transit points) |
 
-## Key Inference page — header / sub-tab ⇄ source (planned)
+## Key Inference page — step ⇄ source (planned, round 2)
 
-`KeyInference.razor` at `/key-inference/{id}` is **not built yet**. This maps each header and
-KEY-INFERENCE sub-tab (the *category*) to the persisted view / table it will read — every one
-read-only, no recompute. Mockup: the published `#key-inference` view
-([`../artifacts/ui/v2-mockup/chart-evidence-hub.html`](../artifacts/ui/v2-mockup/chart-evidence-hub.html));
-spec: [`../ui/wkstream_UI_v2.md`](../ui/wkstream_UI_v2.md#key-inference-4-headers).
+`KeyInference.razor` at `/key-inference/{id}` is **not built yet**. Superseded 2026-09-11: the
+flat 13-sub-tab shape is replaced by a 6-step flow (spec:
+[`../ui/components/key-inference.md`](../ui/components/key-inference.md); mockup:
+[`../artifacts/ui/v2-mockup/key-inference-v2.html`](../artifacts/ui/v2-mockup/key-inference-v2.html)).
+This maps each step's chart + table to the persisted view / table it reads — every one
+read-only, no recompute.
 
-### KEY INFERENCE header
+| Step | Chart source | Table source | Repository | Notes |
+|---|---|---|---|---|
+| 1 · D1 / Transit | `vw_ChartPlanetEvidence` (D1, for the grid) | same, + `tbl_TransitPositionReference` for the transit toggle | `Natal_Transit_Comp_WheelRepository` / `AstrologerEvidenceRepository` · `GocharaRepository` | table now includes `Nakshatra`/`NakshatraPada` inline (moved from Planet Dignity) |
+| 2.1 · About Houses | derived: graha count per house | `tbl_Chart_HouseLords` + `tbl_Chart_Conjunctions`/`tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_Aspects` | `ChartHouseLordsRepository` · `ChartConjunctionsRepository` · `ChartMultiGrahaConjunctionRepository` · `ChartAspectsRepository` | + 3 supporting cards below |
+| 2.1 → supporting cards | — | `tbl_Chart_KeyDetails` WHERE `PointKind IN ('Arudha','Upagraha','SpecialLagna')` | `ChartKeyDetailsRepository` | Arudha padas / Upagrahas / Special Lagnas — computed, first time surfaced |
+| 2.2 · About Planets | derived: closeness-to-exaltation % | `tbl_Chart_KeyDetails` (+ `vw_ChartMoonContext` facts card) | `ChartKeyDetailsRepository` · `AstrologerEvidenceRepository` | exaltation point / Δ / closeness need a new **`tbl_Rule_Exaltation`** (7 rows) — not built |
+| 3 · Strength | `vw_ChartShadbala` (bar + min-req reference line) | `vw_ChartShadbala` + `vw_ChartBhavaBala` (two tables) | `AstrologerEvidenceRepository` | **first UI table consumer** of both views (were CLI + evidence only) |
+| 4 · Planet-Chart | derived: Vaiśeṣikāṁśa stacked bar, from `tbl_Chart_KeyDetails.DignityStatus` over 16 vargas | `tbl_Chart_KeyDetails.Sign` across the 16 divisional `ChartType`s (Ṣoḍaśavarga grid) | `ChartKeyDetailsRepository` | Vargottama (`tbl_Fact_Vargottama`) + Varga-Dignity highlights are inline tags, not tables |
+| 5 · Ashtakavarga | `vw_ChartAshtakavarga` (SAV bar) | `vw_ChartAshtakavarga` (BAV grid) + `tbl_Fact_AshtakavargaPinda` (Piṇḍa) | `AshtakavargaRepository` (read side — currently on `workstream/cli` `be7e37d`, not on `master`) | needs the Ashtakavarga engine merged so Web-generated people have the facts |
+| 6 · Yoga | `vw_ChartYogaEvaluations` aggregate (coverage donut) | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) | `AstrologerEvidenceRepository` | **Type** + **Rule** columns are new and **not backed by a DB column yet** (need a `RequirementJson` parser or two new `tbl_Rule_Yoga` columns); `SourceVariantCode` dropped from display |
 
-| Sub-tab (category) | Source view · TVF · table | Repository | Notes |
-|---|---|---|---|
-| About Sign | `tbl_SignAttributes` (+ sign lord) | `SignAttributesRepository` | dimension, chart-agnostic |
-| About Planet | `tbl_Chart_KeyDetails` + karaka / graha-nature rules | `ChartKeyDetailsRepository` | Planet · Kāraka · House Lord · Nature · Conditional rule |
-| About Moon | `vw_ChartMoonContext` | `AstrologerEvidenceRepository` | 4 facts |
-| About Houses | `tbl_Chart_HouseLords` + `tbl_Chart_Conjunctions` / `tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_Aspects` | `ChartHouseLordsRepository` · `ChartConjunctionsRepository` · `ChartMultiGrahaConjunctionRepository` · `ChartAspectsRepository` | one house-keyed table; chart dropdown |
-| Planet Dignity | `vw_ChartPlanetEvidence` (+ `tbl_Fact_PlanetaryState` for Bālādi / Jāgradādi avasthās) | `AstrologerEvidenceRepository` · `PlanetaryStateRepository` | chart dropdown; combust rows sort under the Sun |
-| Planet Strength · Shadbala | `vw_ChartShadbala` | `AstrologerEvidenceRepository` | **first UI table consumer** (was CLI + evidence only) |
-| House Strength · Bhava Bala | `vw_ChartBhavaBala` | `AstrologerEvidenceRepository` | **first UI table consumer** |
-| Vargottama · D1 & D9 | `tbl_Fact_Vargottama` | `VargottamaRepository` | |
-| **Ṣoḍaśavarga** | `tbl_Chart_KeyDetails.Sign` across the 16 divisional `ChartType`s | `ChartKeyDetailsRepository` | one row per graha × 16 vargas; vargottama = varga sign == D1 |
-| **Vaiśeṣikāṁśa** | `tbl_Chart_KeyDetails.DignityStatus` aggregated over the 16 vargas | `ChartKeyDetailsRepository` | own / friend / debil count — no dedicated view, roll up on read |
-| **Varga Dignity** | `tbl_Chart_KeyDetails.DignityStatus` (per `ChartResultId` + `ChartType`) | `ChartKeyDetailsRepository` | exalt / own / debil per divisional chart |
-| **Ashtakavarga** | `vw_ChartAshtakavarga` (BAV grid + SAV per sign) + `tbl_Fact_AshtakavargaPinda` (Rāśi / Graha / Sodhya Piṇḍa) | `AshtakavargaRepository` (read side — currently on `workstream/cli` `be7e37d`, not on `master`) | needs the Ashtakavarga engine merged so Web-generated people have the facts |
-| **Chara Karaka** | `tbl_Chart_KeyDetails.CharaKaraka` (D1) | `ChartKeyDetailsRepository` | Jaimini 8-karaka (AK…DK) |
-| *Chara Karaka → "Also computed" panel* | `tbl_Chart_KeyDetails` WHERE `PointKind IN ('Arudha','Upagraha','SpecialLagna')` · `tbl_Chart_Aspects` · `tbl_Chart_MultiGrahaConjunction(+Member)` | `ChartKeyDetailsRepository` · `ChartAspectsRepository` · `ChartMultiGrahaConjunctionRepository` | DB has these; listed, not yet rendered as tables |
+`Chara Karaka` (`tbl_Chart_KeyDetails.CharaKaraka`, D1) moved from its own sub-tab into the
+step 2.2 Planets table as a column.
 
-### Other headers
+### Unchanged headers (not part of the 6-step flow)
 
 | Header | Source view · TVF · table | Repository |
 |---|---|---|
-| YOGAS | `vw_ChartYogaEvaluations` (+ `vw_YogaChartApplicability` · `vw_YogaContextRequirements`) | `AstrologerEvidenceRepository` |
 | TIME PERIOD (DASHA) | `tbl_Chart_DashaPeriods` (3-level self-ref) · `vw_Chart_DashaTimeline` | `DashaPeriodsRepository` |
 | SATURN TIME PERIOD | `tvf_Chart_SadeSatiPeriods(@BirthDetailId)` (+ Kaṇṭaka / Aṣṭama Śani) | `SadeSatiRepository` |
 
@@ -88,3 +83,8 @@ Spoken-for by the **planned** Key Inference page above, but not yet read by ship
 `vw_ChartMoonContext` · `vw_ChartAshtakavarga` (BAV grid + SAV per sign; `db/074`) +
 `tbl_Fact_AshtakavargaPinda` (`db/074`) — live once `KeyInference.razor` and the
 `workstream/cli` Ashtakavarga engine land on `master`.
+
+**Not yet created:** `tbl_Rule_Exaltation` (7 rows — the classical Uchcha Bindu sign+degree
+per graha, needed for step 2.2's closeness-to-exaltation column) and the two new `tbl_Rule_Yoga`
+columns (Type, Rule) needed for step 6 — both `workstream/database` follow-ups, both currently
+hard-coded in the `key-inference-v2.html` mockup only.

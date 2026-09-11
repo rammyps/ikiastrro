@@ -29,8 +29,9 @@ recomputes.
 | [`components/home.md`](components/home.md) | Home / entry screen |
 | [`components/saved-people.md`](components/saved-people.md) | `/charts` — the people-management surface: list, Edit / Delete, planned Import / Export + bulk generation ([`decision 002`](../../decisions/002-import-export-and-bulk-chart-generation.md)) |
 | [`testing.md`](testing.md) | The two test layers — bUnit component tests and the Playwright browser E2E suite (`tests/Ikiastrro.Web.E2E`) |
-| [`components/yoga.md`](components/yoga.md) | v2 Key Inference → YOGAS header — coverage summary + source variants |
-| [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers |
+| [`components/key-inference.md`](components/key-inference.md) | `/key-inference/{id}` — round-2 spec: the 6-step flow (D1/Transit · Understanding · Strength · Planet-Chart · Ashtakavarga · Yoga), one chart + one table per step, new-field sourcing status |
+| [`components/yoga.md`](components/yoga.md) | Key Inference step 6 · Yoga — coverage donut + Source/Yoga/Type/Rule/Result table |
+| [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers (unchanged by the round-2 flow) |
 | [`components/chart-catalog.md`](components/chart-catalog.md) | **Chart-module catalogue** — every visual chart component (incl. `SouthIndianGrid_Detailed`, `Natal_Transit_Comp_WheelChart`), dasha module, UI table + helper, as `chart name / spec doc / linked files`; golden-snapshot flow + revert. Naming & versioning: [`../../project_standards.md`](../../project_standards.md) |
 
 ## Screen inventory (live routes)
@@ -50,8 +51,10 @@ recomputes.
 
 **v2 route targets** (not yet built — see [`wkstream_UI_v2.md`](wkstream_UI_v2.md#routes)):
 `/transit-wheel/{id}` → Transit landing · `/charts/{id}` → All Charts (21 grids) ·
-`/key-inference/{id}` → Key Inference (KEY INFERENCE · YOGAS · TIME PERIOD (DASHA) · SATURN
-TIME PERIOD). Retired in v2: `/add`, `/charts/{id}/evidence`, `/charts/{id}/varga/{code}`, the
+`/key-inference/{id}` → Key Inference — round-2 6-step flow (D1/Transit · Understanding ·
+Strength · Planet-Chart · Ashtakavarga · Yoga), plus the still-separate TIME PERIOD (DASHA) /
+SATURN TIME PERIOD headers; see [`components/key-inference.md`](components/key-inference.md).
+Retired in v2: `/add`, `/charts/{id}/evidence`, `/charts/{id}/varga/{code}`, the
 `/charts/{id}` hub, `/charts/{id}/life-weeks`, `/charts/{id}/timing`.
 
 ## Navigation
@@ -69,7 +72,7 @@ Quality attributes the app should hold, tracked apart from feature rows. Backlog
 
 ### NFR-UI-01 — Runtime-reorderable tabs · **deferred (backlog: Later)**
 
-The top-level tabs (and, by extension, the Key-Inference 4 headers and 8 sub-tabs) should be
+The top-level tabs (and, by extension, the Key Inference 6-step flow) should be
 **re-orderable at runtime** — drag-to-reposition like browser tabs, order remembered per user.
 Routes/URLs don't change (the tabs are hash-routed), so reordering is purely presentational and
 low-risk. `HOME` stays fixed.

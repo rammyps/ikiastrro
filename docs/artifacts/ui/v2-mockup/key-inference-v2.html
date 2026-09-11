@@ -1,0 +1,627 @@
+<meta charset="utf-8">
+<title>Key Inference — Redesign v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+  /* ------------------------------------------------------------------
+     Key Inference — REDESIGN ROUND 2 (2026-09-11). Restructures the flat
+     13-sub-tab KEY INFERENCE header into a numbered UX FLOW:
+       1. D1 / Transit chart & table
+       2. Understanding  -> 2.1 About Houses  ·  2.2 About Planets
+       3. Strength  (Planet Strength + House Strength)
+       4. Planet-Chart  (Vargottama, Ṣoḍaśavarga, Vaiśeṣikāṁśa, Varga Dignity)
+       5. Ashtakavarga
+       6. Yoga  (Source first · Type added · short Rule added · Variant dropped)
+     Rule of thumb per step: ONE data-viz (hand-rolled SVG, no library) +
+     ONE primary table. Noted below where a step bends that on purpose.
+     Same design tokens / card+table system as chart-evidence-hub.html —
+     this file stands alone so the new flow can be reviewed on its own.
+     Sample = Ananya (id 89), the fully-computed reference person. Every
+     number on this page is REAL, read from the DB on 2026-09-11 — none
+     of it is placeholder, except where a card says "illustrative".
+     ------------------------------------------------------------------ */
+  :root {
+    --canvas:#FAF5EA; --ink:#0F2041; --sunset:#F47A24;
+    --line:#D9D1C7; --muted:#53698D; --peach:#FFF0E5;
+    --ok:#2f7a42; --warn:#9c6800; --bad:#96271e;
+    --pl-sun:#a8531a; --pl-moon:#5b5f6b; --pl-mars:#a3271e; --pl-mercury:#2c7a3d;
+    --pl-jupiter:#8a6a00; --pl-venus:#a13e78; --pl-saturn:#2c4f9e; --pl-rahu:#55586a; --pl-ketu:#7a4a22;
+    --fs-display: clamp(26px, 2.2vw, 34px);
+    --fs-tagline: clamp(17px, 1.3vw, 20px);
+    --fs-control: 15px; --fs-cell: 13.5px; --fs-meta: 11.5px;
+    --shadow: 0 1px 2px rgba(15,32,65,.06), 0 6px 20px rgba(15,32,65,.06);
+    --maxw: 1320px; --pad-x: clamp(1rem, 3vw, 1.75rem);
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--canvas); color:var(--ink); font-family:'Manrope','Segoe UI',system-ui,sans-serif;
+    font-size:var(--fs-control); line-height:1.5; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; }
+  :focus-visible { outline:2px solid var(--sunset); outline-offset:2px; border-radius:3px; }
+
+  .appbar { background:var(--sunset); color:var(--ink); box-shadow:var(--shadow); }
+  .bar-inner { max-width:var(--maxw); margin:0 auto; padding:.55rem var(--pad-x); display:flex; align-items:center; gap:1rem; }
+  .nav-home { font-weight:800; letter-spacing:.08em; text-decoration:none; padding:.35rem .9rem; border-radius:999px;
+    background:var(--ink); color:var(--canvas); }
+  .appbar__spacer { flex:1; }
+  .appbar__brand { font-weight:800; }
+  .appbar__brand .tag { font-weight:600; opacity:.85; }
+
+  .topband { background:var(--canvas); border-bottom:1px solid var(--line); }
+  .topband-inner { max-width:var(--maxw); margin:0 auto; padding:.6rem var(--pad-x); display:grid;
+    grid-template-columns:1fr auto 1fr; align-items:center; gap:1rem; }
+  .tb-title h2 { margin:0; font-size:var(--fs-tagline); font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+  .tb-title p { margin:.1rem 0 0; color:var(--muted); font-size:var(--fs-meta); }
+  .tb-person { text-align:center; }
+  .tb-name { margin:0; font-size:var(--fs-display); font-weight:800; letter-spacing:-0.02em; }
+  .tb-birth { display:block; color:var(--muted); font-weight:600; font-size:var(--fs-meta); }
+  .tb-meta { justify-self:end; display:flex; gap:.3rem; flex-wrap:wrap; justify-content:end; }
+  .chip { font-size:10px; font-weight:700; letter-spacing:.02em; text-transform:uppercase; padding:.16rem .45rem;
+    border:1px solid var(--line); border-radius:999px; color:var(--muted); white-space:nowrap; }
+  .chip strong { color:var(--ink); }
+
+  main { max-width:var(--maxw); margin:0 auto; padding:1rem var(--pad-x) 2.5rem; }
+
+  /* ---- step rail + body ---- */
+  .ki-layout { display:grid; grid-template-columns:230px 1fr; gap:1.4rem; align-items:start; }
+  @media (max-width:900px) { .ki-layout { grid-template-columns:1fr; } }
+  .steps { display:flex; flex-direction:column; gap:2px; position:sticky; top:.8rem; }
+  .step-btn {
+    display:flex; align-items:baseline; gap:.55rem; width:100%; text-align:left; font:inherit;
+    padding:.6rem .7rem; border:0; border-radius:8px; background:transparent; color:var(--ink); cursor:pointer;
+  }
+  .step-btn .n { font-weight:800; font-size:var(--fs-meta); color:var(--muted); min-width:1.4em; }
+  .step-btn .t { font-weight:700; }
+  .step-btn:hover { background:var(--peach); }
+  .step-btn[aria-current="true"] { background:var(--ink); color:var(--canvas); }
+  .step-btn[aria-current="true"] .n { color:var(--sunset); }
+  .substep-btn { padding-left:2.3rem; font-weight:600; font-size:var(--fs-cell); }
+  .substep-btn .n { min-width:2em; }
+
+  .stepbody { display:flex; flex-direction:column; gap:1rem; min-width:0; }
+  .step-head { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+  .step-head h3 { margin:0; font-size:1.25rem; font-weight:800; letter-spacing:-0.01em; }
+  .step-head p { margin:0; color:var(--muted); font-size:var(--fs-cell); font-weight:600; max-width:56ch; }
+
+  .card { border:1px solid var(--line); border-radius:10px; background:var(--canvas); box-shadow:var(--shadow); overflow:hidden; }
+  .card__hd { display:flex; align-items:baseline; justify-content:space-between; gap:.75rem; flex-wrap:wrap;
+    padding:.55rem .8rem; border-bottom:1px solid var(--line); background:var(--peach); }
+  .card__hd h4 { margin:0; font-size:var(--fs-control); font-weight:800; }
+  .card__hd h4 .sub { color:var(--muted); font-weight:700; margin-left:.5ch; font-size:.85em; }
+  .card__hd .src { font-size:var(--fs-meta); color:var(--muted); font-weight:700; font-family:ui-monospace,Consolas,monospace; }
+  .card__body { padding:.7rem .8rem; }
+  .card__note { padding:.5rem .8rem; font-size:var(--fs-meta); color:var(--muted); font-weight:600; border-top:1px solid var(--line); }
+
+  table { table-layout:auto; width:100%; border-collapse:collapse; font-size:var(--fs-cell); font-variant-numeric:tabular-nums; }
+  th, td { padding:.4rem .65rem; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); white-space:normal; }
+  thead th { font-size:var(--fs-meta); font-weight:800; letter-spacing:.03em; text-transform:uppercase; color:var(--muted);
+    border-bottom:1.5px solid var(--ink); }
+  tbody tr:hover { background:var(--peach); }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .tbl-scroll { overflow-x:auto; }
+
+  .pill { display:inline-block; font-size:var(--fs-meta); font-weight:800; padding:.08rem .45rem; border-radius:999px; border:1px solid currentColor; }
+  .pill--ok { color:var(--ok); } .pill--warn { color:var(--warn); } .pill--bad { color:var(--bad); } .pill--flat { color:var(--muted); }
+  .tag { display:inline-block; font-size:10.5px; font-weight:700; padding:.1rem .4rem; border-radius:6px; background:var(--peach); color:var(--ink); margin:1px 2px 1px 0; }
+  .tag--vg { background:color-mix(in srgb, var(--sunset) 18%, var(--peach)); color:var(--ink); }
+  .tag--exalt { background:color-mix(in srgb, var(--ok) 18%, var(--peach)); color:var(--ok); }
+  .tag--debil { background:color-mix(in srgb, var(--bad) 16%, var(--peach)); color:var(--bad); }
+  code.mini { font-family:ui-monospace,Consolas,monospace; font-size:.85em; color:var(--muted); }
+
+  .facts { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .fact { border:1px solid var(--line); border-radius:8px; padding:.35rem .6rem; font-size:var(--fs-cell); font-weight:600; }
+  .fact b { display:block; font-size:var(--fs-meta); text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:800; }
+
+  /* ---- charts (hand-rolled inline SVG, no library) ---- */
+  .chart-wrap { padding:.8rem; }
+  .barchart text { font-family:'Manrope','Segoe UI',sans-serif; }
+  .barchart .lbl { font-size:12px; font-weight:700; fill:var(--ink); }
+  .barchart .val { font-size:11.5px; font-weight:800; fill:var(--muted); }
+  .barchart .track { fill:var(--line); opacity:.35; }
+  .barchart .ref { stroke:var(--ink); stroke-width:1.5; stroke-dasharray:3 3; }
+  .barchart .reflbl { font-size:10px; font-weight:700; fill:var(--ink); }
+
+  .donut-wrap { display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap; }
+  .donut-legend { display:flex; flex-direction:column; gap:.35rem; font-size:var(--fs-cell); font-weight:700; }
+  .donut-legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:.4rem; vertical-align:-1px; }
+  .donut-legend b { font-variant-numeric:tabular-nums; }
+
+  /* south-indian mini grid (step 1) — same fixed 4x4 layout as the main app */
+  .si { display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(4,1fr); aspect-ratio:1/1;
+    max-width:380px; border:1.5px solid var(--ink); margin:0 auto; }
+  .si__cell { background:var(--canvas); border:.5px solid var(--ink); position:relative; overflow:hidden;
+    padding:1.1rem .2rem .2rem; min-width:0; display:flex; flex-wrap:wrap; align-content:flex-start; gap:.12rem .24rem; }
+  .si__sign { position:absolute; top:2px; left:3px; font-size:7.5px; font-weight:800; color:var(--muted); }
+  .si__hno { position:absolute; top:2px; right:3px; font-size:8px; font-weight:800; color:var(--sunset); }
+  .si__cell.is-asc { background:var(--peach); outline:2px solid var(--sunset); outline-offset:-2px; }
+  .si__center { grid-column:2/4; grid-row:2/4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.1rem; }
+  .si__center b { font-weight:800; font-size:13px; }
+  .si__center span { font-size:9.5px; color:var(--muted); font-weight:700; }
+  .pl { font-size:11.5px; font-weight:800; }
+  .pl.retro::after { content:"\00A0R"; font-size:8px; vertical-align:super; color:var(--muted); }
+  .pl.combust::before { content:"\2022\00A0"; color:var(--bad); }
+
+  .toggle { display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; }
+  .toggle button { font:inherit; font-size:var(--fs-meta); font-weight:800; text-transform:uppercase; letter-spacing:.03em;
+    padding:.3rem .7rem; border:0; background:var(--canvas); color:var(--muted); cursor:pointer; }
+  .toggle button[aria-pressed="true"] { background:var(--ink); color:var(--canvas); }
+
+  .notes { max-width:var(--maxw); margin:1.5rem auto 2rem; padding:0 var(--pad-x); }
+  .notes details { border:1px solid var(--line); border-radius:10px; background:var(--canvas); box-shadow:var(--shadow); }
+  .notes summary { cursor:pointer; padding:.8rem 1rem; font-weight:800; font-size:var(--fs-tagline); }
+  .notes__body { padding:0 1.15rem 1.1rem; }
+  .notes__body h5 { font-size:var(--fs-meta); text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:1rem 0 .3rem; }
+  .notes__body li, .notes__body p { max-width:76ch; }
+  .notes__body code { font-family:ui-monospace,Consolas,monospace; font-size:.9em; background:var(--peach); padding:.04rem .34rem; border-radius:4px; }
+
+  .footer { background:var(--sunset); color:var(--ink); margin-top:1rem; }
+  .footer-inner { max-width:var(--maxw); margin:0 auto; padding:1rem var(--pad-x); text-align:center; }
+  .footer-note { margin:0; font-weight:700; font-style:italic; }
+  .footer-note small { font-size:var(--fs-meta); font-weight:700; font-style:normal; opacity:.82; }
+</style>
+
+<header class="appbar">
+  <div class="bar-inner">
+    <a class="nav-home" href="#">Home</a>
+    <span class="appbar__spacer"></span>
+    <span class="appbar__brand">Iki-Astrro <span class="tag">Where Passion, Purpose &amp; Planets Align.</span></span>
+  </div>
+</header>
+<section class="topband">
+  <div class="topband-inner">
+    <div class="tb-title">
+      <h2 id="stepTitle">Key Inference</h2>
+      <p id="stepDesc">redesign round 2 — numbered flow, one chart + one table per step</p>
+    </div>
+    <div class="tb-person">
+      <p class="tb-name">Ananya</p>
+      <span class="tb-birth">2010-12-14 · 20:40:40 · Bangalore, India · 13.00°N 77.58°E</span>
+    </div>
+    <div class="tb-meta">
+      <span class="chip">Ayanāṁśa <strong>Lahiri</strong> 23.595°</span>
+      <span class="chip">Houses <strong>Whole Sign</strong></span>
+    </div>
+  </div>
+</section>
+
+<main>
+  <div class="ki-layout">
+    <nav class="steps" id="stepNav" aria-label="Key Inference steps"></nav>
+    <div class="stepbody" id="stepBody"></div>
+  </div>
+</main>
+
+<div class="notes">
+  <details>
+    <summary>Design notes — read before reviewing fields</summary>
+    <div class="notes__body">
+      <h5>What changed vs. the old flat 13-sub-tab Key Inference</h5>
+      <ul>
+        <li>Restructured into a <b>6-step numbered flow</b> (step 2 has two sub-steps). Each step pairs
+          <b>one hand-rolled SVG chart</b> with <b>one primary table</b> — no charting library, same rule the
+          chart diagrams already follow (<code>design-language.md</code>).</li>
+        <li><b>Step 3 (Strength)</b> bends the one-table rule on purpose: Planet Strength and House Strength are
+          two short, related tables under one chart, not one merged table with mismatched columns.</li>
+        <li><b>Step 4 (Planet-Chart)</b> bends it the most: Vargottama, Ṣoḍaśavarga, Vaiśeṣikāṁśa and Varga Dignity
+          are four angles on the <i>same</i> 16-varga dataset, so they share one chart (Vaiśeṣikāṁśa stacked bars)
+          and one primary table (the Ṣoḍaśavarga grid); Vargottama and Varga-Dignity surface as inline tags/chips
+          rather than two more tables.</li>
+      </ul>
+      <h5>New fields — sourcing status</h5>
+      <ul>
+        <li><b>Exaltation point + closeness</b> (step 2.2): exaltation degrees are the classical Uchcha Bindu
+          (Sun 10° Ari · Moon 3° Tau · Mars 28° Cap · Mercury 15° Vir · Jupiter 5° Can · Venus 27° Pis ·
+          Saturn 20° Lib — Rahu/Ketu excluded, no classical exaltation point). Closeness % = <code>(1 − Δ° / 180) × 100</code>
+          where Δ is the angular distance from the planet's own exaltation point. Not yet a DB column — computed
+          here from <code>tbl_Chart_KeyDetails.NirayanaLongitudeDegrees</code>; a real build adds the 7 exaltation
+          constants as a small rule table (<code>tbl_Rule_Exaltation</code>) rather than hard-coding them in the view.</li>
+        <li><b>Yoga Type</b> (Sun / Moon / Lagna / combination) and <b>short Rule</b> (step 6): <b>not in the DB
+          today.</b> <code>tbl_Rule_Yoga</code> has <code>FormationFamilyCode</code> and <code>RequirementJson</code>
+          but neither is a clean "reference point" or "one-line rule" field. The values shown are hand-derived
+          from the classical definitions for illustration — a real build needs either a parser over
+          <code>RequirementJson</code> or two new columns on <code>tbl_Rule_Yoga</code>.</li>
+        <li><b>"Own/Exalt in" varga list</b> (step 4): real, from
+          <code>tbl_Chart_KeyDetails.DignityStatus</code> grouped by <code>ChartType</code> across the 16 vargas —
+          answers "where is this strength coming from".</li>
+      </ul>
+      <h5>Also computed, now surfaced (was hidden pending this redesign)</h5>
+      <ul>
+        <li><b>Arudha padas</b> (A1…A12, AL) — step 2.1, About Houses table. <code>tbl_Chart_KeyDetails · PointKind='Arudha'</code>.</li>
+        <li><b>Upagrahas</b> (Gulika, Māndi, +9) — step 2.1 card. <code>tbl_Chart_KeyDetails · PointKind='Upagraha'</code>.</li>
+        <li><b>Special Lagnas</b> (Hora Lagna, …) — step 2.1 card. <code>tbl_Chart_KeyDetails · PointKind='SpecialLagna'</code>.</li>
+        <li><b>Per-planet nakṣatra + pāda</b> — moved into the step-1 D1 table (was buried in Planet Dignity only).</li>
+        <li><b>Directional aspects</b> (graha dṛṣṭi) — step 2.1, listed per house. <code>tbl_Chart_Aspects</code>.</li>
+        <li><b>Conjunction groups</b> — step 2.1, listed per house. <code>tbl_Chart_MultiGrahaConjunction(+Member)</code>.</li>
+        <li><b>Planetary avasthās</b> (Bālādi / Jāgradādi) — still pending a table home; not added this round.</li>
+      </ul>
+      <h5>Not yet decided</h5>
+      <ul>
+        <li>Whether step 1 replaces the dedicated <code>/transit-wheel/{id}</code> landing or duplicates a light
+          version of it inside this analytical flow — kept as a duplicate here so this file reviews standalone.</li>
+        <li>Time Period (Dasha) and Saturn Time Period headers are unchanged by this round — not in the 6-step list.</li>
+      </ul>
+    </div>
+  </details>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <p class="footer-note">Dedicated to my guru (Sundari Hemachandran) — <small>By Ramakrishnan P</small></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+  var SIGN3 = ["Ari","Tau","Gem","Can","Leo","Vir","Lib","Sco","Sag","Cap","Aqu","Pis"];
+  var PLC = { La:"#0F2041", Su:"var(--pl-sun)", Mo:"var(--pl-moon)", Ma:"var(--pl-mars)", Me:"var(--pl-mercury)",
+              Ju:"var(--pl-jupiter)", Ve:"var(--pl-venus)", Sa:"var(--pl-saturn)", Ra:"var(--pl-rahu)", Ke:"var(--pl-ketu)" };
+
+  // ---- REAL D1 data — Ananya (id 89), read 2026-09-11 -------------------
+  var D1 = [
+    { p:"La", full:"Ascendant", sign:"Cancer",      si:3,  deg:6.85,  house:1,  nak:"Puṣya",              pada:2, retro:false, combust:false, dignity:null,           karaka:null },
+    { p:"Su", full:"Sun",       sign:"Scorpio",      si:7,  deg:28.50, house:5,  nak:"Jyeṣṭhā",            pada:4, retro:false, combust:false, dignity:"Great Friend", karaka:"AK"  },
+    { p:"Mo", full:"Moon",      sign:"Pisces",       si:11, deg:9.92,  house:9,  nak:"Uttara Bhādrapadā",  pada:2, retro:false, combust:false, dignity:"Enemy",        karaka:"GK"  },
+    { p:"Ma", full:"Mars",      sign:"Sagittarius",  si:8,  deg:11.02, house:6,  nak:"Mūla",               pada:4, retro:false, combust:true,  dignity:"Great Friend", karaka:"PiK" },
+    { p:"Me", full:"Mercury",   sign:"Sagittarius",  si:8,  deg:10.34, house:6,  nak:"Mūla",               pada:4, retro:true,  combust:true,  dignity:"Friend",       karaka:"PK"  },
+    { p:"Ju", full:"Jupiter",   sign:"Pisces",       si:11, deg:0.62,  house:9,  nak:"Pūrva Bhādrapadā",   pada:4, retro:false, combust:false, dignity:"Own Sign",     karaka:"DK"  },
+    { p:"Ve", full:"Venus",     sign:"Libra",        si:6,  deg:14.56, house:4,  nak:"Svātī",              pada:3, retro:false, combust:false, dignity:"Moolatrikona", karaka:"MK"  },
+    { p:"Sa", full:"Saturn",    sign:"Virgo",        si:5,  deg:21.64, house:3,  nak:"Hasta",              pada:4, retro:false, combust:false, dignity:"Great Friend", karaka:"AmK" },
+    { p:"Ra", full:"Rahu",      sign:"Sagittarius",  si:8,  deg:9.21,  house:6,  nak:"Mūla",               pada:3, retro:true,  combust:false, dignity:"Debilitated",  karaka:"BK"  },
+    { p:"Ke", full:"Ketu",      sign:"Gemini",       si:2,  deg:9.21,  house:12, nak:"Ārdrā",              pada:1, retro:true,  combust:false, dignity:"Debilitated",  karaka:null  }
+  ];
+  var GRAHA7 = D1.filter(function (r) { return r.p !== "La" && r.p !== "Ra" && r.p !== "Ke"; });
+
+  var EXALT = { Sun:{sign:"Aries",0:0,deg:10}, Moon:{sign:"Taurus",deg:3}, Mars:{sign:"Capricorn",deg:28},
+    Mercury:{sign:"Virgo",deg:15}, Jupiter:{sign:"Cancer",deg:5}, Venus:{sign:"Pisces",deg:27}, Saturn:{sign:"Libra",deg:20} };
+  var EXALT_SI = { Sun:0, Moon:1, Mars:9, Mercury:5, Jupiter:3, Venus:11, Saturn:6 };
+  function absDeg(si, deg) { return si * 30 + deg; }
+  function closeness(full, si, deg) {
+    var e = EXALT[full]; if (!e) return null;
+    var a = absDeg(si, deg), b = absDeg(EXALT_SI[full], e.deg);
+    var d = Math.abs(a - b); d = Math.min(d, 360 - d);
+    return { deltaDeg: d, pct: Math.round((1 - d / 180) * 100), exaltAt: e.sign + " " + e.deg + "°" };
+  }
+
+  // House lords, D1 (real)
+  var HOUSE_LORDS = [
+    [1,"Cancer","Moon",9,"Pisces","Enemy"],[2,"Leo","Sun",5,"Scorpio","Great Friend"],
+    [3,"Virgo","Mercury",6,"Sagittarius","Friend"],[4,"Libra","Venus",4,"Libra","Moolatrikona"],
+    [5,"Scorpio","Mars",6,"Sagittarius","Great Friend"],[6,"Sagittarius","Jupiter",9,"Pisces","Own Sign"],
+    [7,"Capricorn","Saturn",3,"Virgo","Great Friend"],[8,"Aquarius","Saturn",3,"Virgo","Great Friend"],
+    [9,"Pisces","Jupiter",9,"Pisces","Own Sign"],[10,"Aries","Mars",6,"Sagittarius","Great Friend"],
+    [11,"Taurus","Venus",4,"Libra","Moolatrikona"],[12,"Gemini","Mercury",6,"Sagittarius","Friend"]
+  ];
+  var UPAGRAHA = [["Gulika","Gemini",12,9.44],["Māndi","Taurus",11,28.38],["Kāla","Cancer",1,23.27],
+    ["Mṛtyu","Virgo",3,9.96],["Ardhaprahara","Libra",4,3.50],["Yamaghaṇṭaka","Libra",4,26.19],
+    ["Indrachāpa","Libra",4,11.84],["Vyatīpāta","Pisces",9,18.16],["Parivesha","Virgo",3,18.16],
+    ["Dhūma","Aries",10,11.84],["Upaketu","Libra",4,28.50]];
+  var ARUDHA = [["A1 / AL","Scorpio",5],["A2","Scorpio",5],["A3","Sagittarius",6],["A4","Cancer",1],
+    ["A5","Capricorn",7],["A6","Pisces",9],["A7","Taurus",11],["A8","Aries",10],["A9","Sagittarius",6],
+    ["A10","Leo",2],["A11","Pisces",9],["A12","Pisces",9]];
+  var SPECIAL_LAGNA = [["Hora Lagna (HL)","Capricorn",7]];
+  var ASPECTS_BY_HOUSE = { // graha drishti landing in each house, real sample (D1)
+    1:["Jupiter→Asc (5th)","Mars→Asc (8th)"], 3:["—"], 5:["Ketu→Venus (5th)"],
+    7:["Jupiter→Saturn (7th)","Ketu→Mars/Mercury/Rahu (7th)"], 9:["Jupiter→Sun (9th)"]
+  };
+  var CONJ_BY_HOUSE = { 6:["Mars · Mercury · Rahu"], 9:["Moon · Jupiter"] };
+
+  // Vaiśeṣikāṁśa + "own/exalt in" vargas — real, from tbl_Chart_KeyDetails.DignityStatus over 16 vargas
+  var VAISESIKA = [
+    ["Sun",4,4,3,5,"D2,D4,D10,D60"], ["Moon",2,6,2,6,"D2,D16"], ["Mars",5,1,1,9,"D3,D12,D24,D27,D45"],
+    ["Mercury",0,2,3,11,"—"], ["Jupiter",9,1,3,3,"D1,D2,D3,D4,D9,D12,D16,D24,D45"],
+    ["Venus",3,5,2,6,"D1,D12,D60"], ["Saturn",4,4,4,4,"D20,D27,D30,D40"]
+  ];
+  var VARGA_DIGNITY_HITS = [
+    ["D9 · Navāṁśa","exalt",["Jupiter (Cancer)","Rahu","Ketu"]], ["D9 · Navāṁśa","debil",["Mars (Cancer)"]],
+    ["D10 · Daśāṁśa","exalt",["Sun (Aries)"]], ["D10 · Daśāṁśa","debil",["Mercury (Pisces)"]],
+    ["D1","debil",["Ketu (Gemini)","Rahu (Sagittarius)"]]
+  ];
+  var VARGOTTAMA = { Sun:["D16","D30"], Moon:["D3"], Mars:["D30"], Mercury:["D30"], Jupiter:["D3","D4","D12"],
+    Venus:[], Saturn:[], Rahu:["D3","D27"], Ketu:["D3","D27"] };
+  var VG_NAMES = ["D1","D2","D3","D4","D7","D9","D10","D12","D16","D20","D24","D27","D30","D40","D45","D60"];
+  var SODASA = {
+    Sun:     ["Sco","Leo","Can","Leo","Sco","Pis","Ari","Lib","Sco","Can","Tau","Aqu","Sco","Sag","Aqu","Leo"],
+    Moon:    ["Pis","Can","Pis","Gem","Sco","Vir","Aqu","Gem","Tau","Aqu","Aqu","Vir","Vir","Sco","Aqu","Lib"],
+    Mars:    ["Sag","Leo","Ari","Pis","Aqu","Can","Pis","Ari","Tau","Pis","Ari","Cap","Sag","Gem","Ari","Lib"],
+    Mercury: ["Sag","Leo","Ari","Pis","Aqu","Can","Pis","Ari","Tau","Aqu","Ari","Cap","Sag","Tau","Pis","Leo"],
+    Jupiter: ["Pis","Can","Pis","Pis","Vir","Can","Sco","Pis","Sag","Leo","Can","Cap","Tau","Lib","Sag","Ari"],
+    Venus:   ["Lib","Leo","Aqu","Cap","Cap","Aqu","Aqu","Pis","Sco","Cap","Can","Sco","Sag","Sco","Cap","Pis"],
+    Saturn:  ["Vir","Leo","Tau","Pis","Leo","Can","Sag","Tau","Sco","Lib","Sag","Aqu","Cap","Aqu","Leo","Ari"],
+    Rahu:    ["Sag","Leo","Sag","Pis","Aqu","Gem","Pis","Pis","Ari","Aqu","Pis","Sag","Aqu","Ari","Cap","Gem"],
+    Ketu:    ["Gem","Leo","Gem","Vir","Leo","Sag","Vir","Vir","Ari","Aqu","Pis","Gem","Aqu","Ari","Cap","Sag"]
+  };
+  var GRAHA_ORDER = ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu"];
+
+  // Shadbala / Bhava Bala — real ShadbalaRupas + BhavaBalaRupas; classical minimums (tbl_Rule_ShadbalaMinimumRupas)
+  var SHADBALA = [["Sun",5.09,5],["Moon",5.36,6],["Mars",7.03,5],["Mercury",5.23,7],["Jupiter",4.67,6.5],["Venus",6.07,5.5],["Saturn",5.67,5]];
+  var BHAVABALA = [[1,"Cancer","Moon",5.97],[2,"Leo","Sun",5.33],[3,"Virgo","Mercury",5.95],[4,"Libra","Venus",6.59],
+    [5,"Scorpio","Mars",7.78],[6,"Sagittarius","Jupiter",5.32],[7,"Capricorn","Saturn",6.37],[8,"Aquarius","Saturn",5.74],
+    [9,"Pisces","Jupiter",4.38],[10,"Aries","Mars",8.30],[11,"Taurus","Venus",7.14],[12,"Gemini","Mercury",6.39]];
+
+  // Ashtakavarga — real BAV + SAV + Piṇḍa
+  var BAV = { Sun:[4,5,4,4,5,6,4,3,5,3,2,3], Moon:[6,4,4,3,3,6,3,2,5,6,4,3], Mars:[4,5,2,3,4,5,2,0,4,4,2,4],
+    Mercury:[5,4,4,4,6,4,8,2,6,4,4,3], Jupiter:[4,4,4,5,5,5,4,5,5,7,3,5], Venus:[3,6,4,5,4,2,7,6,3,4,5,3], Saturn:[2,5,1,4,5,5,3,4,2,3,4,1] };
+  var AV_RECIP = ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn"];
+  var PINDA = [["Sun",52,42,94],["Moon",81,51,132],["Mars",75,65,140],["Mercury",67,56,123],["Jupiter",46,25,71],["Venus",109,36,145],["Saturn",123,39,162]];
+
+  // Yoga — real Present set (Raman 300, Ananya) + hand-derived Type / short Rule (see design notes)
+  var YOGA = [
+    ["Raman 300","Gajakesari","Moon + Lagna","Jupiter in kendra (1,4,7,10) from Moon","Present"],
+    ["Raman 300","Kemadruma","Moon","no planets in 2nd/12th from Moon, unafflicted","Present"],
+    ["Raman 300","Adhi Yoga","Moon","benefics in 6th/7th/8th from Moon","Present"],
+    ["Raman 300","Vasumathi","Lagna","benefics in kendra/upachaya from Lagna","Present"],
+    ["Raman 300","Amala Yoga","Moon / Lagna","benefic in 10th from Moon or Lagna","Present"],
+    ["Raman 300","Vesi Yoga","Sun","planet (not Moon) in 2nd from Sun","Present"],
+    ["Raman 300","Vasi Yoga","Sun","planet in 12th from Sun","Present"],
+    ["Raman 300","Ubhayachari","Sun","planets in both 2nd &amp; 12th from Sun","Present"],
+    ["PVR Integrated","Kemadruma cancel.","Moon","kendra aspect/occupation cancels Kemadruma","Not evaluated"]
+  ];
+  var YOGA_TOTALS = { total:337, present:29, absent:182, notEval:126 };
+
+  // ---- small helpers ------------------------------------------------
+  function esc(s) { return s == null ? "" : String(s); }
+  function dignityPill(d) {
+    if (!d) return "";
+    var cls = /Exalt|Own|Moolatrikona|Great Friend/.test(d) ? "ok" : /Debil|Great Enemy/.test(d) ? "bad" : /Friend/.test(d) ? "flat" : "warn";
+    return '<span class="pill pill--' + cls + '">' + d + '</span>';
+  }
+  function card(title, sub, srcTxt, bodyHtml, noteHtml) {
+    return '<div class="card"><div class="card__hd"><h4>' + title + (sub ? ' <span class="sub">' + sub + '</span>' : '') + '</h4>' +
+      (srcTxt ? '<span class="src">' + srcTxt + '</span>' : '') + '</div><div class="card__body">' + bodyHtml + '</div>' +
+      (noteHtml ? '<div class="card__note">' + noteHtml + '</div>' : '') + '</div>';
+  }
+  function tbl(cols, rows) {
+    return '<div class="tbl-scroll"><table><thead><tr>' + cols.map(function (c) { return '<th' + (c.num ? ' class="num"' : '') + '>' + c.h + '</th>'; }).join('') +
+      '</tr></thead><tbody>' + rows.map(function (r) { return '<tr>' + r.map(function (v, i) {
+        return '<td' + (cols[i] && cols[i].num ? ' class="num"' : '') + '>' + v + '</td>';
+      }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+  }
+  function hBarChart(rows, opts) {
+    opts = opts || {};
+    var w = 560, rowH = 26, padL = 118, padR = 60, top = 8, h = rows.length * rowH + top * 2;
+    var maxV = opts.max || Math.max.apply(null, rows.map(function (r) { return r.value; }));
+    var bw = w - padL - padR;
+    var refX = opts.refGetter ? null : null;
+    var svg = rows.map(function (r, i) {
+      var y = top + i * rowH, bwv = bw * Math.max(0, Math.min(1, r.value / maxV));
+      var refBit = "";
+      if (opts.refGetter) {
+        var rv = opts.refGetter(r);
+        if (rv != null) {
+          var rx = padL + bw * Math.min(1, rv / maxV);
+          refBit = '<line class="ref" x1="' + rx + '" y1="' + (y - 2) + '" x2="' + rx + '" y2="' + (y + 20) + '"/>';
+        }
+      }
+      return '<text class="lbl" x="' + (padL - 10) + '" y="' + (y + 14) + '" text-anchor="end">' + r.label + '</text>' +
+        '<rect class="track" x="' + padL + '" y="' + y + '" width="' + bw + '" height="18" rx="3"/>' +
+        '<rect x="' + padL + '" y="' + y + '" width="' + Math.max(2, bwv) + '" height="18" rx="3" fill="' + (r.color || "var(--sunset)") + '"/>' +
+        refBit +
+        '<text class="val" x="' + (padL + bw + 8) + '" y="' + (y + 14) + '">' + (r.valueLabel != null ? r.valueLabel : r.value) + '</text>';
+    }).join('');
+    var legend = opts.refLabel ? '<text class="reflbl" x="' + padL + '" y="' + (h - 1) + '">┊ ' + opts.refLabel + '</text>' : '';
+    return '<div class="chart-wrap"><svg class="barchart" viewBox="0 0 ' + w + ' ' + (h + (opts.refLabel ? 14 : 0)) + '" role="img" aria-label="' + esc(opts.aria || 'bar chart') + '">' + svg + legend + '</svg></div>';
+  }
+  function stackedBarChart(rows, segKeys, colors, opts) {
+    opts = opts || {};
+    var w = 560, rowH = 28, padL = 118, padR = 46, top = 8, h = rows.length * rowH + top * 2;
+    var total = opts.total || 16, bw = w - padL - padR;
+    var svg = rows.map(function (r, i) {
+      var y = top + i * rowH, x = padL;
+      var segs = segKeys.map(function (k, si) {
+        var v = r[k], sw = bw * (v / total);
+        var rect = v > 0 ? '<rect x="' + x + '" y="' + y + '" width="' + sw + '" height="18" fill="' + colors[si] + '"/>' +
+          (sw > 14 ? '<text x="' + (x + sw / 2) + '" y="' + (y + 13) + '" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">' + v + '</text>' : '') : '';
+        x += sw; return rect;
+      }).join('');
+      return '<text class="lbl" x="' + (padL - 10) + '" y="' + (y + 14) + '" text-anchor="end">' + r.label + '</text>' +
+        '<rect class="track" x="' + padL + '" y="' + y + '" width="' + bw + '" height="18" rx="3"/>' + segs;
+    }).join('');
+    return '<div class="chart-wrap"><svg class="barchart" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(opts.aria || 'stacked bar chart') + '">' + svg + '</svg></div>';
+  }
+  function donut(parts, opts) {
+    opts = opts || {};
+    var total = parts.reduce(function (s, p) { return s + p.value; }, 0);
+    var r = 62, cx = 78, cy = 78, sw = 26, C = 2 * Math.PI * r, off = 0;
+    var segs = parts.map(function (p) {
+      var len = C * (p.value / total);
+      var s = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + p.color + '" stroke-width="' + sw +
+        '" stroke-dasharray="' + len + ' ' + (C - len) + '" stroke-dashoffset="' + (-off) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')"/>';
+      off += len; return s;
+    }).join('');
+    var legend = parts.map(function (p) {
+      return '<span class="donut-legend-row"><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' + p.color + ';margin-right:.4rem;"></i>' +
+        p.label + ' <b>' + p.value + '</b> <span style="color:var(--muted);font-weight:600;">(' + Math.round(100 * p.value / total) + '%)</span></span>';
+    }).join('');
+    return '<div class="donut-wrap"><svg viewBox="0 0 156 156" width="156" height="156" role="img" aria-label="' + esc(opts.aria || 'donut chart') + '">' + segs +
+      '<text x="78" y="74" text-anchor="middle" font-size="20" font-weight="800" fill="var(--ink)">' + total + '</text>' +
+      '<text x="78" y="91" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--muted)">EVALUATED</text></svg>' +
+      '<div class="donut-legend">' + legend + '</div></div>';
+  }
+
+  // south-indian mini grid (fixed layout), driven by real D1 signs
+  var CELLS = [[11,1,1],[0,2,1],[1,3,1],[2,4,1],[10,1,2],[3,4,2],[9,1,3],[4,4,3],[8,1,4],[7,2,4],[6,3,4],[5,4,4]];
+  function siGridD1() {
+    var placed = {}; D1.forEach(function (b) { (placed[b.si] = placed[b.si] || []).push(b); });
+    var ascSi = D1[0].si;
+    var cells = CELLS.map(function (cd) {
+      var si = cd[0], occ = (placed[si] || []).map(function (o) {
+        var label = o.p === "La" ? "LAGNA" : o.p;
+        return '<span class="pl' + (o.retro ? " retro" : "") + (o.combust ? " combust" : "") + '" style="color:' + PLC[o.p] + '">' + label + '</span>';
+      }).join("");
+      var hno = ((si - ascSi + 12) % 12) + 1;
+      return '<div class="si__cell' + (si === ascSi ? ' is-asc' : '') + '" style="grid-column:' + cd[1] + ';grid-row:' + cd[2] + '">' +
+        '<span class="si__sign">' + SIGN3[si] + '</span><span class="si__hno">' + hno + '</span>' + occ + '</div>';
+    }).join('');
+    return '<div class="si">' + cells + '<div class="si__center"><b>D1</b><span>Rāśi chart</span></div></div>';
+  }
+
+  // ---------------------------------------------------------------------
+  // STEP RENDERERS
+  // ---------------------------------------------------------------------
+  var xitTab = "birth";
+  function step1() {
+    var toggle = '<span class="toggle"><button type="button" data-x="birth" aria-pressed="' + (xitTab === "birth") + '">D1 Birth</button>' +
+      '<button type="button" data-x="transit" aria-pressed="' + (xitTab === "transit") + '">Current Transit</button></span>';
+    var rows = D1.map(function (d) {
+      return [d.house, d.full, d.sign, d.deg.toFixed(2) + '°', d.nak + ' · ' + d.pada,
+        (d.retro ? 'R' : '—') + (d.combust ? ' · combust' : '')];
+    });
+    var tableCard = xitTab === "birth"
+      ? card('D1 Birth positions', null, 'vw_ChartPlanetEvidence · ChartType=D1',
+          tbl([{ h: "House", num: true }, { h: "Planet" }, { h: "Sign" }, { h: "Degree", num: true }, { h: "Nakṣatra · Pāda" }, { h: "Motion" }], rows))
+      : card('Current transit', '<span class="src">illustrative — changes daily</span>', 'tbl_TransitPositionReference',
+          '<div class="card__body" style="padding:0"><p style="color:var(--muted);font-weight:600;padding:.6rem 0;">Sample structure only — see the dedicated <code class="mini">/transit-wheel/{id}</code> landing for live values (House-from-D1 · Motion · Speed °/day · in-sign-since · next-change).</p></div>');
+    return '<div class="step-head"><h3>1 · D1 / Transit</h3><p>The chart itself, plus its full position table — now carrying nakṣatra + pāda inline (previously only inside Planet Dignity).</p></div>' +
+      card('D1 Rāśi chart', null, null, siGridD1()) +
+      '<div style="display:flex;justify-content:flex-end;">' + toggle + '</div>' + tableCard;
+  }
+
+  function step21() {
+    var houseRows = HOUSE_LORDS.map(function (h) {
+      var occ = D1.filter(function (d) { return d.house === h[0] && d.p !== "La"; }).map(function (d) { return d.full; }).join(', ') || '—';
+      var asp = (ASPECTS_BY_HOUSE[h[0]] || ["—"]).join('; ');
+      var conj = (CONJ_BY_HOUSE[h[0]] || ["—"]).join('; ');
+      return [h[0], h[1], h[2], 'H' + h[3] + ' · ' + h[4], dignityPill(h[5]), occ, asp, conj];
+    });
+    var occCounts = HOUSE_LORDS.map(function (h) {
+      return { label: 'H' + h[0], value: D1.filter(function (d) { return d.house === h[0] && d.p !== "La"; }).length };
+    });
+    var arudhaTbl = tbl([{ h: "Pada" }, { h: "Sign" }, { h: "House", num: true }], ARUDHA.map(function (a) { return [a[0], a[1], a[2]]; }));
+    var upaTbl = tbl([{ h: "Upagraha" }, { h: "Sign" }, { h: "House", num: true }, { h: "Deg", num: true }],
+      UPAGRAHA.map(function (u) { return [u[0], u[1], u[2], u[3].toFixed(2) + '°']; }));
+    var slTbl = tbl([{ h: "Special Lagna" }, { h: "Sign" }, { h: "House", num: true }], SPECIAL_LAGNA);
+    return '<div class="step-head"><h3>2.1 · About Houses</h3><p>House lords, occupants, aspects and conjunctions in one table; Arudha padas, Upagrahas and Special Lagnas — computed but previously unsurfaced — as supporting cards.</p></div>' +
+      card('Occupants per house', null, null, hBarChart(occCounts, { aria: "Grahas occupying each house", max: 3 })) +
+      card('House lords &amp; occupancy', null, 'tbl_Chart_HouseLords + tbl_Chart_Aspects + tbl_Chart_MultiGrahaConjunction',
+        tbl([{ h: "H", num: true }, { h: "Sign" }, { h: "Lord" }, { h: "Lord placed" }, { h: "Dignity" }, { h: "Occupants" }, { h: "Aspects in" }, { h: "Conjunctions" }], houseRows)) +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem;">' +
+      card('Arudha padas', '<span class="sub">A1…A12, AL</span>', "PointKind='Arudha'", arudhaTbl) +
+      card('Upagrahas', null, "PointKind='Upagraha'", upaTbl) +
+      card('Special Lagnas', null, "PointKind='SpecialLagna'", slTbl) + '</div>';
+  }
+
+  function step22() {
+    var moonFacts = ['<div class="fact"><b>Tithi</b>9 · Śukla Navamī</div>', '<div class="fact"><b>Pakṣa</b>Śukla (waxing)</div>',
+      '<div class="fact"><b>Elongation</b>101.42°</div>', '<div class="fact"><b>Birth</b>Night</div>',
+      '<div class="fact"><b>Moon nakṣatra</b>Uttara Bhādrapadā · 2</div>'].join('');
+    var closeRows = GRAHA7.map(function (d) { return { label: d.p, full: d.full, c: closeness(d.full, d.si, d.deg) }; });
+    var bars = closeRows.map(function (r) {
+      return { label: r.label, value: r.c.pct, valueLabel: r.c.pct + '%', color: r.c.pct >= 66 ? "var(--ok)" : r.c.pct >= 33 ? "var(--warn)" : "var(--bad)" };
+    });
+    var rows = D1.map(function (d) {
+      var c = closeness(d.full, d.si, d.deg);
+      return [d.full, dignityPill(d.dignity), d.karaka ? '<span class="tag">' + d.karaka + '</span>' : '—',
+        c ? c.exaltAt : '—', c ? c.deltaDeg.toFixed(1) + '°' : '—', c ? c.pct + '%' : '—'];
+    });
+    return '<div class="step-head"><h3>2.2 · About Planets</h3><p>Moon panchāṅga facts, then every graha with dignity, Chara Kāraka, its exaltation point, and how close its degree sits to that exact point.</p></div>' +
+      card('Moon context', null, 'vw_ChartMoonContext', '<div class="facts">' + moonFacts + '</div>') +
+      card('Closeness to exaltation', '<span class="sub">0% = own debilitation point · 100% = exact exaltation</span>', "derived from NirayanaLongitudeDegrees", hBarChart(bars, { aria: "Closeness to exaltation per graha", max: 100 })) +
+      card('Planets — dignity, kāraka, exaltation', null, 'tbl_Chart_KeyDetails',
+        tbl([{ h: "Planet" }, { h: "Dignity" }, { h: "Kāraka" }, { h: "Exaltation pt." }, { h: "Δ from exalt.", num: true }, { h: "Closeness", num: true }], rows));
+  }
+
+  function step3() {
+    var bars = SHADBALA.map(function (s) { return { label: s[0], value: s[1], valueLabel: s[1].toFixed(2) + ' r', color: s[1] >= s[2] ? "var(--ok)" : "var(--warn)" }; });
+    var strengthRows = SHADBALA.map(function (s) {
+      var pct = Math.round(s[1] / s[2] * 100);
+      return [s[0], s[1].toFixed(2), s[2], pct + '%', '<span class="pill pill--' + (pct >= 100 ? 'ok' : pct >= 80 ? 'warn' : 'bad') + '">' + (pct >= 100 ? 'Strong' : pct >= 80 ? 'Moderate' : 'Weak') + '</span>'];
+    });
+    var bhavaRows = BHAVABALA.map(function (b) { return [b[0], b[1], b[2], b[3].toFixed(2)]; });
+    return '<div class="step-head"><h3>3 · Strength</h3><p>Planet Strength (Shadbala) drives the chart; House Strength (Bhava Bala) sits alongside as a second, shorter table — the two metrics don\'t share columns, so they don\'t share one table.</p></div>' +
+      card('Planet Strength', '<span class="sub">rūpas vs. classical minimum</span>', 'vw_ChartShadbala', hBarChart(bars, { aria: "Shadbala rupas per planet", max: 8, refGetter: function (r) { var s = SHADBALA.filter(function (x) { return x[0] === r.label; })[0]; return s ? s[2] : null; }, refLabel: "minimum required" })) +
+      card('Planet Strength — Shadbala', null, 'vw_ChartShadbala', tbl([{ h: "Planet" }, { h: "Rūpas", num: true }, { h: "Min. req.", num: true }, { h: "% of min.", num: true }, { h: "Profile" }], strengthRows)) +
+      card('House Strength — Bhava Bala', null, 'vw_ChartBhavaBala', tbl([{ h: "House", num: true }, { h: "Sign" }, { h: "Lord" }, { h: "Rūpas", num: true }], bhavaRows));
+  }
+
+  function step4() {
+    var stackRows = VAISESIKA.map(function (v) { return { label: v[0], a: v[1], b: v[2], c: v[3], d: v[4] }; });
+    var stackChart = stackedBarChart(stackRows, ["a", "b", "c", "d"], ["var(--ok)", "#6ba86f", "var(--bad)", "var(--line)"],
+      { aria: "Vaisheshikamsha dignity count across 16 vargas", total: 16 });
+    var vaisRows = VAISESIKA.map(function (v) {
+      return [v[0], v[1], v[2], v[3], v[4], v[5] === "—" ? "—" : v[5].split(',').map(function (x) { return '<span class="tag tag--vg">' + x + '</span>'; }).join('')];
+    });
+    var sodasaRows = GRAHA_ORDER.map(function (g) {
+      var d1 = SODASA[g][0], vg = VARGOTTAMA[g] || [];
+      var cells = SODASA[g].map(function (s, i) {
+        var isVg = vg.indexOf(VG_NAMES[i]) > -1;
+        return '<td' + (isVg ? ' style="background:color-mix(in srgb, var(--sunset) 16%, transparent);font-weight:800;"' : '') + '>' + s + '</td>';
+      }).join('');
+      return '<tr><td><b>' + g + '</b>' + (vg.length ? ' <span class="tag tag--vg">vargottama: ' + vg.join(', ') + '</span>' : '') + '</td>' + cells + '</tr>';
+    }).join('');
+    var vdHits = VARGA_DIGNITY_HITS.map(function (h) {
+      return '<span class="tag ' + (h[1] === 'exalt' ? 'tag--exalt' : 'tag--debil') + '">' + h[0] + ' — ' + h[2].join(', ') + '</span>';
+    }).join(' ');
+    return '<div class="step-head"><h3>4 · Planet-Chart</h3><p>Vargottama, Ṣoḍaśavarga, Vaiśeṣikāṁśa and Varga Dignity are four views of the same 16-divisional-chart dataset — one chart, one grid, plus inline tags rather than three more tables.</p></div>' +
+      card('Vaiśeṣikāṁśa', '<span class="sub">exalt/own/MT · friend · debil/enemy · neutral — out of 16 vargas</span>', "derived from tbl_Chart_KeyDetails.DignityStatus", stackChart) +
+      card('Vaiśeṣikāṁśa — where the strength comes from', null, null,
+        tbl([{ h: "Planet" }, { h: "Exalt/Own/MT", num: true }, { h: "Friend", num: true }, { h: "Debil/Enemy", num: true }, { h: "Neutral", num: true }, { h: "Own/exalt in…" }], vaisRows)) +
+      card('Ṣoḍaśavarga', '<span class="sub">graha sign across all 16 vargas — tinted = vargottama</span>', 'tbl_Chart_KeyDetails (per divisional chart)',
+        '<div class="tbl-scroll"><table><thead><tr><th>Graha</th>' + VG_NAMES.map(function (v) { return '<th>' + v + '</th>'; }).join('') + '</tr></thead><tbody>' + sodasaRows + '</tbody></table></div>') +
+      card('Varga Dignity — highlights', null, 'tbl_Chart_KeyDetails.DignityStatus (chart-scoped)', '<div style="padding:.2rem 0;">' + vdHits + '</div>');
+  }
+
+  function step5() {
+    var savRow = SIGN3.map(function (_, c) { return AV_RECIP.reduce(function (s, r) { return s + BAV[r][c]; }, 0); });
+    var savBars = SIGN3.map(function (s, i) { return { label: s, value: savRow[i], color: "var(--sunset)" }; });
+    var bavHead = '<tr><th>Recipient</th>' + SIGN3.map(function (s) { return '<th>' + s + '</th>'; }).join('') + '<th>Σ</th></tr>';
+    var bavBody = AV_RECIP.map(function (r) {
+      var row = BAV[r], tot = row.reduce(function (a, b) { return a + b; }, 0);
+      return '<tr><td>' + r + '</td>' + row.map(function (v) { return '<td style="text-align:center;font-weight:700;' + (v === 0 ? 'color:var(--bad)' : v >= 6 ? 'background:color-mix(in srgb, var(--ok) 16%, transparent)' : '') + '">' + v + '</td>'; }).join('') + '<td style="text-align:center;font-weight:800;">' + tot + '</td></tr>';
+    }).join('');
+    var pindaRows = PINDA.map(function (p) { return [p[0], p[1], p[2], p[3]]; });
+    return '<div class="step-head"><h3>5 · Ashtakavarga</h3><p>Sarvāṣṭakavarga as the chart (per-sign total bindus), Bhinnāṣṭakavarga grid + Piṇḍa as the table.</p></div>' +
+      card('Sarvāṣṭakavarga (SAV)', '<span class="sub">bindus per sign, 7 grahas · grand total ' + savRow.reduce(function (a, b) { return a + b; }, 0) + '</span>', 'vw_ChartAshtakavarga', hBarChart(savBars, { aria: "Sarvashtakavarga bindus per sign", max: 40 })) +
+      card('Bhinnāṣṭakavarga', null, 'vw_ChartAshtakavarga', '<div class="tbl-scroll"><table><thead>' + bavHead + '</thead><tbody>' + bavBody + '</tbody></table></div>') +
+      card('Piṇḍa', '<span class="sub">post-śodhana</span>', 'tbl_Fact_AshtakavargaPinda', tbl([{ h: "Recipient" }, { h: "Rāśi Piṇḍa", num: true }, { h: "Graha Piṇḍa", num: true }, { h: "Sodhya Piṇḍa", num: true }], pindaRows));
+  }
+
+  function step6() {
+    var donutChart = donut([{ label: "Present", value: YOGA_TOTALS.present, color: "var(--ok)" },
+      { label: "Absent", value: YOGA_TOTALS.absent, color: "var(--line)" },
+      { label: "Not evaluated", value: YOGA_TOTALS.notEval, color: "var(--warn)" }], { aria: "Yoga evaluation coverage" });
+    var rows = YOGA.map(function (y) {
+      return [y[0], '<b>' + y[1] + '</b>', '<span class="tag">' + y[2] + '</span>', '<code class="mini">' + y[3] + '</code>',
+        '<span class="pill pill--' + (y[4] === 'Present' ? 'ok' : y[4] === 'Not evaluated' ? 'warn' : 'flat') + '">' + y[4] + '</span>'];
+    });
+    return '<div class="step-head"><h3>6 · Yoga</h3><p><b>Source is column 1</b>; <b>Type</b> (which reference point — Sun / Moon / Lagna) and a short <b>Rule</b> are new; <b>Variant</b> is dropped from the table (still in the data, just not shown).</p></div>' +
+      card('Coverage', '<span class="sub">of 337 evaluated variants</span>', 'vw_ChartYogaEvaluations', donutChart) +
+      card('Yogas', null, 'vw_ChartYogaEvaluations + tbl_Rule_Yoga', tbl([{ h: "Source" }, { h: "Yoga" }, { h: "Type" }, { h: "Rule" }, { h: "Result" }], rows),
+        'Type / Rule are hand-derived for this mockup — not a DB column yet. See design notes.');
+  }
+
+  // ---- step registry + nav ----
+  var STEPS = [
+    { id: "s1", n: "1", t: "D1 / Transit", render: step1 },
+    { id: "s2", n: "2", t: "Understanding", group: true },
+    { id: "s21", n: "2.1", t: "About Houses", render: step21, sub: true },
+    { id: "s22", n: "2.2", t: "About Planets", render: step22, sub: true },
+    { id: "s3", n: "3", t: "Strength", render: step3 },
+    { id: "s4", n: "4", t: "Planet-Chart", render: step4 },
+    { id: "s5", n: "5", t: "Ashtakavarga", render: step5 },
+    { id: "s6", n: "6", t: "Yoga", render: step6 }
+  ];
+  var active = "s1";
+  function renderNav() {
+    document.getElementById("stepNav").innerHTML = STEPS.filter(function (s) { return !s.group; }).map(function (s) {
+      return '<button type="button" class="step-btn' + (s.sub ? ' substep-btn' : '') + '" data-step="' + s.id + '" aria-current="' + (s.id === active) + '"><span class="n">' + s.n + '</span><span class="t">' + s.t + '</span></button>';
+    }).join('');
+  }
+  function renderBody() {
+    var s = STEPS.filter(function (x) { return x.id === active; })[0];
+    document.getElementById("stepBody").innerHTML = s.render();
+    document.getElementById("stepTitle").textContent = "Key Inference — " + s.t;
+    var t = document.getElementById("stepBody").querySelector(".toggle");
+    if (t) t.addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-x]"); if (!b) return;
+      xitTab = b.dataset.x; renderBody();
+    });
+  }
+  document.getElementById("stepNav").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-step]"); if (!b) return;
+    active = b.dataset.step; renderNav(); renderBody(); window.scrollTo(0, 0);
+  });
+  renderNav(); renderBody();
+})();
+</script>
