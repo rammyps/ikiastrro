@@ -43,6 +43,17 @@ public class PlanetaryStateRuleRepository
         var wakefulness = connection.Query<WakefulnessStateRuleRow>(wakefulnessSql, new { RuleSetId = ruleSetId })
             .ToDictionary(r => r.DignityStatus, r => r);
 
-        return new PlanetaryStateRuleSet(ruleSetId, ageBands, wakefulness);
+        // Sayanaadi: no per-state Rule row (the formula is one fixed narrative in
+        // tbl_Rule_PostureStateFormula, not a lookup) — just the 12 named Dim states, keyed by
+        // their SequenceOrder (the index PostureStateCalculator computes).
+        const string postureSql = """
+            SELECT Id, AvasthaSystem, StateName, SequenceOrder, Meaning
+            FROM dbo.tbl_Dim_PlanetaryState
+            WHERE AvasthaSystem = 'Sayanadi'
+            """;
+        var postureStates = connection.Query<PlanetaryStateRow>(postureSql)
+            .ToDictionary(r => r.SequenceOrder, r => r);
+
+        return new PlanetaryStateRuleSet(ruleSetId, ageBands, wakefulness, postureStates);
     }
 }

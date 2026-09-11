@@ -545,6 +545,36 @@ if (args.Length > 0 && args[0] == "verify-avastha")
     Check("Jagradadi(Debilitated)", Jagradadi("Debilitated"), "Sushupti");
     Check("Jagradadi(null)",        Jagradadi(null!),         null);
 
+    // Sayanaadi — hand-computed from the JHora export for 1_Ramakrishnan (PVR sec 15.4.4):
+    // M = Anuraadha (17), G = ghati 59 (Janma Ghatis 58.8892), L = Aries (1) for both.
+    // Sun: C = Aswini (1), P = 1, A = 3rd navamsa (8.205deg in sign) -> index 8 = Aagama.
+    Check("Sayanaadi(Sun) hand-computed",
+        PostureStateCalculator.For(PostureStateCalculator.ComputeIndex(1, 1, 3, 17, 59, 1), rules.PostureStatesBySequence)?.StateName,
+        "Aagama");
+    // Moon: C = Anuraadha (17), P = 2, A = 3rd navamsa (7.293deg in sign) -> index 11 = Kautuka.
+    Check("Sayanaadi(Moon) hand-computed",
+        PostureStateCalculator.For(PostureStateCalculator.ComputeIndex(17, 2, 3, 17, 59, 1), rules.PostureStatesBySequence)?.StateName,
+        "Kautuka");
+
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        // JHora export's printed "Activity" table for 1_Ramakrishnan, all 9 grahas.
+        var stored = conn.Query<(string Planet, string? PostureState)>(
+            @"SELECT Planet, PostureState FROM dbo.vw_ChartPlanetEvidence
+              WHERE BirthDetailId = (SELECT Id FROM dbo.tbl_BirthDetails WHERE Name = 'Ramakrishnan')
+                AND ChartType = 'D1' AND PointKind = 'Graha'")
+            .ToDictionary(r => r.Planet, r => r.PostureState);
+        Check("Sayanaadi(Sun)     -> Aagama",      stored.GetValueOrDefault("Sun"),     "Aagama");
+        Check("Sayanaadi(Moon)    -> Kautuka",     stored.GetValueOrDefault("Moon"),    "Kautuka");
+        Check("Sayanaadi(Mars)    -> Kautuka",     stored.GetValueOrDefault("Mars"),    "Kautuka");
+        Check("Sayanaadi(Mercury) -> Bhojana",     stored.GetValueOrDefault("Mercury"), "Bhojana");
+        Check("Sayanaadi(Jupiter) -> Gamana",      stored.GetValueOrDefault("Jupiter"), "Gamana");
+        Check("Sayanaadi(Venus)   -> Gamana",      stored.GetValueOrDefault("Venus"),   "Gamana");
+        Check("Sayanaadi(Saturn)  -> Bhojana",     stored.GetValueOrDefault("Saturn"),  "Bhojana");
+        Check("Sayanaadi(Rahu)    -> Bhojana",     stored.GetValueOrDefault("Rahu"),    "Bhojana");
+        Check("Sayanaadi(Ketu)    -> Gamana",      stored.GetValueOrDefault("Ketu"),    "Gamana");
+    }
+
     Console.WriteLine(failures == 0 ? "\nverify-avastha: ALL PASS" : $"\nverify-avastha: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }

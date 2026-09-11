@@ -25,8 +25,10 @@ upagrahas** · Ṣaḍbala / Bhāva Bala foundation · **Parāśari Ashtakavarga
 reproduces the JHora export exactly) · **Pañchāṅga — Tithi + fraction, Karaṇa + fraction,
 Nitya Yoga + fraction, Vedic weekday, Hora Lord, Sunrise/Sunset, Janma Ghaṭis**
 (`verify-panchanga` reproduces the JHora export exactly) · **Karakāṁśa (AK in D9) + Bhaava /
-Ghati / Sree Lagna** (`verify-jaimini` reproduces the JHora export exactly) · source-attributed
-yoga inputs · provenance (ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
+Ghati / Sree Lagna** (`verify-jaimini` reproduces the JHora export exactly) · **Sayanaadi
+Avastha (PostureState, all 12 states)** (`verify-avastha` reproduces the JHora export's
+Activity table exactly, all 9 grahas) · source-attributed yoga inputs · provenance (ayanāṁśa
+degrees, sidereal time, rule set, method) on every chart.
 
 ## Priority gaps
 
@@ -52,10 +54,18 @@ yoga inputs · provenance (ayanāṁśa degrees, sidereal time, rule set, method
    Remaining: full Ṣaḍbala rūpas + the six Kālabala sub-components + planetary war +
    Iṣṭa/Kaṣṭa (DB rules seeded, migrations 071–073, 076); Vimśopaka Bala + Vaiśeṣikāṁśa
    (four varga-group weights still need a cited source).
-5. **Avastha & karaka reference** — Dīptādi + Lajjitādi (need a shared benefic/malefic
-   classifier); Śayanādi (needs persisted janma ghaṭis, source-blocked); apply the designed
-   `tbl_Dim_HouseSignification` / Sthira / Naisargika reference data (migration 030) instead
-   of the hard-coded `LifeAreaMap`; decide Sapta vs Aṣṭa Naisargika coverage.
+5. **Avastha & karaka reference — Śayanādi (PostureState) is delivered** (migration 083
+   `tbl_Rule_PostureStateFormula`; `PostureStateCalculator`; `verify-avastha` reproduces the
+   JHora export's Activity table exactly, all 9 grahas). It turned out to be a fully-specified,
+   unambiguous formula once `FEAT-DATA-06` supplied Janma Ghaṭis — not source-blocked after all.
+   Not seeded: the secondary Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (PVR's Table 37
+   sound-to-number map renders OCR-ambiguously in the raw extract). Remaining, genuinely
+   harder — PVR §15.4.3's 9 Dīptādi + 6 Lajjitādi states depend on conjunction/aspect
+   precedence the passage doesn't fully order (e.g. a planet both exalted and Sun-conjoined),
+   so they need a shared benefic/malefic classifier and a closer source read before schema, not
+   just missing input data. Also still open: apply the designed `tbl_Dim_HouseSignification` /
+   Sthira / Naisargika reference data (migration 030) instead of the hard-coded `LifeAreaMap`;
+   decide Sapta vs Aṣṭa Naisargika coverage.
 
 ## Parity gaps (lower priority)
 

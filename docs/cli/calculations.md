@@ -171,16 +171,28 @@ was removed). Computed on demand, not persisted. Check: `verify-functional-natur
 
 ## 11. Avasthas (planetary states)
 
-Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_WakefulnessState` →
-`tbl_Fact_PlanetaryState`), written by `PlanetaryStateComputer`.
+Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_WakefulnessState` /
+`tbl_Rule_PostureStateFormula` → `tbl_Fact_PlanetaryState`), written by `PlanetaryStateComputer`.
 
 - **Bālādi** (age from within-sign degree) — odd signs 0–6 Bāla / 6–12 Kumāra / 12–18 Yuva /
   18–24 Vṛddha / 24–30 Mṛta; even signs reversed. Effect fraction from `tbl_Rule_AgeState`.
   **D1 only.**
 - **Jāgradādi** (waking state from `DignityStatus`) — Exalted/MT/Own → Jāgrat; friend tiers →
   Svapna; enemy tiers → Suṣupti. **Every chart type.**
-- Not built: Dīptādi, Lajjitādi (need a shared benefic/malefic classifier), Śayanādi (needs
-  janma-ghaṭis). Check: `verify-avastha`.
+- **Sayanaadi** (`PostureStateCalculator`, PVR §15.4.4, Table 36; 12 states, Sayana .. Nidraa) —
+  `index = ((C×P×A) + M + G + L) mod 12` (remainder 0 → 12): C = the planet's own nakshatra
+  number, P = its index (Sun=1..Ketu=9), A = its navamsa within its own rasi (1-9), M = Moon's
+  nakshatra number, G = the ghati running at birth (`tbl_Chart_Panchanga.JanmaGhatis`,
+  `FEAT-DATA-06`), L = Lagna's rasi number. **D1 only** (needs the continuous within-sign
+  degree and Janma Ghatis). The nakshatra lookup must index against
+  `AstroMath.NakshatraCanonicalNames`, not `Enum.TryParse<ConstellationName>` — that enum's
+  member spellings are a legacy form unrelated to the stored display names (its own doc
+  comment says so; this cost one wrong-on-7-of-9-planets round trip before the fix).
+- Not built: Dīptādi, Lajjitādi (PVR §15.4.3 gives 9 + 6 states, but several depend on
+  conjunction/aspect precedence the passage doesn't fully order — needs a closer source read,
+  not just a shared benefic/malefic classifier); Sayanaadi's own secondary Cheṣṭā/Dṛṣṭi/
+  Vicheṣṭā strength refinement (Table 37's sound-to-number map is OCR-ambiguous in the raw
+  extract). Check: `verify-avastha`.
 
 ## 12. Jaimini Chara Karakas & special points
 

@@ -31,9 +31,10 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   retrograde / combustion, nakṣatra linkage, Chara Karakas + special points + 11 upagrahas,
   Bālādi + Jāgradādi avasthas, Ṣaḍbala / Bhāva Bala foundation, **Parāśari Ashtakavarga
   (BAV / SAV / Sodhya Piṇḍa)**, **Pañchāṅga (Tithi / Karaṇa / Nitya Yoga / Vedic weekday /
-  Hora Lord)**, **Karakāṁśa (AK in D9) + Bhaava/Ghati/Sree Lagna**, source-attributed yoga
-  inputs, slow-planet transits, Sade Sati / Kantaka / Ashtama, functional benefic/malefic.
-- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (138) +
+  Hora Lord)**, **Karakāṁśa (AK in D9) + Bhaava/Ghati/Sree Lagna**, **Sayanaadi Avastha
+  (PostureState)**, source-attributed yoga inputs, slow-planet transits, Sade Sati / Kantaka /
+  Ashtama, functional benefic/malefic.
+- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (142) +
   `tests/Ikiastrro.Web.Tests` (187). `dotnet build` / `dotnet test` run from the terminal.
 - **Green now:** the `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
   `verify-ashtakavarga`, `verify-panchanga`, `verify-dignity`, `verify-rules`, `verify-pipeline`,
@@ -73,12 +74,25 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   out of scope — `SRC_PVR_INTEGRATED` §5.7 states outright these are "beyond the scope of this
   book", no other registered source covers them: Vighati Lagna, Varnada Lagna, Pranapada Lagna,
   Indu Lagna, Bhṛgu Bindu. Remaining: a UI special-lagnas strip.
+- **`FEAT-AVASTHA-05` — Sayanaadi (PostureState)** — DB + Core + Verify **done** (migration 083;
+  `PostureStateCalculator`, wired into `PlanetaryStateComputer.Compute` behind a new
+  `janmaGhatis` parameter threaded from `ChartPipeline.Run` / `ChartGenerationService`'s D1
+  branch via the new `SwissEphemerisProvider.JanmaGhatis` helper; `verify-avastha` reproduces
+  the JHora export's Activity table exactly, all 9 grahas;
+  `tests/Ikiastrro.Yoga.Tests/PostureStateCalculatorTests` (4)). Bug caught along the way: the
+  lookup from `tbl_Chart_KeyDetails.Nakshatra` (AstroMath's canonical display names, e.g.
+  "Ashwini") must not go through `Enum.TryParse<ConstellationName>` — that enum's member
+  spellings are an unrelated legacy form ("Aswini") per its own doc comment; fixed to index
+  against `AstroMath.NakshatraCanonicalNames` instead. Deliberately not built: the secondary
+  Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (PVR's Table 37 sound-map is OCR-ambiguous in the
+  raw extract). Deeptādi/Lajjitādi (`FEAT-AVASTHA-03/04`) remain unbuilt — real precedence-order
+  ambiguity in the source, not a missing-input blocker like this one was.
 - **`FEAT-YOGA-01`** — Raman predicates 201–300, PVR P0 additions, structured
   missing-requirement codes, source-qualified strength policy.
 
 ## Planned
 
 - `ChartGenerationService.GenerateAll` adopts the `ChartPipeline` bundle path.
-- Reserved engine seams: Dispositor, Vimśopaka, Sthira/Naisargika Karaka, additional avasthas
-  (Dīptādi / Lajjitādi / Śayanādi).
+- Reserved engine seams: Dispositor, Vimśopaka, Sthira/Naisargika Karaka, Dīptādi/Lajjitādi
+  avasthas.
 - Full Ṣaḍbala port from the vendored MIT `jyotishganit` (attribution).

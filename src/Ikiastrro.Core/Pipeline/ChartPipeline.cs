@@ -43,6 +43,7 @@ public sealed class ChartPipeline
         var charts = computed.Select(c => c.Input).ToList();
 
         var charaKarakaByPlanet = CharaKarakaByPlanet(positions);
+        var janmaGhatis = SwissEphemerisProvider.JanmaGhatis(birth, sunTimes);
 
         // States — PlanetaryStateComputer.Compute per chart, exactly as ChartGenerationService's
         // PersistAnalytics does now (chara-karaka is stamped onto the local ChartKeyDetail list first,
@@ -55,7 +56,7 @@ public sealed class ChartPipeline
             foreach (var r in keyDetails)
                 if (r.PointKind == "Graha" && charaKarakaByPlanet.TryGetValue(r.Planet, out var ck))
                     r.CharaKaraka = ck;
-            states.AddRange(PlanetaryStateComputer.Compute(input, keyDetails, _planetaryStateRules));
+            states.AddRange(PlanetaryStateComputer.Compute(input, keyDetails, _planetaryStateRules, janmaGhatis));
         }
 
         var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes);

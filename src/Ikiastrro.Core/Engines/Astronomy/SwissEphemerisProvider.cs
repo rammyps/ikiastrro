@@ -106,4 +106,12 @@ public static class SwissEphemerisProvider
         var isNightBirth = moment < events.Sunrise || moment >= events.Sunset;
         return new SunTimes(events.Sunrise, events.Sunset, events.NextSunrise, isNightBirth);
     }
+
+    /// <summary>Janma Ghatis — minutes elapsed since the Vedic day's opening sunrise
+    /// (<see cref="SunTimes.Sunrise"/>), divided by 24 (1 ghati = 24 minutes). Same formula
+    /// <see cref="Panchanga.PanchangaCalculator"/> persists on <c>tbl_Chart_Panchanga</c>;
+    /// exposed here too because the Sayanaadi avastha formula (PVR §15.4.4) needs it as a plain
+    /// input, independent of the rest of the Panchanga layer.</summary>
+    public static double JanmaGhatis(BirthDetails birthDetails, SunTimes sunTimes) =>
+        (BirthMomentFactory.Create(birthDetails) - sunTimes.Sunrise).TotalMinutes / 24.0;
 }

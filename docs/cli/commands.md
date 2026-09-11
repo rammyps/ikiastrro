@@ -41,7 +41,7 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 | `verify-sources` | every `SourceRefCode` resolves in `tbl_Dim_Source` | **PASS** |
 | `verify-dignity` | PVR dignity tiling, `DignityScore` / `RelationshipScore` ladders, `tbl_SignAttributes` cross-check | **PASS** (2 documented PVR divergences) |
 | `verify-terminology` | terminology coverage | **PASS** |
-| `verify-avastha` | Bālādi / Jāgradādi worked examples | **PASS** |
+| `verify-avastha` | Bālādi / Jāgradādi worked examples + Sayanaadi (PostureState) vs the JHora export's Activity table (all 9 grahas) | **PASS** |
 | `verify-functional-nature` | `LagnaFunctionalNature` worked examples | **PASS** |
 | `verify-upagrahas` | live rule loading + in-memory upagraha output, all 21 charts | **PASS** |
 | `verify-vargas` | hand-computed `IVargaSignRule` checks + **the JHora export grid** (180 cells) | **PASS** (on the Lahiri default, `FEAT-DATA-04`) |
@@ -51,7 +51,7 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 
 ## Tests
 
-`tests/Ikiastrro.Yoga.Tests` (138) — yoga engine, shadbala, ashtakavarga, panchanga, Sree Lagna, sub-planet, transit selection.
+`tests/Ikiastrro.Yoga.Tests` (142) — yoga engine, shadbala, ashtakavarga, panchanga, Sree Lagna, Sayanaadi avastha, sub-planet, transit selection.
 `tests/Ikiastrro.Web.Tests` (166, bUnit) — golden-SVG snapshots of the hand-rolled chart
 components (`docs/artifacts/ui/README.md`; mint with `IKIASTRRO_UPDATE_SNAPSHOTS=1`).
 

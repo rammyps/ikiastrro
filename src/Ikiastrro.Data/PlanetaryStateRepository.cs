@@ -18,11 +18,11 @@ public class PlanetaryStateRepository
             INSERT INTO dbo.tbl_Fact_PlanetaryState
                 (ChartResultId, Planet, RuleSetId,
                  AgeStateId, AgeEffectFraction, WakefulnessStateId,
-                 PlanetId)
+                 PlanetId, PostureStateId)
             VALUES
                 (@ChartResultId, @Planet, @RuleSetId,
                  @AgeStateId, @AgeEffectFraction, @WakefulnessStateId,
-                 @PlanetId)
+                 @PlanetId, @PostureStateId)
             """;
         using var connection = _connectionFactory.CreateOpenConnection();
         connection.Execute(sql, rows);
