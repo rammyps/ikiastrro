@@ -2,7 +2,7 @@
 last_updated: 2026-09-11
 workstream: database
 togaf: C — Data Architecture
-reflects: UI table components as of master @ cc08ed8 + the planned Key Inference 6-step flow (round 2, mockup only)
+reflects: UI table components as of master @ c1116af + the planned Key Inference 6-step flow (round 2, mockup only); Yoga Type/Rule DB-backed as of db/079
 ---
 
 # Database — view catalogue (UI table ⇄ view binding)
@@ -60,7 +60,7 @@ read-only, no recompute.
 | 3 · Strength | `vw_ChartShadbala` (bar + min-req reference line) | `vw_ChartShadbala` + `vw_ChartBhavaBala` (two tables) | `AstrologerEvidenceRepository` | **first UI table consumer** of both views (were CLI + evidence only) |
 | 4 · Planet-Chart | derived: Vaiśeṣikāṁśa stacked bar, from `tbl_Chart_KeyDetails.DignityStatus` over 16 vargas | `tbl_Chart_KeyDetails.Sign` across the 16 divisional `ChartType`s (Ṣoḍaśavarga grid) | `ChartKeyDetailsRepository` | Vargottama (`tbl_Fact_Vargottama`) + Varga-Dignity highlights are inline tags, not tables |
 | 5 · Ashtakavarga | `vw_ChartAshtakavarga` (SAV bar) | `vw_ChartAshtakavarga` (BAV grid) + `tbl_Fact_AshtakavargaPinda` (Piṇḍa) | `AshtakavargaRepository` (read side — currently on `workstream/cli` `be7e37d`, not on `master`) | needs the Ashtakavarga engine merged so Web-generated people have the facts |
-| 6 · Yoga | `vw_ChartYogaEvaluations` aggregate (coverage donut) | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) | `AstrologerEvidenceRepository` | **Type** + **Rule** columns are new and **not backed by a DB column yet** (need a `RequirementJson` parser or two new `tbl_Rule_Yoga` columns); `SourceVariantCode` dropped from display |
+| 6 · Yoga | `vw_ChartYogaEvaluations` aggregate (coverage donut) | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) | `AstrologerEvidenceRepository` | **Type** (`YogaTypeCode`) + **Rule** (`YogaRule`) are DB-backed as of `db/079` — `tbl_Rule_Yoga.FormationFamilyCode`/`ShortFormationRule`, one row per YogaCode, left-joined in; `SourceVariantCode` dropped from display |
 
 `Chara Karaka` (`tbl_Chart_KeyDetails.CharaKaraka`, D1) moved from its own sub-tab into the
 step 2.2 Planets table as a column.
@@ -85,6 +85,17 @@ Spoken-for by the **planned** Key Inference page above, but not yet read by ship
 `workstream/cli` Ashtakavarga engine land on `master`.
 
 **Not yet created:** `tbl_Rule_Exaltation` (7 rows — the classical Uchcha Bindu sign+degree
-per graha, needed for step 2.2's closeness-to-exaltation column) and the two new `tbl_Rule_Yoga`
-columns (Type, Rule) needed for step 6 — both `workstream/database` follow-ups, both currently
-hard-coded in the `key-inference-v2.html` mockup only.
+per graha, needed for step 2.2's closeness-to-exaltation column) — a `workstream/database`
+follow-up, still hard-coded in the `key-inference-v2.html` mockup only.
+
+**Done — `db/079_add_yoga_type_and_rule.sql`:** `tbl_Rule_Yoga.FormationFamilyCode` (unused
+since migration 48) is now the Type axis (`SUN`/`MOON`/`LAGNA`/`COMBINATION`, CHECK-constrained);
+a new `ShortFormationRule NVARCHAR(300)` column carries Rule. One canonical row per
+`(RuleSetId, YogaCode)` — both are source-independent properties of the yoga concept, not of one
+`SourceVariantCode` row. Seeded for **146 of 223** evaluated `YogaCode`s, transcribed from the
+actual predicate in `src/Ikiastrro.Core/Engines/Yoga/*.cs` (never freehand recall). The other 77
+are deliberately left with no row — Type/Rule read `NULL` through the view — because no predicate
+exists to transcribe: 61 are the uncoded Raman 201–300 tail (`RamanFinalHundredCatalog.cs`), 14
+are `RamanYogaBatchEightEvaluator`'s explicit unsupported set, and `YOGA_VIDYA`/`YOGA_ARISHTA`
+are `NOT_EVALUATED` by design. `vw_ChartYogaEvaluations` now exposes `YogaTypeCode`/`YogaRule`
+via a `LEFT JOIN` on `(YogaCode, RuleSetId)`.

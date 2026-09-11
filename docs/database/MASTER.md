@@ -25,10 +25,11 @@ Publishes to the CLI and UI streams under
 ## Current state
 
 - **Baseline** `db/ikiastrro.sql` + numbered migrations `db/NN_*.sql` applied in order,
-  tracked in `dbo.SchemaMigrations` (keyed by `ScriptName`). Migrations `22`–`076` are the
-  active layer; earlier flat history is frozen under `db/_archive/`. `055`–`076` are applied
+  tracked in `dbo.SchemaMigrations` (keyed by `ScriptName`). Migrations `22`–`079` are the
+  active layer; earlier flat history is frozen under `db/_archive/`. `055`–`079` are applied
   to dev but **not yet folded forward** into `db/ikiastrro.sql` — do that once proven on the
-  other environments.
+  other environments. (`077`–`078` are reserved on `workstream/cli` for the Ashtakavarga
+  engine, not yet merged — `079` was picked to avoid the collision.)
 - ~95 tables: input, chart results, chart-generic analytics, dasha, reference/master,
   `tbl_Rule_*` (versioned), `tbl_Dim_*`, `tbl_Fact_*` (star-schema), plus the isolated
   `research.*` reference corpus (migrations 056–070).
@@ -47,7 +48,11 @@ Publishes to the CLI and UI streams under
   orphaned on `CaseId = 1`; re-seed `BENCH_RAMAKRISHNAN_P_JHORA_1981`
   (`ReferenceAyanamsaDegrees` 23.595, `SRC_JHORA_EXPORT_RAMAKRISHNAN`).
 - **`FEAT-DATA-05`** — source-attributed yoga corpus schema (migrations 47–49): applied
-  locally; roll to other environments after the corpus completes.
+  locally; roll to other environments after the corpus completes. **`db/079`** adds the Type
+  (`FormationFamilyCode`, reused from migration 48) + Rule (`ShortFormationRule`, new) axes to
+  `tbl_Rule_Yoga` and wires them into `vw_ChartYogaEvaluations` (`YogaTypeCode`/`YogaRule`);
+  seeded for 146 of 223 evaluated `YogaCode`s from the actual evaluator predicate — see
+  [`db_view_catalog.md`](db_view_catalog.md#key-inference-page--step--source-planned-round-2).
 - **`FEAT-STRENGTH-01` (DB slice)** — migrations 071–073, 076: `vw_ChartShadbala` regression
   (069) fixed; `tbl_Rule_ShadbalaMinimumRupas` seeded (reproduces JHora %Strength within
   rounding); `tbl_Rule_PlanetaryWar` + the six deferred Kālabala `RuleParametersJson`
