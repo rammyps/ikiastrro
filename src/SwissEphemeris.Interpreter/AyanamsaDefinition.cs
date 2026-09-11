@@ -1,10 +1,15 @@
-namespace Ikiastrro.Core.Engines.Astronomy;
+namespace SwissEphemeris.Interpreter;
 
 /// <summary>
 /// A named zodiac reference system exposed by JHora's calculation preferences.
 /// Swiss Ephemeris supplies the numeric implementation for entries with a
 /// <see cref="SwissSiderealMode"/>. Entries without one remain visible in the
 /// catalogue but fail explicitly until their custom fixed-star formula is added.
+///
+/// Moved out of Ikiastrro.Core unchanged (decision 003 Part C) — this record was already
+/// domain-neutral, referencing no ikiastrro type. Callers in Ikiastrro.Core/.Data/.Cli/.Web
+/// keep writing the bare <c>AyanamsaDefinition</c> name via a <c>global using</c> alias to
+/// this type, so this move is not a call-site change.
 /// </summary>
 public sealed record AyanamsaDefinition(
     string Code,
@@ -69,13 +74,11 @@ public sealed record AyanamsaDefinition(
         Aldebaran15Tau, GalacticCenter, Hipparchos, Sassanian, Tropical
     ];
 
-    // Lahiri / Chitrapaksha (Swiss SE_SIDM_LAHIRI = 1) is the project baseline — a polynomial
+    // Lahiri / Chitrapaksha (Swiss SE_SIDM_LAHIRI = 1) is ikiastrro's baseline — a polynomial
     // model that needs no Swiss data files, unlike True Chitrapaksha (27), which requires
     // sefstars.txt and cannot run in this file-less Moshier configuration. It is the frame
-    // every verify-* reference chart was built in. c238aa8 switched chart generation from this
-    // hard-coded mode to the DB default, which migration 36 had seeded as Jagannatha (mode 26
-    // = SE_SIDM_SS_CITRA, ~22.745° for 1981) — a ~0.85° regression — now reverted here and in
-    // tbl_Rule_Ayanamsa. This constant is only the fallback when no DB row is available.
+    // every ikiastrro verify-* reference chart was built in. This constant is only the
+    // fallback when no caller-supplied default is available.
     public static AyanamsaDefinition Default => TraditionalLahiri;
 
     public static AyanamsaDefinition FromCode(string? code) =>
