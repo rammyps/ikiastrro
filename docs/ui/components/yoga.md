@@ -35,16 +35,25 @@ lunar phase) yields `NOT_EVALUATED` by rule.
 ### 2. Yogas (round-2 columns — `Source` is column 1, `Variant` dropped)
 
 One row per `SourceVariantCode` underneath, but `SourceVariantCode` is **no longer a visible
-column** (still in the data — see below). Two columns are new and **not yet backed by a DB
-field**; full sourcing status in [`key-inference.md`](key-inference.md#new-fields--sourcing-status).
+column** (still in the data — see below). Type and Rule are DB-backed as of `db/079`
+([`db_view_catalog.md`](../../database/db_view_catalog.md#key-inference-page--step--source-planned-round-2));
+full sourcing status in [`key-inference.md`](key-inference.md#new-fields--sourcing-status).
 
 | Column | From `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) |
 |---|---|
 | Source | `SourceRefCode` (`SRC_RAMAN_300_COMBINATIONS`, `SRC_PVR_INTEGRATED`, …) — **now column 1** |
 | Yoga | `YogaCode` |
-| Type *(new)* | which reference point the yoga is judged from — Sun / Moon / Lagna / a combination. **Not a DB column** — needs a `FormationFamilyCode`/`RequirementJson` parser or a new column on `tbl_Rule_Yoga`. |
-| Rule *(new)* | a one-line classical rule, e.g. *"Jupiter in kendra (1,4,7,10) from Moon"*. **Not a DB column** — `CalculationNarrative` is prose-length, not this short form; needs a new column or per-yoga authoring. |
+| Type *(new)* | `YogaTypeCode` — which reference point the yoga is judged from: `SUN` / `MOON` / `LAGNA` / `COMBINATION`. `tbl_Rule_Yoga.FormationFamilyCode`, one row per `YogaCode`, left-joined in. |
+| Rule *(new)* | `YogaRule` — a one-line classical rule, e.g. *"Jupiter in kendra (1,4,7,10) from Moon"*. `tbl_Rule_Yoga.ShortFormationRule`, transcribed from the evaluator predicate in `src/Ikiastrro.Core/Engines/Yoga/*.cs`. |
 | Result | `Present` → PRESENT / ABSENT / NOT_EVALUATED (pill: green / muted / amber) |
+
+Seeded for **146 of the 223** evaluated `YogaCode`s — every value transcribed from the actual
+coded predicate, never freehand recall. The other 77 read `NULL` for Type/Rule by design (no UI
+placeholder needed beyond the existing empty-cell treatment): 61 are the uncoded Raman 201–300
+tail, 14 are `RamanYogaBatchEightEvaluator`'s explicit unsupported set, and
+`YOGA_VIDYA`/`YOGA_ARISHTA` are `NOT_EVALUATED`. A handful of `YogaCode`s cover more than one
+classical form (`YOGA_DARIDRA`, `YOGA_DHANA`, `YOGA_CHAPA`, `YOGA_DEHASTHOULYA`, …); their Rule
+text is a short summary of the family, not an exhaustive enumeration of every form.
 
 `Variant` (`SourceVariantCode`), `Status` (`EvaluationStatus`), `Locator` (`SourceLocator`),
 `MissingRequirementCodesJson`, `RuleSetId`, `ComputedAtUtc` stay in the underlying data (the
