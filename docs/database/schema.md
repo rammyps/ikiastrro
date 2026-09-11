@@ -68,8 +68,10 @@ every chart type.
   `vw_ChartMoonContext`, `vw_ChartShadbala` (re-exposes `BirthDetailId` / `Planet` /
   `PercentOfMinimum` after the migration-069 regression; migration 071), `vw_ChartBhavaBala`,
   `vw_ChartAshtakavarga` (BAV grid + SAV per sign; migration 074), `vw_ChartPanchanga`
-  (Tithi/Karana/Nitya Yoga/Vedic Weekday/Hora Lord names; migration 081), `vw_ChartYogaEvaluations`,
-  `vw_YogaChartApplicability`, `vw_YogaContextRequirements`, `vw_Dignity_Legend`.
+  (Tithi/Karana/Nitya Yoga/Vedic Weekday/Hora Lord names; migration 081), `vw_ChartKarakamsa`
+  (the D9 sign of AK — a read over existing `tbl_Chart_KeyDetails`, no new storage; migration
+  082), `vw_ChartYogaEvaluations`, `vw_YogaChartApplicability`, `vw_YogaContextRequirements`,
+  `vw_Dignity_Legend`.
 - Functions: `fn_GetNakshatraRulingPlanetId` (scalar); `tvf_Chart_LifeWeeks(@BirthDetailId)`,
   `tvf_Chart_SadeSatiPeriods(@BirthDetailId)`, `tvf_PlanetSignAtDate(@PlanetId, @AsOfUtc)`
   (inline TVFs).

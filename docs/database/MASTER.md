@@ -49,7 +49,18 @@ Publishes to the CLI and UI streams under
 
 ## In flight
 
-- **`FEAT-DATA-06` (new) — Panchanga / time layer (DB slice)** — migration 081: `tbl_Dim_Tithi`
+- **Jaimini special lagnas / Karakamsa** — migration 082: `vw_ChartKarakamsa`, the D9 sign of
+  AK (PVR sec 7.3.6). No new storage: `ChartGenerationService.PersistAnalytics` already stamps
+  `CharaKaraka` onto every chart type, D9 included, so this view is a plain read over
+  `tbl_Chart_KeyDetails`. Verified against the JHora export exactly (Rahu AK -> Libra in D9).
+  Bhaava / Ghati / Sree Lagna need **no DB work at all** — `tbl_Dim_SpecialLagnas` +
+  `tbl_Rule_SpecialLagnaTimeRate` / `SpecialLagnaFraction` (migrations 28–30) already carry
+  their full PVR-cited formulas; only the `cli` calculators (mirroring `HoraLagnaCalculator`)
+  are missing. Vighati Lagna, Varnada Lagna, Pranapada Lagna, Indu Lagna, and Bhrigu Bindu are
+  explicitly out of scope — `SRC_PVR_INTEGRATED` §5.7 says outright "there are some more
+  special lagnas defined by Parasara, but they are beyond the scope of this book"; no other
+  registered source covers them yet.
+- **`FEAT-DATA-06` — Panchanga / time layer (DB slice)** — migration 081: `tbl_Dim_Tithi`
   (30), `tbl_Dim_Karana` (11), `tbl_Dim_NityaYoga` (27), `tbl_Dim_VedicWeekday` (7),
   `tbl_Dim_HoraSequence` (7), `tbl_Rule_PanchangaFormula` (Tithi/Karana/NityaYoga/HoraLord
   derivation formulas, `RuleSetId` 1), `tbl_Chart_Panchanga` (one row per D1 `ChartResultId`,
