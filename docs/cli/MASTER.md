@@ -115,3 +115,14 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
 - Reserved engine seams: Dispositor, Vimśopaka, Sthira/Naisargika Karaka, Dīptādi/Lajjitādi
   avasthas.
 - Full Ṣaḍbala port from the vendored MIT `jyotishganit` (attribution).
+- **2026-09-11 rule-mapping audit** (`../database/rules-engine.md`) found formulas this
+  workstream has delivered and CLI-verified, but that carry **no `tbl_Rule_*` citation at
+  all** (distinct from the already-tracked "mirror"/"orphaned" tables, which at least exist):
+  Vimshottari Dasha's core 9-planet/120-year table (`AstroMath.NakshatraLordOrder` /
+  `VimshottariYearsByLord`, also the KP-2 sub-lord division's source), Chara Karaka assignment
+  (`CharaKarakaCalculator` — `tbl_Rule_Karaka` is schema-ready and empty for exactly this),
+  and the Arudha Pada counting rule (`ArudhaCalculator`). Also found: exaltation degrees are
+  hardcoded independently in three places (`DignityEngine`, `ShadbalaCalculator`,
+  `RamanYogaBatchFiveEvaluator`) with no shared source — a consolidation candidate, not just a
+  missing DB row. `LagnaFunctionalNature` is a deliberate exception (its DB mirror was
+  intentionally dropped), not a gap.
