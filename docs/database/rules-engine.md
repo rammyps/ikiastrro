@@ -66,6 +66,7 @@ Part A:
 | `tbl_Rule_Karaka` | reserved | chara/sthira/naisargika kāraka assignment schemes (Sthira/Naisargika still hardcoded in `LifeAreaMap`) | unseeded — reserved by migration 18 (P2); zero rows |
 | `tbl_Rule_HouseSignification` / `tbl_Rule_HouseReferenceMatter` / `tbl_Rule_HouseAttribute` | — | house reference rules | seeded |
 | `tbl_Rule_DashaApplicability` | reserved | source-attributed applicability conditions for conditional dasha systems | unseeded — table created by migration 46, zero rows, no source cited |
+| `tbl_Rule_PanchangaFormula` | 4 | Tithi / Karana / Nitya Yoga / Hora Lord derivation formulas (PVR §1.3.8–1.3.11); cross-checked against the JHora Ramakrishnan export | seeded (mig. 081); calculator pending |
 
 ## Divisional-chart portability
 

@@ -49,6 +49,19 @@ Publishes to the CLI and UI streams under
 
 ## In flight
 
+- **`FEAT-DATA-06` (new) — Panchanga / time layer (DB slice)** — migration 081: `tbl_Dim_Tithi`
+  (30), `tbl_Dim_Karana` (11), `tbl_Dim_NityaYoga` (27), `tbl_Dim_VedicWeekday` (7),
+  `tbl_Dim_HoraSequence` (7), `tbl_Rule_PanchangaFormula` (Tithi/Karana/NityaYoga/HoraLord
+  derivation formulas, `RuleSetId` 1), `tbl_Chart_Panchanga` (one row per D1 `ChartResultId`,
+  mirroring `tbl_Chart_DashaPeriods`' key), `vw_ChartPanchanga`. Sourced
+  `SRC_PVR_INTEGRATED` §1.3.8–1.3.12 (the book's only panchanga chapter); every seeded value
+  cross-checked against `SRC_JHORA_EXPORT_RAMAKRISHNAN` (Krishna Tritiya, Vyatipaata, Tuesday,
+  Hora Lord Venus, Janma Ghatis 58.89 all reproduce exactly). Applied clean to dev, idempotent
+  on rerun. **Deliberately not built** (no PVR ch.1 source found): Karana lord, Nitya Yoga
+  lord, Samvatsara, lunar month (PVR Table 4's raw extract is OCR-garbled — needs a clean
+  source pass), Mahakala Hora / Kaala Lord (JHora extensions past PVR's 24-hora scheme). See
+  the migration header for the full narrative. Remaining (CLI): the calculator that reads
+  Sun/Moon longitudes + `SunTimes` and populates `tbl_Chart_Panchanga`; `verify-panchanga`.
 - **`FEAT-DATA-04`** — ayanāṁśa default fixed (migration 054 repoints `tbl_Rule_Ayanamsa`
   from Jagannatha mode 26 to Lahiri mode 1; `verify-vargas` / `verify-jaimini` green).
   Still open: the reference benchmark harness — `tbl_Dim_AyanamsaBenchmarkCases` is empty
