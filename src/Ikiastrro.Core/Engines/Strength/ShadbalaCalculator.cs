@@ -18,17 +18,14 @@ public static class ShadbalaCalculator
         PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn
     };
 
-    private static readonly IReadOnlyDictionary<PlanetName, double> DeepExaltation =
-        new Dictionary<PlanetName, double>
-        {
-            [PlanetName.Sun] = 10,
-            [PlanetName.Moon] = 33,
-            [PlanetName.Mars] = 298,
-            [PlanetName.Mercury] = 165,
-            [PlanetName.Jupiter] = 95,
-            [PlanetName.Venus] = 327,
-            [PlanetName.Saturn] = 200
-        };
+    /// <summary>Deep-exaltation point as an absolute 0-360 longitude, from the shared
+    /// AstroMath.DeepExaltationPoints (previously an independent hardcoded copy here — 2026-09-11
+    /// rule-mapping audit).</summary>
+    private static double DeepExaltationLongitude(PlanetName planet)
+    {
+        var (sign, degree) = AstroMath.DeepExaltationPoints[planet];
+        return (int)sign * 30 + degree;
+    }
 
     private static readonly IReadOnlyDictionary<PlanetName, double> Naisargika =
         new Dictionary<PlanetName, double>
@@ -130,7 +127,7 @@ public static class ShadbalaCalculator
         PlanetPosition p, IReadOnlyList<ChartAnalysisInput> charts)
     {
         var longitude = p.NirayanaLongitudeDegrees!.Value;
-        var exalt = DeepExaltation[planet];
+        var exalt = DeepExaltationLongitude(planet);
         var distanceFromDebilitation = AngularDistance(longitude, (exalt + 180) % 360);
         rows.Add(Row("STHANA_BALA", "UCHCHA_BALA", distanceFromDebilitation / 3.0,
             "DEBILITATION_DISTANCE", "Raman/PVR: distance from the deep-debilitation point."));

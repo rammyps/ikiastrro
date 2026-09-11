@@ -11,14 +11,6 @@ public static class RamanYogaBatchFiveEvaluator
 {
     private static readonly PlanetName[] Benefics = [PlanetName.Moon, PlanetName.Mercury, PlanetName.Jupiter, PlanetName.Venus];
     private static readonly PlanetName[] Malefics = [PlanetName.Sun, PlanetName.Mars, PlanetName.Saturn];
-    private static readonly IReadOnlyDictionary<PlanetName, (ZodiacName Sign, double Degree)> DeepExaltation =
-        new Dictionary<PlanetName, (ZodiacName, double)>
-        {
-            [PlanetName.Sun] = (ZodiacName.Aries, 10), [PlanetName.Moon] = (ZodiacName.Taurus, 3),
-            [PlanetName.Mars] = (ZodiacName.Capricornus, 28), [PlanetName.Mercury] = (ZodiacName.Virgo, 15),
-            [PlanetName.Jupiter] = (ZodiacName.Cancer, 5), [PlanetName.Venus] = (ZodiacName.Pisces, 27),
-            [PlanetName.Saturn] = (ZodiacName.Libra, 20)
-        };
 
     public static IReadOnlyList<ContextualYogaResult> Evaluate(ChartAnalysisInput d1, ChartAnalysisInput? d9 = null)
     {
@@ -127,7 +119,7 @@ public static class RamanYogaBatchFiveEvaluator
 
     private static bool DeeplyExalted(ChartAnalysisInput c, PlanetName p)
     {
-        var position = Find(c, p); if (position is null || !DeepExaltation.TryGetValue(p, out var point)) return false;
+        var position = Find(c, p); if (position is null || !AstroMath.DeepExaltationPoints.TryGetValue(p, out var point)) return false;
         var longitude = position.VargaLongitudeDegrees ?? position.NirayanaLongitudeDegrees;
         return longitude is not null && Enum.Parse<ZodiacName>(position.Sign) == point.Sign
             && Math.Abs((((longitude.Value % 30) + 30) % 30) - point.Degree) < 0.000001;

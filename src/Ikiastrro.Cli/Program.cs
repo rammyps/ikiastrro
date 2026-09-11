@@ -656,6 +656,23 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         Check("D9 AK label travels", d9ak, "Rahu");
     }
 
+    // --- Phase 2b: CharaKarakaCalculator.Ranked order == tbl_Rule_Karaka (migration 085) ---
+    // Closes the 2026-09-11 rule-mapping audit's "Chara Karaka has no DB citation" gap: the
+    // table was schema-ready (KarakaScheme/OrderIndex/ReverseForRahu) since migration 18 but
+    // empty until 085 seeded it. This is the "verified mirror" check migration 085's own header
+    // promised — CharaKarakaCalculator itself stays hardcoded (the project's usual pattern).
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var dbOrder = conn.Query<(int OrderIndex, string TargetValue, bool ReverseForRahu)>(
+            @"SELECT OrderIndex, TargetValue, ReverseForRahu FROM dbo.tbl_Rule_Karaka
+              WHERE RuleSetId = 1 AND KarakaScheme = 'Chara' ORDER BY OrderIndex").ToList();
+        Check("tbl_Rule_Karaka has 8 Chara rows", dbOrder.Count, 8);
+        var codeOrder = string.Join(",", Enum.GetValues<CharaKaraka>().Take(8));
+        var dbCodeOrder = string.Join(",", dbOrder.Select(r => r.TargetValue));
+        Check("tbl_Rule_Karaka order == CharaKaraka enum order (AK..DK)", dbCodeOrder, codeOrder);
+        Check("tbl_Rule_Karaka.ReverseForRahu is set on every Chara row", dbOrder.Count(r => r.ReverseForRahu), dbOrder.Count);
+    }
+
     // --- Phase 3: Arudha Lagna + 12 Bhava Arudhas ---
     using (var conn = connectionFactory.CreateOpenConnection())
     {
@@ -679,6 +696,12 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
               JOIN dbo.tbl_BirthDetails bd ON bd.Id=cr.BirthDetailId
               WHERE bd.Name='Ramakrishnan' AND cr.ChartType='D1' AND kd.Planet='AL'");
         var expectedD9 = VargaSignRuleFactory.For("NavamsaD9", 9).SignFor(alD1Lon).ToString();
+        // tbl_Rule_ArudhaFormula (migration 085) closes the same audit's Arudha-has-no-DB-
+        // citation gap. A single narrative row, so this checks presence + citation, not a
+        // numeric round-trip (same shape as tbl_Rule_PostureStateFormula/PanchangaFormula).
+        var arudhaSource = conn.ExecuteScalar<string?>(
+            "SELECT SourceRefCode FROM dbo.tbl_Rule_ArudhaFormula WHERE RuleSetId = 1");
+        Check("tbl_Rule_ArudhaFormula cites SRC_PVR_INTEGRATED", arudhaSource, "SRC_PVR_INTEGRATED");
         Check("AL D9 channel integrity", SpSign("D9", "AL"), expectedD9);
     }
 
@@ -1013,6 +1036,52 @@ if (args.Length > 0 && args[0] == "verify-strength")
     }
 
     Console.WriteLine(failures == 0 ? "\nverify-strength: ALL PASS" : $"\nverify-strength: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- `dotnet run -- verify-dasha` : Vimshottari Dasha's core table vs tbl_Rule_VimshottariPeriod
+// (migration 085). Closes the 2026-09-11 rule-mapping audit's "the 9-planet order/120-year split
+// has no DB citation at all" gap — AstroMath.NakshatraLordOrder / VimshottariYearsByLord (also the
+// KP-2 sub-lord division's source) stay hardcoded per the project's "verified mirror" pattern;
+// this is the CLI check that pattern requires.
+if (args.Length > 0 && args[0] == "verify-dasha")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    using var conn = connectionFactory.CreateOpenConnection();
+    var dbRows = conn.Query<(int SequenceOrder, string PlanetName, int YearsInCycle)>(
+        @"SELECT r.SequenceOrder, p.PlanetName, r.YearsInCycle
+          FROM dbo.tbl_Rule_VimshottariPeriod r
+          JOIN dbo.tbl_Planets p ON p.Id = r.PlanetId
+          WHERE r.RuleSetId = 1 ORDER BY r.SequenceOrder").ToList();
+
+    Check("tbl_Rule_VimshottariPeriod has 9 rows", dbRows.Count, 9);
+    Check("YearsInCycle totals 120", dbRows.Sum(r => r.YearsInCycle), 120);
+
+    var codeOrder = string.Join(",", AstroMath.NakshatraLordOrder);
+    var dbOrder = string.Join(",", dbRows.Select(r => r.PlanetName));
+    Check("SequenceOrder == AstroMath.NakshatraLordOrder", dbOrder, codeOrder);
+
+    var yearMismatch = 0;
+    foreach (var r in dbRows)
+    {
+        var planet = Enum.Parse<PlanetName>(r.PlanetName);
+        var expectedYears = AstroMath.VimshottariYearsByLord[planet];
+        if (r.YearsInCycle != expectedYears)
+        {
+            yearMismatch++;
+            Console.WriteLine($"    {r.PlanetName}: DB {r.YearsInCycle}y, AstroMath {expectedYears}y");
+        }
+    }
+    Check("YearsInCycle == AstroMath.VimshottariYearsByLord for every planet", yearMismatch, 0);
+
+    Console.WriteLine(failures == 0 ? "\nverify-dasha: ALL PASS" : $"\nverify-dasha: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
@@ -1483,6 +1552,27 @@ if (args.Length > 0 && args[0] == "verify-dignity")
                   AND NOT EXISTS (SELECT 1 FROM dbo.tbl_SignAttributes s
                                   WHERE s.Id = d.SignId AND s.DebilitatedPlanetId = d.PlanetId
                                     AND s.DebilitatedDegree = d.DeepDegree)"));
+
+    // 10b. The three previously-independent C# exaltation dictionaries (DignityEngine,
+    // ShadbalaCalculator, RamanYogaBatchFiveEvaluator) were consolidated onto
+    // AstroMath.DeepExaltationPoints (2026-09-11 rule-mapping audit). Close the loop: that
+    // shared constant must itself agree with tbl_SignAttributes -- and, transitively via the two
+    // checks just above, with tbl_Rule_GrahaDignity's own PVR-cited EXALTED rows.
+    var exaltationMismatch = 0;
+    foreach (var (planet, point) in AstroMath.DeepExaltationPoints)
+    {
+        var seed = conn.QuerySingleOrDefault<(int ExaltedPlanetId, decimal ExaltedDegree)?>(
+            "SELECT ExaltedPlanetId, ExaltedDegree FROM dbo.tbl_SignAttributes WHERE Id = @SignId",
+            new { SignId = AstroIds.SignId(point.Sign) });
+        var ok = seed is { } s && s.ExaltedPlanetId == AstroIds.PlanetId(planet) && s.ExaltedDegree == (decimal)point.Degree;
+        if (!ok)
+        {
+            exaltationMismatch++;
+            Console.WriteLine($"    {planet}: AstroMath says {point.Sign} {point.Degree}, tbl_SignAttributes says {seed}");
+        }
+    }
+    Check("AstroMath.DeepExaltationPoints agrees with tbl_SignAttributes", exaltationMismatch);
+
     // Moolatrikona range: strict for Su/Ma/Ju/Ve/Sa; the two PVR divergences (Moon 3 deg vs
     // seed 4/NULL, Mercury 15 deg vs seed 16) are documented in
     // docs/research/dignity-pvr-integrated.md "Divergence" -- reported, not failed.

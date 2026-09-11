@@ -37,8 +37,8 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
 - **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (147) +
   `tests/Ikiastrro.Web.Tests` (187). `dotnet build` / `dotnet test` run from the terminal.
 - **Green now:** the `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
-  `verify-ashtakavarga`, `verify-panchanga`, `verify-strength`, `verify-dignity`, `verify-rules`,
-  `verify-pipeline`, `verify-sources`, `verify-terminology`, `verify-avastha`,
+  `verify-ashtakavarga`, `verify-panchanga`, `verify-strength`, `verify-dasha`, `verify-dignity`,
+  `verify-rules`, `verify-pipeline`, `verify-sources`, `verify-terminology`, `verify-avastha`,
   `verify-functional-nature`, `verify-upagrahas`.
 
 ## In flight
@@ -121,8 +121,20 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   Vimshottari Dasha's core 9-planet/120-year table (`AstroMath.NakshatraLordOrder` /
   `VimshottariYearsByLord`, also the KP-2 sub-lord division's source), Chara Karaka assignment
   (`CharaKarakaCalculator` — `tbl_Rule_Karaka` is schema-ready and empty for exactly this),
-  and the Arudha Pada counting rule (`ArudhaCalculator`). Also found: exaltation degrees are
-  hardcoded independently in three places (`DignityEngine`, `ShadbalaCalculator`,
-  `RamanYogaBatchFiveEvaluator`) with no shared source — a consolidation candidate, not just a
-  missing DB row. `LagnaFunctionalNature` is a deliberate exception (its DB mirror was
-  intentionally dropped), not a gap.
+  and the Arudha Pada counting rule (`ArudhaCalculator`). Also found: exaltation degrees were
+  hardcoded independently in four places (`DignityEngine`, `ShadbalaCalculator`,
+  `RamanYogaBatchFiveEvaluator`, `RamanDhanaYogaEvaluator`) with no shared source.
+  `LagnaFunctionalNature` is a deliberate exception (its DB mirror was intentionally dropped),
+  not a gap.
+
+  **All closed same day.** Migration 085 (`workstream/database`) seeds `tbl_Rule_Karaka`
+  (Chara Karaka) and adds `tbl_Rule_VimshottariPeriod` / `tbl_Rule_ArudhaFormula`, each cited to
+  a verified `SRC_PVR_INTEGRATED` section/table in the raw book extract. The four exaltation
+  dictionaries now read one shared `AstroMath.DeepExaltationPoints` (no new table needed —
+  `tbl_Rule_GrahaDignity` already carried the degree). New `verify-dasha` mode; `verify-jaimini`
+  and `verify-dignity` extended with cross-checks. Every calculator stays hardcoded per the
+  project's "verified mirror" pattern — only the citations and cross-checks are new. Full
+  test suite (356) and all 15 `verify-*` modes green after. Sade Sati/Kantaka/Ashtama's
+  `SourceRefCode` gap and the `tbl_Rule_YogaValidationDefinition` reproducibility gap are
+  deliberately **not** addressed — no verified source text for the former, out of scope for the
+  latter (see `rules-engine.md`).

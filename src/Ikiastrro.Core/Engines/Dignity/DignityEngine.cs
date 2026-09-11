@@ -33,18 +33,19 @@ public static class DignityEngine
     // 2026-09-02 engine reorg — house geometry is the lower layer and owns "who lords this sign".
     // Dignity still reads the same tables from there; they are not duplicated.
 
-    private static readonly Dictionary<string, ZodiacName> ExaltationSign = new()
-    {
-        ["Sun"] = ZodiacName.Aries,
-        ["Moon"] = ZodiacName.Taurus,
-        ["Mars"] = ZodiacName.Capricornus,
-        ["Mercury"] = ZodiacName.Virgo,
-        ["Jupiter"] = ZodiacName.Cancer,
-        ["Venus"] = ZodiacName.Pisces,
-        ["Saturn"] = ZodiacName.Libra,
-        ["Rahu"] = ZodiacName.Gemini,     // PVR Table 6 convention
-        ["Ketu"] = ZodiacName.Sagittarius
-    };
+    /// <summary>
+    /// The 7 classical planets come from AstroMath.DeepExaltationPoints — the single source of
+    /// truth also shared with ShadbalaCalculator and RamanYogaBatchFiveEvaluator (2026-09-11
+    /// rule-mapping audit; previously three independent hardcoded copies). Rahu/Ketu are added
+    /// separately here: PVR Table 6's node-exaltation convention has no "deep degree" the way
+    /// the classical seven do, so it was never part of the shared (Sign, Degree) constant.
+    /// </summary>
+    private static readonly Dictionary<string, ZodiacName> ExaltationSign =
+        new(AstroMath.DeepExaltationPoints.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value.Sign))
+        {
+            ["Rahu"] = ZodiacName.Gemini,     // PVR Table 6 convention
+            ["Ketu"] = ZodiacName.Sagittarius
+        };
 
     private static readonly Dictionary<string, ZodiacName> DebilitationSign = new()
     {

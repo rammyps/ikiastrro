@@ -93,8 +93,7 @@ the single source of truth (Vimśottari uses it). `Nakshatra` / `NakshatraPada` 
 every chart type. `tbl_NakshatraPadas` (108) has a verified 1:1 Pada ↔ Navamsa mapping.
 Descriptive fields (Guna/Gana/Yoni/Nadi/…) left NULL pending a cited source. The KP-2 sub-lord
 division (`AstroMath.GetNakshatraSubLord`) reuses `VimshottariYearsByLord` for its proportional
-split within one nakshatra — same "no DB citation" gap as §7's Vimshottari cycle (2026-09-11
-audit, `docs/database/rules-engine.md`).
+split within one nakshatra — same citation as §7's Vimshottari cycle (`tbl_Rule_VimshottariPeriod`).
 
 ## 7. Vimshottari Dasha
 
@@ -105,10 +104,11 @@ Ketu 7 · Venus 20 · Sun 6 · Moon 10 · Mars 7 · Rahu 18 · Jupiter 16 · Sat
 (120 yr). Real dates use 365.2425 d/yr. Storage `tbl_Chart_DashaPeriods` (self-referencing,
 age-relative + absolute); reporting `vw_Chart_DashaTimeline`, `tvf_Chart_LifeWeeks` (week
 1–4000). Reference: `BENCH_RAMAKRISHNAN_P_JHORA_1981` (`db/checks/check_ayanamsa_dasha_benchmarks.sql`).
-**No DB citation for the cycle itself yet** (2026-09-11 audit, `docs/database/rules-engine.md`)
-— `tbl_Rule_DashaApplicability` only covers *conditional*-dasha eligibility, not Vimshottari's
-own 9-planet order/120-year table; the KP-2 sub-lord division (§6) reuses the same hardcoded
-constant.
+The 9-planet order/120-year table is cited by `tbl_Rule_VimshottariPeriod` (migration 085,
+`SRC_PVR_INTEGRATED` §16.2 Table 38) — `AstroMath.NakshatraLordOrder`/`VimshottariYearsByLord`
+stay hardcoded (verified-mirror pattern); CLI `verify-dasha` cross-checks them against the
+table. `tbl_Rule_DashaApplicability` is the separate, still-unseeded *conditional*-dasha
+eligibility layer. The KP-2 sub-lord division (§6) reuses the same table's citation.
 
 ## 8. Slow-planet transit history
 
@@ -210,15 +210,18 @@ Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_Wakefuln
 
 - **Chara Karakas** (Aṣṭa, 8-karaka) — rank the 8 grahas (Sun…Saturn, Rahu) by degree within
   sign, descending; **Rahu's key is `30 − degreeInSign`**. AK → AmK BK MK PiK PK GK → DK.
-  Ketu not ranked. Computed once per person from D1, stamped on every chart type. **No DB
-  citation** (2026-09-11 audit, `docs/database/rules-engine.md`) — `tbl_Rule_Karaka` was
-  schema-designed for exactly this rule (`KarakaScheme`/`OrderIndex`/`ReverseForRahu` columns)
-  but has been reserved and empty since migration 18.
+  Ketu not ranked. Computed once per person from D1, stamped on every chart type. Cited by
+  `tbl_Rule_Karaka` WHERE `KarakaScheme='Chara'` (migration 085, `SRC_PVR_INTEGRATED` §8.2
+  Table 13) — the table was schema-designed for exactly this rule
+  (`KarakaScheme`/`OrderIndex`/`ReverseForRahu`) but sat reserved and empty since migration 18.
+  `CharaKarakaCalculator` stays hardcoded; CLI `verify-jaimini` cross-checks its order against
+  the table.
 - **Special points** — one D1 longitude each, then projected into all 21 vargas with the same
   `IVargaSignRule` a planet uses:
   - **AL + 12 Bhāva Arudhas** (`ArudhaCalculator`, `PointKind = Arudha`) — Parāśari pada per
-    house, with the 1st/7th → 10th exception; A1 emitted as `AL`. **No DB citation** either;
-    no reserved table shape exists for it yet.
+    house, with the 1st/7th → 10th exception; A1 emitted as `AL`. Cited by
+    `tbl_Rule_ArudhaFormula` (migration 085, `SRC_PVR_INTEGRATED` §9.2); CLI `verify-jaimini`
+    asserts the row exists and cites the right source.
   - **Hora / Bhaava / Ghati Lagna** (`HoraLagnaCalculator` / `BhaavaLagnaCalculator` /
     `GhatiLagnaCalculator`, `PointKind = SpecialLagna`, codes `HL`/`BL`/`GL`) — Sun's sidereal
     longitude at the Vedic day's opening sunrise + 0.5° / 0.25° / 1.25° per clock-minute since
