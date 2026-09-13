@@ -20,8 +20,10 @@ public sealed class TransitSelection
     public DateTime ActiveIst => ActiveUtc.ToOffset(IstOffset).DateTime;
     public DashaPeriodRecord? Maha { get; private set; }
     public DashaPeriodRecord? Antar { get; private set; }
+    public DashaPeriodRecord? Pratyantar { get; private set; }
     public IReadOnlyList<DashaPeriodRecord> Periods => _periods;
     public IReadOnlyList<DashaPeriodRecord> AntarPeriods => Maha?.Children ?? [];
+    public IReadOnlyList<DashaPeriodRecord> PratyantarPeriods => Antar?.Children ?? [];
 
     // Saved dasha timestamps are birth-offset wall times, not UTC or machine-local time.
     public DateTimeOffset PeriodUtc(DateTime wallTime) =>
@@ -32,6 +34,7 @@ public sealed class TransitSelection
         ActiveUtc = new DateTimeOffset(DateTime.SpecifyKind(istDate.Date, DateTimeKind.Unspecified), IstOffset).ToUniversalTime();
         Maha = _periods.FirstOrDefault(ContainsActiveInstant);
         Antar = Maha?.Children.FirstOrDefault(ContainsActiveInstant);
+        Pratyantar = Antar?.Children.FirstOrDefault(ContainsActiveInstant);
     }
 
     public void SelectMaha(int id)
@@ -41,6 +44,7 @@ public sealed class TransitSelection
         Maha = period;
         ActiveUtc = PeriodUtc(period.StartDate);
         Antar = period.Children.FirstOrDefault(ContainsActiveInstant);
+        Pratyantar = Antar?.Children.FirstOrDefault(ContainsActiveInstant);
     }
 
     public void SelectAntar(int id)
@@ -48,6 +52,15 @@ public sealed class TransitSelection
         var period = AntarPeriods.FirstOrDefault(p => p.Id == id);
         if (period is null) return;
         Antar = period;
+        ActiveUtc = PeriodUtc(period.StartDate);
+        Pratyantar = period.Children.FirstOrDefault(ContainsActiveInstant);
+    }
+
+    public void SelectPratyantar(int id)
+    {
+        var period = PratyantarPeriods.FirstOrDefault(p => p.Id == id);
+        if (period is null) return;
+        Pratyantar = period;
         ActiveUtc = PeriodUtc(period.StartDate);
     }
 

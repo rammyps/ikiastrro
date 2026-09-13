@@ -6,6 +6,34 @@
     <circle cx="400" cy="400" r="208" class="ntw-natal" />
     <circle cx="400" cy="400" r="116" class="ntw-core" />
 
+    @for (var i = 0; i < 27; i++)
+    {
+        <path d="@AnnularSector(i * (360d / 27d), (i + 1) * (360d / 27d), 208, 274)"
+              class="@(i % 2 == 0 ? "ntw-nak-sector ntw-nak-sector-orange" : "ntw-nak-sector ntw-nak-sector-blue")" />
+    }
+
+    @for (var i = 0; i < 36; i++)
+    {
+        var tickLongitude = i * 10d;
+        var (tickX1, tickY1) = Xy(tickLongitude, 116);
+        var (tickX2, tickY2) = Xy(tickLongitude, i % 3 == 0 ? 103 : 108);
+        <line x1="@F(tickX1)" y1="@F(tickY1)" x2="@F(tickX2)" y2="@F(tickY2)"
+              class="@(i % 3 == 0 ? "ntw-degree-tick ntw-degree-tick-major" : "ntw-degree-tick")" />
+    }
+    @for (var i = 0; i < 36; i++)
+    {
+        var (degreeX, degreeY) = Xy(i * 10d, 94);
+        <g><text x="@F(degreeX)" y="@F(degreeY)" class="ntw-degree-label">@((i % 3) * 10)°</text></g>
+    }
+
+    @for (var i = 0; i < 27; i++)
+    {
+        var longitude = i * (360d / 27d);
+        var (x1, y1) = Xy(longitude, 208);
+        var (x2, y2) = Xy(longitude, 274);
+        <line x1="@F(x1)" y1="@F(y1)" x2="@F(x2)" y2="@F(y2)" class="ntw-nak-boundary" />
+    }
+
     @for (var i = 0; i < 108; i++)
     {
         var longitude = i * (360d / 108d);
@@ -20,13 +48,14 @@
     {
         var longitude = i * 30d;
         var (x1, y1) = Xy(longitude, 116);
-        var (x2, y2) = Xy(longitude, 208);
+        var (x2, y2) = Xy(longitude, 338);
+        var signIndex = (AscendantSignIndex + i) % 12;
         var (tx, ty) = Xy(longitude + 15, 174);
-        var (sx, sy) = Xy(longitude, 370);
+        var (sx, sy) = Xy(longitude + 15, 375);
         <line x1="@F(x1)" y1="@F(y1)" x2="@F(x2)" y2="@F(y2)" class="ntw-natal-line" />
         <g>
-            <text x="@F(tx)" y="@F(ty)" class="ntw-house">@HouseFor(i)</text>
-            <text x="@F(sx)" y="@F(sy)" class="ntw-sign">@SignGlyphs[i]</text>
+            <text x="@F(tx)" y="@F(ty)" class="ntw-house">@(i + 1)</text>
+            <text x="@F(sx)" y="@F(sy)" class="ntw-sign">@DisplaySign(SignNames[signIndex])</text>
         </g>
     }
 
@@ -43,7 +72,7 @@
 
     @foreach (var p in Positioned(NatalPoints, 127, 22, 4))
     {
-        var (x, y) = Xy(p.Point.LongitudeDegrees, p.Radius);
+        var (x, y) = Xy(Rotate(p.Point.LongitudeDegrees), p.Radius);
         <g class="ntw-point ntw-point-natal">
             <circle cx="@F(x)" cy="@F(y)" r="10" />
             <text x="@F(x)" y="@F(y)">@Glyph(p.Point.Label)</text>
@@ -51,19 +80,26 @@
     }
     @foreach (var p in Positioned(TransitPoints, 286, 20, 3))
     {
-        var (x, y) = Xy(p.Point.LongitudeDegrees, p.Radius);
+        var (x, y) = Xy(Rotate(p.Point.LongitudeDegrees), p.Radius);
         <g class="ntw-point ntw-point-transit">
             <circle cx="@F(x)" cy="@F(y)" r="10" />
             <text x="@F(x)" y="@F(y)">@Glyph(p.Point.Label)</text>
         </g>
     }
 
-    <text x="400" y="394" class="ntw-center-date">@IndiaTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</text>
-    <text x="400" y="424" class="ntw-center-time">@IndiaTime.ToString("hh:mm tt 'IST'", CultureInfo.InvariantCulture)</text>
+    @for (var rowIndex = 0; rowIndex < KarakaRows.Count; rowIndex++)
+    {
+        var rowY = 366 + rowIndex * 16;
+        <g><text x="400" y="@rowY" class="ntw-karaka">@KarakaRows[rowIndex]</text></g>
+    }
+    <text x="400" y="442" class="ntw-center-date">@IndiaTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</text>
+    <text x="400" y="462" class="ntw-center-time">@IndiaTime.ToString("hh:mm tt 'IST'", CultureInfo.InvariantCulture)</text>
 </svg>
 
 @code {
-    public sealed record Point(string Label, double LongitudeDegrees);
+    public sealed record Point(string Label, double LongitudeDegrees, string? DegreeDisplay = null,
+        string? Sign = null, string? DignityStatus = null, decimal? DeepExaltationDegree = null,
+        string? CharaKaraka = null);
 
     [Parameter, EditorRequired] public IReadOnlyList<Point> NatalPoints { get; set; } = Array.Empty<Point>();
     [Parameter] public IReadOnlyList<Point> TransitPoints { get; set; } = Array.Empty<Point>();
@@ -74,6 +110,23 @@
         new DateTimeOffset(DateTime.SpecifyKind(AsOfUtc, DateTimeKind.Utc)).ToOffset(TimeSpan.FromMinutes(330));
 
     private sealed record PositionedPoint(Point Point, double Radius);
+
+    private int AscendantSignIndex
+    {
+        get
+        {
+            var index = Array.FindIndex(SignNames, s => s.Equals(AscendantSign, StringComparison.OrdinalIgnoreCase));
+            return index < 0 ? 0 : index;
+        }
+    }
+
+    private double Rotate(double longitude) => (longitude - AscendantSignIndex * 30d + 360d) % 360d;
+
+    private IReadOnlyList<string> KarakaRows => NatalPoints
+        .Where(p => !string.IsNullOrWhiteSpace(p.CharaKaraka))
+        .OrderBy(p => KarakaRank(p.CharaKaraka!))
+        .Select(p => $"{p.CharaKaraka}–{PlanetCode(p.Label)}")
+        .Chunk(2).Select(pair => string.Join("  ·  ", pair)).ToList();
 
     private static IReadOnlyList<PositionedPoint> Positioned(
         IReadOnlyList<Point> points, double firstRadius, double laneSpacing, int laneCount)
@@ -103,11 +156,12 @@
         _ => 10
     };
 
-    private int HouseFor(int signIndex)
-    {
-        var asc = Array.FindIndex(SignNames, s => s.Equals(AscendantSign, StringComparison.OrdinalIgnoreCase));
-        return asc < 0 ? signIndex + 1 : ((signIndex - asc + 12) % 12) + 1;
-    }
+    private static int KarakaRank(string code) => code switch
+        { "AK" => 0, "AmK" => 1, "BK" => 2, "MK" => 3, "PiK" => 4, "PK" => 5, "GK" => 6, "DK" => 7, _ => 8 };
+
+    private static string PlanetCode(string planet) => planet switch
+        { "Sun" => "Su", "Moon" => "Mo", "Mars" => "Ma", "Mercury" => "Me", "Jupiter" => "Ju",
+          "Venus" => "Ve", "Saturn" => "Sa", "Rahu" => "Ra", "Ketu" => "Ke", _ => planet[..Math.Min(2, planet.Length)] };
 
     private static (double X, double Y) Xy(double longitude, double radius)
     {
@@ -119,10 +173,18 @@
         label.Equals("Lagna", StringComparison.OrdinalIgnoreCase) ? "Ascendant" : label);
     private static string DisplaySign(string sign) => sign == "Capricornus" ? "Capricorn" : sign;
     private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+    private static string AnnularSector(double startLongitude, double endLongitude, double innerRadius, double outerRadius)
+    {
+        var (outerStartX, outerStartY) = Xy(startLongitude, outerRadius);
+        var (outerEndX, outerEndY) = Xy(endLongitude, outerRadius);
+        var (innerEndX, innerEndY) = Xy(endLongitude, innerRadius);
+        var (innerStartX, innerStartY) = Xy(startLongitude, innerRadius);
+        return $"M {F(outerStartX)} {F(outerStartY)} A {F(outerRadius)} {F(outerRadius)} 0 0 1 {F(outerEndX)} {F(outerEndY)} L {F(innerEndX)} {F(innerEndY)} A {F(innerRadius)} {F(innerRadius)} 0 0 0 {F(innerStartX)} {F(innerStartY)} Z";
+    }
+
 
     private static readonly string[] SignNames =
         { "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricornus", "Aquarius", "Pisces" };
-    private static readonly string[] SignGlyphs = { "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓" };
     private static readonly string[] Nakshatras =
         { "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha", "P.Phalguni", "U.Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "P.Ashadha", "U.Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "P.Bhadrapada", "U.Bhadrapada", "Revati" };
 }
