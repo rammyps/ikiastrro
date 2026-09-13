@@ -1,0 +1,95 @@
+/* Key Inference, Step 1 — docs/ui/components/key-inference.md. Tokens only (wwwroot/css/tokens.css);
+   same family as Natal_Transit_Comp_Wheel.razor.css (--brand-* palette, Manrope, sunset accent). */
+
+.ki-unavailable p { color: var(--brand-muted); }
+.ki-unavailable a { color: var(--brand-sunset); }
+
+.ki-stephead {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 4px 0 16px;
+}
+
+.ki-stepnum {
+    color: var(--brand-sunset);
+    font: 800 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ki-heading {
+    margin: 0;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.ki-gridwrap {
+    width: min(100%, 420px);
+    margin: 0 auto 24px;
+}
+
+.ki-tabs ::deep .mud-tab {
+    font: 600 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--brand-muted);
+}
+
+.ki-tabs ::deep .mud-tab.mud-tab-active { color: var(--brand-midnight); }
+.ki-tabs ::deep .mud-tabs-toolbar-wrapper .mud-tab-slider { background: var(--brand-sunset); }
+.ki-tabs ::deep .mud-tabs-panels { padding-top: 16px; }
+
+.ki-alert { font-size: 0.85em; }
+
+.ki-scroll {
+    max-width: 100%;
+    overflow: visible;
+    border: 1px solid var(--brand-line);
+    border-radius: 10px;
+}
+
+.ki-tabs ::deep .ki-table {
+    box-shadow: none;
+    background: transparent;
+}
+
+.ki-tabs ::deep .ki-table table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+    font-size: 0.86em;
+}
+
+.ki-tabs ::deep .ki-table th {
+    padding: 9px 8px;
+    text-align: left;
+    vertical-align: bottom;
+    color: var(--brand-midnight);
+    font-weight: 700;
+    border-bottom: 2px solid var(--brand-line);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ki-tabs ::deep .ki-table td {
+    padding: 8px 7px;
+    color: var(--brand-midnight);
+    border-bottom: 1px solid var(--brand-line);
+    white-space: normal;
+}
+
+.ki-tabs ::deep .ki-table tbody tr:last-child td { border-bottom: 0; }
+.ki-tabs ::deep .ki-table tbody tr:hover td { background: var(--brand-peach); }
+
+.ki-tabs ::deep .ki-table .num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .ki-tabs ::deep .ki-table table { font-size: 0.72em; }
+}
