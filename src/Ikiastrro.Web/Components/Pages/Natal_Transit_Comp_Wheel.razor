@@ -1,5 +1,6 @@
 @page "/transit-wheel"
 @page "/transit-wheel/{Id:int}"
+@page "/transit-wheel-v2/{Id:int}"
 @using System.Globalization
 @using Ikiastrro.Core.Models
 @using Ikiastrro.Core.Engines.Astronomy
@@ -33,7 +34,7 @@ else
             <section class="tw-controls" aria-label="Transit date and dasha filters">
                     <label class="tw-field">
                         <span>Current transit date</span>
-                        <input type="date" value="@DateValue" @onchange="OnDateChanged" />
+                        <input type="month" value="@DateValue" @onchange="OnDateChanged" />
                     </label>
                     <label class="tw-field">
                         <span>Mahadasha</span>
@@ -50,6 +51,16 @@ else
                         <select value="@(_selection.Antar?.Id.ToString() ?? string.Empty)" @onchange="OnAntarChanged" disabled="@(_selection.Maha is null)">
                             <option value="">Select Antardasha</option>
                             @foreach (var period in _selection.AntarPeriods)
+                            {
+                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="tw-field">
+                        <span>Pratyantar</span>
+                        <select value="@(_selection.Pratyantar?.Id.ToString() ?? string.Empty)" @onchange="OnPratyantarChanged" disabled="@(_selection.Antar is null)">
+                            <option value="">Select Pratyantar</option>
+                            @foreach (var period in _selection.PratyantarPeriods)
                             {
                                 <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
                             }
@@ -221,11 +232,11 @@ else
         }
     }
 
-    private string DateValue => _selection?.ActiveIst.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? string.Empty;
+    private string DateValue => _selection?.ActiveIst.ToString("yyyy-MM", CultureInfo.InvariantCulture) ?? string.Empty;
 
     private void OnDateChanged(ChangeEventArgs args)
     {
-        if (_selection is null || !DateTime.TryParseExact(args.Value?.ToString(), "yyyy-MM-dd",
+        if (_selection is null || !DateTime.TryParseExact(args.Value?.ToString(), "yyyy-MM",
                 CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) return;
         _selection.SetDate(date);
         RefreshSelection();
@@ -245,6 +256,13 @@ else
         RefreshSelection();
     }
 
+    private void OnPratyantarChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectPratyantar(id);
+        RefreshSelection();
+    }
+
     private void RefreshSelection()
     {
         _asOfUtc = _selection!.ActiveUtc.UtcDateTime;
@@ -252,7 +270,7 @@ else
     }
 
     private static string PeriodDates(Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord period) =>
-        $"{period.StartDate:dd MMM yyyy} – {period.EndDate:dd MMM yyyy}";
+        $"{period.StartDate:MM/yyyy} – {period.EndDate:MM/yyyy}";
 
     private static string PlanetGlyph(string planet) =>
         Ikiastrro.Core.Presentation.ChartViewModel.PlanetGlyph(planet);
@@ -269,7 +287,8 @@ else
         r.Planet.Equals("Ascendant", StringComparison.OrdinalIgnoreCase))?.Sign;
 
     private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> D1WheelPoints => _d1
-        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet, r.LongitudeDegrees)).ToList();
+        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet, r.LongitudeDegrees,
+            r.DegreesInSignDisplay, r.Sign, r.DignityStatus, r.DeepExaltationDegree, r.CharaKaraka)).ToList();
 
     private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> TransitWheelPoints => _transits
         .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();

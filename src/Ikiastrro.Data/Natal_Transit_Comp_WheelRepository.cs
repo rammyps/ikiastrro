@@ -18,6 +18,9 @@ public sealed class Natal_Transit_Comp_WheelD1Row
     public string? Sign { get; set; }
     public string? Nakshatra { get; set; }
     public int? NakshatraPada { get; set; }
+    public string? DignityStatus { get; set; }
+    public decimal? DeepExaltationDegree { get; set; }
+    public string? CharaKaraka { get; set; }
 }
 
 /// <summary>
@@ -31,12 +34,22 @@ public sealed class Natal_Transit_Comp_WheelRepository(SqlConnectionFactory fact
     {
         using var connection = factory.CreateOpenConnection();
         return connection.Query<Natal_Transit_Comp_WheelD1Row>("""
-            SELECT HouseNumberFromLagna AS House, Planet, PointKind,
-                   IsRetrograde, IsCombust, DegreesInSignDisplay, Sign, Nakshatra, NakshatraPada
-                   ,COALESCE(VargaLongitudeDegrees, NirayanaLongitudeDegrees) AS LongitudeDegrees
-            FROM dbo.vw_ChartPlanetEvidence
-            WHERE BirthDetailId = @birthDetailId AND ChartType = 'D1'
-              AND (PointKind = 'Graha' OR Planet IN ('Lagna', 'Ascendant'))
+            SELECT e.HouseNumberFromLagna AS House, e.Planet, e.PointKind,
+                   e.IsRetrograde, e.IsCombust, e.DegreesInSignDisplay, e.Sign, e.Nakshatra, e.NakshatraPada,
+                   e.DignityStatus, e.CharaKaraka, deepExaltation.DeepDegree AS DeepExaltationDegree,
+                   COALESCE(e.VargaLongitudeDegrees, e.NirayanaLongitudeDegrees) AS LongitudeDegrees
+            FROM dbo.vw_ChartPlanetEvidence e
+            OUTER APPLY
+            (
+                SELECT TOP (1) d.DeepDegree
+                FROM dbo.tbl_Rule_GrahaDignity d
+                JOIN dbo.tbl_Planets p ON p.Id=d.PlanetId AND p.PlanetName=e.Planet
+                WHERE d.RuleSetId=e.RuleSetId AND d.DignityTypeCode='EXALTED'
+                  AND d.DeepDegree IS NOT NULL AND d.IsActive=1
+                ORDER BY d.IsPrimary DESC,d.Id
+            ) deepExaltation
+            WHERE e.BirthDetailId = @birthDetailId AND e.ChartType = 'D1'
+              AND (e.PointKind = 'Graha' OR e.Planet IN ('Lagna', 'Ascendant'))
             """, new { birthDetailId }).ToList();
     }
 }
