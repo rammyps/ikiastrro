@@ -1,3 +1,4 @@
+using System.Text;
 using MudBlazor.Services;
 using MudBlazor;
 using Ikiastrro.Core.Pipeline;
@@ -21,6 +22,7 @@ builder.Services.AddScoped<BirthDetailsRepository>();
 builder.Services.AddScoped<ChartResultsRepository>();
 builder.Services.AddScoped<ChartKeyDetailsRepository>();
 builder.Services.AddScoped<ChartHouseLordsRepository>();
+builder.Services.AddScoped<ChartHouseLordInterpretationRepository>();
 builder.Services.AddScoped<ChartConjunctionsRepository>();
 builder.Services.AddScoped<ChartMultiGrahaConjunctionRepository>();
 builder.Services.AddScoped<ChartAspectsRepository>();
@@ -45,6 +47,8 @@ builder.Services.AddScoped<SubPlanetRuleRepository>();
 builder.Services.AddScoped<VimshottariDashaService>();
 builder.Services.AddScoped<ChartGenerationService>();
 builder.Services.AddScoped<BirthDetailDeletionService>();
+builder.Services.AddScoped<BirthDetailsCsvService>();
+builder.Services.AddScoped<JkdInterchangeService>();
 builder.Services.AddScoped<IPlaceResolver, NominatimPlaceResolver>();
 
 // v2 shell — the person currently opened; read by MainLayout for the header tabs + band.
@@ -73,5 +77,32 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// --- Saved-people export downloads (docs/ui/components/saved-people.md) ---
+// Plain GET endpoints, not Blazor components: a Blazor Server circuit has no filesystem access
+// on the client to save to, so the browser's own "download this URL" behavior does the work
+// instead of JS interop. CSV is generated in-process; .JKD shells out (JkdInterchangeService)
+// to a throwaway temp file that's streamed back and deleted once the response is sent.
+app.MapGet("/export/people.csv", (BirthDetailsRepository birthDetailsRepo, BirthDetailsCsvService csvService) =>
+{
+    var csv = csvService.ExportCsv(birthDetailsRepo.GetAll());
+    var bytes = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv);
+    return Results.File(bytes, "text/csv", $"ikiastrro-saved-people-{DateTime.Now:yyyy-MM-dd}.csv");
+});
+
+app.MapGet("/export/people.jkd", async (JkdInterchangeService jkdService) =>
+{
+    var tempPath = Path.Combine(Path.GetTempPath(), $"ikiastrro-export-{Guid.NewGuid():N}.JKD");
+    try
+    {
+        await jkdService.ExportAsync(tempPath);
+        var bytes = await File.ReadAllBytesAsync(tempPath);
+        return Results.File(bytes, "application/octet-stream", $"ikiastrro-saved-people-{DateTime.Now:yyyy-MM-dd}.JKD");
+    }
+    finally
+    {
+        if (File.Exists(tempPath)) File.Delete(tempPath);
+    }
+});
 
 app.Run();

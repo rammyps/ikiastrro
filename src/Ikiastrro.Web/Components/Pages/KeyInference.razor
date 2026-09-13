@@ -5,22 +5,26 @@
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
 @inject ChartHouseLordsRepository ChartHouseLordsRepo
+@inject ChartHouseLordInterpretationRepository ChartHouseLordInterpretationRepo
 @inject ChartAspectsRepository ChartAspectsRepo
 @inject ChartConjunctionsRepository ChartConjunctionsRepo
+@inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
 @inject ChartTypeRepository ChartTypeRepo
 @inject Ikiastrro.Data.GocharaRepository Gochara
 @inject Ikiastrro.Data.Natal_Transit_Comp_WheelRepository D1WheelRepo
 @inject DashaPeriodsRepository DashaRepo
 @inject ActivePerson Active
 
-@* Key Inference — docs/ui/components/key-inference.md. Step 1 of 6 ("D1 / Transit") only;
-   steps 2.1–6 land in later passes. Same South-Indian grid component as /charts (Codex
+@* Key Inference — docs/ui/components/key-inference.md. Steps 1 and 2.1 built; step 2.2 and
+   3–6 land in later passes. Same South-Indian grid component as /charts (Codex
    `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not modified) for the
    "D1 Birth" tab. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1") for free
    styling/columns. The standalone /transit-wheel page has been folded into the "Current
    Transit" tab wholesale — wheel chart, date/dasha selector, and Gochara table — reusing its
    Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath exactly;
-   only the chart shown under a tab now, not a separate route. *@
+   only the chart shown under a tab now, not a separate route. The "2. About" main tab holds
+   step 2's two sub-tabs (2.1 About House built here, 2.2 About Planets stubbed) — the step
+   heading above the tabs tracks whichever main tab is active. *@
 
 <PageTitle>Key Inference — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
 
@@ -37,11 +41,11 @@ else
     var lc = _data.Charts["D1"];
 
     <div class="ki-stephead">
-        <span class="ki-stepnum">Step 1 of 6</span>
-        <h1 class="ki-heading">D1-TRANSIT</h1>
+        <span class="ki-stepnum">Step @(_activeTab <= 1 ? 1 : 2) of 6</span>
+        <h1 class="ki-heading">@(_activeTab <= 1 ? "D1-TRANSIT" : "ABOUT")</h1>
     </div>
 
-    <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="ki-tabs">
+    <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="ki-tabs" @bind-ActivePanelIndex="_activeTab">
         <MudTabPanel Text="D1 Birth">
             <div class="ki-gridwrap">
                 <SouthIndianGrid_Detailed AscendantSign="@lc.AscendantSign" MoonSign="@lc.MoonSign"
@@ -147,12 +151,43 @@ else
                 </div>
             }
         </MudTabPanel>
+
+        <MudTabPanel Text="2. About">
+            <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="ki-tabs ki-subtabs">
+                <MudTabPanel Text="2.1 About House">
+                    <h3 class="ki-sectionhead">Aspects &amp; conjunctions</h3>
+                    <div class="ki-twocol">
+                        <div class="ki-col">
+                            <AspectsTable Aspects="lc.Aspects" KeyDetails="lc.KeyDetails" />
+                        </div>
+                        <div class="ki-col">
+                            <HouseConjunctionsTable Groups="lc.MultiGrahaConjunctions" KeyDetails="lc.KeyDetails" />
+                        </div>
+                    </div>
+
+                    <h3 class="ki-sectionhead">House lord placement</h3>
+                    <HouseLordshipTable Rows="lc.HouseLords" Occupants="Occupants(lc)" />
+
+                    <h3 class="ki-sectionhead">House lord key findings</h3>
+                    <HouseLordFindingsTable Rows="lc.HouseLordInterpretations" />
+                </MudTabPanel>
+
+                <MudTabPanel Text="2.2 About Planets">
+                    <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                        About Planets lands in a later pass — dignity, Chara Kāraka, exaltation
+                        closeness, and Moon pañchāṅga facts (see docs/ui/components/key-inference.md,
+                        step 2.2).
+                    </MudAlert>
+                </MudTabPanel>
+            </MudTabs>
+        </MudTabPanel>
     </MudTabs>
 }
 
 @code {
     [Parameter] public int Id { get; set; }
 
+    private int _activeTab;
     private WorkspaceData? _data;
     private string? _transitError;
     private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();
@@ -168,7 +203,8 @@ else
     protected override void OnParametersSet()
     {
         _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
-            ChartHouseLordsRepo, ChartAspectsRepo, ChartConjunctionsRepo, ChartTypeRepo.GetAll());
+            ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,
+            ChartMultiGrahaConjunctionRepo, ChartTypeRepo.GetAll());
         if (_data is not null && !_data.Charts.ContainsKey("D1")) _data = null; // no D1 → treat as not found
 
         if (_data is null)
@@ -266,6 +302,13 @@ else
 
     private static IReadOnlyList<PlanetRow> Rows(LoadedChart lc) =>
         ChartViewModel.BuildPlanetRows(lc.KeyDetails, lc.HouseLords, lc.Aspects);
+
+    /// <summary>House number -> comma-joined occupant graha names (Ascendant excluded — not a
+    /// graha) for the "House Lord Placement" table's Occupants column.</summary>
+    private static IReadOnlyDictionary<int, string> Occupants(LoadedChart lc) =>
+        lc.Grahas.Where(k => k.Planet != "Ascendant")
+            .GroupBy(k => k.HouseNumberFromLagna)
+            .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(k => k.Planet)));
 
     private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> D1WheelPoints => _d1
         .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet, r.LongitudeDegrees,

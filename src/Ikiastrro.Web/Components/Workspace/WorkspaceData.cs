@@ -10,6 +10,8 @@ public sealed record LoadedChart(
     IReadOnlyList<ChartHouseLord> HouseLords,
     IReadOnlyList<ChartAspect> Aspects,
     IReadOnlyList<ChartConjunction> Conjunctions,
+    IReadOnlyList<ChartMultiGrahaConjunction> MultiGrahaConjunctions,
+    IReadOnlyList<HouseLordInterpretation> HouseLordInterpretations,
     double? AyanamshaDegrees, double? SiderealTimeHours, string EngineVersion)
 {
     public IReadOnlyList<ChartKeyDetail> Grahas => KeyDetails.Where(k => k.PointKind == "Graha").ToList();
@@ -36,8 +38,10 @@ public sealed class WorkspaceData
         ChartResultsRepository results,
         ChartKeyDetailsRepository keyDetails,
         ChartHouseLordsRepository houseLords,
+        ChartHouseLordInterpretationRepository houseLordInterpretations,
         ChartAspectsRepository aspects,
         ChartConjunctionsRepository conjunctions,
+        ChartMultiGrahaConjunctionRepository multiGrahaConjunctions,
         IReadOnlyList<ChartTypeRow> chartTypes)
     {
         var person = people.GetById(id);
@@ -54,6 +58,10 @@ public sealed class WorkspaceData
             .ToDictionary(g => g.Key, g => (IReadOnlyList<ChartAspect>)g.ToList());
         var cjByChart = conjunctions.GetByBirthDetailId(id).GroupBy(c => c.ChartResultId)
             .ToDictionary(g => g.Key, g => (IReadOnlyList<ChartConjunction>)g.ToList());
+        var mgcByChart = multiGrahaConjunctions.GetByBirthDetailId(id).GroupBy(c => c.ChartResultId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<ChartMultiGrahaConjunction>)g.ToList());
+        var hliByChart = houseLordInterpretations.GetByBirthDetailId(id).GroupBy(h => h.ChartResultId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<HouseLordInterpretation>)g.ToList());
         var sanskritByCode = chartTypes.ToDictionary(t => t.Code, t => t.DisplayName, StringComparer.OrdinalIgnoreCase);
 
         var empty = Array.Empty<ChartKeyDetail>();
@@ -74,6 +82,8 @@ public sealed class WorkspaceData
                 hlByChart.GetValueOrDefault(h.Id, Array.Empty<ChartHouseLord>()),
                 asByChart.GetValueOrDefault(h.Id, Array.Empty<ChartAspect>()),
                 cjByChart.GetValueOrDefault(h.Id, Array.Empty<ChartConjunction>()),
+                mgcByChart.GetValueOrDefault(h.Id, Array.Empty<ChartMultiGrahaConjunction>()),
+                hliByChart.GetValueOrDefault(h.Id, Array.Empty<HouseLordInterpretation>()),
                 h.AyanamshaDegrees, h.SiderealTimeHours, h.EngineVersion);
         }
 

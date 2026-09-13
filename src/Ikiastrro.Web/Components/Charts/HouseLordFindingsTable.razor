@@ -1,0 +1,51 @@
+@* House lord classical findings — dbo.vw_ChartHouseLordInterpretation (tbl_Rule_HouseLordPlacement
+   joined to tbl_Chart_HouseLords). One row per branch: BASELINE always, plus WELL_DISPOSED and/or
+   AFFLICTED wherever the source states a distinct one — see db/094_promote_house_lord_placement_claims.sql.
+   IsDignitySupported only ever annotates a WELL_DISPOSED row (the lord's actual dignity happens to
+   back it); it never filters rows out. *@
+@if (Rows.Count == 0)
+{
+    <EmptyState Message="No house lord findings for this chart." />
+}
+else
+{
+    <div class="hlf-scroll">
+        <table class="hlf">
+            <thead><tr><th>House</th><th>Lord</th><th>Placed in</th><th>Branch</th><th>Finding</th></tr></thead>
+            <tbody>
+                @foreach (var r in Rows.OrderBy(r => r.OwnedHouseNumber).ThenBy(r => BranchOrder(r.BranchCode)))
+                {
+                    <tr>
+                        <td class="mono">@r.OwnedHouseNumber</td>
+                        <td>@r.LordPlanet</td>
+                        <td class="mono">House @r.OccupiedHouseNumber, @Disp(r.LordPlacedInSign)</td>
+                        <td><span class="branch branch--@r.BranchCode.ToLowerInvariant()">@BranchLabel(r)</span></td>
+                        <td>@r.ResultText</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<HouseLordInterpretation> Rows { get; set; } = Array.Empty<HouseLordInterpretation>();
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+
+    private static int BranchOrder(string branch) => branch switch
+    {
+        "BASELINE" => 0,
+        "WELL_DISPOSED" => 1,
+        "AFFLICTED" => 2,
+        _ => 3
+    };
+
+    private static string BranchLabel(HouseLordInterpretation r) => r.BranchCode switch
+    {
+        "BASELINE" => "Baseline",
+        "WELL_DISPOSED" => r.IsDignitySupported ? "Well disposed ✓" : "Well disposed",
+        "AFFLICTED" => "Afflicted",
+        _ => r.BranchCode
+    };
+}

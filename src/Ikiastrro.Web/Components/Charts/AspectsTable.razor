@@ -1,0 +1,47 @@
+@* Directional aspects (graha dṛṣṭi) — tbl_Chart_Aspects, grouped by the house each one lands in
+   (the aspected planet's, or the Ascendant's, own house). One row per house that receives at
+   least one aspect; houses with none are omitted. *@
+@if (Rows.Count == 0)
+{
+    <EmptyState Message="No aspects in this chart." />
+}
+else
+{
+    <div class="ast-scroll">
+        <table class="ast">
+            <thead><tr><th>House</th><th>Aspects landing here</th></tr></thead>
+            <tbody>
+                @foreach (var r in Rows)
+                {
+                    <tr>
+                        <td class="mono">@r.House</td>
+                        <td>@r.Text</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartAspect> Aspects { get; set; } = Array.Empty<ChartAspect>();
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private IReadOnlyList<(int House, string Text)> Rows => BuildRows();
+
+    private List<(int House, string Text)> BuildRows()
+    {
+        // Ascendant is a "Graha" row too (Planet == "Ascendant"), so this covers both planet and
+        // Ascendant targets with one lookup.
+        var houseByTarget = KeyDetails
+            .Where(k => k.PointKind == "Graha")
+            .ToDictionary(k => k.Planet, k => k.HouseNumberFromLagna, StringComparer.OrdinalIgnoreCase);
+
+        return Aspects
+            .Where(a => houseByTarget.ContainsKey(a.AspectedTarget))
+            .GroupBy(a => houseByTarget[a.AspectedTarget])
+            .OrderBy(g => g.Key)
+            .Select(g => (g.Key, string.Join("; ", g.Select(a => $"{a.AspectingPlanet} → {a.AspectedTarget} ({a.AspectType})"))))
+            .ToList();
+    }
+}

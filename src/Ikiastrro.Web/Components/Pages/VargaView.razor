@@ -3,8 +3,10 @@
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
 @inject ChartHouseLordsRepository ChartHouseLordsRepo
+@inject ChartHouseLordInterpretationRepository ChartHouseLordInterpretationRepo
 @inject ChartAspectsRepository ChartAspectsRepo
 @inject ChartConjunctionsRepository ChartConjunctionsRepo
+@inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
 @inject ChartTypeRepository ChartTypeRepo
 @inject LifeAreaReferenceRepository LifeAreaRepo
 @using Ikiastrro.Web.Components.Workspace
@@ -85,7 +87,8 @@ else
     protected override void OnParametersSet()
     {
         _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
-            ChartHouseLordsRepo, ChartAspectsRepo, ChartConjunctionsRepo, ChartTypeRepo.GetAll());
+            ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,
+            ChartMultiGrahaConjunctionRepo, ChartTypeRepo.GetAll());
         if (_lifeAreas.Count == 0) _lifeAreas = LifeAreaRepo.GetAll();
     }
 

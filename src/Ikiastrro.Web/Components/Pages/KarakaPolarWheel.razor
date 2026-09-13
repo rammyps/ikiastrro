@@ -4,8 +4,10 @@
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
 @inject ChartHouseLordsRepository ChartHouseLordsRepo
+@inject ChartHouseLordInterpretationRepository ChartHouseLordInterpretationRepo
 @inject ChartAspectsRepository ChartAspectsRepo
 @inject ChartConjunctionsRepository ChartConjunctionsRepo
+@inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
 @inject ChartTypeRepository ChartTypeRepo
 @inject SqlConnectionFactory ConnectionFactory
 @inject ActivePerson Active
@@ -33,7 +35,7 @@ else
  private LoadedChart? SelectedChart => _data?.Charts.GetValueOrDefault(_chartCode);
  protected override void OnParametersSet()
  {
-  _data=WorkspaceData.Load(Id,BirthDetailsRepo,ChartResultsRepo,ChartKeyDetailsRepo,ChartHouseLordsRepo,ChartAspectsRepo,ChartConjunctionsRepo,ChartTypeRepo.GetAll());
+  _data=WorkspaceData.Load(Id,BirthDetailsRepo,ChartResultsRepo,ChartKeyDetailsRepo,ChartHouseLordsRepo,ChartHouseLordInterpretationRepo,ChartAspectsRepo,ChartConjunctionsRepo,ChartMultiGrahaConjunctionRepo,ChartTypeRepo.GetAll());
   _rules=_data is null ? null : new NaisargikaKarakaRepository(ConnectionFactory).LoadActive();
   if(_data is not null && !_data.Charts.ContainsKey(_chartCode)) _chartCode=_data.Charts.ContainsKey("D1") ? "D1" : _data.Charts.Keys.First();
   if(_data is null){Active.Clear();return;} var p=_data.Person; Active.Set(Id,p.Name,$"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");

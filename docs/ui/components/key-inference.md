@@ -8,9 +8,10 @@ togaf: C — component spec
 
 # Component — Key Inference
 
-`KeyInference.razor` — **not built yet**. This is the spec-of-record for the **round-2
-redesign** (2026-09-11), which restructures the original flat "KEY INFERENCE header, 8
-sub-tabs" shape into a **numbered UX flow**. Mockups:
+`KeyInference.razor` — **step 1 and step 2.1 built** (2026-09-14); steps 2.2 and 3–6 land in
+later passes. This is the spec-of-record for the **round-2 redesign** (2026-09-11), which
+restructures the original flat "KEY INFERENCE header, 8 sub-tabs" shape into a **numbered UX
+flow**. Mockups:
 
 - Round 1 (flat tabs, frozen): [`../../artifacts/ui/v2-mockup/chart-evidence-hub.html`](../../artifacts/ui/v2-mockup/chart-evidence-hub.html) `#key-inference`
 - **Round 2 (this spec, under review):** [`../../artifacts/ui/v2-mockup/key-inference-v2.html`](../../artifacts/ui/v2-mockup/key-inference-v2.html)
@@ -29,7 +30,7 @@ separate headers alongside this flow, not steps in it.
 | Step | Chart | Table | Source |
 |---|---|---|---|
 | **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table (House · Planet · Sign · Degree · **Nakṣatra · Pāda** — moved here from Planet Dignity) + D1 Birth / Current Transit toggle | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
-| **2.1 · About Houses** | occupancy bar (grahas per house) | house lords + occupants + aspects + conjunctions, one row per house | `tbl_Chart_HouseLords` + `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` |
+| **2.1 · About Houses** | — (occupancy bar dropped; see note below) | Aspects (left) + multi-graha Conjunctions (right), side by side; House Lord Placement (lords + occupants); House Lord Key Findings — three tables, not one | `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
 | **2.2 · About Planets** | closeness-to-exaltation bar (7 grahas) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
 | **3 · Strength** | Shadbala bar chart with a minimum-required reference line | Planet Strength table + House Strength table (two, not merged — different columns) | `vw_ChartShadbala` · `vw_ChartBhavaBala` |
@@ -74,3 +75,12 @@ flow above instead of sitting in a side panel:
   "open person" / post-generate navigation now lands on `/key-inference/{id}`.
 - `tbl_Rule_Exaltation` is still a `workstream/database` follow-up once this flow is approved.
   The `tbl_Rule_Yoga` Type/Rule fields landed in `db/079` — see the sourcing-status table above.
+- **Decided (2026-09-14):** 2.1 About Houses built as three tables, not the mockup's one merged
+  "house lords & occupancy" table. Top row, side by side: `AspectsTable` (left, aspects grouped
+  by the house they land in) and `HouseConjunctionsTable` (right, multi-graha groups per house —
+  new, distinct from the pair-based `ConjunctionsTable` VargaView already uses). Below that,
+  "House Lord Placement" (`HouseLordshipTable` + its new optional `Occupants` column) and "House
+  Lord Key Findings" (new `HouseLordFindingsTable`, one row per `BranchCode`) reading
+  `vw_ChartHouseLordInterpretation` (db/094) — the classical claims-per-house-lord-placement view
+  that had no UI consumer yet. The Arudha/Upagraha/Special-Lagna supporting cards and the
+  occupancy bar chart from the mockup are not built.

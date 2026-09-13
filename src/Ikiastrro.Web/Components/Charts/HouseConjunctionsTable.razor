@@ -1,0 +1,34 @@
+@* Multi-graha conjunctions (Graha Saṃyoga, ≥2 grahas sharing a house/sign) — one row per group,
+   from tbl_Chart_MultiGrahaConjunction(+Member). Sibling to AspectsTable — same per-house grain,
+   so the two sit side by side in Key Inference's About Houses tab. Distinct from the pair-based
+   ConjunctionsTable (VargaView's flat Yuti disclosure — every pair, not grouped by house). *@
+@if (Groups.Count == 0)
+{
+    <EmptyState Message="No multi-graha conjunctions in this chart." />
+}
+else
+{
+    <div class="hct-scroll">
+        <table class="hct">
+            <thead><tr><th>House</th><th>Grahas</th><th>Count</th></tr></thead>
+            <tbody>
+                @foreach (var g in Groups.OrderBy(g => g.HouseNumberFromLagna))
+                {
+                    <tr>
+                        <td class="mono">@g.HouseNumberFromLagna</td>
+                        <td>@string.Join(" · ", g.Members.OrderBy(m => m.PlanetId).Select(m => NameById.GetValueOrDefault(m.PlanetId, "—")))</td>
+                        <td class="mono">@g.PlanetCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartMultiGrahaConjunction> Groups { get; set; } = Array.Empty<ChartMultiGrahaConjunction>();
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private IReadOnlyDictionary<int, string> NameById =>
+        KeyDetails.Where(k => k.PlanetId.HasValue).ToDictionary(k => k.PlanetId!.Value, k => k.Planet);
+}

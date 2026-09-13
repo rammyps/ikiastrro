@@ -1,0 +1,5 @@
+.ast-scroll { overflow-x: auto; }
+.ast { width: 100%; border-collapse: collapse; }
+.ast th, .ast td { padding: .35rem .6rem; border-bottom: 1px solid var(--paper-line); text-align: left; }
+.ast th { color: var(--muted-text); font-weight: 600; white-space: nowrap; }
+.ast .mono { font-variant-numeric: tabular-nums; white-space: nowrap; }

@@ -2,7 +2,10 @@
 <div class="hlt-scroll">
     <table class="hlt">
         <thead>
-            <tr><th>House</th><th>Sign</th><th>Lord</th><th>Placed in (Lagna)</th><th>Placed in (Chandra)</th><th>Lord's dignity</th></tr>
+            <tr>
+                <th>House</th><th>Sign</th><th>Lord</th><th>Placed in (Lagna)</th><th>Placed in (Chandra)</th><th>Lord's dignity</th>
+                @if (Occupants is not null) { <th>Occupants</th> }
+            </tr>
         </thead>
         <tbody>
             @foreach (var r in Rows.OrderBy(r => r.HouseNumber))
@@ -17,6 +20,10 @@
                         @if (r.LordDignityStatus is null) { <span class="muted">—</span> }
                         else { <span class="pill"><span class="dot" style="background:var(--dignity-@ChartViewModel.DignityToken(r.LordDignityStatus))"></span>@r.LordDignityStatus</span> }
                     </td>
+                    @if (Occupants is not null)
+                    {
+                        <td>@Occupants.GetValueOrDefault(r.HouseNumber, "—")</td>
+                    }
                 </tr>
             }
         </tbody>
@@ -25,5 +32,11 @@
 
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<ChartHouseLord> Rows { get; set; } = Array.Empty<ChartHouseLord>();
+
+    /// <summary>Optional: house number -> comma-joined occupant graha names. When supplied, adds an
+    /// "Occupants" column — Key Inference's "House Lord Placement" table (2.1 About Houses); left
+    /// null everywhere else (VargaView's plain disclosure table).</summary>
+    [Parameter] public IReadOnlyDictionary<int, string>? Occupants { get; set; }
+
     private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
 }

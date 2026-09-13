@@ -129,7 +129,28 @@
     white-space: nowrap;
 }
 
+/* 2. About — nested MudTabs (2.1 About House / 2.2 About Planets) reuse .ki-tabs styling. */
+.ki-subtabs ::deep .mud-tabs-panels { padding-top: 12px; }
+
+.ki-sectionhead {
+    margin: 20px 0 8px;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.ki-sectionhead:first-child { margin-top: 0; }
+
+.ki-twocol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+.ki-col { min-width: 0; }
+
 @media (max-width: 900px) {
     .ki-controls { grid-template-columns: 1fr; }
     .ki-tabs ::deep .ki-table table { font-size: 0.72em; }
+    .ki-twocol { grid-template-columns: 1fr; }
 }
