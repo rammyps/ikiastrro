@@ -497,6 +497,61 @@ if (args.Length > 0 && args[0] == "verify-functional-nature")
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
+// --- One-off check: `dotnet run -- verify-baadhaka` ---
+// Worked-example assertions for BaadhakaCalculator (PVR §13.3, Table 31 — baadhaka sthaana +
+// baadhaka lord per rasi). Solution has no unit-test project for Ikiastrro.Core.
+if (args.Length > 0 && args[0] == "verify-baadhaka")
+{
+    var failures = 0;
+    void Check(string label, object actual, object expected)
+    {
+        var ok = actual.ToString() == expected.ToString();
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    // All 12 rasis against PVR Table 31 (Rahu/Ketu co-baadhaka names on the Ar/Cp rows omitted —
+    // see BaadhakaCalculator's divergence note; only the classical planetary lord is asserted here).
+    var table = new (ZodiacName Sign, SignModality Modality, ZodiacName Sthaana, string Lord)[]
+    {
+        (ZodiacName.Aries,       SignModality.Movable, ZodiacName.Aquarius,    "Saturn"),
+        (ZodiacName.Taurus,      SignModality.Fixed,   ZodiacName.Capricornus, "Saturn"),
+        (ZodiacName.Gemini,      SignModality.Dual,    ZodiacName.Sagittarius, "Jupiter"),
+        (ZodiacName.Cancer,      SignModality.Movable, ZodiacName.Taurus,      "Venus"),
+        (ZodiacName.Leo,         SignModality.Fixed,   ZodiacName.Aries,       "Mars"),
+        (ZodiacName.Virgo,       SignModality.Dual,    ZodiacName.Pisces,      "Jupiter"),
+        (ZodiacName.Libra,       SignModality.Movable, ZodiacName.Leo,         "Sun"),
+        (ZodiacName.Scorpio,     SignModality.Fixed,   ZodiacName.Cancer,      "Moon"),
+        (ZodiacName.Sagittarius, SignModality.Dual,    ZodiacName.Gemini,      "Mercury"),
+        (ZodiacName.Capricornus, SignModality.Movable, ZodiacName.Scorpio,     "Mars"),
+        (ZodiacName.Aquarius,    SignModality.Fixed,   ZodiacName.Libra,       "Venus"),
+        (ZodiacName.Pisces,      SignModality.Dual,    ZodiacName.Virgo,       "Mercury"),
+    };
+    foreach (var (sign, modality, sthaana, lord) in table)
+    {
+        var r = BaadhakaCalculator.For(sign);
+        Check($"{sign} modality", r.Modality, modality);
+        Check($"{sign} sthaana", r.SthaanaSign, sthaana);
+        Check($"{sign} baadhaka", r.Baadhaka, lord);
+    }
+
+    // Worked examples straight from PVR §13.3 prose (docs/cli/reading/PVR_read_horoscope.md §2.2):
+    // "suppose lagna in someone's D-10 is in Ge. Then Jupiter is baadhaka for lagna."
+    var geLagna = BaadhakaCalculator.For(ZodiacName.Gemini, 1);
+    Check("Gemini lagna baadhaka (PVR D-10 example)", geLagna.Baadhaka, "Jupiter");
+    Check("Gemini lagna sthaana", geLagna.SthaanaSign, ZodiacName.Sagittarius);
+
+    // "Aq is the 9th house ... Baadhaka sthana for Aq is Li. So the periods of Venus ... "
+    var aqNinth = BaadhakaCalculator.For(ZodiacName.Gemini, 9);   // 9th from Ge lagna = Aq
+    Check("9th-from-Gemini sign", HouseEngine.GetHouseSign(ZodiacName.Gemini, 9), ZodiacName.Aquarius);
+    Check("9th-from-Gemini baadhaka sthaana", aqNinth.SthaanaSign, ZodiacName.Libra);
+    Check("9th-from-Gemini baadhaka", aqNinth.Baadhaka, "Venus");
+    Check("9th-from-Gemini sthaana house-from-lagna", aqNinth.SthaanaHouseNumberFromLagna!.Value, 5);
+
+    Console.WriteLine(failures == 0 ? "\nverify-baadhaka: ALL PASS" : $"\nverify-baadhaka: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
 // --- One-off check: `dotnet run -- verify-avastha` ---
 // Worked-example assertions for the Baaladi + Jagradadi avastha calculators against the seeded
 // tbl_Rule_AgeState / tbl_Rule_WakefulnessState rows (active rule set). Solution has no unit-test project.
@@ -682,6 +737,18 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         CheckLon("HL longitude",     SpLon("HL"),     353.9189, 0.5);
         CheckLon("Gulika longitude", SpLon("Gulika"), 198.1169, 0.5);
         CheckLon("Maandi longitude", SpLon("Maandi"), 187.7439, 0.5);
+
+        // JHora export: Bhava Lagna 0 Ar 35'00" (Aswi, Ar/Ar) · Ghati Lagna 3 Pi 55'31" (UBha, Pi/Le)
+        // · Sree Lagna 17 Cn 33'01" (Asre, Cn/Sg) — Bhaava/Ghati/Sree Lagna built 2026-09-13.
+        Check("BL (D1) -> Aries",       SpSign("D1", "BL"), "Aries");
+        Check("BL (D9) -> Aries",       SpSign("D9", "BL"), "Aries");
+        Check("GL (D1) -> Pisces",      SpSign("D1", "GL"), "Pisces");
+        Check("GL (D9) -> Leo",         SpSign("D9", "GL"), "Leo");
+        Check("SL (D1) -> Cancer",      SpSign("D1", "SL"), "Cancer");
+        Check("SL (D9) -> Sagittarius", SpSign("D9", "SL"), "Sagittarius");
+        CheckLon("BL longitude", SpLon("BL"), 0.5835,   0.5);
+        CheckLon("GL longitude", SpLon("GL"), 333.9254, 0.5);
+        CheckLon("SL longitude", SpLon("SL"), 107.5502, 0.5);
     }
 
     Console.WriteLine(failures == 0 ? "\nverify-jaimini: ALL PASS" : $"\nverify-jaimini: {failures} FAILURE(S)");
@@ -1543,6 +1610,17 @@ if (args.Length > 0 && args[0] == "verify-rules")
 // (IsRetrograde/IsCombust/NakshatraLordPlanet, 2026-08-28; NakshatraId/NakshatraPadaId/
 // NakshatraSubLordPlanet + canonical nakshatra names, 2026-08-30). HouseLords/Conjunctions/Aspects
 // are untouched — none of the new columns live there. Safe to re-run any time.
+// Scoped safe refresh for source-attributed yoga changes; preserves ChartResults and dependent facts.
+if (args.Length > 1 && args[0] == "refresh-yogas")
+{
+    var query = string.Join(' ', args.Skip(1));
+    var person = birthDetailsRepo.GetAll().FirstOrDefault(p => p.Name.Equals(query, StringComparison.OrdinalIgnoreCase))
+        ?? throw new InvalidOperationException($"No saved person named '{query}'.");
+    var refreshReport = chartGenerationService.RecomputeAnalytics(person, chartTypeFilter: "D1");
+    Console.WriteLine($"{person.Name}: refreshed D1 analytics and yoga evidence [{string.Join(", ", refreshReport.ChartTypesWritten)}]");
+    return;
+}
+
 if (args.Length > 0 && args[0] == "recompute-keydetails")
 {
     Console.WriteLine("Re-deriving analytics for every saved person.");

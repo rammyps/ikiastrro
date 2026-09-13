@@ -36,7 +36,7 @@ unverified against the book · **diverges** = built but deliberately differs (se
 | 8 | Karakas (79) — chara, sthira, naisargika | `CharaKarakaCalculator` (Ashta) ✓; `tbl_Rule_Karaka` **reserved / empty**; Sthira/Naisargika hard-coded in `LifeAreaMap` only | partial | populate `tbl_Rule_Karaka` from §8; build Sthira + Naisargika karaka engines (Plan 2) |
 | 9 | Arudha Padas (85) — AL, bhava arudhas, graha arudhas | `ArudhaCalculator` — AL + 12 bhava arudhas ✓ | partial | reconcile vs §9 (exception rules for the 1st/7th, same-sign/opposite); check whether graha arudhas are wanted |
 | 10 | Aspects & Argalas (100) — graha drishti, rasi drishti, argala | `tbl_Rule_AspectOffset` (graha drishti) ✓; **rasi drishti + argala not built** | partial | build rasi-drishti (movable→fixed etc.) + argala + virodha-argala per §10 |
-| 11 | Yogas (112) | `tbl_Rule_Yoga` **reserved / empty** | reference-only (empty) | own plan — populate `tbl_Rule_Yoga` (formation predicates + cancellation + result codes) from §11 |
+| 11 | Yogas (p.112) — §11.2–11.10, ~98 named yogas + 58 unnamed numbered combinations (Raja/Raja-Sambandha/Dhana/Daridra) | `tbl_Rule_Yoga` (146 of 223 tracked `YogaCode`s have a real coded predicate — `db/079_add_yoga_type_and_rule.sql`); `SourceAttributedYogaEngine` / `VerifiedSourceYogaEngine` / `RamanYogaBatch*Evaluator` / `RamanNabhasa*BatchEvaluator` (`src/Ikiastrro.Core/Engines/Yoga/`) | partial — **~87/98 (~89%) of PVR's named yogas covered** (shared with `SRC_RAMAN_300_COMBINATIONS`, the primary source); the 4 unnamed numbered sections (58 combinations) have no per-rule coverage, only 2 generic catch-alls | confirmed gap list + action plan: `../yoga-corpus.md` (P0/P1 tables + "Next implementation slice") |
 | 12 | Ashtakavarga (145) | **not built**; `_research/jyotishganit` supplies the algorithm | not built | build BAV/SAV + reductions per §12 |
 | 13 | Interpreting Charts (166) — synthesis method | `../../cli/reading/method.md` (partial) | partial | reconcile the reading method against §13 |
 | 14 | Longevity (180) — pindayu / nisargayu / amsayu, maraka | `tvf_Chart_SadeSatiPeriods` (unrelated); **ayur methods not built** | not built | build per §14 (+ Part 2 ch 22–23 shoola dasas) |
@@ -56,6 +56,18 @@ unverified against the book · **diverges** = built but deliberately differs (se
 
 _(append one line per chapter as it is reconciled: date · chapter · what changed · commit)_
 
+- 2026-09-13 — Ch 11 (Yogas): row corrected — `tbl_Rule_Yoga` was **not** empty (stale note
+  from before migrations 47–51/079). Counted the chapter directly against the raw extract:
+  ~98 named yogas across §11.2–11.7.1 + 58 unnamed numbered combinations across §11.7.3/11.8/
+  11.9/11.10 (Raja-continuation/Raja-Sambandha/Dhana/Daridra). Cross-checked all ~98 named
+  yogas against `db/079_add_yoga_type_and_rule.sql`'s 146-code predicate list and the engine
+  source directly (not just docs): ~87/98 covered (shared `SRC_RAMAN_300_COMBINATIONS`
+  corpus). Confirmed missing: Maalaa Yoga (§11.5.2 Dala — not previously tracked anywhere,
+  added to `yoga-corpus.md`'s P0 list this pass), Subha, Asubha, Guru-Mangala, Chamara,
+  Khadga, Lagnaadhi, Saarada, Dharma-Karmadhipati (already tracked as P0 in `yoga-corpus.md`),
+  and Hari/Hara as standalone codes (currently merged into `YOGA_HARIHARA_BRAHMA`). The 58
+  unnamed combinations have no per-rule transcription yet — `yoga-corpus.md` now itemises them
+  instead of the previous one-line "transcribe after P0" note.
 - 2026-09-04 — Ch 4 (Upagrahas): migration 27 rebuilt to the book's Table 10 + §4.3 rise
   points (`tbl_Rule_SubPlanetPartRuler` + `EIGHTH_PART_RULER`), commit `a3c9225`. DB aligned;
   `UpagrahaCalculator.cs` Gulika/Maandi start-vs-middle still on the JHora convention — open.

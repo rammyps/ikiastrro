@@ -1,18 +1,19 @@
 [CmdletBinding()]
-param(
-    [Parameter(Mandatory,Position=0)][ValidateSet('export','import')][string]$Command,
-    [Parameter(Mandatory,Position=1)][string]$SourcePath,
-    [Parameter(Mandatory,Position=2)][string]$DestinationPath,
-    [switch]$Force
-)
+param([Parameter(Mandatory,Position=0)][ValidateSet('export','import')][string]$Command,[Parameter(Mandatory,Position=1)][string]$SourcePath,[Parameter(Mandatory,Position=2)][string]$DestinationPath,[switch]$Force)
 $ErrorActionPreference='Stop'
-
-if([Environment]::Is64BitProcess){
-    $host32="$env:WINDIR\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
-    $arguments=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$PSCommandPath,$Command,$SourcePath,$DestinationPath)
-    if($Force){$arguments+='-Force'}
-    & $host32 @arguments
-    exit $LASTEXITCODE
-}
-
-# FUNCTIONS
+if([Environment]::Is64BitProcess){$h="$env:WINDIR\SysWOW64\WindowsPowerShell\v1.0\powershell.exe";$a=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$PSCommandPath,$Command,$SourcePath,$DestinationPath);if($Force){$a+='-Force'};& $h @a;exit $LASTEXITCODE}
+function OpenJkd($p){$c=New-Object System.Data.OleDb.OleDbConnection("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=$p");$c.Open();$c}
+function Rows($c){$q=$c.CreateCommand();$q.CommandText='SELECT * FROM Person';$a=New-Object System.Data.OleDb.OleDbDataAdapter($q);$t=New-Object System.Data.DataTable;[void]$a.Fill($t);$t.Rows}
+function Number($v,$f,$n){$x=0;if(-not [int]::TryParse(([string]$v).Trim(),[ref]$x)){throw "Invalid $f for '$n'."};$x}
+function Coordinate($d,$m,$dir,$n){$x=Number $d degrees $n;$y=Number $m minutes $n;if($y -notin 0..59){throw "Invalid coordinate minutes for '$n'."};$v=$x+$y/60;if(([string]$dir).Trim() -in @('S','W')){$v=-$v};$v}
+function Offset($v,$n,$optional=$false){$s=([string]$v).Trim().TrimEnd('.');if(!$s -and $optional){return $null};if($s -match '^\d{1,2}[\.:]\d{2}$'){$s='+'+$s};if($s -notmatch '^([+-])(\d{1,2})[\.:](\d{2})(?::00)?$'){throw "Invalid UTC offset for $n."};$h=[int]$Matches[2];$m=[int]$Matches[3];if($h -gt 14 -or $m -gt 59){throw "UTC offset out of range for $n."};'{0}{1:00}:{2:00}:00'-f $Matches[1],$h,$m}
+function Target($p){$d=[IO.Path]::GetDirectoryName($p);if($d -and !(Test-Path -LiteralPath $d)){throw "Target directory not found: $d"};if(Test-Path -LiteralPath $p){if(!$Force){throw "Target exists: $p (use -Force)."};Remove-Item -LiteralPath $p -Force}}
+function JkdRow($r){$n=([string]$r.Name).Trim();if(!$n){throw 'Empty JKD name.'};$d=[DateTime]::new((Number $r.Year year $n),(Number $r.Month month $n),(Number $r.Day day $n));$t=[TimeSpan]::new((Number $r.Hour hour $n),(Number $r.Minutes minutes $n),(Number $r.Seconds seconds $n));[pscustomobject][ordered]@{Name=$n;Sex=([string]$r.Sex).Trim();DateOfBirth=$d.ToString('yyyy-MM-dd');TimeOfBirth=$t.ToString('hh\:mm\:ss');City=([string]$r.City).Trim();Country=([string]$r.Country).Trim();Latitude=(Coordinate $r.LatDeg $r.LatMT $r.TextNS $n).ToString('0.######',[Globalization.CultureInfo]::InvariantCulture);Longitude=(Coordinate $r.LongDeg $r.LongMT $r.TextEW $n).ToString('0.######',[Globalization.CultureInfo]::InvariantCulture);UtcOffset=(Offset $r.GMTDIFF $n).Substring(0,6);IanaTimeZoneId=''}}
+function Decimal($v,$f,$n,$min,$max){$s=([string]$v).Trim();if(!$s){return $null};$x=0.0;if(-not [double]::TryParse($s,[Globalization.NumberStyles]::Float,[Globalization.CultureInfo]::InvariantCulture,[ref]$x)-or$x-lt$min-or$x-gt$max){throw "Invalid $f for '$n'."};$x}
+function CsvRow($r){$n=([string]$r.Name).Trim();if(!$n){throw 'Empty CSV name.'};$d=[DateTime]::MinValue;if(-not [DateTime]::TryParseExact(([string]$r.DateOfBirth).Trim(),'yyyy-MM-dd',[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::None,[ref]$d)){throw "Invalid DateOfBirth for '$n'."};$t=[TimeSpan]::Zero;if(-not [TimeSpan]::TryParseExact(([string]$r.TimeOfBirth).Trim(),'hh\:mm\:ss',[Globalization.CultureInfo]::InvariantCulture,[ref]$t)){throw "Invalid TimeOfBirth for '$n'."};[pscustomobject]@{Name=$n;Sex=([string]$r.Sex).Trim();Date=$d;Time=$t;City=([string]$r.City).Trim();Country=([string]$r.Country).Trim();Lat=Decimal $r.Latitude Latitude $n -90 90;Lon=Decimal $r.Longitude Longitude $n -180 180;Offset=Offset $r.UtcOffset $n $true}}
+function Parts($v,$pos,$neg){$a=[Math]::Abs($v);$d=[Math]::Floor($a);$m=[Math]::Round(($a-$d)*60);if($m-eq60){$d++;$m=0};@([int]$d,[int]$m,$(if($v-lt0){$neg}else{$pos}))}
+function Add($q,$v){[void]$q.Parameters.AddWithValue('@p',$v)}
+$src=[IO.Path]::GetFullPath($SourcePath);$dst=[IO.Path]::GetFullPath($DestinationPath)
+if($Command-eq'export'){if(!(Test-Path -LiteralPath $src)){throw "JKD not found: $src"};$j=OpenJkd $src;try{$p=@(Rows $j|ForEach-Object{JkdRow $_})}finally{$j.Close()};Target $dst;$lines=@($p|ConvertTo-Csv -NoTypeInformation);[IO.File]::WriteAllLines($dst,$lines,(New-Object Text.UTF8Encoding($true)));"Exported $($p.Count) record(s) to $dst";return}
+$raw=@(Import-Csv -LiteralPath $src);$headers=@('Name','Sex','DateOfBirth','TimeOfBirth','City','Country','Latitude','Longitude','UtcOffset','IanaTimeZoneId');if($raw.Count){$missing=@($headers|Where-Object{$_-notin$raw[0].PSObject.Properties.Name});if($missing.Count){throw "Missing CSV header(s): $($missing-join', ')."}};$people=@($raw|ForEach-Object{CsvRow $_});foreach($p in $people){if($null-eq$p.Lat-or$null-eq$p.Lon-or!$p.Offset){throw "CSV to JKD requires Latitude, Longitude, and UtcOffset for '$($p.Name)'."}};Target $dst
+$cat=New-Object -ComObject ADOX.Catalog;[void]$cat.Create("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=$dst;Jet OLEDB:Engine Type=5");[void][Runtime.InteropServices.Marshal]::ReleaseComObject($cat);$j=OpenJkd $dst;try{$q=$j.CreateCommand();$q.CommandText='CREATE TABLE Person ([Name] TEXT(100),[Sex] TEXT(2),[Day] TEXT(2),[Month] TEXT(2),[Year] TEXT(4),[Hour] TEXT(2),[Minutes] TEXT(2),[Seconds] TEXT(2),[AMPM] TEXT(2),[Country] TEXT(100),[LatDeg] TEXT(3),[LatMT] TEXT(2),[TextNS] TEXT(1),[LongDeg] TEXT(3),[LongMT] TEXT(2),[TextEW] TEXT(1),[City] TEXT(150),[GMTDIFF] TEXT(6))';[void]$q.ExecuteNonQuery();foreach($p in $people){$la=Parts $p.Lat N S;$lo=Parts $p.Lon E W;$off=$p.Offset.Replace(':','.').Substring(0,6);$sex=if($p.Sex-match'^(?i:f|female)$'){'F'}elseif($p.Sex-match'^(?i:m|male)$'){'M'}else{$p.Sex.Substring(0,[Math]::Min(2,$p.Sex.Length))};$q=$j.CreateCommand();$q.CommandText='INSERT INTO Person VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';@($p.Name,$sex,$p.Date.ToString('dd'),$p.Date.ToString('MM'),$p.Date.ToString('yyyy'),('{0:00}'-f$p.Time.Hours),('{0:00}'-f$p.Time.Minutes),('{0:00}'-f$p.Time.Seconds),$(if($p.Time.Hours-lt12){'1'}else{'2'}),$p.Country,('{0:000}'-f$la[0]),('{0:00}'-f$la[1]),$la[2],('{0:000}'-f$lo[0]),('{0:00}'-f$lo[1]),$lo[2],$p.City,$off)|ForEach-Object{Add $q $_};[void]$q.ExecuteNonQuery()}}finally{$j.Close()};"Imported $($people.Count) record(s) to $dst"

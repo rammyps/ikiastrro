@@ -16,6 +16,7 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 |---|---|
 | *(no args)* | Prompt Name / DOB / time / place (+ optional corrected time), resolve lat-long-offset, run the production yoga composition, compute + store all 21 charts + Vimśottari dasha via `ChartGenerationService`, print |
 | `compute-all <name>` | Regenerate every chart type + dasha for one saved person (e.g. after a birth-time correction or an ayanāṁśa change) |
+| `refresh-yogas <name>` | Safely refresh D1 analytics and persisted yoga evidence for one saved person without replacing chart rows |
 | `compute-dasha <name>` / `show-dasha <name>` | Recompute + print / print stored dasha tree |
 | `compute-all` variants | `backfill-charts` (add any missing chart type, idempotent) · `backfill-analytics` / `recompute-keydetails` (re-derive the analytics tables) · `backfill-dasha` (bulk) |
 | `recompute-keydetails` | Re-derive `tbl_Chart_KeyDetails` for every calculable chart type (e.g. after a column is added) |
@@ -43,6 +44,7 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 | `verify-terminology` | terminology coverage | **PASS** |
 | `verify-avastha` | Bālādi / Jāgradādi worked examples | **PASS** |
 | `verify-functional-nature` | `LagnaFunctionalNature` worked examples | **PASS** |
+| `verify-baadhaka` | `BaadhakaCalculator` — all 12 rasis vs PVR Table 31 + 2 book worked examples | **PASS** |
 | `verify-upagrahas` | live rule loading + in-memory upagraha output, all 21 charts | **PASS** |
 | `verify-vargas` | hand-computed `IVargaSignRule` checks + **the JHora export grid** (180 cells) | **PASS** (on the Lahiri default, `FEAT-DATA-04`) |
 | `verify-jaimini` | HL / Gulika / Maandi longitudes + Chara Karakas vs the JHora export | **PASS** |

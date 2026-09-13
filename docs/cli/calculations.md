@@ -132,6 +132,21 @@ planet rules. `enum { Benefic, Malefic, Neutral, Yogakaraka }` + `IsMaraka` /
 Judge a Horoscope* Vol. 1 p.14–18; the sole source of the verdict (the per-Lagna mirror table
 was removed). Computed on demand, not persisted. Check: `verify-functional-nature`.
 
+## 11. Baadhaka
+
+`BaadhakaCalculator` — PVR §13.3 (Table 31, `SRC_PVR_INTEGRATED`): for a rasi/house falling in
+a movable/fixed/dual sign, its baadhaka sthaana ("troubling spot") is the 11th/9th/7th house
+from it, and the baadhaka ("troublemaker") is that sthaana's lord (`HouseEngine.GetSignLord`).
+`For(sign)` is Lagna-agnostic — reusable for any house or arudha pada in any divisional chart,
+per PVR's own framing. `For(lagnaSign, houseNumber)` is a convenience overload that also
+reports which house from that Lagna the sthaana falls in. `enum SignModality { Movable, Fixed,
+Dual }`. Known divergence: PVR's Table 31 additionally names Rahu/Ketu as co-baadhakas on the
+two rows whose sthaana lands in Aquarius/Scorpio (his Table 6 co-ownership of those signs) —
+this project keeps the classical 7-planet-only rulership used everywhere else, so only
+Saturn/Mars are returned there (same divergence tracked for Ch. 3 in
+`docs/research/domain/pvr-coverage.md`). Computed on demand, not persisted. Check:
+`verify-baadhaka`.
+
 ## 11. Avasthas (planetary states)
 
 Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_WakefulnessState` →

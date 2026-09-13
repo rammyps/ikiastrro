@@ -159,6 +159,9 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [ ] · Research: complete
 - **FEAT-HOUSE-03 · Bhāva significations + Sthira Kāraka mapping** — Designed · 0%
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial (`SRC_RAMAN_HTJH`, 3 unsourced cells)
+- **FEAT-HOUSE-04 · Baadhaka sthaana / baadhaka by rasi (PVR §13.3)** — Verified · 60% · Verify `verify-baadhaka`
+  DB [ ] (computed, no rule table) · Core [x] · Verify [x] · Web [ ] · Docs [x] · Research: complete
+  (`SRC_PVR_INTEGRATED` Table 31; Rahu/Ketu co-baadhaka rows deliberately diverge, see `pvr-coverage.md` Ch. 3)
 
 ## NAKSHATRA — workstream: cli
 
@@ -197,6 +200,12 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial (`SRC_RAMAN_HTJH`)
 - **FEAT-KARAKA-04 · Naisargika Kāraka (Sapta vs Aṣṭa — undecided)** — Planned · 0%
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial
+- **FEAT-KARAKA-05 · Special Lagnas (Bhaava / Ghati / Sree)** — Done · 100% · Verify `verify-jaimini`
+  DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [x] · Research: complete
+  Completes tbl_Dim_SpecialLagnas (db/28) — Hora Lagna shipped first (FEAT-KARAKA-02); Bhaava/
+  Ghati now share SpecialLagnaTimeRateCalculator.cs (TIME_FROM_SUNRISE, 0.25°/1.25° per min);
+  Sree Lagna is the NAKSHATRA_FRACTION family, SreeLagnaCalculator.cs. Not yet surfaced in any
+  chart module (see docs/ui/components/view-grid.md).
 
 ## AVASTHA — workstream: cli
 
@@ -262,17 +271,22 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 ## YOGA — workstream: cli
 
 - **FEAT-YOGA-01 · Source-attributed Raman 1–300 + PVR yoga detection** — In progress · 65% · Research: active
-  DB [ ] (migrations 47–49 prepared; apply after corpus completion) · Core [ ] (Raman
-  1–300 catalogued; predicates active through 200; initial PVR variants) · Verify [x] ·
-  Web [ ] · Docs [x]
+  DB [x] (`tbl_Rule_Yoga` 146 rows, Type/Rule DB-backed since migration 079; `tbl_Fact_YogaInputEvaluations`
+  covers 223 distinct `YogaCode`s per chart) · Core [x] (223 `YogaCode`s tracked, 146 with a
+  real coded predicate — 77 are name-only stubs (61 Raman 201–300 tail, 14 Batch-Eight
+  "Unsupported") or deliberately `NOT_EVALUATED`) · Verify [x] · Web [ ] · Docs [x]
   P0 inputs: required vargas, exact longitude, day/night, lunar phase, source-specific
   subject sex; missing P0 context yields `NOT_EVALUATED`, not `ABSENT`. Reuses
   `ChartBundle.Strengths`, `SunTimes.IsNightBirth`, D1/varga longitudes, all registered
   varga charts, dignity / conjunction / graha-aspect engines. Gaps: a source-qualified
   strong/weak policy over Ṣaḍbala thresholds; reusable waxing/waning/full-Moon
   classification; Vaiśeṣikāṃśa output; subject sex on `BirthDetails`; structured
-  missing-requirement codes per result. P0 PVR additions: Subha, Asubha, Guru-Mangala,
-  Chamara, Khadga, Lagnaadhi, Saarada, Dharma-Karmadhipati, Vipareeta Raja.
+  missing-requirement codes per result. PVR chapter 11 cross-check (2026-09-13): ~87/98
+  (~89%) of PVR's individually-named yogas covered (shared Raman corpus); confirmed open —
+  Maalaa, Subha, Asubha, Guru-Mangala, Chamara, Khadga, Lagnaadhi, Saarada,
+  Dharma-Karmadhipati (`Vipareeta Raja` is done, dropped from this list); PVR's 58 further
+  *unnamed* numbered combinations (§11.7.3/11.8/11.9/11.10) have no per-item rows at all,
+  only 2 generic catch-alls. Full gap list + sequenced next steps: `yoga-corpus.md`.
 
 ## TRANSIT — workstream: cli
 

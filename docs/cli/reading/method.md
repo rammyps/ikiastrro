@@ -15,7 +15,10 @@ tables in [`../../research/domain/reference-data-tables.md`](../../research/doma
 house/planet significations and functional-nature rules in
 [`reference-house-lagna-significations.md`](reference-house-lagna-significations.md). The
 block-by-block JHora export map is
-[`../gap-and-coverage.md`](../gap-and-coverage.md).
+[`../gap-and-coverage.md`](../gap-and-coverage.md). This loop is this project's
+JHora-anchored *adaptation* of PVR's own reading path — see
+[`PVR_read_horoscope.md`](PVR_read_horoscope.md) for the book's Chapter 13 method
+un-adapted, and its §6 for the known gaps between the two.
 
 **Anchor:** every guide is written against a **Jagannatha Hora (JHora)** "Natal Chart"
 text export — the project's long-standing verification oracle. The reference export used

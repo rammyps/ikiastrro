@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-07
+last_updated: 2026-09-10
 ---
 
 # Reference sources — citation registry (`SRC_*`)
@@ -23,11 +23,13 @@ note), never left silent. Coverage / reconciliation status per chapter:
 |---|---|---|---|---|---|---|
 | `SRC_PVR_INTEGRATED` | Vedic Astrology: An Integrated Approach | P. V. R. Narasimha Rao | 1st ed. 2000, freely-released 2010 PDF | PVR Integrated (Parāśari, holistic) | **primary** — dignity, relationships, graha characters, upagrahas, special lagnas, vargas, houses, karakas, arudhas, aspects/argalas, yogas, strength, dasas | PDF `D:\Vedic Astrology\Vedic Astology Books\1_PVR_NarasimhaRao.pdf`; raw text extract `D:\@ClaudeSpace\BookExtracts\pvr-integrated-approach-raw.txt`. PVR's own 2010 "Looking Back" note says he has since refined several calculations — treat as canonical baseline, not infallible. Distinct from `SRC_JHORA` (same author, desktop software). |
 | `SRC_BPHS` | Brihat Parashara Hora Shastra | Parāśara (attrib.) | — | Parāśari | dignity, aspects, vargas, avasthas | umbrella; prefer a chapter-scoped code below when known |
+| `SRC_BPHS_GRAHA_SVARUPA` | BPHS chapter 3 — Graha traits and forms | Parāśara (attrib.) | Sanskrit Documents `par0110.pdf`, 2025 typeset | Parāśari | original Sanskrit planet descriptions and project English translations | Printed p. 6, verses 23–30; original Devanagari text verified against the Sanskrit HTML |
 | `SRC_BPHS_26` | BPHS ch. 26 — Graha Dṛṣṭi | — | — | Parāśari | `tbl_Rule_AspectOffset` | 7th full; Mars 4/8, Jupiter 5/9, Saturn 3/10 |
 | `SRC_BPHS_27` | BPHS ch. 27 — Ṣaḍbala | — | — | Parāśari | Strength engine (Plan 3) | lookup tables need a specific edition — see `research-topic-coverage.md` |
 | `SRC_BPHS_COMBUSTION` | BPHS — Asta (combustion) orbs | — | — | Parāśari | `tbl_Rule_CombustionOrb` | Moon 12°, Mars 17°/8°R, Mercury 14°/12°R, Jupiter 11°, Venus 10°/8°R, Saturn 15° |
 | `SRC_BPHS_AVASTHA` | BPHS — Bālādi & Jāgradādi avasthās | — | — | Parāśari | `tbl_Rule_AgeState`, `tbl_Rule_WakefulnessState` | Bāla .25 / Kumāra .50 / Yuva 1 / Vṛddha .125 / Mṛta 0 |
 | `SRC_BPHS_34_45` | BPHS chapters 34–45 — nakṣatra descriptions | — | — | Parāśari | nakṣatra deity, lord, symbol, range, and descriptive effects | Cross-check edition required |
+| `SRC_TB_1_5_1_NAKSHATRAS` | Taittirīya Brāhmaṇa 1.5.1 — nakṣatra powers | Taittirīya recension (traditional) | Sanskrit Documents `taittirIyabrAhmaNamniHsvaraH.pdf`, accentless 2026 typeset | Vedic | original Sanskrit deity and paired “above/below” formulations for all 27 nakṣatras | Printed pp. 34–35, TB 1.5.1.1–5; preserves Vedic names, with literal project English translations |
 | `SRC_BRIHAT_JATAKA_1` | Bṛhat Jātaka chapter 1 | Varāhamihira | — | classical | sign modalities, polarity, and day/night groupings | — |
 | `SRC_PHALADEEPIKA` | Phaladeepika | Mantreśvara | — | classical | combustion cross-check | alt. orb set |
 | `SRC_RAMAN_HTJH` | How to Judge a Horoscope (vols I–II) | B. V. Raman | — | Raman | house / Lagna significations, functional nature | OCR extract under `D:\@ClaudeSpace\BookExtracts\_work\how-to-judje-a-horoscope-i_p1-312\`; consulted extract does not specify an alternate D2 or D11 sign-rule formula |

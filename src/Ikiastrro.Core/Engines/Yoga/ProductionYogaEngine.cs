@@ -50,6 +50,7 @@ public sealed class ProductionYogaEngine : IYogaEngine
         foreach (var x in RamanDhanaYogaEvaluator.Evaluate(bundle)) Add(x);
         foreach (var x in RamanDaridraYogaEvaluator.Evaluate(d1)) Add(x);
         foreach (var x in RamanYogaBatchEightEvaluator.Evaluate(bundle)) Add(x);
+        foreach (var x in HoroscopeExplorerGapYogaEvaluator.Evaluate(d1)) Add(x);
         foreach (var x in RamanFinalHundredCatalog.Entries()) Add(x);
 
         // Context-aware rows carry stricter missing-input semantics than their batch counterparts.

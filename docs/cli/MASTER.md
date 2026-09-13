@@ -30,12 +30,13 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   3-level Vimśottari dasha, dignity, house lordship, conjunctions (+ groups), aspects,
   retrograde / combustion, nakṣatra linkage, Chara Karakas + special points + 11 upagrahas,
   Bālādi + Jāgradādi avasthas, Ṣaḍbala / Bhāva Bala foundation, source-attributed yoga
-  inputs, slow-planet transits, Sade Sati / Kantaka / Ashtama, functional benefic/malefic.
+  inputs, slow-planet transits, Sade Sati / Kantaka / Ashtama, functional benefic/malefic,
+  baadhaka.
 - **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (124) +
   `tests/Ikiastrro.Web.Tests` (166). `dotnet build` / `dotnet test` run from the terminal.
-- **Green now:** all 11 `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
+- **Green now:** all 12 `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
   `verify-dignity`, `verify-rules`, `verify-pipeline`, `verify-sources`, `verify-terminology`,
-  `verify-avastha`, `verify-functional-nature`, `verify-upagrahas`.
+  `verify-avastha`, `verify-functional-nature`, `verify-upagrahas`, `verify-baadhaka`.
 
 ## In flight
 

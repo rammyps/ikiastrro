@@ -1,0 +1,66 @@
+diff --git a/src/Ikiastrro.Web/Components/Pages/TransitSelection.cs b/src/Ikiastrro.Web/Components/Pages/TransitSelection.cs
+index b88eb16..dc2e80d 100644
+--- a/src/Ikiastrro.Web/Components/Pages/TransitSelection.cs
++++ b/src/Ikiastrro.Web/Components/Pages/TransitSelection.cs
+@@ -20,8 +20,10 @@ public sealed class TransitSelection
+     public DateTime ActiveIst => ActiveUtc.ToOffset(IstOffset).DateTime;
+     public DashaPeriodRecord? Maha { get; private set; }
+     public DashaPeriodRecord? Antar { get; private set; }
++    public DashaPeriodRecord? Pratyantar { get; private set; }
+     public IReadOnlyList<DashaPeriodRecord> Periods => _periods;
+     public IReadOnlyList<DashaPeriodRecord> AntarPeriods => Maha?.Children ?? [];
++    public IReadOnlyList<DashaPeriodRecord> PratyantarPeriods => Antar?.Children ?? [];
+@@ -35,6 +37,7 @@ public sealed class TransitSelection
+         ActiveUtc = new DateTimeOffset(DateTime.SpecifyKind(istDate.Date, DateTimeKind.Unspecified), IstOffset).ToUniversalTime();
+         Maha = _periods.FirstOrDefault(ContainsActiveInstant);
+         Antar = Maha?.Children.FirstOrDefault(ContainsActiveInstant);
++        Pratyantar = Antar?.Children.FirstOrDefault(ContainsActiveInstant);
+@@ -47,6 +50,7 @@ public sealed class TransitSelection
+         Maha = period;
+         ActiveUtc = PeriodUtc(period.StartDate);
+         Antar = period.Children.FirstOrDefault(ContainsActiveInstant);
++        Pratyantar = Antar?.Children.FirstOrDefault(ContainsActiveInstant);
+@@ -59,6 +63,15 @@ public sealed class TransitSelection
+         Antar = period;
+         ActiveUtc = PeriodUtc(period.StartDate);
++        Pratyantar = period.Children.FirstOrDefault(ContainsActiveInstant);
++    }
++
++    public void SelectPratyantar(int id)
++    {
++        var period = PratyantarPeriods.FirstOrDefault(p => p.Id == id);
++        if (period is null) return;
++        Pratyantar = period;
++        ActiveUtc = PeriodUtc(period.StartDate);
+     }
+
+diff --git a/src/Ikiastrro.Data/Natal_Transit_Comp_WheelRepository.cs b/src/Ikiastrro.Data/Natal_Transit_Comp_WheelRepository.cs
+--- a/src/Ikiastrro.Data/Natal_Transit_Comp_WheelRepository.cs
++++ b/src/Ikiastrro.Data/Natal_Transit_Comp_WheelRepository.cs
+@@ -17,6 +17,9 @@ public sealed class Natal_Transit_Comp_WheelD1Row
+     public string? Nakshatra { get; set; }
+     public int? NakshatraPada { get; set; }
++    public string? DignityStatus { get; set; }
++    public decimal? DeepExaltationDegree { get; set; }
++    public string? CharaKaraka { get; set; }
+ }
+@@ -34,10 +37,21 @@ public sealed class Natal_Transit_Comp_WheelRepository(SqlConnectionFactory fact
+-            SELECT HouseNumberFromLagna AS House, Planet, PointKind,
+-                   IsRetrograde, IsCombust, DegreesInSignDisplay, Sign, Nakshatra, NakshatraPada
+-                   ,COALESCE(VargaLongitudeDegrees, NirayanaLongitudeDegrees) AS LongitudeDegrees
+-            FROM dbo.vw_ChartPlanetEvidence
+-            WHERE BirthDetailId = @birthDetailId AND ChartType = 'D1'
+-              AND (PointKind = 'Graha' OR Planet IN ('Lagna', 'Ascendant'))
++            SELECT e.HouseNumberFromLagna AS House, e.Planet, e.PointKind,
++                   e.IsRetrograde, e.IsCombust, e.DegreesInSignDisplay, e.Sign, e.Nakshatra, e.NakshatraPada,
++                   e.DignityStatus, e.CharaKaraka, deepExaltation.DeepDegree AS DeepExaltationDegree,
++                   COALESCE(e.VargaLongitudeDegrees, e.NirayanaLongitudeDegrees) AS LongitudeDegrees
++            FROM dbo.vw_ChartPlanetEvidence e
++            OUTER APPLY (SELECT TOP (1) d.DeepDegree FROM dbo.tbl_Rule_GrahaDignity d
++              JOIN dbo.tbl_Planets p ON p.Id=d.PlanetId AND p.PlanetName=e.Planet
++              WHERE d.RuleSetId=e.RuleSetId AND d.DignityTypeCode='EXALTED'
++                AND d.DeepDegree IS NOT NULL AND d.IsActive=1
++              ORDER BY d.IsPrimary DESC,d.Id) deepExaltation
++            WHERE e.BirthDetailId = @birthDetailId AND e.ChartType = 'D1'
++              AND (e.PointKind = 'Graha' OR e.Planet IN ('Lagna', 'Ascendant'))
+             """, new { birthDetailId }).ToList();

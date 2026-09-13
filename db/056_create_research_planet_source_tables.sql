@@ -35,6 +35,7 @@ BEGIN
         Notes NVARCHAR(MAX) NULL,
         CopyrightStatus VARCHAR(30) NOT NULL,
         SourceLocator NVARCHAR(1000) NULL,
+        SourceUrl NVARCHAR(1000) NULL,
         CONSTRAINT FK_SourceReferencePlanetText_Planet FOREIGN KEY (PlanetId) REFERENCES research.tbl_Dim_SourceReferencePlanet(Id)
     );
 END;

@@ -1,4 +1,13 @@
+---
+last_updated: 2026-09-10
+---
+
 # Graha characters — PVR (consolidated)
+
+The isolated research corpus now also stores the original BPHS chapter 3 Sanskrit descriptions
+for all nine grahas from printed page 6, verses 23–30, together with conservative project English
+translations (`db/071_seed_bphs_planet_sanskrit_text.sql`). These source-text rows remain distinct
+from the normalized PVR attribute grid below.
 
 Normalized form of rammyps's PVR-consolidated graha-attributes worksheet. Backs
 `db/26_add_rule_graha_attributes.sql`. Source content is the classical BPHS ch. 3

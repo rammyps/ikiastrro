@@ -36,9 +36,13 @@
 -- row - the one registered source for the P.V.R. Narasimha Rao corpus
 -- (STANDARDS.md sec D / sec M.4).
 --
--- Only Hora Lagna is built in C# today (HoraLagnaCalculator.cs); the
--- tbl_Rule_SpecialLagnaTimeRate Hora row records that shipped 0.5 value.
--- Bhaava / Ghati / Sree have no engine yet - reference data only.
+-- UPDATE 2026-09-13: all 4 special lagnas are now built in C#. Hora Lagna
+-- shipped first (HoraLagnaCalculator.cs); Bhaava/Ghati Lagna followed via
+-- the shared SpecialLagnaTimeRateCalculator.cs (same TIME_FROM_SUNRISE
+-- mechanics, this table's DegreesPerMinute column), and Sree Lagna via
+-- SreeLagnaCalculator.cs (the NAKSHATRA_FRACTION family below). All four
+-- wired into SpecialPointCalculator.ComputeSeeds; verified against
+-- docs/artifacts/reference-charts/Rammy_Jagannatha.txt via `verify-jaimini`.
 --
 -- Idempotent: table / catalog adds guarded; seeds are IF NOT EXISTS on
 -- their table.
