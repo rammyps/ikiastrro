@@ -36,3 +36,12 @@ FK, immutability rule = SCD Type 2).
 
 Current model: [`../docs/database/rules-engine.md`](../docs/database/rules-engine.md) and
 [`../docs/database/schema.md`](../docs/database/schema.md).
+
+## Postscript (2026-09-11)
+
+The classes cited above under Context were renamed in the 2026-09-02 engine reorg:
+`ClassicalRelationships.cs` → `RelationshipEngine.cs`, `ClassicalCombustion.cs` →
+`CombustionEngine.cs`, `ClassicalDignity.cs` → `DignityEngine.cs` (all now under
+`src/Ikiastrro.Core/Engines/**`). No behavior change, decision unaffected — see
+[`003-rules-audit-content-model-ephemeris-interpreter.md`](003-rules-audit-content-model-ephemeris-interpreter.md)
+Part A for the corresponding per-table Live/mirror/orphaned audit.

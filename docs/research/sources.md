@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-10
+last_updated: 2026-09-13
 ---
 
 # Reference sources — citation registry (`SRC_*`)
@@ -21,26 +21,69 @@ note), never left silent. Coverage / reconciliation status per chapter:
 
 | Code | Title | Author | Edition / Version | Tradition | Used by | Notes |
 |---|---|---|---|---|---|---|
-| `SRC_PVR_INTEGRATED` | Vedic Astrology: An Integrated Approach | P. V. R. Narasimha Rao | 1st ed. 2000, freely-released 2010 PDF | PVR Integrated (Parāśari, holistic) | **primary** — dignity, relationships, graha characters, upagrahas, special lagnas, vargas, houses, karakas, arudhas, aspects/argalas, yogas, strength, dasas | PDF `D:\Vedic Astrology\Vedic Astology Books\1_PVR_NarasimhaRao.pdf`; raw text extract `D:\@ClaudeSpace\BookExtracts\pvr-integrated-approach-raw.txt`. PVR's own 2010 "Looking Back" note says he has since refined several calculations — treat as canonical baseline, not infallible. Distinct from `SRC_JHORA` (same author, desktop software). |
-| `SRC_BPHS` | Brihat Parashara Hora Shastra | Parāśara (attrib.) | — | Parāśari | dignity, aspects, vargas, avasthas | umbrella; prefer a chapter-scoped code below when known |
-| `SRC_BPHS_GRAHA_SVARUPA` | BPHS chapter 3 — Graha traits and forms | Parāśara (attrib.) | Sanskrit Documents `par0110.pdf`, 2025 typeset | Parāśari | original Sanskrit planet descriptions and project English translations | Printed p. 6, verses 23–30; original Devanagari text verified against the Sanskrit HTML |
+| `SRC_PVR_INTEGRATED` | Vedic Astrology: An Integrated Approach | P. V. R. Narasimha Rao | 1st ed. 2000, freely-released 2010 PDF | PVR Integrated (Parāśari, holistic) | **primary** — dignity, relationships, graha characters, upagrahas, special lagnas, vargas, houses, karakas, arudhas, aspects/argalas, yogas, strength, dasas, panchanga, life-matter reference | PDF `D:\Vedic Astrology\Vedic Astology Books\1_PVR_NarasimhaRao.pdf`; raw text extract `D:\@ClaudeSpace\BookExtracts\pvr-integrated-approach-raw.txt`. PVR's own 2010 "Looking Back" note says he has since refined several calculations — treat as canonical baseline, not infallible. Distinct from `SRC_JHORA` (same author, desktop software). |
+| `SRC_BPHS` | Brihat Parashara Hora Shastra | Parāśara (attrib.) | — | Parāśari | dignity, aspects, vargas, avasthas | umbrella; prefer a chapter-scoped code below when known. Local: R. Santhanam's English translation (Ranjan Publications, New Delhi), 2 vols. — `D:\Vedic Astrology\Vedic Astology Books\Brihad Parasara Hora Shastra - Santhanam's\BPHS-Santhanam-Vol-1.pdf` / `...-Vol-2.pdf` |
 | `SRC_BPHS_26` | BPHS ch. 26 — Graha Dṛṣṭi | — | — | Parāśari | `tbl_Rule_AspectOffset` | 7th full; Mars 4/8, Jupiter 5/9, Saturn 3/10 |
 | `SRC_BPHS_27` | BPHS ch. 27 — Ṣaḍbala | — | — | Parāśari | Strength engine (Plan 3) | lookup tables need a specific edition — see `research-topic-coverage.md` |
-| `SRC_BPHS_COMBUSTION` | BPHS — Asta (combustion) orbs | — | — | Parāśari | `tbl_Rule_CombustionOrb` | Moon 12°, Mars 17°/8°R, Mercury 14°/12°R, Jupiter 11°, Venus 10°/8°R, Saturn 15° |
+| `SRC_BPHS_ASHTAKAVARGA` | Brihat Parashara Hora Shastra — Ashtakavarga Adhyaya | Parashara | — | Parashara | Ashtakavarga production schema (migration 074/075) | Classical benefic-places (bindu) matrix; public domain. Cross-checked against the vendored MIT jyotishganit implementation. |
 | `SRC_BPHS_AVASTHA` | BPHS — Bālādi & Jāgradādi avasthās | — | — | Parāśari | `tbl_Rule_AgeState`, `tbl_Rule_WakefulnessState` | Bāla .25 / Kumāra .50 / Yuva 1 / Vṛddha .125 / Mṛta 0 |
-| `SRC_BPHS_34_45` | BPHS chapters 34–45 — nakṣatra descriptions | — | — | Parāśari | nakṣatra deity, lord, symbol, range, and descriptive effects | Cross-check edition required |
-| `SRC_TB_1_5_1_NAKSHATRAS` | Taittirīya Brāhmaṇa 1.5.1 — nakṣatra powers | Taittirīya recension (traditional) | Sanskrit Documents `taittirIyabrAhmaNamniHsvaraH.pdf`, accentless 2026 typeset | Vedic | original Sanskrit deity and paired “above/below” formulations for all 27 nakṣatras | Printed pp. 34–35, TB 1.5.1.1–5; preserves Vedic names, with literal project English translations |
-| `SRC_BRIHAT_JATAKA_1` | Bṛhat Jātaka chapter 1 | Varāhamihira | — | classical | sign modalities, polarity, and day/night groupings | — |
-| `SRC_PHALADEEPIKA` | Phaladeepika | Mantreśvara | — | classical | combustion cross-check | alt. orb set |
-| `SRC_RAMAN_HTJH` | How to Judge a Horoscope (vols I–II) | B. V. Raman | — | Raman | house / Lagna significations, functional nature | OCR extract under `D:\@ClaudeSpace\BookExtracts\_work\how-to-judje-a-horoscope-i_p1-312\`; consulted extract does not specify an alternate D2 or D11 sign-rule formula |
-| `SRC_RAMAN_HINDU_PREDICTIVE` | Hindu Predictive Astrology | B. V. Raman | — | Raman | general | — |
+| `SRC_BPHS_COMBUSTION` | BPHS — Asta (combustion) orbs | — | — | Parāśari | `tbl_Rule_CombustionOrb` | Moon 12°, Mars 17°/8°R, Mercury 14°/12°R, Jupiter 11°, Venus 10°/8°R, Saturn 15° |
+| `SRC_BPHS_GRAHA_SVARUPA` | BPHS chapter 3 — Graha traits and forms | Parāśara (attributed) | Sanskrit Documents `par0110.pdf`, 2025 typeset | Parāśari | isolated research corpus — planet Sanskrit source text (`master` branch migration `071_seed_bphs_planet_sanskrit_text.sql`, applied to the shared dev DB; not yet a workstream/database migration) | Original Devanagari text; cite printed page and verse. Local English-translation cross-check: BPHS ch. 3 is in Santhanam's translation (see `SRC_BPHS`). |
+| `SRC_BPHS_34_45` | BPHS chapters 34–45 — nakṣatra descriptions | Parāśara (attrib.) | — | Parāśari | nakṣatra deity, lord, symbol, range, and descriptive effects | Registered 2026-09-13 (migration 088) — previously cited here without a `tbl_Dim_Source` row. No local edition isolates ch. 34–45 specifically; the full-text local editions under `SRC_BPHS` (Santhanam) cover these chapters. |
+| `SRC_BRIHAT_JATAKA_1` | Bṛhat Jātaka chapter 1 | Varāhamihira | — | classical | sign modalities, polarity, and day/night groupings | Registered 2026-09-13 (migration 088) — previously cited here without a `tbl_Dim_Source` row. Local: `D:\Vedic Astrology\Vedic Astology Books\Brihat Jatak JYOTISH VEDIC ASTROLOGY.pdf` (translator not credited in the extracted text; also present as `brihat jataka.pdf` [scanned, no extractable text] and `Brihat Jataka.doc`). |
+| `SRC_PHALADEEPIKA` | Phaladeepika | Mantreśvara | — | classical | combustion cross-check | alt. orb set. Local: Eng. tr. Dr. G. S. Kapoor — `D:\Vedic Astrology\Vedic Astology Books\Mantreswara_s__Phaladeeplka_.pdf` |
+| `SRC_RAMAN_HTJH` | How to Judge a Horoscope (vols I–II) | B. V. Raman | — | Raman | house / Lagna significations, functional nature | OCR extract under `D:\@ClaudeSpace\BookExtracts\_work\how-to-judje-a-horoscope-i_p1-312\`; consulted extract does not specify an alternate D2 or D11 sign-rule formula. Local PDFs: `D:\Vedic Astrology\Vedic Astology Books\How to judge a horoscope\BVRaman-_How_to_Judge_Horoscope_Vol1.pdf` / `BVRaman_-_How_to_Judge_Horoscope_Vol2.pdf` |
+| `SRC_RAMAN_HINDU_PREDICTIVE` | Hindu Predictive Astrology | B. V. Raman | — | Raman | general | No local file identified in `D:\Vedic Astrology` under this exact title (checked 2026-09-13) — do not confuse with the differently-titled/differently-authored `Essentials of Predictive Hindu Astrology.pdf` found there |
+| `SRC_RAMAN_300_COMBINATIONS` | Three Hundred Important Combinations | B. V. Raman | Ninth edition 1983; tenth-edition Delhi reprint 1994 | Raman | `LifeAreaMap.cs`-adjacent yoga research | ISBN 81-208-0843-6 cloth / 81-208-0850-9 paper. Local: `D:\Vedic Astrology\Vedic Astology Books\B. V. Raman\300 Important Combinations.djvu` |
 | `SRC_RAMAN_GRAHA_BHAVA_BALAS` | Graha and Bhava Balas | B. V. Raman | Thirteenth edition, 1992 | Raman | detailed Shadbala and Bhava Bala arithmetic referred to by PVR chapter 15 | Local DJVU: `D:\Vedic Astrology\Vedic Astology Books\B. V. Raman\Bhava and Graha Balas.djvu` |
 | `SRC_PYJHORA` | PyJHora (source) | B. Satya Prakash (`pyjhora`) | vendored `_research/PyJHora` | mixed | varga formulae, special-lagna / upagraha algorithms | AGPL — vendored for reference, not linked |
 | `SRC_JHORA` | Jagannatha Hora (desktop) | P. V. R. Narasimha Rao | v8.x | mixed | golden-record verification | — |
 | `SRC_JHORA_EXPORT_RAMAKRISHNAN` | JHora natal export — 1_Ramakrishnan | — | 22 Apr 1981 05:30 Chennai | — | `verify-vargas`, `verify-jaimini` golden values | file `docs/artifacts/reference-charts/Rammy_Jagannatha.txt` |
-| `SRC_RATH_VARGA` | Vedic Astrology / varga methods | Sanjay Rath | — | Jaimini / SJC | argala and historical D11 alternative | retained for argala / comparison; not the active D11 rule |
+| `SRC_HOROSCOPE_EXPLORER` | Horoscope Explorer comparison output | — | Ramakrishnan P report screenshots, 2026-09-10 | Comparison | `master` branch migration `076_add_horoscope_explorer_gap_yogas.sql` (applied to the shared dev DB; not yet a workstream/database migration) | Parity evidence only. Effects do not establish a classical formation rule. |
+| `SRC_IKIASTRRO_SYNTHESIS` | ikiastrro project synthesis | ikiastrro project (rammyps + Claude) | — | Project | `tbl_Rule_LifeMatterReference` (migration 087) | Project-authored interpretive extension applying a cited source's own stated method to cases the source does not spell out explicitly — never a citation to any book's text; flags rows that need eventual verification against a classical source |
+| `SRC_RATH_VARGA` | Vedic Astrology / varga methods | Sanjay Rath | — | Jaimini / SJC | argala and historical D11 alternative | retained for argala / comparison; not the active D11 rule. Local (confirmed by opening the file, not by title alone): Sri Jagannath Center Vyankatesa Sharma Varga Workshop transcript, Hyderabad, Dec 2002, ed. Sanjay Rath — `D:\Vedic Astrology\Vedic Astology Books\VargaChakra by S Rath.pdf` |
 | `SRC_VEDASTRO` | VedAstro.Library | (open source) | pre-2026-08-24 | mixed | historical — replaced by SwissEphNet | enum spellings (`Capricornus`, `Aswini`) inherited from here |
 | `SRC_SWISSEPH` | Swiss Ephemeris / SwissEphNet | Astrodienst / port | SwissEphNet 2.8.0.2 | astronomy | `SwissEphemerisProvider` | Moshier mode, Lahiri sidereal |
+| `SRC_TB_1_5_1_NAKSHATRAS` | Taittiriya Brahmana 1.5.1 — Nakṣatra powers | Taittiriya recension (traditional) | Sanskrit Documents `taittirIyabrAhmaNamniHsvaraH.pdf`, 2026 typeset | Vedic | `master` branch migration `072_seed_taittiriya_brahmana_nakshatra_text.sql` (applied to the shared dev DB; not yet a workstream/database migration) | Accentless Devanagari text; cite printed pages 34–35 and section unit. |
+
+## 2026-09-13 reconciliation — local library cross-check (migration 088)
+
+Every `SRC_*` code appearing anywhere in `docs/` or `src/` was diffed against `dbo.tbl_Dim_Source`
+(zero gaps after this pass) and, separately, every row was checked against the physical library at
+`D:\Vedic Astrology\Vedic Astology Books` (opened and read — not matched by filename alone — before
+citing anything below):
+
+- **Fixed real data corruption**: `SRC_BPHS_ASHTAKAVARGA` and `SRC_BPHS_GRAHA_SVARUPA` had
+  mojibake'd em dashes/diacritics baked into the live dev DB (apply-time corruption — the
+  originating `.sql` files themselves were correct UTF-8 — same class of bug documented in
+  migrations 086/087: `sqlcmd` run without `-f 65001`).
+- **Captured 3 rows not backed by any workstream/database migration**: `SRC_BPHS_GRAHA_SVARUPA`,
+  `SRC_TB_1_5_1_NAKSHATRAS`, `SRC_HOROSCOPE_EXPLORER` exist in the shared dev DB only because
+  `master` independently reused migration numbers 071/072/076 for unrelated content, applied
+  against the same local SQL Server instance both branches build against. Re-asserted here via
+  idempotent `MERGE` so this branch's own migration history reproduces them without depending on
+  `master`.
+- **Registered 2 previously doc-only codes**: `SRC_BRIHAT_JATAKA_1` and `SRC_BPHS_34_45` were
+  cited in `docs/research/domain/rasi-nakshatra.md` but had no `tbl_Dim_Source` row (neither is
+  used as a live `SourceRefCode` value anywhere, so this never broke `verify-sources` — both were
+  dangling doc references).
+- **Added confirmed local-file paths** to 6 rows that previously lacked them:
+  `SRC_PVR_INTEGRATED`, `SRC_BPHS`, `SRC_PHALADEEPIKA`, `SRC_RATH_VARGA`, `SRC_RAMAN_HTJH`,
+  `SRC_RAMAN_300_COMBINATIONS`.
+- **Checked but found no local match**: `SRC_RAMAN_HINDU_PREDICTIVE` (B. V. Raman's *Hindu
+  Predictive Astrology*) — no file under this title in the library; a similarly-named
+  `Essentials of Predictive Hindu Astrology.pdf` exists but is a different work, not assumed to be
+  the same book.
+- **Known gap, not fixed here** (pre-existing, documented in `life-matter-reference-pvr.md`):
+  `verify-sources` crashes on `research.tbl_Dim_SourceReferencePlanetText`
+  (schema-qualification bug) before it can validate anything past that point. Independently of
+  that bug, the isolated `research.*` corpus (migration 056+) stores citation metadata inline per
+  row rather than via an FK to `dbo.tbl_Dim_Source` — its `SourceRefCode` values (e.g.
+  `SRC_PHALADEEPIKA_PLANETS`, `SRC_BVRAMAN_PLANET_IN_HOUSE`) are not expected to resolve against
+  this table at all, by design. A future fix should schema-qualify the scan *and* skip the
+  isolated-research schema rather than trying to validate it against this registry.
+
+See `db/088_reconcile_source_references_with_local_library.sql` for the exact statements.
 
 Add a row the same change that first cites a new source. A chapter/verse-scoped code
 (`SRC_BPHS_27`) is preferred over the umbrella (`SRC_BPHS`) once the location is confirmed.

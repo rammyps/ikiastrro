@@ -830,13 +830,15 @@ if (args.Length > 0 && args[0] == "verify-sources")
 
     // Forward-looking: every SourceRefCode used by a rule/terminology table must resolve.
     // No such columns exist yet (Plan 1) — this loop is a no-op today, a tripwire later.
-    var refColumns = conn.Query<(string TableName, string ColumnName)>(@"
-        SELECT t.name, c.name
-        FROM sys.columns c JOIN sys.tables t ON t.object_id = c.object_id
+    var refColumns = conn.Query<(string SchemaName, string TableName, string ColumnName)>(@"
+        SELECT s.name, t.name, c.name
+        FROM sys.columns c
+        JOIN sys.tables t ON t.object_id = c.object_id
+        JOIN sys.schemas s ON s.schema_id = t.schema_id
         WHERE c.name = 'SourceRefCode'").ToList();
-    foreach (var (tbl, col) in refColumns)
-        Check($"{tbl}.{col} all resolve in tbl_Dim_Source",
-            Count($@"SELECT COUNT(*) FROM dbo.[{tbl}] x
+    foreach (var (schema, tbl, col) in refColumns)
+        Check($"{schema}.{tbl}.{col} all resolve in tbl_Dim_Source",
+            Count($@"SELECT COUNT(*) FROM [{schema}].[{tbl}] x
                      WHERE x.[{col}] IS NOT NULL
                        AND NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_Source s WHERE s.Code = x.[{col}])"));
 

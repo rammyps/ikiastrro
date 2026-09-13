@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-10
+last_updated: 2026-09-11
 workstream: database
 togaf: C — Data Architecture
 ---
@@ -29,7 +29,8 @@ work. One repository per table/view in `src/Ikiastrro.Data/`.
 | Chart results | `tbl_ChartResults` — one row per person × chart type, one per dasha run; carries `AyanamshaDegrees`, `SiderealTimeHours`, `VargaMethod`, `RuleSetId`, `ResultJson` (frozen audit snapshot) | engine |
 | Chart analytics (chart-type-generic, keyed by `ChartResultId` + `ChartType`) | `tbl_Chart_KeyDetails`, `tbl_Chart_HouseLords`, `tbl_Chart_Conjunctions`, `tbl_Chart_MultiGrahaConjunction` / `…Member`, `tbl_Chart_Aspects` | `ChartAnalyzer` |
 | Dasha | `tbl_Chart_DashaPeriods` (self-referencing via `ParentDashaPeriodId`, 3 levels, age-relative + absolute dates) | `VimshottariDashaService` |
-| Reference / master | `tbl_Planets` (9), `tbl_SignAttributes` (12), `tbl_Nakshatras` (27), `tbl_NakshatraPadas` (108), `tbl_NakshatraSubLords` (243, KP L1–L2), `tbl_PlanetSignTransitEvents` (Sa/Ju/Ra sign-crossing log 1930–2060), `tbl_TransitPositionReference` (currently stores current `MotionDirection` only — **UI needs two new columns: `InSignMotion`, `NextChangeMotion`**; see [`../ui/components/spec_Natal_Transit_Comp_Wheel.md`](../ui/components/spec_Natal_Transit_Comp_Wheel.md)) | seed / CLI backfill |
+| Panchanga (D1 `ChartResultId` only — birth-moment, not per-varga) | `tbl_Chart_Panchanga` (Tithi/Karana/Nitya Yoga/Vedic Weekday/Hora Lord + Sunrise/Sunset/Janma Ghatis; migration 081) | calculator pending (`FEAT-DATA-06`) |
+| Reference / master | `tbl_Planets` (9), `tbl_SignAttributes` (12), `tbl_Nakshatras` (27), `tbl_NakshatraPadas` (108), `tbl_NakshatraSubLords` (243, KP L1–L2), `tbl_PlanetSignTransitEvents` (Sa/Ju/Ra sign-crossing log 1930–2060), `tbl_TransitPositionReference` (currently stores current `MotionDirection` only — **UI needs two new columns: `InSignMotion`, `NextChangeMotion`**; see [`../ui/components/spec_Natal_Transit_Comp_Wheel.md`](../ui/components/spec_Natal_Transit_Comp_Wheel.md)), `tbl_Dim_Tithi` (30) / `tbl_Dim_Karana` (11) / `tbl_Dim_NityaYoga` (27) / `tbl_Dim_VedicWeekday` (7) / `tbl_Dim_HoraSequence` (7) (migration 081) | seed / CLI backfill |
 | Rules engine (versioned; every row carries `RuleSetId`) | see [`rules-engine.md`](rules-engine.md) | seed |
 | Dimensions | `tbl_Dim_LifeCalendar`, `tbl_Dim_PlanetaryState`, `tbl_Dim_ChartType`, `tbl_Dim_Source`, `tbl_Dim_LifeArea` / `House` / `HouseCategory` / `HouseReference` / `SubPlanets` / `SpecialLagnas` / `DivisionalSubject` / `InterpretationDimension` / `GrahaAttribute`, `tbl_Dim_AyanamsaBenchmark*`, `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden Ṣaḍbala totals), `tbl_Dim_DashaSystems` / `DashaBenchmarkPeriods` | seed / CTE |
 | Facts (per chart, star-schema) | `tbl_Fact_PlanetaryState`, `tbl_Fact_PlanetaryStrength` / `…Component`, `tbl_Fact_BhavaStrength` / `…Component`, `tbl_Fact_Vargottama`, `tbl_Fact_YogaInputEvaluations`, `tbl_Fact_HouseFromReference`, `tbl_Fact_Ayanamsa*` / `Dasha*Comparisons`, `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda` (Ashtakavarga schema live; calculator pending) | computers via `ChartGenerationService` |
@@ -63,11 +64,15 @@ every chart type.
 ## Views & functions
 
 - Views: `vw_Chart_Consolidated`, `vw_Chart_DashaTimeline`, `vw_Chart_HouseNakshatraSpan`,
-  `vw_KetuSignTransitEvents`, `vw_NakshatraPadaDetails`, `vw_ChartPlanetEvidence`,
-  `vw_ChartMoonContext`, `vw_ChartShadbala` (re-exposes `BirthDetailId` / `Planet` /
+  `vw_KetuSignTransitEvents`, `vw_NakshatraPadaDetails`, `vw_ChartPlanetEvidence`
+  (`PostureState` column added migration 083), `vw_ChartMoonContext`, `vw_ChartShadbala`
+  (re-exposes `BirthDetailId` / `Planet` /
   `PercentOfMinimum` after the migration-069 regression; migration 071), `vw_ChartBhavaBala`,
-  `vw_ChartAshtakavarga` (BAV grid + SAV per sign; migration 074), `vw_ChartYogaEvaluations`,
-  `vw_YogaChartApplicability`, `vw_YogaContextRequirements`, `vw_Dignity_Legend`.
+  `vw_ChartAshtakavarga` (BAV grid + SAV per sign; migration 074), `vw_ChartPanchanga`
+  (Tithi/Karana/Nitya Yoga/Vedic Weekday/Hora Lord names; migration 081), `vw_ChartKarakamsa`
+  (the D9 sign of AK — a read over existing `tbl_Chart_KeyDetails`, no new storage; migration
+  082), `vw_ChartYogaEvaluations`, `vw_YogaChartApplicability`, `vw_YogaContextRequirements`,
+  `vw_Dignity_Legend`.
 - Functions: `fn_GetNakshatraRulingPlanetId` (scalar); `tvf_Chart_LifeWeeks(@BirthDetailId)`,
   `tvf_Chart_SadeSatiPeriods(@BirthDetailId)`, `tvf_PlanetSignAtDate(@PlanetId, @AsOfUtc)`
   (inline TVFs).
