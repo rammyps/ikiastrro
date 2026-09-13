@@ -136,6 +136,24 @@ public class BirthDetailsRepository
         connection.Execute(sql, new { Id = id });
     }
 
+    /// <summary>
+    /// Nulls out tbl_Dim_AyanamsaBenchmarkCases.BirthDetailId wherever it points at this person, so
+    /// Delete can proceed — that nullable NO_ACTION FK (db/46) links a benchmark case to a real saved
+    /// person, and is otherwise the one reference to tbl_BirthDetails BirthDetailDeletionService
+    /// doesn't clear before deleting the row, throwing the same SqlException 547 (and Blazor-circuit
+    /// crash) its class doc describes for the tables it does handle. Same fix as
+    /// db/checks/reset_all_transactional_data.sql: unlink the benchmark case, never delete it.
+    /// </summary>
+    public void UnlinkAyanamsaBenchmarkCases(int birthDetailId)
+    {
+        const string sql = """
+            UPDATE dbo.tbl_Dim_AyanamsaBenchmarkCases SET BirthDetailId = NULL
+            WHERE BirthDetailId = @BirthDetailId
+            """;
+        using var connection = _connectionFactory.CreateOpenConnection();
+        connection.Execute(sql, new { BirthDetailId = birthDetailId });
+    }
+
     /// <summary>Dapper needs concrete TimeOnly/DateOnly mapping help — this row shape bridges that.</summary>
     private class BirthDetailsRow
     {

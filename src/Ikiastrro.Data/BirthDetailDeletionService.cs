@@ -18,7 +18,14 @@ namespace Ikiastrro.Data;
 /// whole Blazor circuit down ("An unhandled error has occurred"). The strength / bhava-bala /
 /// vargottama fact tables were added after this service and were missed; they are the same set
 /// GenerateAll clears up-front. (tbl_Fact_YogaInputEvaluations FKs with CASCADE, so it needs no
-/// explicit delete; tbl_Fact_HouseFromReference is reserved and never populated.)
+/// explicit delete; tbl_Fact_HouseFromReference, tbl_Fact_KpSubLordChain, tbl_Fact_PlanetAvastha,
+/// tbl_Fact_AshtakavargaPinda/BhinnaAshtakavarga(Contribution)/SarvaAshtakavarga are schema-only —
+/// no calculator populates them yet, so there is nothing for any person to leave behind; wiring one
+/// up must add its delete here too, the same mistake this class's own history warns about.
+/// tbl_Dim_AyanamsaBenchmarkCases.BirthDetailId is the one other NO_ACTION reference to
+/// tbl_BirthDetails itself (not tbl_ChartResults) — nullable and unlinked via
+/// BirthDetailsRepository.UnlinkAyanamsaBenchmarkCases rather than deleted, same as the full-reset
+/// script's fix for the same FK.)
 /// </summary>
 public class BirthDetailDeletionService
 {
@@ -76,6 +83,7 @@ public class BirthDetailDeletionService
         _vargottamaRepo.DeleteByBirthDetailId(birthDetailId);          // FK_Fact_Vargottama_ChartResult (no cascade)
         _dashaPeriodsRepo.DeleteByBirthDetailId(birthDetailId);
         _chartResultsRepo.DeleteByBirthDetailId(birthDetailId);
+        _birthDetailsRepo.UnlinkAyanamsaBenchmarkCases(birthDetailId);  // release the FK, don't delete the benchmark case
         _birthDetailsRepo.Delete(birthDetailId);
     }
 }
