@@ -21,12 +21,13 @@
         @if (Active.Id is int personId)
         {
             <nav class="ik-tabs" aria-label="Person sections">
-                @* ALL CHARTS / KEY INFERENCE fall back to the v1 chart workspace until their own
-                   v2 slices land (the v1 /evidence + /timing routes are unstable right now — a
-                   database-workstream regression). *@
+                @* ALL CHARTS still falls back to the v1 chart workspace until its own v2 slice
+                   lands (the v1 /evidence + /timing routes are unstable right now — a
+                   database-workstream regression). KEY INFERENCE now has a real Step 1
+                   (D1 / Transit) at /key-inference — steps 2.1–6 are still to come. *@
                 <a href="@($"/transit-wheel/{personId}")" class="ik-tab @TabClass("transit")">TRANSIT</a>
                 <a href="@($"/charts/{personId}")" class="ik-tab @TabClass("charts")">ALL CHARTS</a>
-                <a href="@($"/charts/{personId}")" class="ik-tab @TabClass("keyinf")">KEY INFERENCE</a>
+                <a href="@($"/key-inference/{personId}")" class="ik-tab @TabClass("keyinf")">KEY INFERENCE</a>
             </nav>
         }
         <MudSpacer />

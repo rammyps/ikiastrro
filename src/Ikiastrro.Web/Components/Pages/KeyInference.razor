@@ -1,0 +1,164 @@
+@page "/key-inference/{Id:int}"
+@using System.Globalization
+@using Ikiastrro.Web.Components.Workspace
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject ChartResultsRepository ChartResultsRepo
+@inject ChartKeyDetailsRepository ChartKeyDetailsRepo
+@inject ChartHouseLordsRepository ChartHouseLordsRepo
+@inject ChartAspectsRepository ChartAspectsRepo
+@inject ChartConjunctionsRepository ChartConjunctionsRepo
+@inject ChartTypeRepository ChartTypeRepo
+@inject Ikiastrro.Data.GocharaRepository Gochara
+@inject ActivePerson Active
+
+@* Key Inference — docs/ui/components/key-inference.md. Step 1 of 6 ("D1 / Transit") only;
+   steps 2.1–6 land in later passes. Same South-Indian grid component as /charts (Codex
+   `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not modified) in place of
+   the mockup's hand-rolled SVG. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1")
+   for free styling/columns; the Current Transit tab mirrors Natal_Transit_Comp_Wheel.razor's
+   Gochara table, sourced from this page's own WorkspaceData load rather than a second repo call. *@
+
+<PageTitle>Key Inference — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
+
+@if (_data is null)
+{
+    <section class="ki-unavailable" role="status">
+        <h1 class="ki-heading">KEY INFERENCE</h1>
+        <p>D1 is not computed for this person.</p>
+        <a href="/">Choose a saved person</a>
+    </section>
+}
+else
+{
+    var lc = _data.Charts["D1"];
+
+    <div class="ki-stephead">
+        <span class="ki-stepnum">Step 1 of 6</span>
+        <h1 class="ki-heading">D1 / Transit</h1>
+    </div>
+
+    <div class="ki-gridwrap">
+        <SouthIndianGrid_Detailed AscendantSign="@lc.AscendantSign" MoonSign="@lc.MoonSign"
+                         PlanetsBySign="PlanetsBySign(lc)" CenterTitle="D1">
+            <CenterMeta><b>Lagna</b> @Disp(lc.AscendantSign)</CenterMeta>
+        </SouthIndianGrid_Detailed>
+    </div>
+
+    <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="ki-tabs">
+        <MudTabPanel Text="D1 Birth">
+            <PlanetPositionsTable Rows="Rows(lc)" LagnaSign="@lc.AscendantSign" Variant="d1" ShowDignity="true" />
+        </MudTabPanel>
+
+        <MudTabPanel Text="Current Transit">
+            @if (_transitError is not null || _transits.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                    Transit reference not backfilled — run <code>backfill-planet-transits</code>.
+                </MudAlert>
+            }
+            else
+            {
+                <div class="ki-scroll">
+                    <MudSimpleTable Dense="true" Hover="true" Bordered="false" Class="ki-table">
+                        <thead>
+                            <tr>
+                                <th>House<br />from D1</th><th>Planet</th><th>Motion</th><th>Degree</th>
+                                <th>Speed<br />°/day</th><th>In sign<br />since</th>
+                                <th>In-sign<br />motion</th><th>Next<br />change</th><th>Next-change<br />motion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in TransitRows)
+                            {
+                                <tr>
+                                    <td class="num">@(HouseFromD1(s)?.ToString() ?? "—")</td>
+                                    <td>@s.Planet</td>
+                                    <td>@s.MotionDirection</td>
+                                    <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
+                                    <td class="num">@s.SpeedDegreesPerDay.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                    <td class="num">@s.InSignSinceUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</td>
+                                    <td>@(s.InSignMotion ?? "—")</td>
+                                    <td class="num">@(s.NextChangeUtc?.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) ?? "—")</td>
+                                    <td>@(s.NextChangeMotion ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                </div>
+            }
+        </MudTabPanel>
+    </MudTabs>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private WorkspaceData? _data;
+    private string? _transitError;
+    private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();
+    private Dictionary<string, string> _natalSignByPlanet = new(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly string[] SignById =
+        { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
+          "Sagittarius", "Capricorn", "Aquarius", "Pisces" };
+
+    protected override void OnParametersSet()
+    {
+        _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
+            ChartHouseLordsRepo, ChartAspectsRepo, ChartConjunctionsRepo, ChartTypeRepo.GetAll());
+        if (_data is not null && !_data.Charts.ContainsKey("D1")) _data = null; // no D1 → treat as not found
+
+        if (_data is null)
+        {
+            Active.Clear();
+            return;
+        }
+
+        var p = _data.Person;
+        Active.Set(Id, p.Name,
+            $"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
+
+        var lc = _data.Charts["D1"];
+        _natalSignByPlanet = lc.Grahas
+            .Where(k => !string.IsNullOrWhiteSpace(k.Sign))
+            .GroupBy(k => k.Planet, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().Sign, StringComparer.OrdinalIgnoreCase);
+
+        LoadTransits();
+    }
+
+    private void LoadTransits()
+    {
+        try
+        {
+            _transits = Gochara.GetSnapshots(DateTime.UtcNow);
+            _transitError = null;
+        }
+        catch (Exception ex)
+        {
+            _transitError = ex.Message;
+            _transits = Array.Empty<PlanetTransitSnapshot>();
+        }
+    }
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+
+    private static IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> PlanetsBySign(LoadedChart lc) =>
+        lc.Grahas.Where(k => k.Planet != "Ascendant")
+            .GroupBy(k => k.Sign)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<GridPlanetGlyph>)g.Select(k => new GridPlanetGlyph(
+                k.Planet, ChartViewModel.DignityToken(k.DignityStatus),
+                k.IsRetrograde ?? false, k.IsCombust ?? false)).ToList());
+
+    private static IReadOnlyList<PlanetRow> Rows(LoadedChart lc) =>
+        ChartViewModel.BuildPlanetRows(lc.KeyDetails, lc.HouseLords, lc.Aspects);
+
+    private IEnumerable<PlanetTransitSnapshot> TransitRows =>
+        _transits.OrderBy(s => Natal_Transit_Comp_WheelMath.PlanetRank(s.Planet.ToString()));
+
+    private int? HouseFromD1(PlanetTransitSnapshot s) =>
+        Natal_Transit_Comp_WheelMath.HouseFromD1(
+            _natalSignByPlanet.GetValueOrDefault(s.Planet.ToString()), SignName(s.SignId));
+
+    private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
+}

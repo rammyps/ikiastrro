@@ -8,10 +8,15 @@
     display: grid;
     /* Controls left, art right. The art is BOUNDED (no bleed) — its right edge sits on the
        page gutter, and the gap between the two columns equals that same gutter (--pad-x), so
-       the spacing left-of-heading, heading-to-art, and art-to-edge all match. */
+       the spacing left-of-heading, heading-to-art, and art-to-edge all match.
+       align-items:stretch (the grid default, set explicitly here as documentation) makes both
+       columns exactly as tall as the row needs — which .home-main now defines on its own,
+       since Preferences moved above this grid: .home-main starts at the "Discover Your Path"
+       heading and, once the Add-New form is open, ends at its Cancel button. .home-art then
+       fills that exact height (see object-fit:contain below) with no JS measurement. */
     grid-template-columns: minmax(0, 1fr) minmax(300px, 46%);
     gap: var(--pad-x);
-    align-items: start;
+    align-items: stretch;
     width: 100%;
     min-height: calc(100vh - 160px);
     color: var(--brand-midnight);
@@ -23,10 +28,10 @@
 .home-main {
     max-width: 640px;
     padding-top: 1.5rem;
-    align-self: start;
 }
 
-/* Preferences — top-left disclosure */
+/* Preferences — top-left disclosure, above the two-column grid so it doesn't shift
+   .home-main's top edge away from the heading (see .home comment above). */
 .home-prefs {
     margin-bottom: 1.25rem;
 }
@@ -166,18 +171,21 @@
     color: var(--danger, #b3261e);
 }
 
-/* Ganesha / Navagraha art — bounded right column, top-aligned (starts just under the app
-   bar). Its right edge lands on the page gutter; --pad-x of clear space on every side. */
+/* Ganesha / Navagraha art — bounded right column. Its right edge lands on the page gutter;
+   --pad-x of clear space on every side. Height matches .home-main exactly (heading → Cancel
+   button, see .home above) via grid stretch + object-fit:contain, not a fixed/aspect-ratio
+   box — no cropping, no distortion, and it grows/shrinks live as the Add-New form opens. */
 .home-art {
-    align-self: start;
     overflow: hidden;
 }
 
 .home-art img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
     max-width: none;
+    object-fit: contain;
+    object-position: right center;
 }
 
 /* Primary buttons are sunset-filled via the app theme (IkiastrroTheme). */

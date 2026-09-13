@@ -9,33 +9,36 @@
 
 <PageTitle>Iki-Astrro · Discover Your Path</PageTitle>
 
-<div class="home">
-    <div class="home-main">
-
-        <div class="home-prefs">
-            <MudButton Variant="Variant.Text" DropShadow="false" Class="home-prefs-toggle"
-                       StartIcon="@(_prefsOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.Tune)"
-                       OnClick="@(() => _prefsOpen = !_prefsOpen)">
-                Preferences
-            </MudButton>
-            <MudCollapse Expanded="_prefsOpen">
-                <div class="home-prefs-body">
-                    <MudSelect T="string" Label="Choose Ayanāṁśa" Value="_ayanamsaCode"
-                               ValueChanged="OnAyanamsaChanged" Dense="true" Variant="Variant.Outlined">
-                        @foreach (var a in AyanamsaDefinition.Catalog)
-                        {
-                            <MudSelectItem T="string" Value="@a.Code">@AyanamsaLabel(a)</MudSelectItem>
-                        }
-                    </MudSelect>
-                    <MudSelect T="string" Label="Choose Chart Type" Value="_chartStyle"
-                               ValueChanged="OnChartStyleChanged" Dense="true" Variant="Variant.Outlined">
-                        <MudSelectItem T="string" Value="@("south-indian")">South Indian — default</MudSelectItem>
-                        <MudSelectItem T="string" Value="@("north-indian")" Disabled="true">North Indian — planned</MudSelectItem>
-                        <MudSelectItem T="string" Value="@("west-indian")" Disabled="true">West Indian — planned</MudSelectItem>
-                    </MudSelect>
-                </div>
-            </MudCollapse>
+<div class="home-prefs">
+    <MudButton Variant="Variant.Text" DropShadow="false" Class="home-prefs-toggle"
+               StartIcon="@(_prefsOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.Tune)"
+               OnClick="@(() => _prefsOpen = !_prefsOpen)">
+        Preferences
+    </MudButton>
+    <MudCollapse Expanded="_prefsOpen">
+        <div class="home-prefs-body">
+            <MudSelect T="string" Label="Choose Ayanāṁśa" Value="_ayanamsaCode"
+                       ValueChanged="OnAyanamsaChanged" Dense="true" Variant="Variant.Outlined">
+                @foreach (var a in AyanamsaDefinition.Catalog)
+                {
+                    <MudSelectItem T="string" Value="@a.Code">@AyanamsaLabel(a)</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Choose Chart Type" Value="_chartStyle"
+                       ValueChanged="OnChartStyleChanged" Dense="true" Variant="Variant.Outlined">
+                <MudSelectItem T="string" Value="@("south-indian")">South Indian — default</MudSelectItem>
+                <MudSelectItem T="string" Value="@("north-indian")" Disabled="true">North Indian — planned</MudSelectItem>
+                <MudSelectItem T="string" Value="@("west-indian")" Disabled="true">West Indian — planned</MudSelectItem>
+            </MudSelect>
         </div>
+    </MudCollapse>
+</div>
+
+<div class="home">
+    @* .home-main starts at the heading, not the Preferences toggle above, so its rendered
+       height — from here down to the Cancel button when the Add-New form is open — is what
+       .home-art (align-items:stretch + object-fit:contain below) actually matches. *@
+    <div class="home-main">
 
         <h1 class="home-title">Discover Your Path<span class="home-title-sprout" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none">
             <path d="M16 31V15" stroke="#4c8a52" stroke-width="2.6" stroke-linecap="round" />
@@ -81,8 +84,8 @@
                 @* Editable so a birth date/time can be typed straight in — a calendar click-path
                    back to a 1900s birth year is unusable. OpenTo=Year for the same reason. *@
                 <MudDatePicker Label="Date of Birth" @bind-Date="_f.Dob" Variant="Variant.Outlined"
-                               Editable="true" OpenTo="OpenTo.Year" DateFormat="dd MMM yyyy"
-                               MinDate="_minDob" MaxDate="DateTime.Today" Placeholder="dd MMM yyyy" />
+                               Editable="true" OpenTo="OpenTo.Year" DateFormat="dd/MM/yyyy"
+                               MinDate="_minDob" MaxDate="DateTime.Today" Placeholder="dd/MM/yyyy" />
                 <MudTimePicker Label="Time of Birth" @bind-Time="_f.Tob" Variant="Variant.Outlined"
                                Editable="true" AmPm="true" Placeholder="hh:mm AM/PM" />
                 <MudTextField T="string" Label="City" @bind-Value="_f.City" Variant="Variant.Outlined" Margin="Margin.Dense" />
@@ -155,7 +158,7 @@
                 .Where(p => p.Name.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase))
                 .OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase);
 
-    private static string BirthLine(BirthDetails p) => $"{p.DateOfBirth:dd MMM yyyy} · {p.PlaceCity}";
+    private static string BirthLine(BirthDetails p) => $"{p.DateOfBirth:dd/MM/yyyy} · {p.PlaceCity}";
 
     private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/transit-wheel/{p.Id}");
 
