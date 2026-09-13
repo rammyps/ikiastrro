@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-13
+last_updated: 2026-09-14
 ---
 
 # Reference sources — citation registry (`SRC_*`)
@@ -45,6 +45,7 @@ note), never left silent. Coverage / reconciliation status per chapter:
 | `SRC_VEDASTRO` | VedAstro.Library | (open source) | pre-2026-08-24 | mixed | historical — replaced by SwissEphNet | enum spellings (`Capricornus`, `Aswini`) inherited from here |
 | `SRC_SWISSEPH` | Swiss Ephemeris / SwissEphNet | Astrodienst / port | SwissEphNet 2.8.0.2 | astronomy | `SwissEphemerisProvider` | Moshier mode, Lahiri sidereal |
 | `SRC_TB_1_5_1_NAKSHATRAS` | Taittiriya Brahmana 1.5.1 — Nakṣatra powers | Taittiriya recension (traditional) | Sanskrit Documents `taittirIyabrAhmaNamniHsvaraH.pdf`, 2026 typeset | Vedic | `master` branch migration `072_seed_taittiriya_brahmana_nakshatra_text.sql` (applied to the shared dev DB; not yet a workstream/database migration) | Accentless Devanagari text; cite printed pages 34–35 and section unit. |
+| `SRC_VASUDEV_MATCHING_CHARTS` | The Art of Matching Charts | Gayatri Devi Vasudev | — | classical | `tbl_Nakshatras.Gana`/`YoniAnimal`/`YoniGender`/`Nadi` (migration 098) | Ch. VI "Kuta Agreement": Varna table p.66 (confirms Varna Kuta is Rasi-level, not nakshatra-level — cross-checks `tbl_SignAttributes.Varna_Class`, no change made there), Yoni Kuta table p.69, Gana table p.71, Nadi table p.75. A worked example on p.82 ("Jyeshta — Sleshma") conflicts with the book's own master Nadi table on p.75 (Jyeshta = Vata there); treated as a typo in the example, not a second convention. Registered 2026-09-14. Local: `D:\Vedic Astrology\Vedic Astology Books\The Art of Matching Charts, autured by Gayatri Devi Vasudev.pdf` — scanned, no text layer; read via rendered page images (`pdftotext`/OCR both fail on this file). |
 
 ## 2026-09-13 reconciliation — local library cross-check (migration 088)
 

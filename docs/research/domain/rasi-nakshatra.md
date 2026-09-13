@@ -128,7 +128,12 @@ edition before seeding because later tables do not always agree.
 
 - Which edition is canonical for rising type, day/night, animal class, and body-part
   mappings?
-- Which deity/symbol spellings and compatibility taxonomies should be seeded when
-  editions disagree?
+- ~~Which deity/symbol spellings and compatibility taxonomies should be seeded when
+  editions disagree?~~ Resolved for Gana/Yoni/Nadi 2026-09-14: `SRC_VASUDEV_MATCHING_CHARTS`
+  (migration 098) — see `reference-data-tables.md` and `docs/research/sources.md`. Varna
+  turned out not to be a nakṣatra-level compatibility taxonomy at all (it's Rasi-level,
+  already seeded); Tatva is still open — that book doesn't cover it.
 - Should the UI expose the interpretive “core function” text, or only sourced fields?
 - Should an alternative 28-nakṣatra/Abhijit rule set be represented in the schema?
+- Which named source covers Tatva (Prithvi/Jal/Agni/Vayu/Akash) per nakṣatra? Not part of
+  either Kuta scheme (8-factor or 10-factor) in `SRC_VASUDEV_MATCHING_CHARTS`.

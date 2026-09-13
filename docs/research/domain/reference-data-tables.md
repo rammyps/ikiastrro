@@ -295,11 +295,25 @@ own exaltation sign — caught errors in 5 of 12 rows (Aries, Taurus, Cancer, Sc
 before they were seeded. Also corrected: `SymbolAnimalType` had Cancer as `Keeta` (insect)
 instead of `Jalachara` (aquatic).
 
-**Deliberately left NULL, not guessed:** `tbl_SignAttributes.RisingType` (all 12 rows) and
-`tbl_Nakshatras.Guna`/`Gana`/`YoniAnimal`/`YoniGender`/`Nadi`/`Varna`/`Tatva`/`Direction` (all
-27 rows) — these are legitimate single-answer classical tables, but reproducing all of them
-correctly from memory without one cited source risked exactly the kind of subtle, silently-wrong
-data this project has caught before (VedAstro's ayanamsha/Ketu bugs). Structure is ready;
+**Resolved 2026-09-14 (migration 098):** `tbl_Nakshatras.Gana`/`YoniAnimal`/`YoniGender`/`Nadi`
+are now seeded from `SRC_VASUDEV_MATCHING_CHARTS` (Ch. VI "Kuta Agreement", pp.69–75) — see
+`docs/research/sources.md`. `Varna` was checked against the same book (p.66) and confirmed to be
+a **Rasi-level** attribute (Moon-sign, not nakshatra), already correctly seeded on
+`tbl_SignAttributes.Varna_Class`; `tbl_Nakshatras.Varna` is left NULL rather than populated with
+an ambiguous duplicate, since 9 of the 27 nakshatras straddle a sign boundary (same caveat as
+`tbl_Rule_SignNakshatra.RasiId`, migration 096). Live web research on this same field independently
+turned up "Mleccha" as an answer for one nakshatra — not even a value the schema's 4-value CHECK
+constraint allows — confirming Varna genuinely means different things across sources/traditions
+at nakshatra granularity, which is why it stays NULL rather than being guessed from an
+unnamed source.
+
+**Still deliberately left NULL, not guessed:** `tbl_SignAttributes.RisingType` (all 12 rows) and
+`tbl_Nakshatras.Guna`/`Varna`/`Tatva`/`Direction` (all 27 rows) — these remain legitimate
+single-answer classical tables, but reproducing them correctly from memory without one cited
+source risked exactly the kind of subtle, silently-wrong data this project has caught before
+(VedAstro's ayanamsha/Ketu bugs). `Tatva` in particular is a distinct Panchatattva scheme that
+`SRC_VASUDEV_MATCHING_CHARTS` does not cover at all (outside both the 8-factor and 10-factor Kuta
+schemes it works through) — still needs its own named source. Structure is ready for all four;
 populate via an `UPDATE` once a specific source is picked and cross-checked.
 
 > **Sourcing status (reviewed 2026-08-30, `../../cli/gap-and-coverage.md`):** the vendored computation
