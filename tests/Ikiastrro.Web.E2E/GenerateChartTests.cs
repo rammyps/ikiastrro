@@ -14,7 +14,7 @@ namespace Ikiastrro.Web.E2E;
 public sealed class GenerateChartTests(PlaywrightFixture fixture, ITestOutputHelper output)
     : E2ETestBase(fixture)
 {
-    private static readonly System.Text.RegularExpressions.Regex TransitUrl = new(@"/transit-wheel/\d+");
+    private static readonly System.Text.RegularExpressions.Regex TransitUrl = new(@"/key-inference/\d+");
     private const string Person = "E2E GenTest Person";
     private const string RenamedPerson = "E2E GenTest Renamed";
 
@@ -47,15 +47,15 @@ public sealed class GenerateChartTests(PlaywrightFixture fixture, ITestOutputHel
         catch (TimeoutException)
         {
             var err = await Page.Locator(".home-form-error").TextContentAsync();
-            Assert.Fail($"Generate did not navigate to the transit page. Inline error: \"{err?.Trim()}\"");
+            Assert.Fail($"Generate did not navigate to the key-inference page. Inline error: \"{err?.Trim()}\"");
         }
 
-        // ---- the generated chart must actually have data ---------------------
-        await Expect(Page.GetByText("Generate a D1 chart for this person first")).Not.ToBeVisibleAsync();
-        await Expect(Page.Locator(".tw-table tbody tr").First).ToBeVisibleAsync(new() { Timeout = 15_000 });
-        var d1Rows = await Page.Locator(".tw-table tbody tr").CountAsync();
+        // ---- the generated chart must actually have data (D1 Birth tab, active by default) ----
+        await Expect(Page.GetByText("D1 is not computed for this person")).Not.ToBeVisibleAsync();
+        await Expect(Page.Locator(".ppt tbody tr").First).ToBeVisibleAsync(new() { Timeout = 15_000 });
+        var d1Rows = await Page.Locator(".ppt tbody tr").CountAsync();
         output.WriteLine($"D1 Birth table rows after generate: {d1Rows}");
-        Assert.True(d1Rows >= 8, $"expected >= 8 D1 rows on the transit page, got {d1Rows}");
+        Assert.True(d1Rows >= 8, $"expected >= 8 D1 rows on the key-inference page, got {d1Rows}");
 
         // ---- rename from /charts (Edit — name only, no chart rebuild) ----------
         await OpenAsync("/charts");

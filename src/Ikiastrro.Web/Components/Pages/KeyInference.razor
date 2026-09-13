@@ -9,14 +9,18 @@
 @inject ChartConjunctionsRepository ChartConjunctionsRepo
 @inject ChartTypeRepository ChartTypeRepo
 @inject Ikiastrro.Data.GocharaRepository Gochara
+@inject Ikiastrro.Data.Natal_Transit_Comp_WheelRepository D1WheelRepo
+@inject DashaPeriodsRepository DashaRepo
 @inject ActivePerson Active
 
 @* Key Inference — docs/ui/components/key-inference.md. Step 1 of 6 ("D1 / Transit") only;
    steps 2.1–6 land in later passes. Same South-Indian grid component as /charts (Codex
-   `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not modified) in place of
-   the mockup's hand-rolled SVG. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1")
-   for free styling/columns; the Current Transit tab mirrors Natal_Transit_Comp_Wheel.razor's
-   Gochara table, sourced from this page's own WorkspaceData load rather than a second repo call. *@
+   `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not modified) for the
+   "D1 Birth" tab. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1") for free
+   styling/columns. The standalone /transit-wheel page has been folded into the "Current
+   Transit" tab wholesale — wheel chart, date/dasha selector, and Gochara table — reusing its
+   Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath exactly;
+   only the chart shown under a tab now, not a separate route. *@
 
 <PageTitle>Key Inference — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
 
@@ -34,22 +38,78 @@ else
 
     <div class="ki-stephead">
         <span class="ki-stepnum">Step 1 of 6</span>
-        <h1 class="ki-heading">D1 / Transit</h1>
-    </div>
-
-    <div class="ki-gridwrap">
-        <SouthIndianGrid_Detailed AscendantSign="@lc.AscendantSign" MoonSign="@lc.MoonSign"
-                         PlanetsBySign="PlanetsBySign(lc)" CenterTitle="D1">
-            <CenterMeta><b>Lagna</b> @Disp(lc.AscendantSign)</CenterMeta>
-        </SouthIndianGrid_Detailed>
+        <h1 class="ki-heading">D1-TRANSIT</h1>
     </div>
 
     <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="ki-tabs">
         <MudTabPanel Text="D1 Birth">
+            <div class="ki-gridwrap">
+                <SouthIndianGrid_Detailed AscendantSign="@lc.AscendantSign" MoonSign="@lc.MoonSign"
+                                 PlanetsBySign="PlanetsBySign(lc)" CenterTitle="D1">
+                    <CenterMeta><b>Lagna</b> @Disp(lc.AscendantSign)</CenterMeta>
+                </SouthIndianGrid_Detailed>
+            </div>
+
             <PlanetPositionsTable Rows="Rows(lc)" LagnaSign="@lc.AscendantSign" Variant="d1" ShowDignity="true" />
         </MudTabPanel>
 
         <MudTabPanel Text="Current Transit">
+            @if (_selection is not null)
+            {
+                <section class="ki-controls" aria-label="Transit date and dasha filters">
+                    <label class="ki-field">
+                        <span>Current transit date</span>
+                        <input type="month" value="@DateValue" @onchange="OnDateChanged" />
+                    </label>
+                    <label class="ki-field">
+                        <span>Mahadasha</span>
+                        <select value="@(_selection.Maha?.Id.ToString() ?? string.Empty)" @onchange="OnMahaChanged">
+                            <option value="">Select Mahadasha</option>
+                            @foreach (var period in _selection.Periods)
+                            {
+                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="ki-field">
+                        <span>Antardasha</span>
+                        <select value="@(_selection.Antar?.Id.ToString() ?? string.Empty)" @onchange="OnAntarChanged" disabled="@(_selection.Maha is null)">
+                            <option value="">Select Antardasha</option>
+                            @foreach (var period in _selection.AntarPeriods)
+                            {
+                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="ki-field">
+                        <span>Pratyantar</span>
+                        <select value="@(_selection.Pratyantar?.Id.ToString() ?? string.Empty)" @onchange="OnPratyantarChanged" disabled="@(_selection.Antar is null)">
+                            <option value="">Select Pratyantar</option>
+                            @foreach (var period in _selection.PratyantarPeriods)
+                            {
+                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                            }
+                        </select>
+                    </label>
+                </section>
+            }
+
+            <div class="ki-wheel">
+                @if (_d1.Count > 0)
+                {
+                    <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
+                                       NatalPoints="@D1WheelPoints"
+                                       TransitPoints="@TransitWheelPoints"
+                                       AsOfUtc="@_asOfUtc" />
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                        Generate a D1 chart for this person first.
+                    </MudAlert>
+                }
+            </div>
+
             @if (_transitError is not null || _transits.Count == 0)
             {
                 <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -96,7 +156,10 @@ else
     private WorkspaceData? _data;
     private string? _transitError;
     private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();
+    private IReadOnlyList<Ikiastrro.Data.Natal_Transit_Comp_WheelD1Row> _d1 = Array.Empty<Ikiastrro.Data.Natal_Transit_Comp_WheelD1Row>();
     private Dictionary<string, string> _natalSignByPlanet = new(StringComparer.OrdinalIgnoreCase);
+    private DateTime _asOfUtc = DateTime.UtcNow;
+    private TransitSelection? _selection;
 
     private static readonly string[] SignById =
         { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
@@ -124,6 +187,14 @@ else
             .GroupBy(k => k.Planet, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First().Sign, StringComparer.OrdinalIgnoreCase);
 
+        _d1 = D1WheelRepo.LoadD1Birth(Id);
+
+        var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
+            ? parsedOffset
+            : TransitSelection.IstOffset;
+        _selection = new TransitSelection(DashaRepo.GetTreeByBirthDetailId(Id), offset, DateTimeOffset.UtcNow);
+        _asOfUtc = _selection.ActiveUtc.UtcDateTime;
+
         LoadTransits();
     }
 
@@ -131,7 +202,7 @@ else
     {
         try
         {
-            _transits = Gochara.GetSnapshots(DateTime.UtcNow);
+            _transits = Gochara.GetSnapshots(_asOfUtc);
             _transitError = null;
         }
         catch (Exception ex)
@@ -140,6 +211,49 @@ else
             _transits = Array.Empty<PlanetTransitSnapshot>();
         }
     }
+
+    private string DateValue => _selection?.ActiveIst.ToString("yyyy-MM", CultureInfo.InvariantCulture) ?? string.Empty;
+
+    private void OnDateChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !DateTime.TryParseExact(args.Value?.ToString(), "yyyy-MM",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) return;
+        _selection.SetDate(date);
+        RefreshSelection();
+    }
+
+    private void OnMahaChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectMaha(id);
+        RefreshSelection();
+    }
+
+    private void OnAntarChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectAntar(id);
+        RefreshSelection();
+    }
+
+    private void OnPratyantarChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectPratyantar(id);
+        RefreshSelection();
+    }
+
+    private void RefreshSelection()
+    {
+        _asOfUtc = _selection!.ActiveUtc.UtcDateTime;
+        LoadTransits();
+    }
+
+    private static string PeriodDates(Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord period) =>
+        $"{period.StartDate:MM/yyyy} – {period.EndDate:MM/yyyy}";
+
+    private static string PlanetGlyph(string planet) =>
+        Ikiastrro.Core.Presentation.ChartViewModel.PlanetGlyph(planet);
 
     private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
 
@@ -152,6 +266,13 @@ else
 
     private static IReadOnlyList<PlanetRow> Rows(LoadedChart lc) =>
         ChartViewModel.BuildPlanetRows(lc.KeyDetails, lc.HouseLords, lc.Aspects);
+
+    private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> D1WheelPoints => _d1
+        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet, r.LongitudeDegrees,
+            r.DegreesInSignDisplay, r.Sign, r.DignityStatus, r.DeepExaltationDegree, r.CharaKaraka)).ToList();
+
+    private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> TransitWheelPoints => _transits
+        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();
 
     private IEnumerable<PlanetTransitSnapshot> TransitRows =>
         _transits.OrderBy(s => Natal_Transit_Comp_WheelMath.PlanetRank(s.Planet.ToString()));

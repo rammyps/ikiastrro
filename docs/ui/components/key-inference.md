@@ -28,7 +28,7 @@ separate headers alongside this flow, not steps in it.
 
 | Step | Chart | Table | Source |
 |---|---|---|---|
-| **1 · D1 / Transit** | D1 South-Indian grid | D1 position table (House · Planet · Sign · Degree · **Nakṣatra · Pāda** — moved here from Planet Dignity) + D1 Birth / Current Transit toggle | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
+| **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table (House · Planet · Sign · Degree · **Nakṣatra · Pāda** — moved here from Planet Dignity) + D1 Birth / Current Transit toggle | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
 | **2.1 · About Houses** | occupancy bar (grahas per house) | house lords + occupants + aspects + conjunctions, one row per house | `tbl_Chart_HouseLords` + `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
 | **2.2 · About Planets** | closeness-to-exaltation bar (7 grahas) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
@@ -65,8 +65,12 @@ flow above instead of sitting in a side panel:
 
 ## Open questions
 
-- Does step 1 replace the dedicated `/transit-wheel/{id}` landing, or stay a duplicate light
-  view inside this analytical flow? The mockup keeps it duplicated so the file reviews
-  standalone; not decided for the real build.
+- ~~Does step 1 replace the dedicated `/transit-wheel/{id}` landing, or stay a duplicate light
+  view~~ **Decided (2026-09-14):** the standalone `/transit-wheel/{id}` page is gone. Its wheel
+  chart, date/dasha selector, and Gochara table now render inside this page's own "Current
+  Transit" tab (`Natal_Transit_Comp_WheelRepository`/`TransitSelection`/
+  `Natal_Transit_Comp_WheelMath` reused as-is); the "D1 Birth" tab keeps the plain South-Indian
+  grid + position table. `MainLayout`'s standalone TRANSIT nav tab was removed to match — Home's
+  "open person" / post-generate navigation now lands on `/key-inference/{id}`.
 - `tbl_Rule_Exaltation` is still a `workstream/database` follow-up once this flow is approved.
   The `tbl_Rule_Yoga` Type/Rule fields landed in `db/079` — see the sourcing-status table above.

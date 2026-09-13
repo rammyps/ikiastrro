@@ -102,7 +102,7 @@ else
 
     private IReadOnlyList<DataTable<Row>.Column> Cols => new[]
     {
-        new DataTable<Row>.Column("Name", r => r.Person.Name, r => @<a href="@($"/charts/{r.Person.Id}")">@r.Person.Name</a>),
+        new DataTable<Row>.Column("Name", r => r.Person.Name, r => @<a href="@($"/key-inference/{r.Person.Id}")">@r.Person.Name</a>),
         new DataTable<Row>.Column("Date of Birth", r => r.Person.DateOfBirth, r => @<text>@r.Person.DateOfBirth.ToString("d MMM yyyy")</text>),
         new DataTable<Row>.Column("Place", r => r.Person.PlaceCity, r => @<text>@r.Person.PlaceCity, @r.Person.PlaceCountry</text>),
         new DataTable<Row>.Column("", _ => 0, r => @<div class="row-actions">

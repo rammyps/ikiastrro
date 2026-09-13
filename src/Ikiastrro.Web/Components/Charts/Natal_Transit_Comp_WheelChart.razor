@@ -12,20 +12,6 @@
               class="@(i % 2 == 0 ? "ntw-nak-sector ntw-nak-sector-orange" : "ntw-nak-sector ntw-nak-sector-blue")" />
     }
 
-    @for (var i = 0; i < 36; i++)
-    {
-        var tickLongitude = i * 10d;
-        var (tickX1, tickY1) = Xy(tickLongitude, 116);
-        var (tickX2, tickY2) = Xy(tickLongitude, i % 3 == 0 ? 103 : 108);
-        <line x1="@F(tickX1)" y1="@F(tickY1)" x2="@F(tickX2)" y2="@F(tickY2)"
-              class="@(i % 3 == 0 ? "ntw-degree-tick ntw-degree-tick-major" : "ntw-degree-tick")" />
-    }
-    @for (var i = 0; i < 36; i++)
-    {
-        var (degreeX, degreeY) = Xy(i * 10d, 94);
-        <g><text x="@F(degreeX)" y="@F(degreeY)" class="ntw-degree-label">@((i % 3) * 10)°</text></g>
-    }
-
     @for (var i = 0; i < 27; i++)
     {
         var longitude = i * (360d / 27d);
@@ -67,8 +53,8 @@
 
     <text x="400" y="88" class="ntw-ring-title">TRANSIT</text>
     <text x="400" y="108" class="ntw-ring-sub">CURRENT</text>
-    <text x="400" y="218" class="ntw-ring-title ntw-dark">NATAL</text>
-    <text x="400" y="238" class="ntw-ring-sub ntw-dark">D1</text>
+    <text x="400" y="218" class="ntw-ring-title ntw-natal-title">NATAL</text>
+    <text x="400" y="238" class="ntw-ring-sub ntw-natal-title">D1</text>
 
     @foreach (var p in Positioned(NatalPoints, 127, 22, 4))
     {
