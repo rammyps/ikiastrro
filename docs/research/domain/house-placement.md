@@ -223,3 +223,68 @@ completed with zero failed/empty pages; six key Volume II scans were visually ch
 Validation also covers page-marker continuity, evidence-key/link checks and scoped diff
 review. Chart grids and complete executable rule normalisation remain unverified; no
 application tests were run for this research-only change.
+
+## First-house pilot — seeded 2026-09-13
+
+The first-house pilot called for above is now database-backed, on `workstream/database`:
+
+- `db/089_create_research_house_lord_in_house_tables.sql` creates the isolated
+  `research.tbl_Dim_SourceReferenceHouseLordInHouse` (+ `…Text` / `…Attribute` / `…Claim` /
+  `…Crosswalk`) family, mirroring the existing planet-in-house research schema
+  (`db/059_create_research_planet_in_house_tables.sql`) but keyed by (owned house, occupied
+  house) instead of (planet, house). `HouseSystemCode`/`ReferencePointCode` default to
+  `WHOLE_SIGN`/`LAGNA`, carrying forward this doc's 2026-09-07 decision.
+- `db/090_seed_house_lord_in_house_pilot_lagna.sql` seeds the Lagna-lord row (owned house 1)
+  across all 12 occupied houses: source pointers to `SRC_RAMAN_HTJH` (RAM-H3, Vol. I printed
+  pp. 21–23 / scan pp. 30–32) and `SRC_PVR_INTEGRATED` (PVR-H4, the whole-sign referral), plus
+  23 paraphrased `Claim` rows (12 `BASELINE` + 11 `WELL_DISPOSED` — the source gives only one
+  branch for the 10th house). Paraphrased, not transcribed, per the project's copyright
+  convention (`CopyrightStatus = 'SummaryOnly'`).
+- Both migrations are idempotent and applied to the dev DB; `verify-schema` / `verify-rules`
+  pass unchanged. `verify-sources` required a bug fix (it hardcoded the `dbo` schema when
+  checking every `SourceRefCode` column, so it had never actually reached any `research.*`
+  table since migration 056 — see `src/Ikiastrro.Cli/Program.cs`). With that fixed, the new
+  `HouseLordInHouse` tables pass; the fix also newly surfaces that four **pre-existing**
+  `research.*` tables (`SourceReferencePlanetText`, `…NakshatraText`, `…HouseText`,
+  `…PlanetInHouseText`) use ad-hoc `SourceRefCode`s never registered in `dbo.tbl_Dim_Source`
+  — unrelated to this pass, left for a separate follow-up.
+- Not yet done: the `Attribute` table (thematic tags) for this pilot; a UI panel surfacing
+  any of this in `HouseLordshipTable.razor`.
+
+## Full 12x12 grid seeded and promoted to production — 2026-09-13
+
+The remaining 132 combinations (owned houses 2–12) are now seeded, and the whole grid is
+promoted to a production rule table:
+
+- `db/091_seed_house_lord_in_house_second_through_sixth.sql` — 2nd–6th lords (60
+  combinations), from Vol. I chapters "Concerning the Second/Third/Fourth House" and "The
+  Fifth House" / "Concerning the Sixth House".
+- `db/092_seed_house_lord_in_house_seventh_through_twelfth.sql` — 7th–12th lords (72
+  combinations), from Vol. II chapters XI–XVI (RAM-II7…RAM-II12 locators). Vol. II frames
+  most of these as "the Nth lord joins/combines with the [occupied]-house lord in that
+  house" — preserved as the source's own framing. The RAM-II9 ninth-lord-in-fourth
+  self-contradiction (see above) is carried through unresolved, flagged in
+  `RequiredConditionsJson`, not silently picked one way.
+- Total: 144/144 combinations, 277 paraphrased claims (`BASELINE` always; `WELL_DISPOSED`
+  and/or `AFFLICTED` wherever the source states a distinct branch — plain `BASELINE`-only
+  where it doesn't, e.g. most of the 4th lord's placements).
+- `db/093_create_rule_house_lord_placement.sql` creates production `dbo.tbl_Rule_HouseLordPlacement`
+  — the sibling of `tbl_Rule_Yoga`, same portability tail (`MethodCode` /
+  `RuleParametersJson` / `CalculationNarrative` / `SourceRefCode` / `IsActive`), registered in
+  `tbl_Rule_Catalog`.
+- `db/094_promote_house_lord_placement_claims.sql` promotes all 277 claims into it (one
+  promotion pass, `InterpretationStatusCode = 'Proposed'` carried over as-is — **not** a
+  manually reviewed pass), records the promotion in each Claim's `Crosswalk` row, and adds
+  `dbo.vw_ChartHouseLordInterpretation` joining the rule table to the already-computed
+  `tbl_Chart_HouseLords` fact per chart. The view's `IsDignitySupported` flag uses
+  `LordDignityStatus` to suggest (never to filter out) when a `WELL_DISPOSED` branch is
+  dignity-backed; it never resolves the aspect/strength half of "well disposed", which has no
+  computed fact yet — every branch is still returned so the caller decides.
+- Verified end-to-end against a real chart's `tbl_Chart_HouseLords` rows (chart 892): all 12
+  houses joined correctly, dignity-based flagging confirmed against a Moolatrikona Lagna
+  lord. All four migrations are idempotent; `verify-schema` / `verify-rules` pass; the
+  pre-existing `verify-sources` gap noted above is unchanged (still 4 failures, none in the
+  new tables).
+- Still not done: `Attribute` rows; a UI panel; and an actual review pass promoting rows past
+  `'Proposed'` — this grid is a first paraphrase of one source's placements, not yet checked
+  against a second author or corrected for the noted internal inconsistencies.
