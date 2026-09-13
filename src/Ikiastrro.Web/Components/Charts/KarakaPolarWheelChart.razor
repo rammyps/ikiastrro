@@ -1,0 +1,78 @@
+@using System.Globalization
+
+<div class="kpw-layout">
+ <svg class="kpw" viewBox="0 0 720 720" role="img" aria-label="Naisargika and Chara Karaka wheel for @ChartCode">
+  <circle cx="360" cy="360" r="344" class="kpw-back" />
+  @foreach (var sector in Sectors.OrderBy(s => s.HouseNumber))
+  {
+   var h=sector.HouseNumber; var a=(h-1)*30d;
+   var natural=Primary.FirstOrDefault(p=>p.HouseNumber==h);
+   var charas=CharaPoints.Where(p=>p.HouseNumber==h).OrderBy(p=>CharaRank(p.Role)).ToList();
+   var (sx,sy)=Xy(a,313); var (hx,hy)=Xy(a,268); var (nx,ny)=Xy(a,215);
+   <g class="kpw-sector @(h==_selectedHouse?"is-selected":null)" role="button" tabindex="0" aria-label="House @h, @DisplaySign(sector.Sign)" @onclick="()=>_selectedHouse=h">
+    <path d="@AnnularSector(a-15,a+15,160,338)" />
+    @if (ShowSigns)
+    {
+     <g><text x="@F(sx)" y="@F(sy)" class="kpw-sign">@SignCode(sector.Sign)</text></g>
+    }
+    @if (ShowHouses)
+    {
+     <g><text x="@F(hx)" y="@F(hy)" class="kpw-house">H@h</text></g>
+    }
+    @if (natural is not null)
+    {
+     <g>
+      <circle cx="@F(nx)" cy="@F(ny)" r="23" class="kpw-primary-dot" />
+      <text x="@F(nx)" y="@F(ny-3)" class="kpw-primary">@PlanetCode(natural.Graha)</text>
+      <text x="@F(nx)" y="@F(ny+15)" class="kpw-primary-tag">NK</text>
+     </g>
+    }
+    @for(var i=0;i<charas.Count;i++)
+    {
+     var columns=(charas.Count+1)/2;
+     var markerAngle=a+(i/2-(columns-1)/2d)*8d;
+     var (cx,cy)=Xy(markerAngle,125+(i%2)*30);
+     <g class="kpw-chara"><circle cx="@F(cx)" cy="@F(cy)" r="18"/><text x="@F(cx)" y="@F(cy-3)">@PlanetCode(charas[i].Graha)</text><text x="@F(cx)" y="@F(cy+12)" class="kpw-role">@charas[i].Role</text></g>
+    }
+   </g>
+  }
+  <circle cx="360" cy="360" r="102" class="kpw-core"/>
+  <text x="360" y="318" class="kpw-title">KARAKA</text><text x="360" y="347" class="kpw-chart">@ChartCode</text>
+  <text x="360" y="375" class="kpw-lagna">Lagna @DisplaySign(AscendantSign)</text><text x="360" y="405" class="kpw-hint">NK · natural</text><text x="360" y="425" class="kpw-hint">role · Chara</text>
+ </svg>
+ @if(SelectedSector is {} selected)
+ {
+  var natural=Primary.FirstOrDefault(p=>p.HouseNumber==selected.HouseNumber);
+  var details=Details.Where(d=>d.HouseNumber==selected.HouseNumber).GroupBy(d=>d.Graha).OrderBy(g=>PlanetRank(g.Key));
+  var charas=CharaPoints.Where(p=>p.HouseNumber==selected.HouseNumber).OrderBy(p=>CharaRank(p.Role));
+  <aside class="kpw-detail" aria-live="polite">
+   <p class="kpw-eyebrow">HOUSE @selected.HouseNumber · @DisplaySign(selected.Sign)</p>
+   @if(natural is not null){<h2><span>@PlanetCode(natural.Graha)</span> @natural.Graha</h2><p class="kpw-summary">@natural.MattersSignified</p>}
+   <h3>Natural significations</h3>
+   @foreach(var group in details){<div class="kpw-rule"><b>@PlanetCode(group.Key) @group.Key</b><span>@string.Join(" · ",group.OrderBy(x=>x.DisplayOrder).Select(x=>x.Matter))</span></div>}
+   <h3>Chara Karakas in @ChartCode</h3>
+   @if(charas.Any()){@foreach(var point in charas){<div class="kpw-chara-row"><b>@point.Role</b><span>@PlanetCode(point.Graha) @point.Graha</span></div>}}
+   else{<p class="kpw-empty">No Chara Karaka occupies this house in the selected varga.</p>}
+  </aside>
+ }
+</div>
+
+@code{
+ public sealed record Sector(int HouseNumber,string Sign);
+ public sealed record CharaPoint(string Graha,string Role,int HouseNumber,string Sign);
+ [Parameter,EditorRequired]public IReadOnlyList<Sector>Sectors{get;set;}=Array.Empty<Sector>();
+ [Parameter,EditorRequired]public IReadOnlyList<NaisargikaKarakaRow>Primary{get;set;}=Array.Empty<NaisargikaKarakaRow>();
+ [Parameter,EditorRequired]public IReadOnlyList<NaisargikaKarakatwaRow>Details{get;set;}=Array.Empty<NaisargikaKarakatwaRow>();
+ [Parameter]public IReadOnlyList<CharaPoint>CharaPoints{get;set;}=Array.Empty<CharaPoint>();
+ [Parameter]public string ChartCode{get;set;}="D1"; [Parameter]public string AscendantSign{get;set;}="Aries";
+ [Parameter]public bool ShowSigns{get;set;}=true; [Parameter]public bool ShowHouses{get;set;}=true;
+ private int _selectedHouse=1; private Sector? SelectedSector=>Sectors.FirstOrDefault(s=>s.HouseNumber==_selectedHouse);
+ private static(double X,double Y)Xy(double a,double r){var x=(a-90)*Math.PI/180d;return(360+r*Math.Cos(x),360+r*Math.Sin(x));}
+ private static string AnnularSector(double s,double z,double i,double o){var(a,b)=Xy(s,o);var(c,d)=Xy(z,o);var(e,f)=Xy(z,i);var(g,h)=Xy(s,i);return $"M {F(a)} {F(b)} A {F(o)} {F(o)} 0 0 1 {F(c)} {F(d)} L {F(e)} {F(f)} A {F(i)} {F(i)} 0 0 0 {F(g)} {F(h)} Z";}
+ private static string F(double v)=>v.ToString("0.##",CultureInfo.InvariantCulture);
+ private static string DisplaySign(string s)=>s=="Capricornus"?"Capricorn":s;
+ private static string SignCode(string s)=>DisplaySign(s) switch{"Aries"=>"ARI","Taurus"=>"TAU","Gemini"=>"GEM","Cancer"=>"CAN","Leo"=>"LEO","Virgo"=>"VIR","Libra"=>"LIB","Scorpio"=>"SCO","Sagittarius"=>"SAG","Capricorn"=>"CAP","Aquarius"=>"AQU","Pisces"=>"PIS",_=>s[..Math.Min(3,s.Length)].ToUpperInvariant()};
+ private static string PlanetCode(string p)=>ChartViewModel.PlanetGlyph(p);
+ private static int CharaRank(string r)=>r switch{"AK"=>0,"AmK"=>1,"BK"=>2,"MK"=>3,"PiK"=>4,"PK"=>5,"GK"=>6,"DK"=>7,_=>8};
+ private static int PlanetRank(string p)=>p switch{"Sun"=>0,"Moon"=>1,"Mars"=>2,"Mercury"=>3,"Jupiter"=>4,"Venus"=>5,"Saturn"=>6,"Rahu"=>7,"Ketu"=>8,_=>9};
+}

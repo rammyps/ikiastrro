@@ -1,0 +1,52 @@
+@page "/charts/{Id:int}/karaka-wheel"
+@using Ikiastrro.Web.Components.Workspace
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject ChartResultsRepository ChartResultsRepo
+@inject ChartKeyDetailsRepository ChartKeyDetailsRepo
+@inject ChartHouseLordsRepository ChartHouseLordsRepo
+@inject ChartAspectsRepository ChartAspectsRepo
+@inject ChartConjunctionsRepository ChartConjunctionsRepo
+@inject ChartTypeRepository ChartTypeRepo
+@inject SqlConnectionFactory ConnectionFactory
+@inject ActivePerson Active
+
+<PageTitle>@(_data?.Person.Name ?? "Chart") · Karaka Wheel</PageTitle>
+@if (_data is null || _rules is null)
+{
+ <section class="karaka-unavailable" role="status"><h1>KARAKA WHEEL</h1><p>No generated divisional charts were found for this person.</p><a href="/">Choose a saved person</a></section>
+}
+else
+{
+ <header class="karaka-head"><div><p class="karaka-kicker">NATURAL + VARIABLE SIGNIFICATORS</p><h1>KARAKA WHEEL</h1><p>Fixed Naisargika house meanings with the selected varga's persisted Chara Karaka placements.</p></div>
+  <label>Divisional chart<select value="@_chartCode" @onchange="ChangeChart">@foreach(var chart in AvailableCharts){<option value="@chart.ChartType">@chart.ChartType · @chart.SanskritName</option>}</select></label>
+ </header>
+ @if (SelectedChart is { } selected)
+ {
+  <KarakaPolarWheelChart Sectors="BuildSectors(selected)" Primary="_rules.Primary" Details="_rules.Details" CharaPoints="BuildCharaPoints(selected)" ChartCode="selected.ChartType" AscendantSign="selected.AscendantSign" />
+  <p class="karaka-note">Chara roles are assigned once from D1 longitudes, then followed into each varga to show where those same role-bearing grahas land. In D9, the AK's sign is the Karakamsa.</p>
+ }
+}
+@code {
+ [Parameter] public int Id { get; set; }
+ private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1";
+ private IEnumerable<LoadedChart> AvailableCharts => _data?.Charts.Values.OrderBy(c => _data.ChartTypes.FirstOrDefault(t => t.Code == c.ChartType)?.DivisionalFactor ?? int.MaxValue) ?? Enumerable.Empty<LoadedChart>();
+ private LoadedChart? SelectedChart => _data?.Charts.GetValueOrDefault(_chartCode);
+ protected override void OnParametersSet()
+ {
+  _data=WorkspaceData.Load(Id,BirthDetailsRepo,ChartResultsRepo,ChartKeyDetailsRepo,ChartHouseLordsRepo,ChartAspectsRepo,ChartConjunctionsRepo,ChartTypeRepo.GetAll());
+  _rules=_data is null ? null : new NaisargikaKarakaRepository(ConnectionFactory).LoadActive();
+  if(_data is not null && !_data.Charts.ContainsKey(_chartCode)) _chartCode=_data.Charts.ContainsKey("D1") ? "D1" : _data.Charts.Keys.First();
+  if(_data is null){Active.Clear();return;} var p=_data.Person; Active.Set(Id,p.Name,$"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
+ }
+ private void ChangeChart(ChangeEventArgs e) => _chartCode=e.Value?.ToString()??"D1";
+ private static IReadOnlyList<KarakaPolarWheelChart.Sector> BuildSectors(LoadedChart c)
+ {
+  string[] signs={"Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricornus","Aquarius","Pisces"};
+  var lagnaIndex=Array.FindIndex(signs,s=>string.Equals(s,c.AscendantSign,StringComparison.OrdinalIgnoreCase));
+  if(lagnaIndex<0) lagnaIndex=0;
+  return Enumerable.Range(1,12)
+   .Select(h=>new KarakaPolarWheelChart.Sector(h,signs[(lagnaIndex+h-1)%12]))
+   .ToList();
+ }
+ private static IReadOnlyList<KarakaPolarWheelChart.CharaPoint> BuildCharaPoints(LoadedChart c)=>c.Grahas.Where(k=>!string.IsNullOrWhiteSpace(k.CharaKaraka)).Select(k=>new KarakaPolarWheelChart.CharaPoint(k.Planet,k.CharaKaraka!,k.HouseNumberFromLagna,k.Sign)).ToList();
+}
