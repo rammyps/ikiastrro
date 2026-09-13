@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-09-14
 workstream: database
 togaf: C — Data Architecture
 safe: Solution Intent (fixed)
@@ -59,7 +59,9 @@ Part A:
 | `tbl_Rule_PlanetaryWar` | 1 | Graha Yuddha orb + winner criterion + Ṣaḍbala adjustment (Yuddha Bala) | orphaned for the magnitude (diameter-based delta — `SRC_RAMAN_GRAHA_BHAVA_BALAS` DJVU has no text extract) — detection + the latitude winner criterion are computed by `ShadbalaCalculator.ComputeYuddha` (100% hardcoded) and checked by CLI `verify-strength` (no war for Ramakrishnan; a synthetic case for the winner logic) |
 | `tbl_Rule_AshtakavargaContribution` | 56 | Parāśari benefic-places (bindu) matrix — 7 recipients × 8 contributors, SAV total 337 (BPHS, cross-checked vs MIT `jyotishganit`; hand-verified against the JHora export) | seeded (mig. 074/075); `AshtakavargaCalculator` pending |
 | `tbl_Rule_AshtakavargaReduction` | 2 | Trikoṇa + Ekādhipatya Śodhana algorithms for the Sodhya Piṇḍa pipeline | seeded (mig. 074/075); read pending |
-| `tbl_Rule_VimsopakaWeight` | reserved | four varga-group weights | unseeded |
+| `tbl_Rule_AmsabalaGroup` | 39 | PVR §6.6: which varga chart types belong to each amsabala scheme (Shadvarga/Saptavarga/Dasavarga/Shodasavarga) | live — `AmsabalaCalculator` (seeded mig. 099) |
+| `tbl_Rule_AmsabalaName` | 35 | PVR §6.6: named amsa (Kimsukamsa..Sree Vallabhamsa) per good-placement count within a scheme | live — `AmsabalaCalculator`; verified against PVR's own Example 27 (Bill Cosby/Jupiter) in `AmsabalaCalculatorTests` |
+| `tbl_Rule_VimsopakaWeight` | reserved | four varga-group weights, summing to 20 | unseeded — §6.6 amsabala reconciliation (above) was the blocking prerequisite and is now done, but PVR itself never gives Vimsopaka's numeric per-varga weight table (only names the concept, pp.188-189); still needs a different source |
 | `tbl_Rule_SubPlanetSunLongitude` / `SubPlanetTime` / `SubPlanetPartRuler` | — | 11 upagraha longitude/time-point rules (PVR: Gulika = midpoint, Maandi = start) | live (`SubPlanetCalculator`) |
 | `tbl_Rule_SpecialLagnaFraction` / `SpecialLagnaTimeRate` | — | HL/BL/GL rate-per-clock-minute (`SpecialLagnaTimeRate`) and SL's nakshatra-fraction method (`SpecialLagnaFraction`) | mirror — CLI `verify-jaimini` reproduces the JHora export exactly (BL/GL/SL D1+D9 signs and longitudes); `HoraLagnaCalculator`/`BhaavaLagnaCalculator`/`GhatiLagnaCalculator`/`SreeLagnaCalculator` are 100% hardcoded, zero DB reads |
 | `tbl_Rule_Ayanamsa` | 22 | JHora ayanāṁśa catalogue + system default | live (`AyanamsaDefinition`) |
