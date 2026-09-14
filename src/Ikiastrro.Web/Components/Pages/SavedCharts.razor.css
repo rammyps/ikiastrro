@@ -364,9 +364,9 @@ h1 {
 
 .edit-field {
     display: grid;
-    gap: .2rem;
+    gap: .3rem;
     margin-bottom: .7rem;
-    font-size: .85rem;
+    font: 700 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
     color: var(--brand-muted);
 }
 
@@ -378,7 +378,24 @@ h1 {
     border-radius: 6px;
     background: var(--brand-canvas);
     color: var(--brand-midnight);
-    font: inherit;
+    font: 500 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+}
+
+/* Name / Date of Birth / Time of Birth / City / Country — centred label + input, each input
+   capped to a readable width instead of stretching the full modal (rammyps, 2026-09-14). Sex
+   (radio pair, .edit-field with no .ef-center) stays left-aligned — a plain label, not a value
+   to centre. */
+.ef-center {
+    justify-items: center;
+    text-align: center;
+}
+
+.ef-center input[type="text"],
+.ef-center input[type="date"],
+.ef-center input[type="time"] {
+    width: 100%;
+    max-width: 220px;
+    text-align: center;
 }
 
 .edit-radio {

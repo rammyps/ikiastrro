@@ -77,13 +77,13 @@
     background: var(--brand-canvas);
 }
 
-/* Name-right/DOB-below-it standard (rammyps, 2026-09-14): stacked, right-aligned, name a
-   size down from before — this is the one place it's rendered, so it's automatically the
-   same on every chart page. */
+/* Name-centred/DOB-below-it standard (rammyps, 2026-09-14: moved off right-aligned to centred,
+   and sized up a step for a centred focal element): stacked, centred — this is the one place
+   it's rendered, so it's automatically the same on every individual/chart page. */
 .ik-band-inner {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
     gap: 2px;
     max-width: var(--maxw);
     margin-inline: auto;
@@ -99,7 +99,7 @@
     padding: 0;
     cursor: pointer;
     color: var(--brand-midnight);
-    font: 700 calc(var(--font-size-control) * 1.05) / 1.1 var(--font-interface);
+    font: 700 calc(var(--font-size-control) * 1.15) / 1.1 var(--font-interface);
     letter-spacing: -0.01em;
 }
 
@@ -115,7 +115,7 @@
 
 .ik-person-birth {
     color: var(--brand-muted);
-    font: 500 calc(var(--font-size-control) * 0.75) / 1.2 var(--font-interface);
+    font: 500 calc(var(--font-size-control) * 0.85) / 1.2 var(--font-interface);
 }
 
 /* "Ramya ▾" now opens a real dropdown of the other saved people (rammyps) instead of just

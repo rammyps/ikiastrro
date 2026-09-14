@@ -103,7 +103,7 @@
         <div class="edit-box" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
             <h2 class="edit-title">Edit @_editOriginalName</h2>
 
-            <label class="edit-field">
+            <label class="edit-field ef-center">
                 <span>Name</span>
                 <input type="text" @bind="_edit.Name" @bind:event="oninput" />
             </label>
@@ -120,19 +120,19 @@
 
             <div class="edit-birth">
                 <p class="edit-note">Changing any field below rebuilds every chart for this person.</p>
-                <label class="edit-field">
+                <label class="edit-field ef-center">
                     <span>Date of Birth</span>
                     <input type="date" @bind="_edit.Dob" />
                 </label>
-                <label class="edit-field">
+                <label class="edit-field ef-center">
                     <span>Time of Birth</span>
                     <input type="time" step="1" @bind="_edit.Tob" />
                 </label>
-                <label class="edit-field">
+                <label class="edit-field ef-center">
                     <span>City</span>
                     <input type="text" @bind="_edit.City" />
                 </label>
-                <label class="edit-field">
+                <label class="edit-field ef-center">
                     <span>Country</span>
                     <input type="text" @bind="_edit.Country" />
                 </label>
