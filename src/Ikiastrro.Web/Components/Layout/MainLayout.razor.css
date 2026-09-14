@@ -86,10 +86,14 @@
     background: var(--brand-canvas);
 }
 
+/* Name-right/DOB-below-it standard (rammyps, 2026-09-14): stacked, right-aligned, name a
+   size down from before — this is the one place it's rendered, so it's automatically the
+   same on every chart page. */
 .ik-band-inner {
     display: flex;
-    align-items: baseline;
-    gap: 14px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
     max-width: var(--maxw);
     margin-inline: auto;
     padding: 12px var(--pad-x);
@@ -104,7 +108,7 @@
     padding: 0;
     cursor: pointer;
     color: var(--brand-midnight);
-    font: 700 var(--font-size-tagline) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 calc(var(--font-size-control) * 1.05) / 1.1 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: -0.01em;
 }
 
@@ -120,7 +124,7 @@
 
 .ik-person-birth {
     color: var(--brand-muted);
-    font: 500 var(--font-size-control) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    font: 500 calc(var(--font-size-control) * 0.75) / 1.2 'Manrope', 'Segoe UI', sans-serif;
 }
 
 .ik-page {

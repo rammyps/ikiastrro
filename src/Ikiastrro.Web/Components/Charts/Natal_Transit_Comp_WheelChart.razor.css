@@ -6,7 +6,7 @@
 .ntw-nak-sector-blue { fill: #fff; }
 .ntw-nak-boundary { stroke: var(--brand-midnight); stroke-width: .75; opacity: .55; }
 .ntw-natal { fill: var(--brand-sunset); stroke: var(--brand-midnight); stroke-width: 2; }
-.ntw-core { fill: var(--brand-sunset); stroke: var(--brand-midnight); stroke-width: 1; }
+.ntw-core { fill: #fff; stroke: var(--brand-midnight); stroke-width: 1; }
 .ntw-sign-line { stroke: var(--brand-midnight); stroke-width: 2.2; }
 .ntw-nak-line { stroke: var(--brand-midnight); stroke-width: 1.2; }
 .ntw-pada-line { stroke: var(--brand-muted); stroke-width: .55; opacity: .7; }
@@ -21,9 +21,7 @@
 .ntw-brand { fill: var(--brand-midnight); font-size: 28px; font-weight: 700; }
 .ntw-caption { fill: var(--brand-midnight); font-size: 10px; font-weight: 700; letter-spacing: .18em; }
 .ntw-meta { fill: var(--brand-muted); font-size: 9px; font-weight: 600; }
-.ntw-center-date, .ntw-center-time { text-anchor: middle; fill: var(--brand-midnight); }
-.ntw-center-date { font-size: 17px; font-weight: 800; }
-.ntw-center-time { font-size: 12px; font-weight: 650; }
+.ntw-center-date { text-anchor: middle; fill: var(--brand-midnight); font-size: 17px; font-weight: 800; }
 .ntw-point circle { stroke-width: 2; }
 .ntw-point text { font-size: 12px; font-weight: 800; }
 .ntw-karaka { text-anchor: middle; fill: var(--brand-midnight); font-size: 9px; font-weight: 750; }

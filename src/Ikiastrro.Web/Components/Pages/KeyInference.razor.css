@@ -47,10 +47,12 @@
     background: var(--brand-peach);
 }
 
+/* Font reduced 10% off the base control size across this whole filter group (rammyps,
+   2026-09-14). */
 .ki-field { display: grid; gap: 2px; }
 .ki-field span {
     color: var(--brand-midnight);
-    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
 }
 .ki-field input,
 .ki-field select {
@@ -61,7 +63,7 @@
     border-radius: 8px;
     background: var(--brand-canvas);
     color: var(--brand-midnight);
-    font: 500 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    font: 500 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
 }
 .ki-field input:focus-visible,
 .ki-field select:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
