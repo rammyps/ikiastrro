@@ -25,7 +25,7 @@ public static class ShadbalaCalculator
             [PlanetName.Mars] = 298,
             [PlanetName.Mercury] = 165,
             [PlanetName.Jupiter] = 95,
-            [PlanetName.Venus] = 327,
+            [PlanetName.Venus] = 357, // Pisces 27° — was 327 (Aquarius 27°), a 30° error; see RamanYogaBatchFiveEvaluator's DeepExaltation and PvrDignityEvaluator, both already Pisces 27°
             [PlanetName.Saturn] = 200
         };
 

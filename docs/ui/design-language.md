@@ -43,6 +43,40 @@ When a header is longer than the widest value in its column — e.g. Current Tra
 `table-layout: auto` everywhere so step 2 actually narrows the column. Applies to every
 MudBlazor table and every hand-rolled `<table>`.
 
+## Tabs
+
+**Decided 2026-09-14 (rammyps's directive), rolling out app-wide starting with Key
+Inference:** every tab strip, at every nesting level, is a filled segment, not MudBlazor's
+default text-plus-underline-slider look —
+
+- **Active tab:** dark-blue fill (`--tab-active-bg` = `--brand-midnight`) + gold text
+  (`--tab-active-fg`).
+- **Inactive tab:** sunset-orange fill (`--tab-inactive-bg` = `--brand-sunset`) + dark-blue
+  text (`--tab-inactive-fg` = `--brand-midnight`).
+- The underline slider MudBlazor draws by default is redundant against a filled tab — hide it
+  (`.mud-tab-slider { display: none; }`).
+
+This is a distinct convention from the "Actions" (buttons) treatment in
+[`brand.md`](brand.md#actions) — tabs get their own small token family so the two can be
+retuned independently.
+
+**Implementation note — `::deep` through a MudBlazor component's `Class` parameter doesn't
+work.** Blazor's CSS-isolation scope attribute is only added to elements written literally in
+the `.razor` file; passing `Class="my-scope"` to `<MudTabs>` puts the class on its rendered
+root but *not* the scope attribute (MudTabs doesn't capture/forward it), so
+`.my-scope ::deep .mud-tab { }` compiles to a selector that never matches anything. Wrap the
+component in a plain `<div class="my-scope">` instead (the div is literal markup and gets the
+scope attribute) — same pattern `Natal_Transit_Comp_WheelChart.razor.css`'s
+`.ki-wheel ::deep .ntw` already relied on. See `KeyInference.razor`/`.razor.css` for the
+worked example (`.ki-tabs` wrapping divs around all three tab levels).
+
+**Vertical tabs (`Position="Position.Left"`) need one extra wrapper.** MudBlazor's vertical
+mode makes `.mud-tabs-panels` itself a flex row and gives the active `.mud-tab-panel`
+`display:contents` — which promotes that panel's own direct children into the row instead of
+letting them stack as a normal block column. Wrap everything inside the `MudTabPanel` in one
+element (Key Inference's `.ki-panelbody`, `flex: 1 1 auto; min-width: 0;`) so only that single
+wrapper gets promoted, not its grandchildren.
+
 ## Semantic tokens (over the warm canvas)
 
 | Token family | Use |
@@ -56,6 +90,7 @@ MudBlazor table and every hand-rolled `<table>`.
 | `--brand-peach` / `--brand-canvas` / `--brand-midnight` / `--brand-sunset` / `--transit-paper` | `Natal_Transit_Comp_WheelChart` rings, spokes, glyphs (no namespaced `--ntw-*` set — reads brand tokens directly) |
 | `--cell-fill` / `--lagna-fill` / `--grid-stroke` / `--sign-text` | `SouthIndianGrid_Detailed` cell ground, Lagna cell, borders, labels |
 | `--tmpl-*` (+ `--tmpl-rashi-highlight`) | `D1TemplateGrid` light "chart card" palette |
+| `--tab-active-bg` / `-fg`, `--tab-inactive-bg` / `-fg` | tab-strip fills — see "Tabs" above |
 
 ## Additive-change discipline (keeps a revert mechanical)
 

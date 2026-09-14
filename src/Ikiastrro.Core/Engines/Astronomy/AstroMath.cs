@@ -238,6 +238,59 @@ public static class AstroMath
         throw new InvalidOperationException("Unreachable — 9 sub-lord slots span the full nakshatra.");
     }
 
+    /// <summary>NakshatraLordOrder's cycle-position for each planet — the inverse of the array, so a
+    /// chosen lord can re-seed the next recursive level's own 9-way cycle in <see cref="GetKpSubLordChain"/>.</summary>
+    private static readonly IReadOnlyDictionary<PlanetName, int> NakshatraLordCycleIndex =
+        NakshatraLordOrder.Select((planet, index) => (planet, index)).ToDictionary(x => x.planet, x => x.index);
+
+    /// <summary>
+    /// KP sub-lord chain at <paramref name="siderealLongitude"/>: <paramref name="levels"/> entries,
+    /// index 0 = the classical KP "Sub Lord" (same result as <see cref="GetNakshatraSubLord"/>),
+    /// index 1 = Sub-Sub Lord, and so on. Each level re-applies the identical Vimshottari-proportioned
+    /// 9-way split recursively *inside* the previous level's own span, cycling
+    /// Ketu-&gt;Venus-&gt;Sun-&gt;Moon-&gt;Mars-&gt;Rahu-&gt;Jupiter-&gt;Saturn-&gt;Mercury starting from
+    /// that span's own lord — the standard KP construction, extended past the level-1/2 stop
+    /// db/_archive/021_create_nakshatra_reference_tables.sql called for (rammyps asked for L1-L7 on
+    /// 2026-09-13). Works in a 0-1 fractional position within the current span rather than absolute
+    /// degrees, so double precision holds all the way to level 7 (narrowest band ~1e-8°; a double's
+    /// relative precision is ~1e-16). Verified by independent hand-calculation in exact 120ths
+    /// (VimshottariYearsByLord sums to 120 at every level, so no rounding into the fractions):
+    /// 218.72° (Anuradha) -> [Venus, Moon, Mercury, ...] for levels 1-3.
+    /// </summary>
+    public static IReadOnlyList<PlanetName> GetKpSubLordChain(double siderealLongitude, int levels = 7)
+    {
+        if (levels < 1) throw new ArgumentOutOfRangeException(nameof(levels), levels, "Must request at least 1 level.");
+
+        var normalized = Normalize(siderealLongitude);
+        var nakshatraIndex = Math.Min((int)(normalized / DegreesPerNakshatra), 26);
+        var positionInSpan = (normalized - nakshatraIndex * DegreesPerNakshatra) / DegreesPerNakshatra; // 0-1
+        var cycleStart = nakshatraIndex % 9; // the nakshatra's own lord opens level 1's cycle
+
+        var chain = new List<PlanetName>(levels);
+        for (var level = 0; level < levels; level++)
+        {
+            var cumulative = 0.0;
+            var slotStart = 0.0;
+            var slotWidth = 0.0;
+            var lord = NakshatraLordOrder[cycleStart];
+            for (var slot = 0; slot < 9; slot++)
+            {
+                lord = NakshatraLordOrder[(cycleStart + slot) % 9];
+                slotWidth = VimshottariYearsByLord[lord] / 120.0;
+                if (positionInSpan < cumulative + slotWidth || slot == 8)
+                {
+                    slotStart = cumulative;
+                    break;
+                }
+                cumulative += slotWidth;
+            }
+            chain.Add(lord);
+            positionInSpan = (positionInSpan - slotStart) / slotWidth; // reposition inside the chosen slot
+            cycleStart = NakshatraLordCycleIndex[lord]; // that slot's own lord seeds the next level's cycle
+        }
+        return chain;
+    }
+
     /// <summary>
     /// A planet's longitude remapped into a divisional (varga) chart's own 0-360° space —
     /// <c>(realLongitude × divisionalNumber) mod 360</c>, e.g. <paramref name="divisionalNumber"/> = 9

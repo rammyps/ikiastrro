@@ -26,6 +26,7 @@ builder.Services.AddScoped<ChartHouseLordInterpretationRepository>();
 builder.Services.AddScoped<ChartConjunctionsRepository>();
 builder.Services.AddScoped<ChartMultiGrahaConjunctionRepository>();
 builder.Services.AddScoped<ChartAspectsRepository>();
+builder.Services.AddScoped<ChartMoonContextRepository>();
 builder.Services.AddScoped<DashaPeriodsRepository>();
 builder.Services.AddScoped<SadeSatiRepository>();
 builder.Services.AddScoped<PlanetaryStateRuleRepository>();

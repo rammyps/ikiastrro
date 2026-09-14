@@ -13,7 +13,7 @@ else
         <table class="hlf">
             <thead><tr><th>House</th><th>Lord</th><th>Placed in</th><th>Branch</th><th>Finding</th></tr></thead>
             <tbody>
-                @foreach (var r in Rows.OrderBy(r => r.OwnedHouseNumber).ThenBy(r => BranchOrder(r.BranchCode)))
+                @foreach (var r in Rows.OrderBy(r => BranchOrder(r.BranchCode)).ThenBy(r => r.OwnedHouseNumber))
                 {
                     <tr>
                         <td class="mono">@r.OwnedHouseNumber</td>
@@ -35,8 +35,8 @@ else
 
     private static int BranchOrder(string branch) => branch switch
     {
-        "BASELINE" => 0,
-        "WELL_DISPOSED" => 1,
+        "WELL_DISPOSED" => 0,
+        "BASELINE" => 1,
         "AFFLICTED" => 2,
         _ => 3
     };

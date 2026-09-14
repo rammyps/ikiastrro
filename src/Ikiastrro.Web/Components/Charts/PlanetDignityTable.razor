@@ -1,0 +1,33 @@
+@* Key Inference 2.2 "About Planets" — dignity + Chara Kāraka + exaltation point + Δ + closeness,
+   one row per graha (Sun…Ketu). Rahu/Ketu show "—" for the three exaltation-derived columns —
+   no classical exaltation point for the nodes (ChartViewModel.ExaltationRow). *@
+<div class="pdt-scroll">
+    <table class="pdt">
+        <thead>
+            <tr>
+                <th>Planet</th><th>Dignity</th><th>Kāraka</th><th>Exaltation&nbsp;pt.</th>
+                <th>Δ&nbsp;from&nbsp;exalt.</th><th>Closeness</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Rows)
+            {
+                <tr>
+                    <td>@r.Planet</td>
+                    <td>
+                        @if (r.DignityStatus is null) { <span class="muted">—</span> }
+                        else { <span class="pill"><span class="dot" style="background:var(--dignity-@ChartViewModel.DignityToken(r.DignityStatus))"></span>@r.DignityStatus</span> }
+                    </td>
+                    <td>@(r.CharaKaraka ?? "—")</td>
+                    <td>@(r.ExaltationPointDisplay ?? "—")</td>
+                    <td class="mono">@(r.DeltaFromExaltationDegrees is { } d ? $"{d:0.0}°" : "—")</td>
+                    <td class="mono">@(r.ClosenessPercent is { } c ? $"{c}%" : "—")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ExaltationRow> Rows { get; set; } = Array.Empty<ExaltationRow>();
+}

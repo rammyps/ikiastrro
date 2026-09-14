@@ -1,15 +1,26 @@
 @using System.Globalization
+@using System.Text.RegularExpressions
 
+<div class="kpw-shell">
+ @if(ReferencePoints.Count>0)
+ {
+  <nav class="kpw-reference-tabs" aria-label="House reference point">
+   @foreach(var reference in ReferencePoints.OrderBy(r=>r.SortOrder))
+   {
+    <button type="button" class="@(reference.Code==_referenceCode?"is-active":null)" @onclick="()=>SelectReference(reference.Code)"><b>@reference.Name</b><span>@DisplaySign(reference.Sign)</span></button>
+   }
+  </nav>
+ }
 <div class="kpw-layout">
  <svg class="kpw" viewBox="0 0 720 720" role="img" aria-label="Naisargika and Chara Karaka wheel for @ChartCode">
   <circle cx="360" cy="360" r="344" class="kpw-back" />
   @foreach (var sector in Sectors.OrderBy(s => s.HouseNumber))
   {
-   var h=sector.HouseNumber; var a=(h-1)*30d;
-   var natural=Primary.FirstOrDefault(p=>p.HouseNumber==h);
-   var charas=CharaPoints.Where(p=>p.HouseNumber==h).OrderBy(p=>CharaRank(p.Role)).ToList();
+   var h=sector.HouseNumber; var displayHouse=HouseFromReference(sector.Sign); var a=(h-1)*30d;
+   var natural=Primary.FirstOrDefault(p=>p.HouseNumber==displayHouse);
+   var charas=CharaPoints.Where(p=>SameSign(p.Sign,sector.Sign)).OrderBy(p=>CharaRank(p.Role)).ToList();
    var (sx,sy)=Xy(a,313); var (hx,hy)=Xy(a,268); var (nx,ny)=Xy(a,215);
-   <g class="kpw-sector @(h==_selectedHouse?"is-selected":null)" role="button" tabindex="0" aria-label="House @h, @DisplaySign(sector.Sign)" @onclick="()=>_selectedHouse=h">
+   <g class="kpw-sector @(h==_selectedHouse?"is-selected":null)" role="button" tabindex="0" aria-label="House @displayHouse from @SelectedReference.Name, @DisplaySign(sector.Sign)" @onclick="()=>SelectHouse(h,natural?.Graha)">
     <path d="@AnnularSector(a-15,a+15,160,338)" />
     @if (ShowSigns)
     {
@@ -17,56 +28,129 @@
     }
     @if (ShowHouses)
     {
-     <g><text x="@F(hx)" y="@F(hy)" class="kpw-house">H@h</text></g>
+     <g><text x="@F(hx)" y="@F(hy)" class="kpw-house">@($"H{displayHouse}")</text></g>
     }
     @if (natural is not null)
     {
-     <g>
+     var hasQuestions=HasQuestions(displayHouse,natural.Graha,null);
+     <g class="kpw-planet @(IsSelected(natural.Graha,null)?"is-selected":null)" role="button" tabindex="0" aria-label="Select @natural.Graha in house @displayHouse" @onclick:stopPropagation="true" @onclick="()=>SelectPlanet(h,natural.Graha,null)">
+      @if(hasQuestions){<circle cx="@F(nx)" cy="@F(ny)" r="29" class="kpw-data-ring outer"/><circle cx="@F(nx)" cy="@F(ny)" r="26" class="kpw-data-ring"/>}
       <circle cx="@F(nx)" cy="@F(ny)" r="23" class="kpw-primary-dot" />
       <text x="@F(nx)" y="@F(ny-3)" class="kpw-primary">@PlanetCode(natural.Graha)</text>
       <text x="@F(nx)" y="@F(ny+15)" class="kpw-primary-tag">NK</text>
      </g>
     }
-    @for(var i=0;i<charas.Count;i++)
+    @for(var i=0;i<(ShowCharaKarakas ? charas.Count : 0);i++)
     {
      var columns=(charas.Count+1)/2;
      var markerAngle=a+(i/2-(columns-1)/2d)*8d;
      var (cx,cy)=Xy(markerAngle,125+(i%2)*30);
-     <g class="kpw-chara"><circle cx="@F(cx)" cy="@F(cy)" r="18"/><text x="@F(cx)" y="@F(cy-3)">@PlanetCode(charas[i].Graha)</text><text x="@F(cx)" y="@F(cy+12)" class="kpw-role">@charas[i].Role</text></g>
+     var hasQuestions=HasQuestions(displayHouse,charas[i].Graha,charas[i].Role);
+     <g class="kpw-chara @(IsSelected(charas[i].Graha,charas[i].Role)?"is-selected":null)" role="button" tabindex="0" aria-label="Select @charas[i].Graha, @charas[i].Role, in house @displayHouse" @onclick:stopPropagation="true" @onclick="()=>SelectPlanet(h,charas[i].Graha,charas[i].Role)">@if(hasQuestions){<circle cx="@F(cx)" cy="@F(cy)" r="24" class="kpw-data-ring outer"/><circle cx="@F(cx)" cy="@F(cy)" r="21" class="kpw-data-ring"/>}<circle cx="@F(cx)" cy="@F(cy)" r="18"/><text x="@F(cx)" y="@F(cy-3)">@PlanetCode(charas[i].Graha)</text><text x="@F(cx)" y="@F(cy+12)" class="kpw-role">@charas[i].Role</text></g>
     }
    </g>
   }
   <circle cx="360" cy="360" r="102" class="kpw-core"/>
   <text x="360" y="318" class="kpw-title">KARAKA</text><text x="360" y="347" class="kpw-chart">@ChartCode</text>
-  <text x="360" y="375" class="kpw-lagna">Lagna @DisplaySign(AscendantSign)</text><text x="360" y="405" class="kpw-hint">NK · natural</text><text x="360" y="425" class="kpw-hint">role · Chara</text>
+  <text x="360" y="375" class="kpw-lagna">@SelectedReference.Name · @DisplaySign(SelectedReference.Sign)</text><text x="360" y="405" class="kpw-hint">NK · natural</text>
+  @if (ShowCharaKarakas)
+  {
+   <g><text x="360" y="425" class="kpw-hint">role · Chara</text></g>
+  }
  </svg>
  @if(SelectedSector is {} selected)
  {
-  var natural=Primary.FirstOrDefault(p=>p.HouseNumber==selected.HouseNumber);
-  var details=Details.Where(d=>d.HouseNumber==selected.HouseNumber).GroupBy(d=>d.Graha).OrderBy(g=>PlanetRank(g.Key));
-  var charas=CharaPoints.Where(p=>p.HouseNumber==selected.HouseNumber).OrderBy(p=>CharaRank(p.Role));
+  var activeHouse=HouseFromReference(selected.Sign);
+  var natural=Primary.FirstOrDefault(p=>p.HouseNumber==activeHouse);
+  var details=Details.Where(d=>d.HouseNumber==activeHouse).GroupBy(d=>d.Graha).OrderBy(g=>PlanetRank(g.Key));
+  var charas=CharaPoints.Where(p=>SameSign(p.Sign,selected.Sign)).OrderBy(p=>CharaRank(p.Role));
+  var selectedPlanet=_selectedPlanet??natural?.Graha;
+  var houseLord=HouseLords.FirstOrDefault(h=>SameSign(h.HouseSign,selected.Sign));
+  var placement=PlanetPlacements.FirstOrDefault(p=>string.Equals(p.Planet,selectedPlanet,StringComparison.OrdinalIgnoreCase));
+  var lifeMatters=LifeMatters.Where(m=>MatchesChart(m.PrimaryChartsText,ChartCode)&&MatchesHouse(m.HouseFromLagnaText,activeHouse)&&MatchesKaraka(m,selectedPlanet,_selectedRole)).OrderBy(m=>m.CategoryName).ThenBy(m=>m.DisplayOrder).ToList();
+  var houseReading=HouseReadings.FirstOrDefault(h=>h.HouseNumber==activeHouse);
+  var signReading=SignReadings.FirstOrDefault(s=>SameSign(s.SignName,selected.Sign));
+  var relation=FindRelationship(placement);
   <aside class="kpw-detail" aria-live="polite">
-   <p class="kpw-eyebrow">HOUSE @selected.HouseNumber · @DisplaySign(selected.Sign)</p>
-   @if(natural is not null){<h2><span>@PlanetCode(natural.Graha)</span> @natural.Graha</h2><p class="kpw-summary">@natural.MattersSignified</p>}
+   <p class="kpw-eyebrow">HOUSE @activeHouse FROM @SelectedReference.Name.ToUpperInvariant() · @DisplaySign(selected.Sign)</p>
+   @if(selectedPlanet is not null){<h2><span>@PlanetCode(selectedPlanet)</span> @selectedPlanet @if(_selectedRole is not null){<small>· @_selectedRole</small>}</h2>}
+   <section class="kpw-reading-lines" aria-label="House, sign and Nakshatra reading">
+    <p><b>House</b> H@activeHouse — @(houseReading?.HouseSummary??natural?.MattersSignified??"No house description is available.")</p>
+    <p><b>Rāśi</b> @DisplaySign(selected.Sign) — @(signReading?.SignIndication??"No Rāśi characteristics are available.")</p>
+    <p><b>Combination</b> @CombinationLine(activeHouse,selected.Sign,placement,relation)</p>
+    <p><b>Planet behavior</b> @BehaviorLine(placement,relation)</p>
+   </section>
+   <p class="kpw-reference-perspective"><b>@SelectedReference.Name:</b> @SelectedReference.Perspective</p>
+   <section class="kpw-placement" aria-label="Selected house and planet details">
+    <div><small>House lord</small><b>@(houseLord?.LordPlanet??"—")</b>@if(houseLord is not null){<span>@($"Placed H{houseLord.LordPlacedInHouse} · {DisplaySign(houseLord.LordPlacedInSign)}")</span>}</div>
+    <div><small>Rāśi lord</small><b>@(placement?.SignLord??"—")</b><span>@(placement is null?"No planet placement":DisplaySign(placement.Sign))</span></div>
+    <div><small>Nakshatra lord</small><b>@(placement?.NakshatraLord??"—")</b><span>@(placement?.Nakshatra??"Not available")</span></div>
+    <div><small>Nakshatra sub-lord</small><b>@(placement?.NakshatraSubLord??"—")</b><span>KP sub-lord</span></div>
+   </section>
    <h3>Natural significations</h3>
    @foreach(var group in details){<div class="kpw-rule"><b>@PlanetCode(group.Key) @group.Key</b><span>@string.Join(" · ",group.OrderBy(x=>x.DisplayOrder).Select(x=>x.Matter))</span></div>}
-   <h3>Chara Karakas in @ChartCode</h3>
-   @if(charas.Any()){@foreach(var point in charas){<div class="kpw-chara-row"><b>@point.Role</b><span>@PlanetCode(point.Graha) @point.Graha</span></div>}}
-   else{<p class="kpw-empty">No Chara Karaka occupies this house in the selected varga.</p>}
+   @if (ShowCharaKarakas)
+   {
+    <h3>Chara Karakas in @ChartCode</h3>
+    @if(charas.Any()){@foreach(var point in charas){<div class="kpw-chara-row"><b>@point.Role</b><span>@PlanetCode(point.Graha) @point.Graha</span></div>}}
+    else{<p class="kpw-empty">No Chara Karaka occupies this house in the selected chart.</p>}
+   }
+   @if (lifeMatters.Count > 0)
+   {
+    <h3>Questions to explore</h3>
+    <p class="kpw-question-intro">Use these prompts for @ChartCode · House @activeHouse from @SelectedReference.Name@if(selectedPlanet is not null){<text> · @selectedPlanet</text>}.</p>
+    @foreach (var matter in lifeMatters)
+    {
+     <article class="kpw-question"><b>@QuestionFor(matter.MatterText)</b><small>@matter.CategoryName</small><span>Examine @matter.HouseFromKarakaText.ToLowerInvariant().</span></article>
+    }
+   }
+   else
+   {
+    <h3>Questions to explore</h3><p class="kpw-empty">No focused questions are defined for this chart, house and Karaka combination.</p>
+   }
   </aside>
  }
 </div>
+</div>
+
+<style>
+ .kpw-planet,.kpw-chara{cursor:pointer}
+ .kpw-data-ring{fill:none;stroke:var(--brand-sunset);stroke-width:1.7;pointer-events:none}.kpw-data-ring.outer{stroke:var(--brand-midnight);stroke-width:1.2;stroke-dasharray:2 2}
+ .kpw-planet.is-selected .kpw-primary-dot,.kpw-chara.is-selected circle:not(.kpw-data-ring){stroke:#fff;stroke-width:3;filter:drop-shadow(0 0 5px rgba(247,111,28,.9))}
+ .kpw-detail h2 small{color:var(--brand-muted);font-size:.75rem;font-weight:800}
+ .kpw-question-intro{margin:.15rem 0 .65rem;color:var(--brand-muted);font-size:.76rem;line-height:1.4}
+ .kpw-question{margin:.5rem 0;padding:.7rem .8rem;border:1px solid #e6ded2;border-left:3px solid var(--brand-sunset);background:#fff;font-size:.78rem;line-height:1.4}
+ .kpw-question b,.kpw-question small,.kpw-question span{display:block}
+ .kpw-question small{margin:.16rem 0;color:var(--brand-muted);font-size:.66rem}
+ .kpw-question span{color:var(--brand-muted);font-size:.7rem}
+ .kpw-placement{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;margin:.85rem 0 1rem}.kpw-placement>div{min-width:0;padding:.62rem .68rem;border:1px solid #e6ded2;background:#fff}.kpw-placement small,.kpw-placement b,.kpw-placement span{display:block}.kpw-placement small{color:var(--brand-muted);font-size:.62rem;font-weight:850;letter-spacing:.07em;text-transform:uppercase}.kpw-placement b{margin:.18rem 0;color:var(--brand-midnight);font-size:.86rem}.kpw-placement span{color:var(--brand-muted);font-size:.66rem;line-height:1.3}
+</style>
 
 @code{
  public sealed record Sector(int HouseNumber,string Sign);
  public sealed record CharaPoint(string Graha,string Role,int HouseNumber,string Sign);
+ public sealed record PlanetPlacement(string Planet,string Sign,string? SignLord,string? Nakshatra,string? NakshatraLord,string? NakshatraSubLord,int HouseNumber);
+ public sealed record HouseLordPoint(int HouseNumber,string LordPlanet,int LordPlacedInHouse,string LordPlacedInSign);
  [Parameter,EditorRequired]public IReadOnlyList<Sector>Sectors{get;set;}=Array.Empty<Sector>();
  [Parameter,EditorRequired]public IReadOnlyList<NaisargikaKarakaRow>Primary{get;set;}=Array.Empty<NaisargikaKarakaRow>();
  [Parameter,EditorRequired]public IReadOnlyList<NaisargikaKarakatwaRow>Details{get;set;}=Array.Empty<NaisargikaKarakatwaRow>();
+ [Parameter]public IReadOnlyList<LifeMatterReferenceRow>LifeMatters{get;set;}=Array.Empty<LifeMatterReferenceRow>();
  [Parameter]public IReadOnlyList<CharaPoint>CharaPoints{get;set;}=Array.Empty<CharaPoint>();
+ [Parameter]public IReadOnlyList<PlanetPlacement>PlanetPlacements{get;set;}=Array.Empty<PlanetPlacement>();
+ [Parameter]public IReadOnlyList<HouseLordPoint>HouseLords{get;set;}=Array.Empty<HouseLordPoint>();
+ [Parameter]public bool ShowCharaKarakas{get;set;}=true;
  [Parameter]public string ChartCode{get;set;}="D1"; [Parameter]public string AscendantSign{get;set;}="Aries";
  [Parameter]public bool ShowSigns{get;set;}=true; [Parameter]public bool ShowHouses{get;set;}=true;
- private int _selectedHouse=1; private Sector? SelectedSector=>Sectors.FirstOrDefault(s=>s.HouseNumber==_selectedHouse);
+ private int _selectedHouse=1; private string? _selectedPlanet; private string? _selectedRole; private string? _lastChartCode;
+ private Sector? SelectedSector=>Sectors.FirstOrDefault(s=>s.HouseNumber==_selectedHouse);
+ protected override void OnParametersSet()
+ {
+  if(string.Equals(_lastChartCode,ChartCode,StringComparison.OrdinalIgnoreCase))return;
+  _lastChartCode=ChartCode;_selectedRole=null;_selectedPlanet=Primary.FirstOrDefault(p=>p.HouseNumber==_selectedHouse)?.Graha;
+ }
+ private void SelectHouse(int house,string? planet){_selectedHouse=house;_selectedPlanet=planet;_selectedRole=null;}
+ private void SelectPlanet(int house,string planet,string? role){_selectedHouse=house;_selectedPlanet=planet;_selectedRole=role;}
+ private bool IsSelected(string planet,string? role)=>_selectedHouse==SelectedSector?.HouseNumber&&string.Equals(_selectedPlanet,planet,StringComparison.OrdinalIgnoreCase)&&string.Equals(_selectedRole,role,StringComparison.OrdinalIgnoreCase);
  private static(double X,double Y)Xy(double a,double r){var x=(a-90)*Math.PI/180d;return(360+r*Math.Cos(x),360+r*Math.Sin(x));}
  private static string AnnularSector(double s,double z,double i,double o){var(a,b)=Xy(s,o);var(c,d)=Xy(z,o);var(e,f)=Xy(z,i);var(g,h)=Xy(s,i);return $"M {F(a)} {F(b)} A {F(o)} {F(o)} 0 0 1 {F(c)} {F(d)} L {F(e)} {F(f)} A {F(i)} {F(i)} 0 0 0 {F(g)} {F(h)} Z";}
  private static string F(double v)=>v.ToString("0.##",CultureInfo.InvariantCulture);
@@ -75,4 +159,13 @@
  private static string PlanetCode(string p)=>ChartViewModel.PlanetGlyph(p);
  private static int CharaRank(string r)=>r switch{"AK"=>0,"AmK"=>1,"BK"=>2,"MK"=>3,"PiK"=>4,"PK"=>5,"GK"=>6,"DK"=>7,_=>8};
  private static int PlanetRank(string p)=>p switch{"Sun"=>0,"Moon"=>1,"Mars"=>2,"Mercury"=>3,"Jupiter"=>4,"Venus"=>5,"Saturn"=>6,"Rahu"=>7,"Ketu"=>8,_=>9};
+ private static bool MatchesChart(string source,string chartCode)=>Regex.IsMatch(source,$@"(?<![A-Z0-9]){Regex.Escape(chartCode)}(?![0-9])",RegexOptions.IgnoreCase);
+ private static bool MatchesHouse(string source,int house)=>source.Split('/').Any(x=>string.Equals(x.Trim(),Ordinal(house),StringComparison.OrdinalIgnoreCase));
+ private static bool MatchesKaraka(LifeMatterReferenceRow matter,string? planet,string? role)=>
+  role is not null
+   ? string.Equals(matter.CharaKarakaCode,role,StringComparison.OrdinalIgnoreCase)
+   : planet is not null&&Regex.IsMatch(matter.KarakaText,$@"(?<![A-Za-z]){Regex.Escape(planet)}(?![A-Za-z])",RegexOptions.IgnoreCase);
+ private bool HasQuestions(int house,string planet,string? role)=>LifeMatters.Any(m=>MatchesChart(m.PrimaryChartsText,ChartCode)&&MatchesHouse(m.HouseFromLagnaText,house)&&MatchesKaraka(m,planet,role));
+ private static string QuestionFor(string matter)=>$"What does this placement indicate about {char.ToLowerInvariant(matter[0])}{matter[1..]}?";
+ private static string Ordinal(int house)=>house+(house switch{1=>"st",2=>"nd",3=>"rd",_=>"th"});
 }

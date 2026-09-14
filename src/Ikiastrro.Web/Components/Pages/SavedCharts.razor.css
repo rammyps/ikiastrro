@@ -1,51 +1,340 @@
-.muted { color: var(--muted-text); }
+/* Saved Charts — restyled onto the brand palette (docs/ui/wkstream_UI_v2.md's design system:
+   sunset = highlight/button, midnight = headings/body/structure, one canvas background),
+   matching UI_SVG_Templates/V2.1-Build/SAVED-CHART-DESIGN-v5.png: a full-bleed Saturn-rings
+   hero on the left, title/toolbar/table on the right. The edit modal below is untouched by
+   this pass (still parchment tokens) — out of scope for that mockup. */
 
-/* Compact, narrower table — but the person name reads large. */
+.muted { color: var(--brand-muted); }
+
+/* --- Hero split: art bleeds to the viewport edge + touches the nav bar / footer; content
+   keeps the normal page gutter. The negative margin cancels .ik-page's own padding (28px
+   top / var(--pad-x) sides / 40px bottom — see MainLayout.razor.css) so .sp-art's image can
+   fill that space; .sp-content restores it so text/table line up with the rest of the app. */
+.sp-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
+    align-items: stretch;
+    min-height: calc(100vh - 220px);
+    margin: -28px calc(-1 * var(--pad-x)) -40px;
+}
+
+.sp-art { overflow: hidden; background: #000; }
+
+.sp-art img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sp-content {
+    padding: 28px var(--pad-x) 40px;
+    min-width: 0;
+}
+
+@media (max-width: 900px) {
+    .sp-layout {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        margin: 0;
+    }
+
+    .sp-art { display: none; }
+
+    .sp-content { padding: 0; }
+}
+
+/* --- Header: title/subtitle left, Import/Export toolbar right. --- */
+.sp-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: .3rem;
+}
+
+h1 {
+    margin: 0;
+    color: var(--brand-midnight);
+    font: 800 var(--font-size-tagline) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: -0.01em;
+}
+
+.sp-subtitle {
+    margin: .35rem 0 0;
+    color: var(--brand-muted);
+    font-size: var(--font-size-control);
+}
+
+.sp-subrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    margin: 1.1rem 0 .7rem;
+}
+
+.sp-count {
+    margin: 0;
+    color: var(--brand-muted);
+    font-size: var(--font-size-control);
+}
+
+/* --- Table card: rounded, bordered, orange header row (mockup's card look). --- */
 .saved-charts-table {
-    max-width: 760px;
+    border: 1px solid var(--brand-line);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--brand-surface);
+    box-shadow: 0 8px 24px var(--shadow, rgba(15, 32, 65, 0.1));
 }
 
 .saved-charts-table ::deep .dt td {
-    padding: .3rem .55rem;
-    font-size: .85rem;
+    padding: .7rem .9rem;
+    font-size: var(--font-size-control);
     line-height: 1.25;
+    color: var(--brand-midnight);
 }
 
-.saved-charts-table ::deep .dt .dt-sort {
-    padding: .3rem .55rem;
-    font-size: .8rem;
+.saved-charts-table ::deep .dt thead {
+    background: var(--brand-sunset);
 }
+
+.saved-charts-table ::deep .dt th { padding: 0; }
+
+.saved-charts-table ::deep .dt-sort {
+    padding: .8rem .9rem;
+    color: var(--brand-midnight);
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.saved-charts-table ::deep .dt-arrow { color: var(--brand-midnight); }
+
+.saved-charts-table ::deep .dt tbody tr {
+    border-bottom: 1px solid var(--brand-line);
+}
+
+.saved-charts-table ::deep .dt tbody tr:last-child { border-bottom: 0; }
+
+.saved-charts-table ::deep .dt tbody tr:hover { background: var(--brand-peach); }
 
 /* Name column — larger than the rest of the row. */
 .saved-charts-table ::deep .dt tbody td:first-child a {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: var(--ink);
+    color: var(--brand-midnight);
+    text-decoration: none;
 }
 
 .saved-charts-table ::deep .dt tbody td:first-child a:hover {
-    color: var(--accent);
+    color: var(--brand-sunset);
 }
 
 .saved-charts-table ::deep .dt th:first-child,
-.saved-charts-table ::deep .dt td:first-child { width: 40%; }
+.saved-charts-table ::deep .dt td:first-child { width: 22%; }
 .saved-charts-table ::deep .dt th:nth-child(2),
-.saved-charts-table ::deep .dt td:nth-child(2) { width: 22%; white-space: nowrap; }
+.saved-charts-table ::deep .dt td:nth-child(2) { width: 16%; white-space: nowrap; }
 .saved-charts-table ::deep .dt th:nth-child(3),
-.saved-charts-table ::deep .dt td:nth-child(3) { width: 28%; }
+.saved-charts-table ::deep .dt td:nth-child(3) { width: 14%; white-space: nowrap; }
+.saved-charts-table ::deep .dt th:nth-child(4),
+.saved-charts-table ::deep .dt td:nth-child(4) { width: 24%; }
+.saved-charts-table ::deep .dt th:nth-child(5),
+.saved-charts-table ::deep .dt td:nth-child(5) { width: 14%; }
 .saved-charts-table ::deep .dt th:last-child,
 .saved-charts-table ::deep .dt td:last-child { width: 10%; }
 
 .row-actions {
     display: flex;
-    gap: 2px;
+    gap: 6px;
     justify-content: flex-end;
+}
+
+/* Edit/Delete — outlined squares (mockup), overriding the shared components' plain-icon
+   default just on this page via ::deep (same technique .sp-hidden-inputs uses below). */
+.row-actions ::deep .edit-icon-btn,
+.row-actions ::deep .delete-icon-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--brand-surface);
+}
+
+.row-actions ::deep .edit-icon-btn {
+    border: 1.5px solid rgba(15, 32, 65, .3);
+    color: var(--brand-midnight);
+}
+
+.row-actions ::deep .edit-icon-btn:hover,
+.row-actions ::deep .edit-icon-btn:focus-visible {
+    background: var(--brand-peach);
+}
+
+.row-actions ::deep .delete-icon-btn {
+    border: 1.5px solid rgba(179, 38, 30, .3);
+    color: var(--danger, #b3261e);
 }
 
 .saved-charts-error {
     margin-top: 0.75rem;
     color: var(--danger, #b3261e);
     font-weight: 600;
+}
+
+/* --- "Status" column — a pill: filled dot + "Built" (green) vs hollow dot + "Not built" (muted) --- */
+.sp-built {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .3rem .7rem;
+    border-radius: 999px;
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.sp-built-yes { color: var(--dignity-good); background: rgba(76, 138, 82, .12); }
+.sp-built-no { color: var(--brand-muted); background: var(--brand-peach); }
+
+.sp-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.sp-built-no .sp-dot {
+    background: transparent;
+    border: 1.5px solid currentColor;
+}
+
+/* --- Toolbar: Import / Export dropdowns, top-right of the header. --- */
+.sp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .6rem;
+    flex: none;
+}
+
+.sp-menu { position: relative; }
+
+.sp-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .5rem .9rem;
+    border: 1.5px solid var(--brand-midnight);
+    border-radius: 8px;
+    background: var(--brand-surface);
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    cursor: pointer;
+}
+
+.sp-menu-btn:hover { background: var(--brand-peach); border-color: var(--brand-sunset); }
+
+.sp-caret { font-size: .7em; }
+
+.sp-menu-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 20;
+    min-width: 230px;
+    display: grid;
+    background: var(--brand-surface);
+    border: 1px solid var(--brand-line);
+    border-radius: 10px;
+    box-shadow: 0 12px 30px var(--shadow, rgba(15, 32, 65, 0.18));
+    overflow: hidden;
+}
+
+.sp-menu-item {
+    display: block;
+    padding: .6rem .9rem;
+    color: var(--brand-midnight);
+    font-size: .9rem;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    text-align: left;
+}
+
+.sp-menu-item:hover { background: var(--brand-peach); }
+
+.sp-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: transparent;
+}
+
+/* ::deep, not a plain scoped selector — InputFile is a descendant *component* with no wrapper
+   of its own, so nothing around its rendered <input> carries this file's scope attribute unless
+   the markup wraps it in a literal element (the .sp-hidden-inputs div). ::deep then reaches past
+   that wrapper into InputFile's own output — same reason `.saved-charts-table ::deep .dt td`
+   above reaches into DataTable's markup. */
+.sp-hidden-inputs {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.sp-hidden-inputs ::deep input {
+    opacity: 0;
+    clip: rect(0, 0, 0, 0);
+}
+
+.sp-build-btn {
+    padding: .55rem 1.1rem;
+    border: 0;
+    border-radius: 8px;
+    background: var(--brand-sunset);
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.sp-build-btn:hover { filter: brightness(1.05); }
+.sp-build-btn:disabled { opacity: .65; cursor: default; }
+
+/* --- Build-missing progress --- */
+.sp-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--brand-line);
+    overflow: hidden;
+    margin-bottom: .3rem;
+}
+
+.sp-progress-bar {
+    height: 100%;
+    background: var(--brand-sunset);
+    transition: width .2s ease;
+}
+
+.sp-progress-label {
+    margin: 0 0 .9rem;
+    color: var(--brand-muted);
+    font-size: .85rem;
+}
+
+.sp-import-status {
+    margin: 0 0 .9rem;
+    padding: .5rem .75rem;
+    border-radius: 8px;
+    background: var(--brand-peach);
+    color: var(--brand-midnight);
+    font-size: .85rem;
 }
 
 /* --- Edit person modal (hand-rolled, matches ConfirmDialog's look) --- */

@@ -18,14 +18,14 @@ internal static class ChartFixture
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> GridGlyphs =
         new Dictionary<string, IReadOnlyList<GridPlanetGlyph>>
         {
-            ["Aries"]       = new[] { new GridPlanetGlyph("Sun", "exalted", false, false) },
-            ["Taurus"]      = new[] { new GridPlanetGlyph("Moon", "exalted", false, false) },
-            ["Gemini"]      = new[] { new GridPlanetGlyph("Rahu", null, false, false) },
-            ["Cancer"]      = new[] { new GridPlanetGlyph("Jupiter", "exalted", false, false) },
-            ["Libra"]       = new[] { new GridPlanetGlyph("Saturn", "exalted", false, false) },
+            ["Aries"] = new[] { new GridPlanetGlyph("Sun", "exalted", false, false) },
+            ["Taurus"] = new[] { new GridPlanetGlyph("Moon", "exalted", false, false) },
+            ["Gemini"] = new[] { new GridPlanetGlyph("Rahu", null, false, false) },
+            ["Cancer"] = new[] { new GridPlanetGlyph("Jupiter", "exalted", false, false) },
+            ["Libra"] = new[] { new GridPlanetGlyph("Saturn", "exalted", false, false) },
             ["Sagittarius"] = new[] { new GridPlanetGlyph("Ketu", null, false, false) },
             ["Capricornus"] = new[] { new GridPlanetGlyph("Mars", "exalted", false, false) },
-            ["Pisces"]      = new[]
+            ["Pisces"] = new[]
             {
                 new GridPlanetGlyph("Mercury", "debilitated", true, true),
                 new GridPlanetGlyph("Venus", "exalted", false, false),
@@ -36,14 +36,14 @@ internal static class ChartFixture
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> GridNames =
         new Dictionary<string, IReadOnlyList<string>>
         {
-            ["Aries"]       = new[] { "Ascendant", "Sun" },
-            ["Taurus"]      = new[] { "Moon" },
-            ["Gemini"]      = new[] { "Rahu" },
-            ["Cancer"]      = new[] { "Jupiter" },
-            ["Libra"]       = new[] { "Saturn" },
+            ["Aries"] = new[] { "Ascendant", "Sun" },
+            ["Taurus"] = new[] { "Moon" },
+            ["Gemini"] = new[] { "Rahu" },
+            ["Cancer"] = new[] { "Jupiter" },
+            ["Libra"] = new[] { "Saturn" },
             ["Sagittarius"] = new[] { "Ketu" },
             ["Capricornus"] = new[] { "Mars" },
-            ["Pisces"]      = new[] { "Mercury", "Venus" },
+            ["Pisces"] = new[] { "Mercury", "Venus" },
         };
 
     // --- PolarWheel: one point per graha + Ascendant, at fixed nirayana longitudes ---

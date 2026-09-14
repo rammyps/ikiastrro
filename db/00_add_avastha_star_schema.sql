@@ -159,10 +159,10 @@ SELECT
     Conjunct.PlanetList           AS ConjunctWith,
     AspectsCast.TargetList        AS Aspects,
     kd.AspectingPlanets          AS AspectedBy,
-    kd.ComputedAt
+    cr.ComputedAt
 FROM dbo.tbl_Chart_KeyDetails kd
-JOIN dbo.tbl_BirthDetails bd  ON bd.Id = kd.BirthDetailId
 JOIN dbo.tbl_ChartResults cr  ON cr.Id = kd.ChartResultId
+JOIN dbo.tbl_BirthDetails bd  ON bd.Id = cr.BirthDetailId
 LEFT JOIN dbo.tbl_Fact_PlanetAvastha av ON av.ChartResultId = kd.ChartResultId AND av.Planet = kd.Planet
 LEFT JOIN dbo.tbl_Dim_AvasthaState  baaladi   ON baaladi.Id   = av.BaaladiStateId
 LEFT JOIN dbo.tbl_Dim_AvasthaState  jagradadi ON jagradadi.Id = av.JagradadiStateId

@@ -601,6 +601,49 @@ if (args.Length > 0 && args[0] == "verify-avastha")
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
+// --- One-off check: `dotnet run -- verify-kp-sublords` ---
+// AstroMath.GetKpSubLordChain (levels 1-7), against a hand-derived worked example. Longitude
+// 218.72 deg is the same Anuradha test point GetNakshatraSubLord's own doc comment verifies to
+// Venus at level 1; levels 2-3 were independently hand-calculated in exact 120ths (Vimshottari
+// years always sum to 120, so no rounding drift): position 48.48/120 into the level-1 Venus
+// cycle -> Sun(26)..Moon(36) band -> Moon; then 32.88/120 into the level-2 Moon cycle ->
+// Saturn(70)..Mercury(87) band -> Mercury. No unit-test project (see verify-avastha above).
+if (args.Length > 0 && args[0] == "verify-kp-sublords")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    // Level 1 must agree with the existing, independently-verified GetNakshatraSubLord for a
+    // spread of longitudes -- the chain's first entry is that same calculation, not a new one.
+    foreach (var lon in new[] { 0.3, 47.9, 91.5, 133.2, 218.72, 271.4, 319.9, 359.99 })
+    {
+        Check($"Level1(={lon}) matches GetNakshatraSubLord", AstroMath.GetKpSubLordChain(lon, 1)[0], AstroMath.GetNakshatraSubLord(lon));
+    }
+
+    // Hand-derived worked example (see comment above) — levels 1-3 at the Anuradha test point.
+    var chain = AstroMath.GetKpSubLordChain(218.72, 3);
+    Check("KP chain L1(218.72)", chain[0], PlanetName.Venus);
+    Check("KP chain L2(218.72)", chain[1], PlanetName.Moon);
+    Check("KP chain L3(218.72)", chain[2], PlanetName.Mercury);
+
+    // Length and range sanity across levels 1-7 at a spread of longitudes: every entry must be
+    // a real planet (chain length matches request; no exception for any degree, including 0 and
+    // the 360 wrap boundary).
+    foreach (var lon in new[] { 0.0, 13.333333, 26.666667, 180.0, 359.999999 })
+    {
+        var full = AstroMath.GetKpSubLordChain(lon, 7);
+        Check($"KP chain length(={lon})", full.Count, 7);
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-kp-sublords: ALL PASS" : $"\nverify-kp-sublords: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
 // --- One-off check: `dotnet run -- verify-jaimini` ---
 // Worked-example assertions for the Jaimini Chara Karakas + special points against
 // docs/artifacts/reference-charts/Rammy_Jagannatha.txt (person 1_Ramakrishnan). Solution has no unit-test project.

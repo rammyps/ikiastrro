@@ -127,19 +127,33 @@
     font: 500 calc(var(--font-size-control) * 0.75) / 1.2 'Manrope', 'Segoe UI', sans-serif;
 }
 
+/* Sticky footer: short pages pin it to the bottom of the viewport; pages taller than the
+   viewport just push it to the natural end of the content, never overlapping (rammyps,
+   2026-09-14). The flex-column structure itself (.mud-layout / .mud-main-content) lives in
+   the global wwwroot/css/tokens.css, not here — see that file's comment for why. */
 .ik-page {
+    flex: 1 1 auto;
+    width: 100%;
     max-width: var(--maxw);
     margin-inline: auto;
     padding: 28px var(--pad-x) 40px;
 }
 
+/* Full-bleed band, same shape as .ik-appbar's own toolbar (bar spans the viewport, its content
+   sits in the shared centered column) — same vertical padding as the app bar's toolbar so the
+   page reads as bookended top and bottom. */
 .ik-footer {
+    flex: none;
+    background: var(--brand-sunset);
+}
+
+.ik-footer-inner {
     max-width: var(--maxw);
     margin-inline: auto;
-    padding: 28px var(--pad-x) 36px;
+    padding: 20px var(--pad-x);
     text-align: center;
-    color: var(--brand-muted);
-    font: 500 var(--font-size-control) / 1.4 'Manrope', 'Segoe UI', sans-serif;
+    color: var(--brand-midnight);
+    font: 600 var(--font-size-control) / 1.4 'Manrope', 'Segoe UI', sans-serif;
 }
 
 /* One line — never split between the dedication and the "By …" credit. */

@@ -1,26 +1,101 @@
 @page "/charts"
+@using Microsoft.AspNetCore.Components.Forms
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
 @inject BirthDetailDeletionService DeletionService
 @inject ChartGenerationService ChartGenerationService
+@inject BirthDetailsCsvService CsvService
+@inject JkdInterchangeService JkdService
 @inject IPlaceResolver PlaceResolver
 
 <PageTitle>Saved Charts — ikiastrro</PageTitle>
-<h1>Saved charts</h1>
 
-@if (_rows.Count == 0)
-{
-    <p class="muted">No charts saved yet.</p>
-}
-else
-{
-    <div class="saved-charts-table"><DataTable TRow="Row" Rows="_rows" InitialSortHeader="Name" Columns="Cols" /></div>
-}
+<div class="sp-layout">
+    <aside class="sp-art" aria-hidden="true">
+        <img src="/images/saturn-rings-brand.png" alt="" />
+    </aside>
 
-<ConfirmDialog IsOpen="@(_pendingDelete is not null)"
-               Message="@($"Delete {_pendingDelete?.Person.Name}'s chart and all computed data? This can't be undone.")"
-               IsBusy="_isDeleting" OnConfirm="HandleDelete" OnCancel="() => _pendingDelete = null" />
+    <div class="sp-content">
+        <div class="sp-header">
+            <div>
+                <h1>Saved Charts</h1>
+                <p class="sp-subtitle">Manage and open your saved birth charts.</p>
+            </div>
+            <div class="sp-toolbar">
+                <div class="sp-menu">
+                    <button type="button" class="sp-menu-btn" @onclick="@(() => ToggleMenu("import"))">Import <span class="sp-caret">▾</span></button>
+                    @if (_openMenu == "import")
+                    {
+                        <div class="sp-menu-panel">
+                            <label for="sp-csv-input" class="sp-menu-item" @onclick="@(() => _openMenu = null)">From CSV file…</label>
+                            <label for="sp-jkd-input" class="sp-menu-item" @onclick="@(() => _openMenu = null)">From Horoscope Explorer (.JKD)…</label>
+                        </div>
+                    }
+                </div>
+                <div class="sp-menu">
+                    <button type="button" class="sp-menu-btn" @onclick="@(() => ToggleMenu("export"))">Export <span class="sp-caret">▾</span></button>
+                    @if (_openMenu == "export")
+                    {
+                        <div class="sp-menu-panel">
+                            <a class="sp-menu-item" href="/export/people.csv" @onclick="@(() => _openMenu = null)">All people as CSV</a>
+                            <a class="sp-menu-item" href="/export/people.jkd" @onclick="@(() => _openMenu = null)">As .JKD</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (_openMenu is not null)
+        {
+            <div class="sp-menu-backdrop" @onclick="@(() => _openMenu = null)"></div>
+        }
+
+        @* Hidden native file inputs — the two Import menu items are <label for="..."> so clicking them
+           opens the browser's file picker with no JS interop needed. Wrapped in a literal div (rather
+           than relying on ::deep alone) because Blazor CSS isolation never stamps the scope attribute
+           on/around a child *component*'s own root — InputFile has no ancestor to carry it otherwise,
+           so the hiding rule would have nothing scoped to match against. *@
+        <div class="sp-hidden-inputs">
+            <InputFile id="sp-csv-input" OnChange="HandleCsvSelected" accept=".csv" />
+            <InputFile id="sp-jkd-input" OnChange="HandleJkdSelected" accept=".jkd,.JKD" />
+        </div>
+
+        @if (_isBuilding)
+        {
+            <div class="sp-progress" role="progressbar" aria-valuemin="0" aria-valuemax="@_buildTotal" aria-valuenow="@_buildDone">
+                <div class="sp-progress-bar" style="width:@(_buildTotal == 0 ? 0 : _buildDone * 100 / _buildTotal)%"></div>
+            </div>
+            <p class="sp-progress-label">Building @_buildDone / @_buildTotal…</p>
+        }
+
+        @if (_importStatus is not null)
+        {
+            <p class="sp-import-status">@_importStatus</p>
+        }
+
+        <div class="sp-subrow">
+            <p class="sp-count">@_rows.Count saved chart@(_rows.Count == 1 ? "" : "s")</p>
+            @if (MissingCount > 0)
+            {
+                <button type="button" class="sp-build-btn" @onclick="BuildMissing" disabled="@_isBuilding">
+                    @(_isBuilding ? "Building…" : $"Build missing ({MissingCount})")
+                </button>
+            }
+        </div>
+
+        @if (_rows.Count == 0)
+        {
+            <p class="muted">No people saved yet.</p>
+        }
+        else
+        {
+            <div class="saved-charts-table"><DataTable TRow="Row" Rows="_rows" InitialSortHeader="Name" Columns="Cols" /></div>
+        }
+
+        <ConfirmDialog IsOpen="@(_pendingDelete is not null)"
+                       Message="@($"Delete {_pendingDelete?.Person.Name}'s chart and all computed data? This can't be undone.")"
+                       IsBusy="_isDeleting" OnConfirm="HandleDelete" OnCancel="() => _pendingDelete = null" />
 
 @if (_edit is not null)
 {
@@ -78,18 +153,31 @@ else
     </div>
 }
 
-@if (_error is not null)
-{
-    <p class="saved-charts-error" role="alert">@_error</p>
-}
+        @if (_error is not null)
+        {
+            <p class="saved-charts-error" role="alert">@_error</p>
+        }
+    </div>
+</div>
 
 @code {
-    private record Row(BirthDetails Person, string Lagna, IReadOnlyDictionary<string, IReadOnlyList<string>> Glyphs);
+    private const int BuildBatchCap = 25;   // per press; the button re-shows for the rest if more remain (decisions/002)
+    private const string BuiltChartType = "D1";
+
+    private record Row(BirthDetails Person, bool IsBuilt, string Lagna, IReadOnlyDictionary<string, IReadOnlyList<string>> Glyphs);
 
     private readonly List<Row> _rows = new();
     private Row? _pendingDelete;
     private bool _isDeleting;
     private string? _error;
+    private string? _openMenu;   // "import" | "export" | null
+
+    // --- import/build state ---
+    private string? _importStatus;
+    private bool _isBuilding;
+    private int _buildDone;
+    private int _buildTotal;
+    private int MissingCount => _rows.Count(r => !r.IsBuilt);
 
     // --- edit state ---
     private EditForm? _edit;
@@ -104,7 +192,11 @@ else
     {
         new DataTable<Row>.Column("Name", r => r.Person.Name, r => @<a href="@($"/key-inference/{r.Person.Id}")">@r.Person.Name</a>),
         new DataTable<Row>.Column("Date of Birth", r => r.Person.DateOfBirth, r => @<text>@r.Person.DateOfBirth.ToString("d MMM yyyy")</text>),
+        new DataTable<Row>.Column("Time of Birth", r => r.Person.TimeOfBirth, r => @<text>@r.Person.TimeOfBirth.ToString("HH:mm")</text>),
         new DataTable<Row>.Column("Place", r => r.Person.PlaceCity, r => @<text>@r.Person.PlaceCity, @r.Person.PlaceCountry</text>),
+        new DataTable<Row>.Column("Status", r => r.IsBuilt, r => r.IsBuilt
+            ? @<span class="sp-built sp-built-yes"><span class="sp-dot"></span>Built</span>
+            : @<span class="sp-built sp-built-no"><span class="sp-dot"></span>Not built</span>),
         new DataTable<Row>.Column("", _ => 0, r => @<div class="row-actions">
             <EditIconButton Title="@($"Edit {r.Person.Name}")" OnClick="() => StartEdit(r)" />
             <DeleteIconButton Title="@($"Delete {r.Person.Name}")" OnClick="() => _pendingDelete = r" />
@@ -116,6 +208,7 @@ else
     private void Load()
     {
         _rows.Clear();
+        var built = ChartResultsRepo.GetBirthDetailIdsWithChartType(BuiltChartType);
         foreach (var p in BirthDetailsRepo.GetAll())
         {
             var d1 = ChartResultsRepo.GetByBirthDetailId(p.Id).FirstOrDefault(r => r.ChartType == "D1");
@@ -124,8 +217,85 @@ else
             var glyphs = kd.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant")
                 .GroupBy(k => k.Sign)
                 .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(k => k.Planet).ToList());
-            _rows.Add(new Row(p, lagna, glyphs));
+            _rows.Add(new Row(p, built.Contains(p.Id), lagna, glyphs));
         }
+    }
+
+    private void ToggleMenu(string menu) => _openMenu = _openMenu == menu ? null : menu;
+
+    private async Task HandleCsvSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        _importStatus = null;
+        try
+        {
+            await using var stream = e.File.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            var result = await CsvService.ImportAsync(stream);
+            _importStatus = $"CSV: imported {result.Added}, skipped {result.Skipped} existing name(s)."
+                + (result.Errors.Count > 0 ? $" {result.Errors.Count} row error(s) — {string.Join(" | ", result.Errors.Take(5))}" : "");
+            Load();
+        }
+        catch (Exception ex)
+        {
+            _error = $"CSV import failed: {ex.Message}";
+        }
+    }
+
+    private async Task HandleJkdSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        _importStatus = null;
+        var tempPath = Path.Combine(Path.GetTempPath(), $"ikiastrro-import-{Guid.NewGuid():N}.JKD");
+        try
+        {
+            await using (var input = e.File.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024))
+            await using (var output = File.Create(tempPath))
+                await input.CopyToAsync(output);
+
+            var result = await JkdService.ImportAsync(tempPath);
+            _importStatus = $".JKD: imported {result.Added}, skipped {result.Skipped} existing name(s).";
+            Load();
+        }
+        catch (Exception ex)
+        {
+            _error = $".JKD import failed: {ex.Message}";
+        }
+        finally
+        {
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+        }
+    }
+
+    /// <summary>Foreground loop, capped per press — Phase 2 (a hosted BackgroundService + SignalR
+    /// progress) is deferred until this proves routine (decisions/002).</summary>
+    private async Task BuildMissing()
+    {
+        var toBuild = _rows.Where(r => !r.IsBuilt).Take(BuildBatchCap).ToList();
+        if (toBuild.Count == 0) return;
+
+        _error = null;
+        _isBuilding = true;
+        _buildDone = 0;
+        _buildTotal = toBuild.Count;
+        StateHasChanged();
+
+        foreach (var row in toBuild)
+        {
+            try
+            {
+                ChartGenerationService.GenerateAll(row.Person);
+            }
+            catch (Exception ex)
+            {
+                _error = $"Could not build {row.Person.Name}: {ex.Message}";
+            }
+            _buildDone++;
+            StateHasChanged();
+            await Task.Yield();   // let the progress bar actually reach the browser between builds
+        }
+
+        _isBuilding = false;
+        Load();
     }
 
     private void HandleDelete()

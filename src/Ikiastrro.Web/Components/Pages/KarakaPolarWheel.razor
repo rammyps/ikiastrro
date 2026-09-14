@@ -19,13 +19,20 @@
 }
 else
 {
- <header class="karaka-head"><div><p class="karaka-kicker">NATURAL + VARIABLE SIGNIFICATORS</p><h1>KARAKA WHEEL</h1><p>Fixed Naisargika house meanings with the selected varga's persisted Chara Karaka placements.</p></div>
+ <header class="karaka-head"><div><p class="karaka-kicker">NATURAL + VARIABLE SIGNIFICATORS</p><h1>KARAKA WHEEL</h1><p>Fixed Naisargika house meanings with Chara Karakas shown in their relevant D1 and D9 contexts.</p></div>
   <label>Divisional chart<select value="@_chartCode" @onchange="ChangeChart">@foreach(var chart in AvailableCharts){<option value="@chart.ChartType">@chart.ChartType · @chart.SanskritName</option>}</select></label>
  </header>
  @if (SelectedChart is { } selected)
  {
-  <KarakaPolarWheelChart Sectors="BuildSectors(selected)" Primary="_rules.Primary" Details="_rules.Details" CharaPoints="BuildCharaPoints(selected)" ChartCode="selected.ChartType" AscendantSign="selected.AscendantSign" />
-  <p class="karaka-note">Chara roles are assigned once from D1 longitudes, then followed into each varga to show where those same role-bearing grahas land. In D9, the AK's sign is the Karakamsa.</p>
+  <KarakaPolarWheelChart Sectors="BuildSectors(selected)" Primary="_rules.Primary" Details="_rules.Details" LifeMatters="_rules.LifeMatters" HouseReadings="_rules.Houses" SignReadings="_rules.Signs" SignNakshatraRelationships="_rules.SignNakshatraRelationships" CharaPoints="BuildCharaPoints(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" HouseLords="BuildHouseLords(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ShowCharaKarakas="SupportsCharaKarakas(selected.ChartType)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" />
+  @if (SupportsCharaKarakas(selected.ChartType))
+  {
+   <p class="karaka-note">Chara roles are assigned from D1 longitudes. D1 shows the natal assignments; D9 follows those same role-bearing grahas and identifies the AK's Karakamsa sign.</p>
+  }
+  else
+  {
+   <p class="karaka-note">This varga shows fixed Naisargika significators only. Chara Karakas are available in D1 and D9.</p>
+  }
  }
 }
 @code {
@@ -50,5 +57,20 @@ else
    .Select(h=>new KarakaPolarWheelChart.Sector(h,signs[(lagnaIndex+h-1)%12]))
    .ToList();
  }
- private static IReadOnlyList<KarakaPolarWheelChart.CharaPoint> BuildCharaPoints(LoadedChart c)=>c.Grahas.Where(k=>!string.IsNullOrWhiteSpace(k.CharaKaraka)).Select(k=>new KarakaPolarWheelChart.CharaPoint(k.Planet,k.CharaKaraka!,k.HouseNumberFromLagna,k.Sign)).ToList();
+ private static bool SupportsCharaKarakas(string chartCode) => chartCode is "D1" or "D9";
+ private static IReadOnlyList<KarakaPolarWheelChart.CharaPoint> BuildCharaPoints(LoadedChart c) =>
+  SupportsCharaKarakas(c.ChartType)
+   ? c.Grahas.Where(k=>!string.IsNullOrWhiteSpace(k.CharaKaraka)).Select(k=>new KarakaPolarWheelChart.CharaPoint(k.Planet,k.CharaKaraka!,k.HouseNumberFromLagna,k.Sign)).ToList()
+   : Array.Empty<KarakaPolarWheelChart.CharaPoint>();
+ private static IReadOnlyList<KarakaPolarWheelChart.PlanetPlacement> BuildPlanetPlacements(LoadedChart c) => c.Grahas
+  .Select(k=>new KarakaPolarWheelChart.PlanetPlacement(k.Planet,k.Sign,k.SignLordPlanet,k.Nakshatra,k.NakshatraLordPlanet,k.NakshatraSubLordPlanet,k.DignityStatus,k.HouseNumberFromLagna)).ToList();
+ private static IReadOnlyList<KarakaPolarWheelChart.HouseLordPoint> BuildHouseLords(LoadedChart c) => c.HouseLords
+  .Select(h=>new KarakaPolarWheelChart.HouseLordPoint(h.HouseNumber,h.HouseSign,h.LordPlanet,h.LordPlacedInHouseFromLagna,h.LordPlacedInSign)).ToList();
+ private static IReadOnlyList<KarakaPolarWheelChart.ReferencePoint> BuildReferencePoints(LoadedChart c,IReadOnlyList<LagnaReferenceRow> definitions)
+ {
+  var points=c.SpecialPoints.Where(p=>p.PointKind=="SpecialLagna").ToDictionary(p=>p.Planet,p=>p.Sign,StringComparer.OrdinalIgnoreCase);
+  return definitions.Where(d=>d.ReferenceCode=="LAGNA"||d.Abbreviation is not null&&points.ContainsKey(d.Abbreviation))
+   .Where(d=>d.AppliesInVarga=="Any"||d.AppliesInVarga=="Rasi"&&c.ChartType=="D1"||d.AppliesInVarga=="Navamsa"&&c.ChartType=="D9")
+   .Select(d=>new KarakaPolarWheelChart.ReferencePoint(d.ReferenceCode,d.ReferenceCode=="LAGNA"?"Sign Lagna":d.ReferenceName,d.ReferenceCode=="LAGNA"?c.AscendantSign:points[d.Abbreviation!],d.Perspective,d.SortOrder)).ToList();
+ }
 }

@@ -45,6 +45,17 @@ public class ChartResultsRepository
         return connection.Query<ChartResult>(sql, new { BirthDetailId = birthDetailId }).ToList();
     }
 
+    /// <summary>
+    /// BirthDetailIds that already have a result row for <paramref name="chartType"/> — one query
+    /// for the whole "Saved people" list's ● built / ○ not built column, instead of N+1 per row.
+    /// </summary>
+    public IReadOnlySet<int> GetBirthDetailIdsWithChartType(string chartType)
+    {
+        const string sql = "SELECT DISTINCT BirthDetailId FROM dbo.tbl_ChartResults WHERE ChartType = @ChartType";
+        using var connection = _connectionFactory.CreateOpenConnection();
+        return connection.Query<int>(sql, new { ChartType = chartType }).ToHashSet();
+    }
+
     /// <summary>Deletes every chart result (every chart type) for one person — used by BirthDetailDeletionService. Call after the 4 analytical tables are cleared (they FK-reference this table).</summary>
     public void DeleteByBirthDetailId(int birthDetailId)
     {
