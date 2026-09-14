@@ -21,9 +21,9 @@
 @* Key Inference — docs/ui/components/key-inference.md. Steps 1, 2.1, 2.2 and 3 built; steps
    4–6 land in later passes. Same South-Indian grid component as /charts (Codex
    `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not modified) for the
-   "1.1 D1 - Birth Chart" tab. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1")
+   "1.1 D1 - BIRTH CHART" tab. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1")
    for free styling/columns. The standalone /transit-wheel page has been folded into the
-   "1.2 Transit Chart" tab wholesale — wheel chart, date/dasha selector, and Gochara table —
+   "1.2 TRANSIT CHART" tab wholesale — wheel chart, date/dasha selector, and Gochara table —
    reusing its Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath
    exactly; only the chart shown under a tab now, not a separate route.
 
@@ -31,12 +31,15 @@
    (_masterTab) with one panel per step — "1. D1-TRANSIT", "2. ABOUT", "3. STRENGTH",
    "4. KARAKAS" (more steps
    land here later) — each panel opens with its own `ki-stephead` (Step N of 6 + heading) then
-   its own inner MudTabs: D1-TRANSIT's is 1.1 D1 - Birth Chart/1.2 Transit Chart (_activeTab);
-   About's is 2.1 About House/2.2 About Planets and Strength's is 3.1 Planet Strength/
-   3.2 House Strength (both unbound, as before). All three levels share `.ki-tabs` styling —
-   active = dark-blue fill + gold text, inactive = sunset-orange fill + dark-blue text
-   (tokens.css `--tab-*`, design-language.md "Tabs") — a new app-wide tab convention this page
-   adopts first. `.ki-stephead` lost its dark-navy pill behind "STEP N OF 6" 2026-09-14 (now
+   its own inner MudTabs: D1-TRANSIT's is 1.1 D1 - BIRTH CHART/1.2 TRANSIT CHART (_activeTab);
+   About's is 2.1 ABOUT HOUSE/2.2 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/
+   3.2 HOUSE STRENGTH (both unbound, as before). Every tab text at every level is ALL CAPS.
+   All three levels share `.ki-tabs` styling, unified 2026-09-14 (rammyps's directive) onto the
+   same quiet-cream/strong-sunset pill the master step rail (`.ki-master-button`) already used —
+   inactive = quiet cream pill + midnight text, active = sunset pill + midnight text
+   (tokens.css `--tab-*`, design-language.md "Tabs") — the single app-wide tab convention, no
+   longer split between a pill master rail and a filled-segment nested style. `.ki-stephead`
+   lost its dark-navy pill behind "STEP N OF 6" 2026-09-14 (now
    plain text, both it and the heading a size step up) — rammyps's call, applies to every step.
    2.2's exaltation-closeness bar + table read ChartViewModel.BuildExaltationRows (Core) over
    lc.KeyDetails; the Moon-context facts read ChartMoonContextRepository (vw_ChartMoonContext)
@@ -208,7 +211,7 @@ else
 
             <div class="ki-tabs ki-subtabs">
             <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true">
-                <MudTabPanel Text="2.1 About House">
+                <MudTabPanel Text="2.1 ABOUT HOUSE">
                     <h3 class="ki-sectionhead">Aspects &amp; conjunctions</h3>
                     <div class="ki-twocol">
                         <div class="ki-col">
@@ -226,7 +229,7 @@ else
                     <HouseLordFindingsTable Rows="lc.HouseLordInterpretations" />
                 </MudTabPanel>
 
-                <MudTabPanel Text="2.2 About Planets">
+                <MudTabPanel Text="2.2 ABOUT PLANETS">
                     <h3 class="ki-sectionhead">Moon context</h3>
                     @if (_moon is null)
                     {

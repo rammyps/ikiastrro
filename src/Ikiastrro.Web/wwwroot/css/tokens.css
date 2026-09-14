@@ -214,13 +214,16 @@ h1, h2, h3 {
     --pad-x: clamp(16px, 4vw, 48px);
 
     /* Tab-strip convention (2026-09-14, rammyps's directive — docs/ui/design-language.md
-       "Tabs"): active tab = dark-blue fill + this gold text; inactive tab = sunset-orange fill
-       + dark-blue text. Distinct from the "Actions" (buttons) treatment above — tabs get their
-       own small token family so the two conventions can be retuned independently. Key Inference
-       adopts this first; roll it out to every other tab strip in the app as those pages are
-       next touched. */
-    --tab-active-bg: var(--brand-midnight);
-    --tab-active-fg: #ffd166;
-    --tab-inactive-bg: var(--brand-sunset);
+       "Tabs"), revised same day: every tab level — the Key Inference master step rail and
+       every nested tab strip (1.1/1.2, 2.1/2.2, 3.1/3.2) — is now the SAME quiet-cream/
+       strong-sunset pill (previously the nested levels used a separate dark-blue-fill/gold-text
+       "filled segment" look; that treatment is retired so the whole app has one tab style, not
+       two). Distinct from the "Actions" (buttons) treatment above — tabs get their own small
+       token family so the two conventions can be retuned independently. Key Inference adopts
+       this first; roll it out to every other tab strip in the app as those pages are next
+       touched. */
+    --tab-active-bg: var(--brand-sunset);
+    --tab-active-fg: var(--brand-midnight);
+    --tab-inactive-bg: color-mix(in srgb, var(--brand-line) 22%, var(--brand-canvas));
     --tab-inactive-fg: var(--brand-midnight);
 }

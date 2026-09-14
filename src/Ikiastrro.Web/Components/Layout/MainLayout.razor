@@ -13,6 +13,7 @@
 <MudSnackbarProvider />
 
 <MudLayout>
+    <div class="ik-appbar-scope">
     <MudAppBar Elevation="1" Class="ik-appbar">
         <div class="ik-header-start">
             <nav class="ik-globalnav" aria-label="Main">
@@ -33,6 +34,7 @@
             <a href="/charts" class="ik-headtab @(CurrentPath == "/charts" ? "is-here" : "")"><span>SAVED</span> <span>CHARTS</span></a>
         </nav>
     </MudAppBar>
+    </div>
     <MudMainContent>
         @if (Active is { Id: not null, Name: not null })
         {

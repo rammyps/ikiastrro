@@ -1,8 +1,13 @@
-.hlt-scroll { overflow-x: auto; }
-.hlt { width: 100%; border-collapse: collapse; }
-.hlt th, .hlt td { padding: .35rem .6rem; border-bottom: 1px solid var(--paper-line); text-align: left; white-space: nowrap; }
-.hlt th { color: var(--muted-text); font-weight: 600; }
+/* Table typography standardized onto Key Inference "2. ABOUT"'s .ki-table reference
+   (docs/ui/design-language.md, project_standards.md §5 / 2026-09-14 change log). */
+.hlt-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--brand-line); border-radius: 10px; }
+.hlt { width: 100%; table-layout: auto; border-collapse: collapse; font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; font-size: 0.86em; }
+.hlt th, .hlt td { text-align: left; }
+.hlt th { padding: 9px 8px; vertical-align: bottom; color: var(--brand-midnight); font-weight: 700; border-bottom: 2px solid var(--brand-line); white-space: normal; }
+.hlt td { padding: 8px 7px; color: var(--brand-midnight); border-bottom: 1px solid var(--brand-line); white-space: nowrap; }
+.hlt tbody tr:last-child td { border-bottom: 0; }
+.hlt tbody tr:hover td { background: var(--brand-peach); }
 .hlt .mono { font-variant-numeric: tabular-nums; }
 .hlt .pill { display: inline-flex; align-items: center; gap: .3rem; }
 .hlt .dot { width: .5rem; height: .5rem; border-radius: 50%; display: inline-block; }
-.muted { color: var(--muted-text); }
+.muted { color: var(--brand-muted); }

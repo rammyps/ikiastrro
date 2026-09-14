@@ -1,8 +1,9 @@
 /* Saved Charts — restyled onto the brand palette (docs/ui/wkstream_UI_v2.md's design system:
    sunset = highlight/button, midnight = headings/body/structure, one canvas background),
    matching UI_SVG_Templates/V2.1-Build/SAVED-CHART-DESIGN-v5.png: a full-bleed Saturn-rings
-   hero on the left, title/toolbar/table on the right. The edit modal below is untouched by
-   this pass (still parchment tokens) — out of scope for that mockup. */
+   hero on the left, title/toolbar/table on the right. The edit modal below now shares the same
+   brand tokens too (2026-09-14 standardization pass — it read the legacy parchment tokens
+   until then). */
 
 .muted { color: var(--brand-muted); }
 
@@ -93,24 +94,21 @@ h1 {
 
 .saved-charts-table ::deep .dt td {
     padding: .7rem .9rem;
-    font-size: var(--font-size-control);
-    line-height: 1.25;
-    color: var(--brand-midnight);
+    line-height: 1.3;
 }
 
 .saved-charts-table ::deep .dt thead {
     background: var(--brand-sunset);
 }
 
-.saved-charts-table ::deep .dt th { padding: 0; }
+.saved-charts-table ::deep .dt th { padding: 0; border-bottom: 0; }
 
+/* Table typography standardized onto Key Inference "2. ABOUT"'s .ki-table reference — same
+   700-weight header, just on the sunset header-row surface this page's mockup calls for. */
 .saved-charts-table ::deep .dt-sort {
     padding: .8rem .9rem;
     color: var(--brand-midnight);
-    font-size: .78rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .05em;
+    font-weight: 700;
 }
 
 .saved-charts-table ::deep .dt-arrow { color: var(--brand-midnight); }
@@ -351,17 +349,17 @@ h1 {
     width: min(92vw, 420px);
     max-height: 90vh;
     overflow-y: auto;
-    background: var(--paper-raised);
-    border: 1px solid var(--paper-line);
+    background: var(--brand-surface);
+    border: 1px solid var(--brand-line);
     border-radius: 12px;
     padding: 1.25rem 1.4rem 1.1rem;
-    box-shadow: 0 12px 40px var(--shadow);
+    box-shadow: 0 12px 40px var(--shadow, rgba(15, 32, 65, 0.18));
 }
 
 .edit-title {
     margin: 0 0 .9rem;
-    font-size: 1.15rem;
-    color: var(--ink);
+    font: 700 1.15rem/1.2 'Manrope', 'Segoe UI', sans-serif;
+    color: var(--brand-midnight);
 }
 
 .edit-field {
@@ -369,36 +367,36 @@ h1 {
     gap: .2rem;
     margin-bottom: .7rem;
     font-size: .85rem;
-    color: var(--ink-soft);
+    color: var(--brand-muted);
 }
 
 .edit-field input[type="text"],
 .edit-field input[type="date"],
 .edit-field input[type="time"] {
     padding: .4rem .5rem;
-    border: 1px solid var(--paper-line);
+    border: 1px solid var(--brand-line);
     border-radius: 6px;
-    background: var(--paper);
-    color: var(--ink);
+    background: var(--brand-canvas);
+    color: var(--brand-midnight);
     font: inherit;
 }
 
 .edit-radio {
     display: flex;
     gap: 1.25rem;
-    color: var(--ink);
+    color: var(--brand-midnight);
 }
 
 .edit-birth {
     margin-top: .5rem;
     padding-top: .6rem;
-    border-top: 1px solid var(--paper-line);
+    border-top: 1px solid var(--brand-line);
 }
 
 .edit-note {
     margin: 0 0 .6rem;
     font-size: .78rem;
-    color: var(--ink-faint);
+    color: var(--brand-muted);
 }
 
 .edit-error {
@@ -417,15 +415,15 @@ h1 {
 .edit-actions .btn-cancel {
     background: none;
     border: 0;
-    color: var(--ink-soft);
+    color: var(--brand-muted);
     font: inherit;
     cursor: pointer;
     padding: .45rem .7rem;
 }
 
 .edit-actions .btn-confirm {
-    background: var(--brand-sunset, #f47a24);
-    color: #fff;
+    background: var(--brand-sunset);
+    color: var(--brand-midnight);
     border: 0;
     border-radius: 6px;
     font: inherit;

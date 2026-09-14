@@ -139,6 +139,29 @@ recomputes (`docs/architecture/domain-contracts.md`).
 
 ## Change log
 
+- **2026-09-14** — full-app standardization pass (rammyps's directive): Key Inference's nested
+  tabs (1.1/1.2, 2.1/2.2, 3.1/3.2) now ALL CAPS and restyled onto the master step rail's pill
+  look (one tab convention app-wide, not two — see `docs/ui/design-language.md` "Tabs");
+  every data-table component (`AspectsTable`, `HouseConjunctionsTable`, `HouseLordshipTable`,
+  `HouseLordFindingsTable`, `PlanetDignityTable`, `PlanetPositionsTable`, `ConjunctionsTable`,
+  `SadeSatiTable`, `GocharaPanel`, `DataTable`/`EvidenceTable`, the Saved Charts table) now
+  shares Key Inference "2. ABOUT"'s table typography — `font: 500 var(--font-size-control) /
+  1.3 Manrope; font-size: 0.86em`, `th` `font-weight: 700` + 2px `--brand-line` bottom border,
+  `td` 1px border, `--brand-midnight` text throughout, no forced `nowrap` outside tabular-numeral
+  cells. Retired the remaining `--paper-*` / `--ink-*` / `--accent` / `--muted-text` legacy
+  tokens still read by several of those components (plus SavedCharts' edit modal), onto
+  `--brand-*`. Found and fixed two dead-CSS bugs while checking the header nav against this:
+  (1) `MainLayout.razor.css`'s three-zone header grid (`::deep .ik-appbar .mud-toolbar`) never
+  actually applied — `Class="ik-appbar"` on `<MudAppBar>` doesn't get this file's CSS-isolation
+  scope attribute (documented MudBlazor gotcha, previously only called out for MudTabs), so the
+  brand line was never centred and Saved Charts' right pin was accidental flex behaviour, not
+  the intended grid; fixed by wrapping `<MudAppBar>` in a literal `.ik-appbar-scope` div, same
+  pattern as `KeyInference.razor`'s `.ki-wheel`/`.ki-tabs` wrappers. (2) `KeyInference.razor.css`
+  hid MudBlazor's tab-underline slider via `.mud-tabs-toolbar-wrapper`, but this MudBlazor
+  version renders `.mud-tabs-tabbar-wrapper` — fixed for the slider rule; the sibling
+  grid-stretch rule for the master rail turned out to fight MudTabs' own overflow/scroll-arrow
+  detection when corrected the same way, so that one was deliberately left on the dead
+  `-toolbar-*` name (comment explains why) rather than ship a regression.
 - **2026-09-14** — added §5 after the app-wide font and shared-header audit; standardized
   Manrope inheritance/available weights and recorded the viewport-wide three-zone header.
 - **2026-09-10** — created. Adopted §3 (chart-module naming / file set / versioning) and §4

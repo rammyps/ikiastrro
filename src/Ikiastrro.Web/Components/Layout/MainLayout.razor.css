@@ -3,8 +3,15 @@
    person is open), brand lockup right; one --maxw / --pad-x width through bar, band and page. */
 
 /* Three-zone app bar shared by every route: navigation left, brand centred, saved charts
-   pinned to the far right. */
-::deep .ik-appbar .mud-toolbar {
+   pinned to the far right. `.ik-appbar-scope` (a plain wrapping div, literal markup) is the
+   anchor `::deep` needs — `Class="ik-appbar"` on `<MudAppBar>` puts that class on its rendered
+   root but not this file's scope attribute (MudAppBar doesn't capture/forward it, same
+   documented MudBlazor gotcha as MudTabs — docs/ui/design-language.md "Tabs"), so a bare
+   `::deep .ik-appbar .mud-toolbar` selector compiled to a scope-prefixed selector with no
+   scoped ancestor anywhere above `.mud-toolbar` and never matched anything; this whole grid
+   (and therefore the centred brand / right-pinned Saved Charts it was meant to produce) was
+   dead CSS until the 2026-09-14 standardization pass wrapped MudAppBar and fixed it. */
+.ik-appbar-scope ::deep .ik-appbar .mud-toolbar {
     max-width: none;
     width: 100%;
     margin-inline: auto;
@@ -229,13 +236,13 @@
 }
 
 @media (max-width: 760px) {
-    ::deep .ik-appbar .mud-toolbar { gap: 6px; padding-inline: 8px; }
+    .ik-appbar-scope ::deep .ik-appbar .mud-toolbar { gap: 6px; padding-inline: 8px; }
     .ik-header-start, .ik-globalnav, .ik-tabs { gap: 4px; }
     .ik-headtab { min-width: 58px; min-height: 34px; padding: 4px 7px; letter-spacing: 0.02em; }
 }
 
 @media (max-width: 520px) {
     .ik-brand { display: none; }
-    ::deep .ik-appbar .mud-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
+    .ik-appbar-scope ::deep .ik-appbar .mud-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
     .ik-header-save { grid-column: 2; }
 }
