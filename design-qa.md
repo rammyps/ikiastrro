@@ -1,45 +1,43 @@
-# Design QA — Karaka Wheel corrections
+# Design QA — Key Inference Karakas migration
 
-- Source visual truth: `C:\Users\rammy\AppData\Local\Temp\codex-clipboard-4eb5b0d9-587e-48b6-b6b0-238ab0f35c53.png`
-- Implementation target: `http://127.0.0.1:5161/charts/3/karaka-wheel`
+- Source visual truth: `D:\@ClaudeSpace\ikiastrro\UI_SVG_Templates\V2.1-Build\KEY-INFERENCE-TAB-DESIGN-v2.png`
+- Implementation target: `http://127.0.0.1:5161/key-inference/3?step=karakas`
 - Intended viewport: desktop in-app browser
-- Source pixels: 1920 × 1445 before chat resizing
-- Implementation pixels: browser viewport capture displayed inline in the current task; the browser surface did not expose a file path
-- State: D1 selected; House 1/Sun and House 4/Moon inspected, including lord-chain summary and question indicators
+- Source pixels: 1240 × 1800
+- Implementation pixels: 812 × 688 browser viewport capture displayed inline in the current task; the browser surface did not expose a file path
+- Density normalization: both reviewed at CSS pixel scale; comparison focused on the shared header, master-step rail and Step 4 heading because the reference depicts Step 2 content.
+- State: Step 4 selected; D1 selected; House 1/Sun active.
 
 **Findings**
 
-- No actionable P0/P1/P2 issues remain for the requested contextual-question behavior.
+- No actionable P0/P1/P2 issues remain for the requested migration or shared tab treatment.
 
 **Required fidelity surfaces**
 
-- Fonts and typography: existing product typography and hierarchy preserved; question cards use the established compact reading-panel scale.
-- Spacing and layout rhythm: existing wheel layout preserved; detail column widened from 360px to 390px for the life-matter reference rows.
-- Colors and visual tokens: existing midnight, sunset, ivory, and muted tokens preserved.
+- Fonts and typography: the established Manrope hierarchy is preserved; numbered master steps use the reference's compact bold treatment.
+- Spacing and layout rhythm: master steps form one horizontal, evenly spaced pill rail above every Key Inference panel, matching the reference hierarchy.
+- Colors and visual tokens: inactive steps use a quiet cream tint and the active step uses sunset orange, while nested tabs retain the established navy/orange convention.
 - Image quality and asset fidelity: no raster assets are present or introduced; the existing code-native SVG chart is preserved.
-- Copy and content: technical table names are removed. Database rows are expressed as readable questions filtered by chart, house, natural planet, or Chara role.
+- Copy and content: the global navigation reads ALL CHARTS; the new master step reads 4. KARAKAS; database rows remain expressed as readable interpretations rather than technical table names.
 
 **Primary interactions tested**
 
-- Twelve selectable house sectors render and expose accessible planet/role controls.
-- Chara markers and rows render for D9 and are suppressed for an unsupported D10 state.
-- D1 House 1/Sun shows questions for physical constitution and general health.
-- Clicking D1 House 4/Moon updates the selection and shows the peace-of-mind question only.
-- The top summary resolves house lord placement, Rāśi lord, Nakshatra/lord, and KP sub-lord; no Razor placeholder text remains.
-- Two concentric rings appear only on planet markers with matching contextual questions, alongside the existing selected highlight.
-- Browser-rendered implementation was captured and inspected successfully.
+- All four master tabs render as one shared rail and Step 2 → Step 4 switching works.
+- Step 4 loads the complete interactive Karaka wheel and its existing chart/Lagna controls.
+- The legacy `/charts/3/karaka-wheel` route redirects to `/key-inference/3?step=karakas`.
+- ALL CHARTS returns to the person-level chart gallery route.
+- Browser-rendered implementation was captured and inspected successfully; no visible runtime error UI appeared.
 
 **Comparison history**
 
-- Initial code pass exposed the literal `H@h` placeholder and unrestricted Chara rendering.
-- Post-fix component snapshot proves H1–H12 output and the D9 state; focused tests pass 3/3.
-- The first follow-up exposed table metadata instead of user value; the disclosure was removed and replaced with contextual prompts.
-- Post-fix browser evidence confirms chart + house + Karaka filtering and readable question copy.
+- First migration capture showed the correct horizontal structure but inherited the nested navy/orange active styling and rectangular joined tabs.
+- The master rail received dedicated MudTabs header/button classes; the second capture shows separated cream pills and a sunset-orange active pill matching the reference hierarchy.
+- Post-fix browser evidence confirms Step 4 content and legacy-route redirection.
 
 **Implementation checklist**
 
-- Keep question wording derived from `MatterText` and references derived from `HouseFromKarakaText`.
-- Preserve natural-planet and Chara-role selection as the filter input.
-- Keep database table names out of the user interface.
+- Keep future Key Inference steps inside the same horizontal master rail.
+- Preserve nested tab styling as a distinct secondary hierarchy.
+- Keep the Karaka wheel canonical inside Step 4 and redirect old bookmarks.
 
 final result: passed

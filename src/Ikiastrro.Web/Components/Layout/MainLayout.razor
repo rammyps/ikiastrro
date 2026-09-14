@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject ActivePerson Active
 @inject NavigationManager Nav
+@inject BirthDetailsRepository BirthDetailsRepo
 
 @* MudBlazor providers must sit in the interactive render scope (this layout is rendered by
    the InteractiveServer <Routes>). Kept out of App.razor, which is static SSR — see the note
@@ -21,12 +22,9 @@
         @if (Active.Id is int personId)
         {
             <nav class="ik-tabs" aria-label="Person sections">
-                @* ALL CHARTS still falls back to the v1 chart workspace until its own v2 slice
-                   lands (the v1 /evidence + /timing routes are unstable right now — a
-                   database-workstream regression). KEY INFERENCE now has a real Step 1
-                   (D1 / Transit) at /key-inference, with the former standalone /transit-wheel
-                   page folded into its "Current Transit" tab — steps 2.1–6 are still to come. *@
-                <a href="@($"/charts/{personId}")" class="ik-tab @TabClass("charts")">KARAKAS &amp; SPL LAG</a>
+                @* ALL CHARTS is the divisional-chart gallery. Karakas and special Lagna
+                   interpretation now live together as Step 4 inside KEY INFERENCE. *@
+                <a href="@($"/charts/{personId}")" class="ik-tab @TabClass("charts")">ALL CHARTS</a>
                 <a href="@($"/key-inference/{personId}")" class="ik-tab @TabClass("keyinf")">KEY INFERENCE</a>
             </nav>
         }
@@ -38,16 +36,47 @@
         {
             <div class="ik-band">
                 <div class="ik-band-inner">
-                    <button type="button" class="ik-person" @onclick="SwitchPerson" title="Switch person">
-                        <span class="ik-person-name">@Active.Name</span>
-                        <span class="ik-person-caret" aria-hidden="true">▾</span>
-                    </button>
+                    <div class="ik-person-wrap">
+                        <button type="button" class="ik-person" @onclick="TogglePersonMenu"
+                                aria-haspopup="listbox" aria-expanded="@_personMenuOpen" title="Switch person">
+                            <span class="ik-person-name">@Active.Name</span>
+                            <span class="ik-person-caret" aria-hidden="true">▾</span>
+                        </button>
+                        @if (_personMenuOpen)
+                        {
+                            <ul class="ik-person-menu" role="listbox">
+                                @if (OtherPeople.Count == 0)
+                                {
+                                    <li class="ik-person-menu-empty">No other saved people</li>
+                                }
+                                else
+                                {
+                                    @foreach (var p in OtherPeople)
+                                    {
+                                        <li>
+                                            <button type="button" @onclick="() => GoToPerson(p.Id)">
+                                                <span class="ik-person-menu-name">@p.Name</span>
+                                                <span class="ik-person-menu-birth">@p.DateOfBirth.ToString("dd MMM yyyy")</span>
+                                            </button>
+                                        </li>
+                                    }
+                                }
+                                <li class="ik-person-menu-all">
+                                    <button type="button" @onclick="GoToPicker">All saved people…</button>
+                                </li>
+                            </ul>
+                        }
+                    </div>
                     @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
                     {
                         <span class="ik-person-birth">@Active.BirthLine</span>
                     }
                 </div>
             </div>
+            @if (_personMenuOpen)
+            {
+                <div class="ik-person-scrim" @onclick="ClosePersonMenu"></div>
+            }
         }
         <div class="ik-page">
             @Body
@@ -78,7 +107,34 @@
     private void OnShellChanged() => InvokeAsync(StateHasChanged);
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
 
-    private void SwitchPerson() => Nav.NavigateTo("/");
+    // "Ramya ▾" opens a real dropdown of the other saved people (rammyps, per the mockup)
+    // instead of just linking back to the picker page. Queried fresh each time it opens, not
+    // cached, so a person saved/deleted elsewhere shows up without a reload.
+    private bool _personMenuOpen;
+    private IReadOnlyList<BirthDetails> OtherPeople { get; set; } = Array.Empty<BirthDetails>();
+
+    private void TogglePersonMenu()
+    {
+        _personMenuOpen = !_personMenuOpen;
+        OtherPeople = _personMenuOpen
+            ? BirthDetailsRepo.GetAll().Where(p => p.Id != Active.Id)
+                .OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase).ToList()
+            : Array.Empty<BirthDetails>();
+    }
+
+    private void ClosePersonMenu() => _personMenuOpen = false;
+
+    private void GoToPerson(int id)
+    {
+        _personMenuOpen = false;
+        Nav.NavigateTo($"/key-inference/{id}");
+    }
+
+    private void GoToPicker()
+    {
+        _personMenuOpen = false;
+        Nav.NavigateTo("/");
+    }
 
     private string TabClass(string key)
     {

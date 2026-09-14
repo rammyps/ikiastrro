@@ -69,6 +69,12 @@
 .ki-field select:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
 .ki-field select:disabled { opacity: 0.55; }
 
+/* TRANSIT mm/yyyy — two plain numeric selects instead of the browser's native month input,
+   so the value always reads as digits (mm / yyyy) and never a spelled-out month name. */
+.ki-monthyear { display: flex; align-items: center; gap: 4px; }
+.ki-monthyear select { width: auto; min-width: 3.4em; }
+.ki-monthyear span[aria-hidden] { color: var(--brand-muted); font-weight: 700; }
+
 .ki-wheel {
     width: min(90%, 972px);
     min-width: 0;
@@ -98,21 +104,42 @@
 .ki-tabs ::deep .mud-tabs-toolbar-wrapper .mud-tab-slider { display: none; }
 .ki-tabs ::deep .mud-tabs-panels { padding-top: 16px; }
 
-/* Master tabs (D1-TRANSIT / 2. ABOUT) rail on the left, its step's whole content — heading +
-   sub-tabs + everything below — to the right (rammyps, 2026-09-14). MudBlazor's vertical mode
-   (Position="Position.Left") makes .mud-tabs-panels itself a flex ROW and gives the active
-   .mud-tab-panel `display:contents`, which would otherwise promote ki-panelbody's own children
-   (the step head + inner tabs) straight into that row — .ki-panelbody is the one wrapper that
-   absorbs the promotion and stays a normal block column instead. */
+/* The attached Key Inference design uses one horizontal, evenly spaced master-step rail.
+   This remains the single shell for every step so switching never changes page geometry. */
 .ki-mastertabs { margin-bottom: 4px; }
-.ki-mastertabs ::deep .mud-tabs-panels { padding-top: 0; align-items: stretch; }
-.ki-panelbody { flex: 1 1 auto; min-width: 0; padding-left: 20px; }
-
-.ki-mastertabs ::deep .mud-tab {
+.ki-mastertabs ::deep .ki-master-header {
+    border-bottom: 1px solid var(--brand-line);
+}
+.ki-mastertabs ::deep .ki-master-header .mud-tabs-toolbar-wrapper {
     width: 100%;
-    justify-content: flex-start;
-    border-radius: 10px 0 0 10px;
-    margin: 3px 0;
+}
+.ki-mastertabs ::deep .ki-master-header .mud-tabs-toolbar-inner {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    gap: 14px;
+    padding: 0 22px 8px;
+}
+.ki-mastertabs ::deep .ki-master > .mud-tabs-panels { padding-top: 0; }
+.ki-panelbody { min-width: 0; }
+
+/* Master steps are quiet cream pills; the selected step is the strong sunset pill from
+   KEY-INFERENCE-TAB-DESIGN-v2. Nested tabs retain the app's navy/orange convention. */
+.ki-mastertabs ::deep .ki-master-button {
+    width: 100%;
+    justify-content: center;
+    min-height: 36px;
+    border-radius: 999px;
+    margin: 0;
+    background: color-mix(in srgb, var(--brand-line) 22%, var(--brand-canvas));
+    color: var(--brand-midnight);
+    border: 0;
+}
+
+.ki-mastertabs ::deep .ki-master-button.ki-master-active {
+    background: var(--brand-sunset);
+    color: var(--brand-midnight);
+    border-color: var(--brand-sunset);
 }
 
 .ki-alert { font-size: 0.85em; }
@@ -212,6 +239,11 @@
 }
 
 @media (max-width: 900px) {
+    .ki-mastertabs ::deep .ki-master-header .mud-tabs-toolbar-inner {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding-inline: 0;
+    }
     .ki-controls { grid-template-columns: 1fr; }
     .ki-tabs ::deep .ki-table table { font-size: 0.72em; }
     .ki-twocol { grid-template-columns: 1fr; }

@@ -11,9 +11,13 @@
 @inject ChartTypeRepository ChartTypeRepo
 @inject SqlConnectionFactory ConnectionFactory
 @inject ActivePerson Active
+@inject NavigationManager Nav
 
-<PageTitle>@(_data?.Person.Name ?? "Chart") · Karaka Wheel</PageTitle>
-@if (_data is null || _rules is null)
+@if (!Embedded)
+{
+    @* Legacy route retained as a redirect so bookmarks land on the canonical Key Inference step. *@
+}
+else if (_data is null || _rules is null)
 {
  <section class="karaka-unavailable" role="status"><h1>KARAKA WHEEL</h1><p>No generated divisional charts were found for this person.</p><a href="/">Choose a saved person</a></section>
 }
@@ -37,11 +41,13 @@ else
 }
 @code {
  [Parameter] public int Id { get; set; }
+ [Parameter] public bool Embedded { get; set; }
  private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1";
  private IEnumerable<LoadedChart> AvailableCharts => _data?.Charts.Values.OrderBy(c => _data.ChartTypes.FirstOrDefault(t => t.Code == c.ChartType)?.DivisionalFactor ?? int.MaxValue) ?? Enumerable.Empty<LoadedChart>();
  private LoadedChart? SelectedChart => _data?.Charts.GetValueOrDefault(_chartCode);
  protected override void OnParametersSet()
  {
+  if(!Embedded){Nav.NavigateTo($"/key-inference/{Id}?step=karakas",replace:true);return;}
   _data=WorkspaceData.Load(Id,BirthDetailsRepo,ChartResultsRepo,ChartKeyDetailsRepo,ChartHouseLordsRepo,ChartHouseLordInterpretationRepo,ChartAspectsRepo,ChartConjunctionsRepo,ChartMultiGrahaConjunctionRepo,ChartTypeRepo.GetAll());
   _rules=_data is null ? null : new NaisargikaKarakaRepository(ConnectionFactory).LoadActive();
   if(_data is not null && !_data.Charts.ContainsKey(_chartCode)) _chartCode=_data.Charts.ContainsKey("D1") ? "D1" : _data.Charts.Keys.First();

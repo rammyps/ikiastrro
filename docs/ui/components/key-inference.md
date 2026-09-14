@@ -8,7 +8,7 @@ togaf: C — component spec
 
 # Component — Key Inference
 
-`KeyInference.razor` — **steps 1, 2.1, 2.2 and 3 built** (2026-09-14); steps 4–6 land in
+`KeyInference.razor` — **steps 1, 2.1, 2.2, 3 and 4 built** (2026-09-14); steps 5–6 land in
 later passes. This is the spec-of-record for the **round-2 redesign** (2026-09-11), which
 restructures the original flat "KEY INFERENCE header, 8 sub-tabs" shape into a **numbered UX
 flow**. Mockups:
@@ -35,8 +35,7 @@ separate headers alongside this flow, not steps in it.
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
 | **2.2 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
 | **3 · Strength** | 3.1 `PlanetStrengthChart` — %-of-minimum bar (Performance) or a component-composition stacked bar (Composition toggle), plus a per-graha expandable Bala breakdown. 3.2 `HouseStrengthChart` — Rūpas (0–9) bar, House order/Strength rank toggle, per-house expandable breakdown | Bar and table are one component each (not chart+table separately — the bar sits inline in the row); "two tables, different columns" from the original spec became two chart+table hybrids instead, closer to the round-2 mockup's PNGs (`UI_SVG_Templates/V2.1-Build/Planet1-Strength-Chart.png` / `House-Strength-Chart.png`) than the flat-table plan below | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` (`PlanetaryStrengthRepository.GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (`BhavaStrengthRepository`, same two methods) |
-| **4 · Planet-Chart** | Vaiśeṣikāṁśa stacked bar (exalt/own/MT · friend · debil/enemy · neutral, of 16) | Ṣoḍaśavarga sign grid (9 grahas × 16 vargas, vargottama tinted) | `tbl_Chart_KeyDetails` across the 16 divisional `ChartType`s |
-| — inline | — | Vargottama list + Varga-Dignity highlight tags (not separate tables) | `tbl_Fact_Vargottama` · `tbl_Chart_KeyDetails.DignityStatus` |
+| **4 · Karakas** | Interactive Karaka wheel with house, planet and special-Lagna selection | Context reading, lord chain, natural/Chara significators and life-matter questions | `tbl_Rule_LifeMatterReference` + Naisargika/relationship rule tables through `NaisargikaKarakaRepository`; persisted varga placements through `WorkspaceData` |
 | **5 · Ashtakavarga** | Sarvāṣṭakavarga bar (bindus per sign) | Bhinnāṣṭakavarga grid (7×12) + Piṇḍa table | `vw_ChartAshtakavarga` · `tbl_Fact_AshtakavargaPinda` |
 | **6 · Yoga** | coverage donut (Present / Absent / Not evaluated) | Source · Yoga · Type · Rule · Result | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) |
 

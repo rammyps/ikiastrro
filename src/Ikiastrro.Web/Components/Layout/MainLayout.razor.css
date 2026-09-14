@@ -127,6 +127,67 @@
     font: 500 calc(var(--font-size-control) * 0.75) / 1.2 'Manrope', 'Segoe UI', sans-serif;
 }
 
+/* "Ramya ▾" now opens a real dropdown of the other saved people (rammyps) instead of just
+   linking back to the picker. .ik-person-wrap anchors the menu under the button; .ik-person-scrim
+   is an invisible full-page layer, above the page but below the menu, that closes it on an
+   outside click. */
+.ik-person-wrap { position: relative; }
+
+.ik-person-menu {
+    position: absolute;
+    z-index: 20;
+    top: 100%;
+    right: 0;
+    margin: 6px 0 0;
+    padding: 6px;
+    min-width: 220px;
+    max-height: 320px;
+    overflow-y: auto;
+    list-style: none;
+    background: var(--brand-surface);
+    border: 1px solid var(--brand-line);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgb(15 32 65 / 0.18);
+}
+
+.ik-person-menu li + li { margin-top: 2px; }
+
+.ik-person-menu button {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    padding: 6px 8px;
+    cursor: pointer;
+    text-align: left;
+    font: 600 calc(var(--font-size-control) * 0.85) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+    color: var(--brand-midnight);
+}
+
+.ik-person-menu button:hover { background: var(--brand-peach); }
+
+.ik-person-menu-birth {
+    flex: none;
+    color: var(--brand-muted);
+    font-weight: 500;
+    font-size: 0.85em;
+}
+
+.ik-person-menu-empty {
+    padding: 6px 8px;
+    color: var(--brand-muted);
+    font: 500 calc(var(--font-size-control) * 0.8) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.ik-person-menu-all { border-top: 1px solid var(--brand-line); margin-top: 4px; padding-top: 4px; }
+.ik-person-menu-all button { color: var(--brand-sunset); }
+
+.ik-person-scrim { position: fixed; inset: 0; z-index: 10; background: transparent; }
+
 /* Sticky footer: short pages pin it to the bottom of the viewport; pages taller than the
    viewport just push it to the natural end of the content, never overlapping (rammyps,
    2026-09-14). The flex-column structure itself (.mud-layout / .mud-main-content) lives in

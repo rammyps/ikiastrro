@@ -28,7 +28,8 @@
    exactly; only the chart shown under a tab now, not a separate route.
 
    Three tab levels (2026-09-14 restructure, rammyps's directive): an outer "master" MudTabs
-   (_masterTab) with one panel per step — "1. D1-TRANSIT", "2. ABOUT", "3. STRENGTH" (more steps
+   (_masterTab) with one panel per step — "1. D1-TRANSIT", "2. ABOUT", "3. STRENGTH",
+   "4. KARAKAS" (more steps
    land here later) — each panel opens with its own `ki-stephead` (Step N of 6 + heading) then
    its own inner MudTabs: D1-TRANSIT's is 1.1 D1 - Birth Chart/1.2 Transit Chart (_activeTab);
    About's is 2.1 About House/2.2 About Planets and Strength's is 3.1 Planet Strength/
@@ -61,7 +62,10 @@ else
     var lc = _data.Charts["D1"];
 
     <div class="ki-tabs ki-mastertabs">
-    <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Position="Position.Left" @bind-ActivePanelIndex="_masterTab">
+    <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true"
+             Class="ki-master" TabHeaderClass="ki-master-header"
+             TabButtonsClass="ki-master-button" ActiveTabClass="ki-master-active"
+             @bind-ActivePanelIndex="_masterTab">
         <MudTabPanel Text="1. D1-TRANSIT">
             <div class="ki-panelbody">
             <div class="ki-stephead">
@@ -88,7 +92,21 @@ else
                         <section class="ki-controls" aria-label="Transit date and dasha filters">
                             <label class="ki-field">
                                 <span>TRANSIT mm/yyyy</span>
-                                <input type="month" value="@DateValue" @onchange="OnDateChanged" />
+                                <span class="ki-monthyear">
+                                    <select value="@SelMonth" @onchange="OnMonthChanged">
+                                        @for (var m = 1; m <= 12; m++)
+                                        {
+                                            <option value="@m">@m.ToString("00")</option>
+                                        }
+                                    </select>
+                                    <span aria-hidden="true">/</span>
+                                    <select value="@SelYear" @onchange="OnYearChanged">
+                                        @foreach (var y in YearOptions)
+                                        {
+                                            <option value="@y">@y</option>
+                                        }
+                                    </select>
+                                </span>
                             </label>
                             <label class="ki-field">
                                 <span>Mahadasha</span>
@@ -274,12 +292,24 @@ else
             </div>
             </div>
         </MudTabPanel>
+
+        <MudTabPanel Text="4. KARAKAS">
+            <div class="ki-panelbody">
+            <div class="ki-stephead">
+                <span class="ki-stepnum">Step 4 of 6</span>
+                <h1 class="ki-heading">KARAKAS</h1>
+            </div>
+
+            <KarakaPolarWheel Id="@Id" Embedded="true" />
+            </div>
+        </MudTabPanel>
     </MudTabs>
     </div>
 }
 
 @code {
     [Parameter] public int Id { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "step")] public string? Step { get; set; }
 
     private int _masterTab;
     private int _activeTab;
@@ -302,6 +332,8 @@ else
 
     protected override void OnParametersSet()
     {
+        if (Step is "4" or "karakas") _masterTab = 3;
+
         _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
             ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,
             ChartMultiGrahaConjunctionRepo, ChartTypeRepo.GetAll());
@@ -353,13 +385,44 @@ else
         }
     }
 
-    private string DateValue => _selection?.ActiveIst.ToString("yyyy-MM", CultureInfo.InvariantCulture) ?? string.Empty;
+    private int SelMonth => _selection?.ActiveIst.Month ?? DateTime.UtcNow.Month;
+    private int SelYear => _selection?.ActiveIst.Year ?? DateTime.UtcNow.Year;
 
-    private void OnDateChanged(ChangeEventArgs args)
+    /// <summary>Year options span the loaded dasha tree's full range (birth to the end of the
+    /// last Mahadasha) so the "TRANSIT mm/yyyy" picker's year dropdown never offers a date
+    /// outside what the Mahadasha/Antardasha/Pratyantar dropdowns can resolve.</summary>
+    private IEnumerable<int> YearOptions
     {
-        if (_selection is null || !DateTime.TryParseExact(args.Value?.ToString(), "yyyy-MM",
-                CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) return;
-        _selection.SetDate(date);
+        get
+        {
+            if (_selection is null || _selection.Periods.Count == 0)
+            {
+                var thisYear = DateTime.UtcNow.Year;
+                return Enumerable.Range(thisYear - 60, 121);
+            }
+            var start = _selection.Periods.Min(p => p.StartDate.Year);
+            var end = _selection.Periods.Max(p => p.EndDate.Year);
+            return Enumerable.Range(start, end - start + 1);
+        }
+    }
+
+    private void OnMonthChanged(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var month)) return;
+        ApplyMonthYear(month, SelYear);
+    }
+
+    private void OnYearChanged(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var year)) return;
+        ApplyMonthYear(SelMonth, year);
+    }
+
+    private void ApplyMonthYear(int month, int year)
+    {
+        if (_selection is null) return;
+        var day = Math.Min(_selection.ActiveIst.Day, DateTime.DaysInMonth(year, month));
+        _selection.SetDate(new DateTime(year, month, day));
         RefreshSelection();
     }
 
