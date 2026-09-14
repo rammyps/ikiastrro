@@ -137,7 +137,15 @@ Publishes to the CLI and UI streams under
   engine and the persisted `tbl_Fact_PlanetaryStrengthComponent` rows. Still open: Varsha/Masa/
   Ayana Bala, and the Yuddha Bala *magnitude* (`tbl_Rule_PlanetaryWar`'s diameter-based delta
   formula) — `SRC_RAMAN_GRAHA_BHAVA_BALAS` is a DJVU with no text extract, so both stay
-  deliberately unquantified rather than guessed.
+  deliberately unquantified rather than guessed. **`db/100`** (2026-09-15) fixed a wrong Sun
+  minimum (`tbl_Rule_ShadbalaMinimumRupas` had 5.000, contradicting its own narrative + BPHS
+  27.32-33 — corrected to 6.500) and added `tbl_Rule_ShadbalaMaximumRupas` (new sibling table,
+  7 rows, engine-reachable ceiling per planet — not a BPHS figure, BPHS has no maximum concept,
+  see the migration's own header for the derivation); `vw_ChartShadbala` now computes
+  Minimum/Maximum/`PercentOfMinimum`/`PercentOfMaximum` live via `JOIN` instead of the
+  `tbl_Fact_PlanetaryStrength.MinimumRequiredRupas` stored column, which `InsertAll` never
+  populates (only a one-time 071 backfill ever did) — every chart computed since then had a
+  silently-NULL minimum until this fix.
 - **`FEAT-ASHTAKAVARGA-01` (DB slice)** — migrations 074–076: production `dbo` schema
   (`tbl_Rule_AshtakavargaContribution` — 56-row Parāśari matrix, SAV total 337;
   `tbl_Rule_AshtakavargaReduction`; `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`,
