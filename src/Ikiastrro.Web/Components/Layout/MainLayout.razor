@@ -14,22 +14,24 @@
 
 <MudLayout>
     <MudAppBar Elevation="1" Class="ik-appbar">
-        @* App-level nav — always visible, person-independent. *@
-        <nav class="ik-globalnav" aria-label="Main">
-            <a href="/" class="ik-navpill @(CurrentPath == "/" ? "is-here" : "")">HOME</a>
-            <a href="/charts" class="ik-navpill @(CurrentPath == "/charts" ? "is-here" : "")">SAVED CHARTS</a>
-        </nav>
-        @if (Active.Id is int personId)
-        {
-            <nav class="ik-tabs" aria-label="Person sections">
-                @* ALL CHARTS is the divisional-chart gallery. Karakas and special Lagna
-                   interpretation now live together as Step 4 inside KEY INFERENCE. *@
-                <a href="@($"/charts/{personId}")" class="ik-tab @TabClass("charts")">ALL CHARTS</a>
-                <a href="@($"/key-inference/{personId}")" class="ik-tab @TabClass("keyinf")">KEY INFERENCE</a>
+        <div class="ik-header-start">
+            <nav class="ik-globalnav" aria-label="Main">
+                <a href="/" class="ik-headtab @(CurrentPath == "/" ? "is-here" : "")">HOME</a>
             </nav>
-        }
-        <MudSpacer />
+            @if (Active.Id is int personId)
+            {
+                <nav class="ik-tabs" aria-label="Person sections">
+                    @* ALL CHARTS is the divisional-chart gallery. Karakas and special Lagna
+                       interpretation now live together as Step 4 inside KEY INFERENCE. *@
+                    <a href="@($"/charts/{personId}")" class="ik-headtab @TabClass("charts")"><span>ALL</span> <span>CHARTS</span></a>
+                    <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinf")"><span>KEY</span> <span>INFERENCE</span></a>
+                </nav>
+            }
+        </div>
         <span class="ik-brand">Iki-Astrro<span class="ik-tagline">&nbsp;| Where Passion, Purpose &amp; Planets Align.</span></span>
+        <nav class="ik-header-save" aria-label="Saved charts">
+            <a href="/charts" class="ik-headtab @(CurrentPath == "/charts" ? "is-here" : "")"><span>SAVED</span> <span>CHART</span></a>
+        </nav>
     </MudAppBar>
     <MudMainContent>
         @if (Active is { Id: not null, Name: not null })

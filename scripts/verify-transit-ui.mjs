@@ -58,14 +58,15 @@ try {
     await waitFor(`document.querySelector('h1.ki-heading')?.textContent.trim() === 'D1-TRANSIT'`);
     await delay(500);
 
-    // Shell: HOME pill hard-left, the two per-person tabs visible once a person is open
-    // (the former standalone TRANSIT tab is gone — its content lives inside KEY INFERENCE now).
+    // Shell: HOME and the two per-person pills sit in the left zone; Saved Chart is pinned
+    // right and the brand occupies the centred zone.
     const shell = await evaluate(`(() => {
-        const tabs = [...document.querySelectorAll('.ik-tabs .ik-tab')].map(a => a.textContent.trim());
+        const tabs = [...document.querySelectorAll('.ik-tabs .ik-headtab')].map(a => a.textContent.trim());
         return {
-            home: document.querySelector('.ik-home')?.textContent.trim(),
-            homeFirst: document.querySelector('.mud-toolbar')?.firstElementChild?.classList.contains('ik-home'),
+            home: document.querySelector('.ik-globalnav .ik-headtab')?.textContent.trim(),
+            homeFirst: document.querySelector('.ik-header-start .ik-globalnav') === document.querySelector('.ik-header-start')?.firstElementChild,
             tabs,
+            saved: document.querySelector('.ik-header-save .ik-headtab')?.textContent.trim(),
             person: document.querySelector('.ik-person-name')?.textContent.trim(),
         };
     })()`);
@@ -73,6 +74,7 @@ try {
     assert.equal(shell.home, 'HOME');
     assert.equal(shell.homeFirst, true);
     assert.deepEqual(shell.tabs, ['ALL CHARTS', 'KEY INFERENCE']);
+    assert.equal(shell.saved, 'SAVED CHART');
     assert.ok(shell.person && shell.person.length > 0);
 
     // D1 Birth tab (active by default) — persisted rows via PlanetPositionsTable, Lagna first.

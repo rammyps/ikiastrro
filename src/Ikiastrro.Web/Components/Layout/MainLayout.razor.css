@@ -2,77 +2,61 @@
    the three --font-size-* tokens only. HOME pill hard-left, per-person tabs (hidden until a
    person is open), brand lockup right; one --maxw / --pad-x width through bar, band and page. */
 
-/* One content column through the app bar. */
+/* Three-zone app bar shared by every route: navigation left, brand centred, saved charts
+   pinned to the far right. */
 ::deep .ik-appbar .mud-toolbar {
     max-width: var(--maxw);
     width: 100%;
     margin-inline: auto;
     padding-inline: var(--pad-x);
-    gap: 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 14px;
 }
 
-.ik-globalnav {
-    flex: none;
+.ik-header-start,
+.ik-globalnav,
+.ik-tabs {
     display: flex;
     align-items: center;
     gap: 8px;
 }
+.ik-header-start { min-width: 0; }
+.ik-header-save { justify-self: end; }
 
-/* App-level nav pills. Outlined by default; filled dark ONLY on the page you're on — so
-   HOME never reads as "selected" while you're on a person tab. */
-.ik-navpill {
+/* One pill language for every header tab, matching the Key Inference master rail. */
+.ik-headtab {
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    padding: 6px 16px;
+    justify-content: center;
+    min-width: 82px;
+    min-height: 38px;
+    padding: 5px 14px;
     border-radius: 999px;
-    border: 1.5px solid var(--brand-midnight);
-    background: transparent;
+    border: 0;
+    background: rgb(255 250 242 / 0.48);
     color: var(--brand-midnight);
-    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: 0.08em;
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.ik-navpill:hover {
-    background: rgb(255 255 255 / 0.28);
-}
-
-.ik-navpill.is-here {
-    background: var(--brand-midnight);
-    color: var(--brand-canvas);
-}
-
-.ik-tabs {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.ik-tab {
-    padding: 6px 12px;
-    border-radius: 6px;
-    color: var(--brand-midnight);
-    font: 600 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    font: 750 calc(var(--font-size-control) * 0.82) / 0.95 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.06em;
     text-decoration: none;
     white-space: nowrap;
+    text-align: center;
 }
 
-.ik-tab:hover {
-    background: rgb(255 255 255 / 0.28);
-}
+.ik-headtab:hover { background: rgb(255 250 242 / 0.7); }
 
-.ik-tab.is-here {
+.ik-headtab.is-here {
     background: var(--brand-midnight);
     color: var(--brand-canvas);
 }
 
 .ik-brand {
-    flex: none;
+    justify-self: center;
     color: var(--brand-midnight);
-    font: 700 var(--font-size-control) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 calc(var(--font-size-control) * 0.78) / 1.1 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.01em;
+    white-space: nowrap;
 }
 
 .ik-tagline {
@@ -242,8 +226,13 @@
 
 @media (max-width: 760px) {
     .ik-tagline { display: none; }
-    ::deep .ik-appbar .mud-toolbar { gap: 10px; }
-    .ik-tab { padding: 6px 8px; letter-spacing: 0.03em; }
-    .ik-globalnav { gap: 5px; }
-    .ik-navpill { padding: 5px 10px; letter-spacing: 0.03em; }
+    ::deep .ik-appbar .mud-toolbar { gap: 6px; padding-inline: 8px; }
+    .ik-header-start, .ik-globalnav, .ik-tabs { gap: 4px; }
+    .ik-headtab { min-width: 58px; min-height: 34px; padding: 4px 7px; letter-spacing: 0.02em; }
+}
+
+@media (max-width: 520px) {
+    .ik-brand { display: none; }
+    ::deep .ik-appbar .mud-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
+    .ik-header-save { grid-column: 2; }
 }
