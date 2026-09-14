@@ -8,12 +8,16 @@
     display: flex;
     align-items: baseline;
     gap: 0.6rem;
-    margin: 4px 0 16px;
+    margin: 16px 0 16px;
 }
 
+/* No pill background any more — "STEP N OF 6" reads as plain text beside the heading
+   (rammyps, 2026-09-14: dropped the dark-navy pill; text stays --brand-sunset, same color as
+   before, both texts a size step up from the app's base control size). */
 .ki-stepnum {
+    display: inline-block;
     color: var(--brand-sunset);
-    font: 800 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    font: 800 calc(var(--font-size-control) * 1.15) / 1 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -21,7 +25,7 @@
 .ki-heading {
     margin: 0;
     color: var(--brand-midnight);
-    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 calc(var(--font-size-control) * 1.15) / 1.2 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.12em;
     text-transform: uppercase;
 }
@@ -70,16 +74,44 @@
 }
 .ki-wheel ::deep .ntw { width: 100%; }
 
+/* Tab-strip convention (tokens.css --tab-*, design-language.md "Tabs"): every tab, at every
+   level (master, D1 Birth/Current Transit, 2.1/2.2), is a filled segment — sunset-orange fill
+   while inactive, dark-blue fill + gold text once active. The underline slider MudBlazor draws
+   by default is redundant against a filled tab and is hidden. */
 .ki-tabs ::deep .mud-tab {
-    font: 600 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.02em;
     text-transform: none;
-    color: var(--brand-muted);
+    background: var(--tab-inactive-bg);
+    color: var(--tab-inactive-fg);
+    border-radius: 10px 10px 0 0;
+    margin: 0 3px;
 }
 
-.ki-tabs ::deep .mud-tab.mud-tab-active { color: var(--brand-midnight); }
-.ki-tabs ::deep .mud-tabs-toolbar-wrapper .mud-tab-slider { background: var(--brand-sunset); }
+.ki-tabs ::deep .mud-tab.mud-tab-active {
+    background: var(--tab-active-bg);
+    color: var(--tab-active-fg);
+}
+
+.ki-tabs ::deep .mud-tabs-toolbar-wrapper .mud-tab-slider { display: none; }
 .ki-tabs ::deep .mud-tabs-panels { padding-top: 16px; }
+
+/* Master tabs (D1-TRANSIT / 2. ABOUT) rail on the left, its step's whole content — heading +
+   sub-tabs + everything below — to the right (rammyps, 2026-09-14). MudBlazor's vertical mode
+   (Position="Position.Left") makes .mud-tabs-panels itself a flex ROW and gives the active
+   .mud-tab-panel `display:contents`, which would otherwise promote ki-panelbody's own children
+   (the step head + inner tabs) straight into that row — .ki-panelbody is the one wrapper that
+   absorbs the promotion and stays a normal block column instead. */
+.ki-mastertabs { margin-bottom: 4px; }
+.ki-mastertabs ::deep .mud-tabs-panels { padding-top: 0; align-items: stretch; }
+.ki-panelbody { flex: 1 1 auto; min-width: 0; padding-left: 20px; }
+
+.ki-mastertabs ::deep .mud-tab {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 10px 0 0 10px;
+    margin: 3px 0;
+}
 
 .ki-alert { font-size: 0.85em; }
 
@@ -148,6 +180,34 @@
     align-items: start;
 }
 .ki-col { min-width: 0; }
+
+/* 2.2 About Planets — Moon-context fact chips. */
+.ki-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 20px;
+}
+
+.ki-fact {
+    display: grid;
+    gap: 2px;
+    padding: 6px 12px;
+    border: 1px solid var(--brand-line);
+    border-radius: 10px;
+    background: var(--brand-peach);
+}
+.ki-fact dt {
+    color: var(--brand-muted);
+    font: 700 var(--font-size-control) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.ki-fact dd {
+    margin: 0;
+    color: var(--brand-midnight);
+    font: 600 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+}
 
 @media (max-width: 900px) {
     .ki-controls { grid-template-columns: 1fr; }

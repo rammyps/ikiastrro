@@ -1,0 +1,147 @@
+@using System.Globalization
+@using Ikiastrro.Core.Presentation
+@* Key Inference 3.2 "House Strength" — Bhava Bala summary (vw_ChartBhavaBala) with a House
+   order/Strength rank toggle and a per-house expandable component breakdown
+   (tbl_Fact_BhavaStrengthComponent: BHAVADHIPATI_BALA/BHAVA_DIG_BALA/BHAVA_DRIK_BALA,
+   BhavaBalaCalculator). docs/ui/components/key-inference.md step 3. Dignity pill reuses
+   ChartViewModel.DignityToken/--dignity-* — same convention PlanetDignityTable/
+   HouseLordshipTable already use, not a new palette. "hsc" = HouseStrengthChart. *@
+<div class="hsc">
+    <div class="hsc-head">
+        <div>
+            <h2 class="hsc-title">House Strength — Bhava Bala</h2>
+            <p class="hsc-sub">Comparative house strength based on Bhava Bala (Rūpas, maximum = 9.00)</p>
+        </div>
+        <div class="hsc-toggle" role="group" aria-label="Row order">
+            <button type="button" class="@(_sort == SortMode.HouseOrder ? "hsc-toggle-on" : "")" @onclick="() => _sort = SortMode.HouseOrder">House order</button>
+            <button type="button" class="@(_sort == SortMode.StrengthRank ? "hsc-toggle-on" : "")" @onclick="() => _sort = SortMode.StrengthRank">Strength rank</button>
+        </div>
+    </div>
+
+    <div class="hsc-legend">
+        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-strong"></span>&ge;7.00 Strong</span>
+        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-moderate"></span>5.00&ndash;6.99 Moderate</span>
+        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-weak"></span>&lt;5.00 Weak</span>
+    </div>
+
+    <div class="hsc-colheads">
+        <span class="hsc-c-rank">Rank</span>
+        <span class="hsc-c-house">House</span>
+        <span class="hsc-c-sign">Sign</span>
+        <span class="hsc-c-lord">Lord</span>
+        <span class="hsc-c-placed">Lord placed</span>
+        <span class="hsc-c-dignity">Dignity</span>
+        <span class="hsc-c-bar">Rūpas (0&ndash;9)</span>
+        <span class="hsc-c-num">Rūpas</span>
+    </div>
+
+    @foreach (var (rank, row) in Displayed)
+    {
+        var (label, css) = StatusOf(row.BhavaBalaRupas);
+        var expanded = _expanded.Contains(row.HouseNumber);
+        <div class="hsc-row-wrap">
+            <button type="button" class="hsc-row" @onclick="() => Toggle(row.HouseNumber)" aria-expanded="@(expanded ? "true" : "false")">
+                <span class="hsc-c-rank"><span class="hsc-rankbadge @css">@rank</span></span>
+                <span class="hsc-c-house"><span class="hsc-chevron @(expanded ? "hsc-chevron-open" : "")">&#8250;</span>H@(row.HouseNumber)</span>
+                <span class="hsc-c-sign">@(row.HouseSign ?? "—")</span>
+                <span class="hsc-c-lord">@(row.LordPlanet ?? "—")</span>
+                <span class="hsc-c-placed">@LordPlacedDisplay(row)</span>
+                <span class="hsc-c-dignity">
+                    @if (row.LordDignityStatus is null)
+                    { <span class="hsc-muted">—</span> }
+                    else
+                    { <span class="hsc-pill"><span class="hsc-dignity-dot" style="background:var(--dignity-@ChartViewModel.DignityToken(row.LordDignityStatus))"></span>@row.LordDignityStatus</span> }
+                </span>
+                <span class="hsc-c-bar">
+                    <span class="hsc-track">
+                        <span class="hsc-fill @css" style="width:@(BarWidthPercent(row.BhavaBalaRupas).ToString("0.##", CultureInfo.InvariantCulture))%"></span>
+                    </span>
+                </span>
+                <span class="hsc-c-num hsc-mono">@row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)</span>
+            </button>
+
+            @if (expanded)
+            {
+                var comps = Components.Where(c => c.HouseNumber == row.HouseNumber)
+                    .ToDictionary(c => c.ComponentCode, c => Math.Round(c.ValueVirupas / 60m, 2), StringComparer.OrdinalIgnoreCase);
+                <div class="hsc-detail">
+                    <h3 class="hsc-detail-title">H@(row.HouseNumber) &mdash; Component Breakdown</h3>
+                    <p class="hsc-detail-meta">
+                        @(row.HouseSign ?? "—") &nbsp;|&nbsp; Lord: @(row.LordPlanet ?? "—")
+                        &nbsp;|&nbsp; Placed: @LordPlacedDisplay(row)
+                        &nbsp;|&nbsp; Dignity: @(row.LordDignityStatus ?? "—")
+                        &nbsp;|&nbsp; Total Rūpas: @row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)
+                    </p>
+                    <div class="hsc-metrics">
+                        @foreach (var m in DetailComponents)
+                        {
+                            var value = comps.GetValueOrDefault(m.Code, 0);
+                            <div class="hsc-metric">
+                                <span class="hsc-metric-label"><span class="hsc-dot hsc-bala-@m.Token"></span>@m.Label</span>
+                                <span class="hsc-metric-track">
+                                    <span class="hsc-metric-fill hsc-bala-@m.Token" style="width:@(BarWidthPercent(value).ToString("0.##", CultureInfo.InvariantCulture))%"></span>
+                                </span>
+                                <span class="hsc-metric-value">@value.ToString("0.00", CultureInfo.InvariantCulture)</span>
+                            </div>
+                        }
+                    </div>
+                    <p class="hsc-detail-sum">
+                        Total Rūpas: @row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)
+                        (@string.Join(" + ", DetailComponents.Select(m => comps.GetValueOrDefault(m.Code, 0).ToString("0.00", CultureInfo.InvariantCulture))))
+                    </p>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="hsc-axis">
+        <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>9</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<BhavaBalaSummaryRow> Rows { get; set; } = Array.Empty<BhavaBalaSummaryRow>();
+    [Parameter, EditorRequired] public IReadOnlyList<BhavaBalaComponentRow> Components { get; set; } = Array.Empty<BhavaBalaComponentRow>();
+
+    private enum SortMode { HouseOrder, StrengthRank }
+    private SortMode _sort = SortMode.StrengthRank;
+    private readonly HashSet<int> _expanded = new();
+
+    private static readonly (string Code, string Label, string Token)[] DetailComponents =
+    {
+        ("BHAVADHIPATI_BALA", "Bhavadhipati Bala", "bhavadhipati"),
+        ("BHAVA_DIG_BALA", "Bhava Dig Bala", "dig"),
+        ("BHAVA_DRIK_BALA", "Bhava Drik Bala", "drik"),
+    };
+
+    /// <summary>Rank is always by strength (1 = highest Bhava Bala Rūpas) — "House order" only
+    /// changes display order, never renumbers rank, so a weak-but-early house (e.g. H1) still
+    /// reads its true rank when the table is sorted back to house sequence.</summary>
+    private IReadOnlyList<(int Rank, BhavaBalaSummaryRow Row)> RankedByStrength =>
+        Rows.OrderByDescending(r => r.BhavaBalaRupas).Select((r, i) => (i + 1, r)).ToList();
+
+    private IReadOnlyList<(int Rank, BhavaBalaSummaryRow Row)> Displayed =>
+        _sort == SortMode.HouseOrder
+            ? RankedByStrength.OrderBy(x => x.Row.HouseNumber).ToList()
+            : RankedByStrength;
+
+    private void Toggle(int house)
+    {
+        if (!_expanded.Add(house)) _expanded.Remove(house);
+    }
+
+    /// <summary>Presentation-only threshold band over Bhava Bala Rūpas (no `tbl_Rule_*` source
+    /// yet, same status as the classical exaltation constants in ChartViewModel — see
+    /// key-inference.md's sourcing-status table): &ge;7 strong, 5&ndash;6.99 moderate, below weak.</summary>
+    private static (string Label, string CssClass) StatusOf(decimal rupas) => rupas switch
+    {
+        >= 7 => ("Strong", "hsc-status-strong"),
+        >= 5 => ("Moderate", "hsc-status-moderate"),
+        _ => ("Weak", "hsc-status-weak"),
+    };
+
+    private static double BarWidthPercent(decimal rupas) => (double)(Math.Min(Math.Max(rupas, 0), 9) / 9m * 100m);
+
+    private static string LordPlacedDisplay(BhavaBalaSummaryRow row) =>
+        row.LordPlacedInHouseFromLagna is { } h ? $"H{h} · {row.LordPlacedInSign ?? "—"}" : "—";
+}

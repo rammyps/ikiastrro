@@ -118,6 +118,29 @@
     /* PolarWheel ring + degree ticks. */
     --wheel-ring: #a3763e;     /* = --paper-line */
     --wheel-tick: #8d7c62;     /* = --ink-faint */
+
+    /* Key Inference 3 "Strength" (PlanetStrengthChart / HouseStrengthChart) — a plain
+       %/rūpas threshold band, not a classical placement judgment, so it reads better as a
+       clearer traffic-light than --dignity-* (kept deliberately more saturated than the rest
+       of this parchment palette for that reason). Shared by both step-3 components. */
+    --status-strong: #1e8a4c;
+    --status-strong-bg: #e3f5e9;
+    --status-moderate: #c9820a;
+    --status-moderate-bg: #fdf1dc;
+    --status-weak: #c23b34;
+    --status-weak-bg: #fbe6e4;
+
+    /* Shadbala/Bhava-Bala component category palette — the Bala groups both step-3 breakdown
+       panels split their total into. Dig/Drik reused across both (same underlying concept,
+       Bhavadhipati Bala is House Strength's own, standing in for a graha's whole Shadbala). */
+    --bala-sthana: #e08a4c;
+    --bala-dig: #6f9bd8;
+    --bala-kala: #6fb87c;
+    --bala-cheshta: #a98fd1;
+    --bala-naisargika: #dcac3a;
+    --bala-drik: #d97b8f;
+    --bala-yuddha: #9a9488;
+    --bala-bhavadhipati: #c9932b;
 }
 
 /* App-wide base look, shared by every page (scoped-CSS components keep their own copies of
@@ -134,6 +157,29 @@ body {
     color: var(--brand-midnight);
     font-family: 'Manrope', 'Segoe UI', sans-serif;
     overflow-x: clip;
+    /* Sticky footer (MainLayout's .ik-footer): a short page's footer still sits at the bottom
+       of the viewport; a page taller than the viewport just runs to its natural end. This has
+       to live here, unscoped, rather than in MainLayout.razor.css — Blazor's CSS-isolation scope
+       attribute is only added to elements literally written in a .razor file, and <MudLayout> is
+       a component reference, not literal markup, so its rendered root (.mud-layout, a direct
+       child of body) never carries MainLayout's scope attribute for a `::deep` rule to require. */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.mud-layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.mud-main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 h1, h2, h3 {
@@ -165,4 +211,15 @@ h1, h2, h3 {
        footer (docs/ui/wkstream_UI_v2.md — "Navigation / Header bar"). */
     --maxw: 1400px;
     --pad-x: clamp(16px, 4vw, 48px);
+
+    /* Tab-strip convention (2026-09-14, rammyps's directive — docs/ui/design-language.md
+       "Tabs"): active tab = dark-blue fill + this gold text; inactive tab = sunset-orange fill
+       + dark-blue text. Distinct from the "Actions" (buttons) treatment above — tabs get their
+       own small token family so the two conventions can be retuned independently. Key Inference
+       adopts this first; roll it out to every other tab strip in the app as those pages are
+       next touched. */
+    --tab-active-bg: var(--brand-midnight);
+    --tab-active-fg: #ffd166;
+    --tab-inactive-bg: var(--brand-sunset);
+    --tab-inactive-fg: var(--brand-midnight);
 }

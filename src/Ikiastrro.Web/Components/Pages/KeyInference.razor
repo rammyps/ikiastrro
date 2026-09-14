@@ -7,24 +7,44 @@
 @inject ChartHouseLordsRepository ChartHouseLordsRepo
 @inject ChartHouseLordInterpretationRepository ChartHouseLordInterpretationRepo
 @inject ChartAspectsRepository ChartAspectsRepo
+@inject ChartMoonContextRepository ChartMoonContextRepo
 @inject ChartConjunctionsRepository ChartConjunctionsRepo
 @inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
 @inject ChartTypeRepository ChartTypeRepo
 @inject Ikiastrro.Data.GocharaRepository Gochara
 @inject Ikiastrro.Data.Natal_Transit_Comp_WheelRepository D1WheelRepo
 @inject DashaPeriodsRepository DashaRepo
+@inject Ikiastrro.Data.PlanetaryStrengthRepository PlanetaryStrengthRepo
+@inject Ikiastrro.Data.BhavaStrengthRepository BhavaStrengthRepo
 @inject ActivePerson Active
 
-@* Key Inference — docs/ui/components/key-inference.md. Steps 1 and 2.1 built; step 2.2 and
-   3–6 land in later passes. Same South-Indian grid component as /charts (Codex
+@* Key Inference — docs/ui/components/key-inference.md. Steps 1, 2.1, 2.2 and 3 built; steps
+   4–6 land in later passes. Same South-Indian grid component as /charts (Codex
    `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not modified) for the
-   "D1 Birth" tab. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1") for free
-   styling/columns. The standalone /transit-wheel page has been folded into the "Current
-   Transit" tab wholesale — wheel chart, date/dasha selector, and Gochara table — reusing its
-   Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath exactly;
-   only the chart shown under a tab now, not a separate route. The "2. About" main tab holds
-   step 2's two sub-tabs (2.1 About House built here, 2.2 About Planets stubbed) — the step
-   heading above the tabs tracks whichever main tab is active. *@
+   "1.1 D1 - Birth Chart" tab. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1")
+   for free styling/columns. The standalone /transit-wheel page has been folded into the
+   "1.2 Transit Chart" tab wholesale — wheel chart, date/dasha selector, and Gochara table —
+   reusing its Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath
+   exactly; only the chart shown under a tab now, not a separate route.
+
+   Three tab levels (2026-09-14 restructure, rammyps's directive): an outer "master" MudTabs
+   (_masterTab) with one panel per step — "1. D1-TRANSIT", "2. ABOUT", "3. STRENGTH" (more steps
+   land here later) — each panel opens with its own `ki-stephead` (Step N of 6 + heading) then
+   its own inner MudTabs: D1-TRANSIT's is 1.1 D1 - Birth Chart/1.2 Transit Chart (_activeTab);
+   About's is 2.1 About House/2.2 About Planets and Strength's is 3.1 Planet Strength/
+   3.2 House Strength (both unbound, as before). All three levels share `.ki-tabs` styling —
+   active = dark-blue fill + gold text, inactive = sunset-orange fill + dark-blue text
+   (tokens.css `--tab-*`, design-language.md "Tabs") — a new app-wide tab convention this page
+   adopts first. `.ki-stephead` lost its dark-navy pill behind "STEP N OF 6" 2026-09-14 (now
+   plain text, both it and the heading a size step up) — rammyps's call, applies to every step.
+   2.2's exaltation-closeness bar + table read ChartViewModel.BuildExaltationRows (Core) over
+   lc.KeyDetails; the Moon-context facts read ChartMoonContextRepository (vw_ChartMoonContext)
+   separately, same "outside WorkspaceData" pattern as the Current Transit tab's Gochara/Dasha
+   loads — only this page needs it. 3.1/3.2 (`PlanetStrengthChart`/`HouseStrengthChart`, own
+   `.razor.css`) read PlanetaryStrengthRepository/BhavaStrengthRepository's new
+   GetSummaryByBirthDetailId/GetComponentsByBirthDetailId over vw_ChartShadbala/
+   vw_ChartBhavaBala + the two component fact tables — same "outside WorkspaceData" pattern,
+   loaded alongside Moon context/Gochara/Dasha in OnParametersSet. *@
 
 <PageTitle>Key Inference — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
 
@@ -40,120 +60,136 @@ else
 {
     var lc = _data.Charts["D1"];
 
-    <div class="ki-stephead">
-        <span class="ki-stepnum">Step @(_activeTab <= 1 ? 1 : 2) of 6</span>
-        <h1 class="ki-heading">@(_activeTab <= 1 ? "D1-TRANSIT" : "ABOUT")</h1>
-    </div>
-
-    <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="ki-tabs" @bind-ActivePanelIndex="_activeTab">
-        <MudTabPanel Text="D1 Birth">
-            <div class="ki-gridwrap">
-                <SouthIndianGrid_Detailed AscendantSign="@lc.AscendantSign" MoonSign="@lc.MoonSign"
-                                 PlanetsBySign="PlanetsBySign(lc)" CenterTitle="D1">
-                    <CenterMeta><b>Lagna</b> @Disp(lc.AscendantSign)</CenterMeta>
-                </SouthIndianGrid_Detailed>
+    <div class="ki-tabs ki-mastertabs">
+    <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Position="Position.Left" @bind-ActivePanelIndex="_masterTab">
+        <MudTabPanel Text="1. D1-TRANSIT">
+            <div class="ki-panelbody">
+            <div class="ki-stephead">
+                <span class="ki-stepnum">Step 1 of 6</span>
+                <h1 class="ki-heading">D1-TRANSIT</h1>
             </div>
 
-            <PlanetPositionsTable Rows="Rows(lc)" LagnaSign="@lc.AscendantSign" Variant="d1" ShowDignity="true" />
+            <div class="ki-tabs">
+            <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_activeTab">
+                <MudTabPanel Text="1.1 D1 - BIRTH CHART">
+                    <div class="ki-gridwrap">
+                        <SouthIndianGrid_Detailed AscendantSign="@lc.AscendantSign" MoonSign="@lc.MoonSign"
+                                         PlanetsBySign="PlanetsBySign(lc)" CenterTitle="D1">
+                            <CenterMeta><b>Lagna</b> @Disp(lc.AscendantSign)</CenterMeta>
+                        </SouthIndianGrid_Detailed>
+                    </div>
+
+                    <PlanetPositionsTable Rows="Rows(lc)" LagnaSign="@lc.AscendantSign" Variant="d1" ShowDignity="true" />
+                </MudTabPanel>
+
+                <MudTabPanel Text="1.2 TRANSIT CHART">
+                    @if (_selection is not null)
+                    {
+                        <section class="ki-controls" aria-label="Transit date and dasha filters">
+                            <label class="ki-field">
+                                <span>Current transit date</span>
+                                <input type="month" value="@DateValue" @onchange="OnDateChanged" />
+                            </label>
+                            <label class="ki-field">
+                                <span>Mahadasha</span>
+                                <select value="@(_selection.Maha?.Id.ToString() ?? string.Empty)" @onchange="OnMahaChanged">
+                                    <option value="">Select Mahadasha</option>
+                                    @foreach (var period in _selection.Periods)
+                                    {
+                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                                    }
+                                </select>
+                            </label>
+                            <label class="ki-field">
+                                <span>Antardasha</span>
+                                <select value="@(_selection.Antar?.Id.ToString() ?? string.Empty)" @onchange="OnAntarChanged" disabled="@(_selection.Maha is null)">
+                                    <option value="">Select Antardasha</option>
+                                    @foreach (var period in _selection.AntarPeriods)
+                                    {
+                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                                    }
+                                </select>
+                            </label>
+                            <label class="ki-field">
+                                <span>Pratyantar</span>
+                                <select value="@(_selection.Pratyantar?.Id.ToString() ?? string.Empty)" @onchange="OnPratyantarChanged" disabled="@(_selection.Antar is null)">
+                                    <option value="">Select Pratyantar</option>
+                                    @foreach (var period in _selection.PratyantarPeriods)
+                                    {
+                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                                    }
+                                </select>
+                            </label>
+                        </section>
+                    }
+
+                    <div class="ki-wheel">
+                        @if (_d1.Count > 0)
+                        {
+                            <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
+                                               NatalPoints="@D1WheelPoints"
+                                               TransitPoints="@TransitWheelPoints"
+                                               AsOfUtc="@_asOfUtc" />
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                                Generate a D1 chart for this person first.
+                            </MudAlert>
+                        }
+                    </div>
+
+                    @if (_transitError is not null || _transits.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Transit reference not backfilled — run <code>backfill-planet-transits</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <div class="ki-scroll">
+                            <MudSimpleTable Dense="true" Hover="true" Bordered="false" Class="ki-table">
+                                <thead>
+                                    <tr>
+                                        <th>House<br />from D1</th><th>Planet</th><th>Motion</th><th>Degree</th>
+                                        <th>Speed<br />°/day</th><th>In sign<br />since</th>
+                                        <th>In-sign<br />motion</th><th>Next<br />change</th><th>Next-change<br />motion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in TransitRows)
+                                    {
+                                        <tr>
+                                            <td class="num">@(HouseFromD1(s)?.ToString() ?? "—")</td>
+                                            <td>@s.Planet</td>
+                                            <td>@s.MotionDirection</td>
+                                            <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
+                                            <td class="num">@s.SpeedDegreesPerDay.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                            <td class="num">@s.InSignSinceUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</td>
+                                            <td>@(s.InSignMotion ?? "—")</td>
+                                            <td class="num">@(s.NextChangeUtc?.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) ?? "—")</td>
+                                            <td>@(s.NextChangeMotion ?? "—")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        </div>
+                    }
+                </MudTabPanel>
+            </MudTabs>
+            </div>
+            </div>
         </MudTabPanel>
 
-        <MudTabPanel Text="Current Transit">
-            @if (_selection is not null)
-            {
-                <section class="ki-controls" aria-label="Transit date and dasha filters">
-                    <label class="ki-field">
-                        <span>Current transit date</span>
-                        <input type="month" value="@DateValue" @onchange="OnDateChanged" />
-                    </label>
-                    <label class="ki-field">
-                        <span>Mahadasha</span>
-                        <select value="@(_selection.Maha?.Id.ToString() ?? string.Empty)" @onchange="OnMahaChanged">
-                            <option value="">Select Mahadasha</option>
-                            @foreach (var period in _selection.Periods)
-                            {
-                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
-                            }
-                        </select>
-                    </label>
-                    <label class="ki-field">
-                        <span>Antardasha</span>
-                        <select value="@(_selection.Antar?.Id.ToString() ?? string.Empty)" @onchange="OnAntarChanged" disabled="@(_selection.Maha is null)">
-                            <option value="">Select Antardasha</option>
-                            @foreach (var period in _selection.AntarPeriods)
-                            {
-                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
-                            }
-                        </select>
-                    </label>
-                    <label class="ki-field">
-                        <span>Pratyantar</span>
-                        <select value="@(_selection.Pratyantar?.Id.ToString() ?? string.Empty)" @onchange="OnPratyantarChanged" disabled="@(_selection.Antar is null)">
-                            <option value="">Select Pratyantar</option>
-                            @foreach (var period in _selection.PratyantarPeriods)
-                            {
-                                <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
-                            }
-                        </select>
-                    </label>
-                </section>
-            }
-
-            <div class="ki-wheel">
-                @if (_d1.Count > 0)
-                {
-                    <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
-                                       NatalPoints="@D1WheelPoints"
-                                       TransitPoints="@TransitWheelPoints"
-                                       AsOfUtc="@_asOfUtc" />
-                }
-                else
-                {
-                    <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                        Generate a D1 chart for this person first.
-                    </MudAlert>
-                }
+        <MudTabPanel Text="2. ABOUT">
+            <div class="ki-panelbody">
+            <div class="ki-stephead">
+                <span class="ki-stepnum">Step 2 of 6</span>
+                <h1 class="ki-heading">ABOUT</h1>
             </div>
 
-            @if (_transitError is not null || _transits.Count == 0)
-            {
-                <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                    Transit reference not backfilled — run <code>backfill-planet-transits</code>.
-                </MudAlert>
-            }
-            else
-            {
-                <div class="ki-scroll">
-                    <MudSimpleTable Dense="true" Hover="true" Bordered="false" Class="ki-table">
-                        <thead>
-                            <tr>
-                                <th>House<br />from D1</th><th>Planet</th><th>Motion</th><th>Degree</th>
-                                <th>Speed<br />°/day</th><th>In sign<br />since</th>
-                                <th>In-sign<br />motion</th><th>Next<br />change</th><th>Next-change<br />motion</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var s in TransitRows)
-                            {
-                                <tr>
-                                    <td class="num">@(HouseFromD1(s)?.ToString() ?? "—")</td>
-                                    <td>@s.Planet</td>
-                                    <td>@s.MotionDirection</td>
-                                    <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
-                                    <td class="num">@s.SpeedDegreesPerDay.ToString("0.0000", CultureInfo.InvariantCulture)</td>
-                                    <td class="num">@s.InSignSinceUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</td>
-                                    <td>@(s.InSignMotion ?? "—")</td>
-                                    <td class="num">@(s.NextChangeUtc?.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) ?? "—")</td>
-                                    <td>@(s.NextChangeMotion ?? "—")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </MudSimpleTable>
-                </div>
-            }
-        </MudTabPanel>
-
-        <MudTabPanel Text="2. About">
-            <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" Class="ki-tabs ki-subtabs">
+            <div class="ki-tabs ki-subtabs">
+            <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true">
                 <MudTabPanel Text="2.1 About House">
                     <h3 class="ki-sectionhead">Aspects &amp; conjunctions</h3>
                     <div class="ki-twocol">
@@ -173,20 +209,79 @@ else
                 </MudTabPanel>
 
                 <MudTabPanel Text="2.2 About Planets">
-                    <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                        About Planets lands in a later pass — dignity, Chara Kāraka, exaltation
-                        closeness, and Moon pañchāṅga facts (see docs/ui/components/key-inference.md,
-                        step 2.2).
-                    </MudAlert>
+                    <h3 class="ki-sectionhead">Moon context</h3>
+                    @if (_moon is null)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Moon context not available for this chart yet — run <code>recompute-keydetails</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        var moonGraha = lc.Grahas.FirstOrDefault(k => k.Planet == "Moon");
+                        <dl class="ki-facts">
+                            <div class="ki-fact"><dt>Tithi</dt><dd>@ChartViewModel.TithiDisplay(_moon.TithiNumber, _moon.PakshaCode)</dd></div>
+                            <div class="ki-fact"><dt>Pakṣa</dt><dd>@ChartViewModel.PakshaDisplay(_moon.PakshaCode) (@(_moon.IsWaxingMoon == true ? "waxing" : "waning"))</dd></div>
+                            <div class="ki-fact"><dt>Elongation</dt><dd>@(_moon.ElongationDegrees is { } e ? $"{e:0.00}°" : "—")</dd></div>
+                            <div class="ki-fact"><dt>Birth</dt><dd>@(_moon.IsNightBirth switch { true => "Night", false => "Day", null => "—" })</dd></div>
+                            <div class="ki-fact"><dt>Moon nakṣatra</dt><dd>@(moonGraha is null ? "—" : $"{moonGraha.Nakshatra} · {moonGraha.NakshatraPada}")</dd></div>
+                        </dl>
+                    }
+
+                    <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
+                    <PlanetDignityTable Rows="ExaltationRows(lc)" />
                 </MudTabPanel>
             </MudTabs>
+            </div>
+            </div>
+        </MudTabPanel>
+
+        <MudTabPanel Text="3. STRENGTH">
+            <div class="ki-panelbody">
+            <div class="ki-stephead">
+                <span class="ki-stepnum">Step 3 of 6</span>
+                <h1 class="ki-heading">STRENGTH</h1>
+            </div>
+
+            <div class="ki-tabs ki-subtabs">
+            <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true">
+                <MudTabPanel Text="3.1 PLANET STRENGTH">
+                    @if (_shadbala.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Shadbala not computed for this person yet — run <code>recompute-strength</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <PlanetStrengthChart Rows="_shadbala" Components="_shadbalaComponents" />
+                    }
+                </MudTabPanel>
+
+                <MudTabPanel Text="3.2 HOUSE STRENGTH">
+                    @if (_bhavaBala.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Bhava Bala not computed for this person yet — run <code>recompute-strength</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <HouseStrengthChart Rows="_bhavaBala" Components="_bhavaBalaComponents" />
+                    }
+                </MudTabPanel>
+            </MudTabs>
+            </div>
+            </div>
         </MudTabPanel>
     </MudTabs>
+    </div>
 }
 
 @code {
     [Parameter] public int Id { get; set; }
 
+    private int _masterTab;
     private int _activeTab;
     private WorkspaceData? _data;
     private string? _transitError;
@@ -195,6 +290,11 @@ else
     private Dictionary<string, string> _natalSignByPlanet = new(StringComparer.OrdinalIgnoreCase);
     private DateTime _asOfUtc = DateTime.UtcNow;
     private TransitSelection? _selection;
+    private MoonContext? _moon;
+    private IReadOnlyList<Ikiastrro.Data.ShadbalaSummaryRow> _shadbala = Array.Empty<Ikiastrro.Data.ShadbalaSummaryRow>();
+    private IReadOnlyList<Ikiastrro.Data.ShadbalaComponentRow> _shadbalaComponents = Array.Empty<Ikiastrro.Data.ShadbalaComponentRow>();
+    private IReadOnlyList<Ikiastrro.Data.BhavaBalaSummaryRow> _bhavaBala = Array.Empty<Ikiastrro.Data.BhavaBalaSummaryRow>();
+    private IReadOnlyList<Ikiastrro.Data.BhavaBalaComponentRow> _bhavaBalaComponents = Array.Empty<Ikiastrro.Data.BhavaBalaComponentRow>();
 
     private static readonly string[] SignById =
         { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
@@ -224,6 +324,11 @@ else
             .ToDictionary(g => g.Key, g => g.First().Sign, StringComparer.OrdinalIgnoreCase);
 
         _d1 = D1WheelRepo.LoadD1Birth(Id);
+        _moon = ChartMoonContextRepo.GetByBirthDetailId(Id);
+        _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _shadbalaComponents = PlanetaryStrengthRepo.GetComponentsByBirthDetailId(Id);
+        _bhavaBala = BhavaStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _bhavaBalaComponents = BhavaStrengthRepo.GetComponentsByBirthDetailId(Id);
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
             ? parsedOffset
@@ -302,6 +407,9 @@ else
 
     private static IReadOnlyList<PlanetRow> Rows(LoadedChart lc) =>
         ChartViewModel.BuildPlanetRows(lc.KeyDetails, lc.HouseLords, lc.Aspects);
+
+    private static IReadOnlyList<ExaltationRow> ExaltationRows(LoadedChart lc) =>
+        ChartViewModel.BuildExaltationRows(lc.KeyDetails);
 
     /// <summary>House number -> comma-joined occupant graha names (Ascendant excluded — not a
     /// graha) for the "House Lord Placement" table's Occupants column.</summary>

@@ -1,0 +1,251 @@
+/* Key Inference 3.2 "House Strength" — tokens.css --status-*/--bala-*/--dignity-* + the shared
+   brand-* family (design-language.md). Status/legend classes are re-declared locally under this
+   component's own CSS-isolation scope (PlanetStrengthChart's .psc-status-* rules can't reach
+   here) — same duplication PlanetDignityTable/HouseLordshipTable already carry for `.pill`/`.dot`. */
+
+.hsc {
+    border: 1px solid var(--brand-line);
+    border-radius: 12px;
+    background: var(--brand-surface);
+    padding: 16px 18px 10px;
+}
+
+.hsc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.hsc-title {
+    margin: 0;
+    color: var(--brand-midnight);
+    font: 700 1.15em/1.2 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.hsc-sub {
+    margin: 2px 0 0;
+    color: var(--brand-muted);
+    font-size: 0.82em;
+}
+
+.hsc-toggle {
+    display: inline-flex;
+    border: 1px solid var(--brand-line);
+    border-radius: 999px;
+    padding: 2px;
+    background: var(--brand-peach);
+}
+
+.hsc-toggle button {
+    border: 0;
+    background: transparent;
+    color: var(--brand-midnight);
+    font: 700 0.78em/1.6 'Manrope', 'Segoe UI', sans-serif;
+    padding: 4px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.hsc-toggle button.hsc-toggle-on {
+    background: var(--brand-midnight);
+    color: #ffd166;
+}
+
+.hsc-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 0 0 10px;
+    font-size: 0.78em;
+    color: var(--brand-midnight);
+}
+
+.hsc-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+
+.hsc-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: none;
+}
+
+.hsc-status-strong { background: var(--status-strong); }
+.hsc-status-moderate { background: var(--status-moderate); }
+.hsc-status-weak { background: var(--status-weak); }
+
+.hsc-bala-bhavadhipati { background: var(--bala-bhavadhipati); }
+.hsc-bala-dig { background: var(--bala-dig); }
+.hsc-bala-drik { background: var(--bala-drik); }
+
+.hsc-colheads,
+.hsc-row {
+    display: grid;
+    grid-template-columns: 44px 56px 86px 72px 110px 130px 1fr 64px;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.hsc-colheads {
+    padding: 6px 10px;
+    color: var(--brand-muted);
+    font: 700 0.7em/1.2 'Manrope', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid var(--brand-line);
+}
+
+.hsc-c-num { text-align: right; }
+.hsc-mono { font-variant-numeric: tabular-nums; }
+
+.hsc-row-wrap { border-bottom: 1px solid var(--brand-line); }
+.hsc-row-wrap:last-child { border-bottom: 0; }
+
+.hsc-row {
+    border: 0;
+    background: transparent;
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.hsc-row:hover { background: var(--brand-peach); }
+
+.hsc-rankbadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8em;
+}
+
+.hsc-c-house {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--brand-midnight);
+    font-weight: 700;
+}
+
+.hsc-chevron {
+    display: inline-block;
+    color: var(--brand-muted);
+    transition: transform 0.15s ease;
+}
+
+.hsc-chevron-open { transform: rotate(90deg); }
+
+.hsc-c-sign, .hsc-c-lord, .hsc-c-placed { color: var(--brand-midnight); font-size: 0.92em; }
+
+.hsc-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--brand-line);
+    font: 700 0.76em/1.5 'Manrope', 'Segoe UI', sans-serif;
+    color: var(--brand-midnight);
+}
+
+.hsc-dignity-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex: none; }
+.hsc-muted { color: var(--brand-muted); }
+
+.hsc-track {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--brand-line);
+}
+
+.hsc-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; }
+
+.hsc-detail {
+    margin: 4px 10px 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--brand-line);
+    border-radius: 10px;
+    background: var(--brand-peach);
+}
+
+.hsc-detail-title {
+    margin: 0 0 6px;
+    color: var(--brand-midnight);
+    font: 700 0.9em/1.3 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.hsc-detail-meta {
+    margin: 0 0 12px;
+    color: var(--brand-muted);
+    font-size: 0.82em;
+}
+
+.hsc-metrics { display: flex; flex-direction: column; gap: 8px; }
+
+.hsc-metric {
+    display: grid;
+    grid-template-columns: 150px 1fr 56px;
+    align-items: center;
+    gap: 10px;
+}
+
+.hsc-metric-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--brand-midnight);
+    font-weight: 700;
+    font-size: 0.82em;
+}
+
+.hsc-metric-track {
+    position: relative;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--brand-line);
+}
+
+.hsc-metric-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; }
+
+.hsc-metric-value {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--brand-midnight);
+    font-size: 0.86em;
+}
+
+.hsc-detail-sum {
+    margin: 10px 0 0;
+    color: var(--brand-midnight);
+    font-weight: 700;
+    font-size: 0.84em;
+}
+
+.hsc-axis {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 154px 2px 226px;
+    color: var(--brand-muted);
+    font-size: 0.7em;
+}
+
+@media (max-width: 900px) {
+    .hsc { overflow-x: auto; }
+    .hsc-colheads,
+    .hsc-row { min-width: 760px; }
+    .hsc-axis { display: none; }
+    .hsc-metric { grid-template-columns: 120px 1fr 48px; }
+}

@@ -1,0 +1,313 @@
+/* Key Inference 3.1 "Planet Strength" — tokens.css --status-*/--bala-* + the shared brand-*
+   family (design-language.md). "psc" = PlanetStrengthChart. */
+
+.psc {
+    border: 1px solid var(--brand-line);
+    border-radius: 12px;
+    background: var(--brand-surface);
+    padding: 16px 18px 8px;
+}
+
+.psc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.psc-title {
+    margin: 0;
+    color: var(--brand-midnight);
+    font: 700 1.15em/1.2 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.psc-sub {
+    margin: 2px 0 0;
+    color: var(--brand-muted);
+    font-size: 0.82em;
+}
+
+.psc-toggle {
+    display: inline-flex;
+    border: 1px solid var(--brand-line);
+    border-radius: 999px;
+    padding: 2px;
+    background: var(--brand-peach);
+}
+
+.psc-toggle button {
+    border: 0;
+    background: transparent;
+    color: var(--brand-midnight);
+    font: 700 0.78em/1.6 'Manrope', 'Segoe UI', sans-serif;
+    padding: 4px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.psc-toggle button.psc-toggle-on {
+    background: var(--brand-midnight);
+    color: #ffd166;
+}
+
+.psc-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 0 0 10px;
+    font-size: 0.78em;
+    color: var(--brand-midnight);
+}
+
+.psc-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+
+.psc-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: none;
+}
+
+.psc-status-strong { background: var(--status-strong); }
+.psc-status-moderate { background: var(--status-moderate); }
+.psc-status-weak { background: var(--status-weak); }
+.psc-status-none { background: var(--brand-line); }
+
+.psc-bala-sthana { background: var(--bala-sthana); }
+.psc-bala-dig { background: var(--bala-dig); }
+.psc-bala-kala { background: var(--bala-kala); }
+.psc-bala-cheshta { background: var(--bala-cheshta); }
+.psc-bala-naisargika { background: var(--bala-naisargika); }
+.psc-bala-drik { background: var(--bala-drik); }
+.psc-bala-yuddha { background: var(--bala-yuddha); }
+.psc-bala-bhavadhipati { background: var(--bala-bhavadhipati); }
+
+.psc-colheads,
+.psc-row {
+    display: grid;
+    grid-template-columns: 44px 100px 1fr 64px 56px 56px 84px;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.psc-colheads {
+    padding: 6px 10px;
+    color: var(--brand-muted);
+    font: 700 0.7em/1.2 'Manrope', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid var(--brand-line);
+}
+
+.psc-c-num { text-align: right; }
+.psc-c-status { text-align: center; }
+.psc-mono { font-variant-numeric: tabular-nums; }
+
+.psc-row-wrap { border-bottom: 1px solid var(--brand-line); }
+.psc-row-wrap:last-child { border-bottom: 0; }
+
+.psc-row {
+    border: 0;
+    background: transparent;
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.psc-row:hover { background: var(--brand-peach); }
+
+.psc-rankbadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--brand-peach);
+    border: 1px solid var(--brand-line);
+    color: var(--brand-midnight);
+    font-weight: 700;
+    font-size: 0.8em;
+}
+
+.psc-c-planet {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--brand-midnight);
+    font-weight: 700;
+}
+
+.psc-chevron {
+    display: inline-block;
+    color: var(--brand-muted);
+    transition: transform 0.15s ease;
+}
+
+.psc-chevron-open { transform: rotate(90deg); }
+
+.psc-barwrap { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+
+.psc-scale {
+    position: relative;
+    height: 13px;
+    font-size: 0.62em;
+    color: var(--brand-muted);
+}
+
+.psc-tick { position: absolute; white-space: nowrap; }
+.psc-tick-0 { left: 0; }
+.psc-tick-100 { left: 50%; transform: translateX(-50%); font-weight: 700; }
+.psc-tick-200 { right: 0; }
+
+.psc-trackrow { display: flex; align-items: center; gap: 8px; }
+
+.psc-track {
+    position: relative;
+    flex: 1 1 auto;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--brand-line);
+}
+
+.psc-refline {
+    position: absolute;
+    left: 50%;
+    top: -3px;
+    bottom: -3px;
+    border-left: 2px dashed var(--brand-muted);
+    opacity: 0.6;
+}
+
+.psc-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; }
+
+.psc-marker {
+    position: absolute;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid var(--brand-surface);
+}
+
+.psc-pctlabel {
+    min-width: 42px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.82em;
+}
+
+.psc-stack {
+    display: flex;
+    width: 100%;
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--brand-line);
+}
+
+.psc-stackseg { display: block; height: 100%; }
+
+.psc-stack-lg {
+    height: 34px;
+    border-radius: 8px;
+    align-items: stretch;
+}
+
+.psc-stack-lg .psc-stackseg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font: 700 0.72em/1 'Manrope', 'Segoe UI', sans-serif;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.psc-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font: 700 0.78em/1.5 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.psc-pill.psc-status-strong { background: var(--status-strong-bg); color: var(--status-strong); }
+.psc-pill.psc-status-moderate { background: var(--status-moderate-bg); color: var(--status-moderate); }
+.psc-pill.psc-status-weak { background: var(--status-weak-bg); color: var(--status-weak); }
+.psc-pill.psc-status-none { background: var(--brand-peach); color: var(--brand-muted); }
+
+.psc-detail {
+    margin: 4px 10px 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--brand-line);
+    border-radius: 10px;
+    background: var(--brand-peach);
+}
+
+.psc-detail-title {
+    margin: 0 0 10px;
+    color: var(--brand-midnight);
+    font: 700 0.9em/1.3 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.psc-detail-meta { color: var(--brand-muted); font-weight: 500; font-size: 0.85em; margin-left: 4px; }
+
+.psc-detail-body {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+.psc-detail-chart { display: flex; flex-direction: column; gap: 10px; }
+
+.psc-detail-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 0.76em;
+    color: var(--brand-midnight);
+}
+
+.psc-detail-legend .psc-legend-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.psc-detail-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8em;
+}
+
+.psc-detail-table th {
+    text-align: left;
+    padding: 5px 8px;
+    color: var(--brand-muted);
+    border-bottom: 2px solid var(--brand-line);
+    font-weight: 700;
+}
+
+.psc-detail-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--brand-line);
+    color: var(--brand-midnight);
+}
+
+.psc-detail-table td.psc-mono { text-align: right; }
+.psc-muted { color: var(--brand-muted); text-align: center !important; }
+
+@media (max-width: 900px) {
+    .psc { overflow-x: auto; }
+    .psc-colheads,
+    .psc-row { min-width: 640px; }
+    .psc-detail-body { grid-template-columns: 1fr; }
+    .psc-scale { display: none; }
+}

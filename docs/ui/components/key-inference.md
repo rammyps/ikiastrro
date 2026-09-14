@@ -8,7 +8,7 @@ togaf: C — component spec
 
 # Component — Key Inference
 
-`KeyInference.razor` — **step 1 and step 2.1 built** (2026-09-14); steps 2.2 and 3–6 land in
+`KeyInference.razor` — **steps 1, 2.1, 2.2 and 3 built** (2026-09-14); steps 4–6 land in
 later passes. This is the spec-of-record for the **round-2 redesign** (2026-09-11), which
 restructures the original flat "KEY INFERENCE header, 8 sub-tabs" shape into a **numbered UX
 flow**. Mockups:
@@ -18,9 +18,10 @@ flow**. Mockups:
 
 Design rule for this page: **one step, ideally one chart (hand-rolled SVG — bar / stacked
 bar / donut, no library, same discipline as `design-language.md`) + one primary table.**
-Bent twice on purpose, both noted at the step: Strength (two short tables, different
-columns) and Planet-Chart (four related views of one 16-varga dataset share one chart + one
-grid, with the rest as inline tags rather than more tables).
+Bent on purpose at several steps, each noted there: About Houses and About Planets are
+table-only (no chart), Strength runs two short tables with different columns instead of one,
+and Planet-Chart shares one chart + one grid across four related views of the same 16-varga
+dataset, with the rest as inline tags rather than more tables.
 
 `TIME PERIOD (DASHA)` and `SATURN TIME PERIOD` are **unchanged** by this round — still
 separate headers alongside this flow, not steps in it.
@@ -32,8 +33,8 @@ separate headers alongside this flow, not steps in it.
 | **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table (House · Planet · Sign · Degree · **Nakṣatra · Pāda** — moved here from Planet Dignity) + D1 Birth / Current Transit toggle | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
 | **2.1 · About Houses** | — (occupancy bar dropped; see note below) | Aspects (left) + multi-graha Conjunctions (right), side by side; House Lord Placement (lords + occupants); House Lord Key Findings — three tables, not one | `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
-| **2.2 · About Planets** | closeness-to-exaltation bar (7 grahas) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
-| **3 · Strength** | Shadbala bar chart with a minimum-required reference line | Planet Strength table + House Strength table (two, not merged — different columns) | `vw_ChartShadbala` · `vw_ChartBhavaBala` |
+| **2.2 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
+| **3 · Strength** | 3.1 `PlanetStrengthChart` — %-of-minimum bar (Performance) or a component-composition stacked bar (Composition toggle), plus a per-graha expandable Bala breakdown. 3.2 `HouseStrengthChart` — Rūpas (0–9) bar, House order/Strength rank toggle, per-house expandable breakdown | Bar and table are one component each (not chart+table separately — the bar sits inline in the row); "two tables, different columns" from the original spec became two chart+table hybrids instead, closer to the round-2 mockup's PNGs (`UI_SVG_Templates/V2.1-Build/Planet1-Strength-Chart.png` / `House-Strength-Chart.png`) than the flat-table plan below | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` (`PlanetaryStrengthRepository.GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (`BhavaStrengthRepository`, same two methods) |
 | **4 · Planet-Chart** | Vaiśeṣikāṁśa stacked bar (exalt/own/MT · friend · debil/enemy · neutral, of 16) | Ṣoḍaśavarga sign grid (9 grahas × 16 vargas, vargottama tinted) | `tbl_Chart_KeyDetails` across the 16 divisional `ChartType`s |
 | — inline | — | Vargottama list + Varga-Dignity highlight tags (not separate tables) | `tbl_Fact_Vargottama` · `tbl_Chart_KeyDetails.DignityStatus` |
 | **5 · Ashtakavarga** | Sarvāṣṭakavarga bar (bindus per sign) | Bhinnāṣṭakavarga grid (7×12) + Piṇḍa table | `vw_ChartAshtakavarga` · `tbl_Fact_AshtakavargaPinda` |
@@ -84,3 +85,51 @@ flow above instead of sitting in a side panel:
   `vw_ChartHouseLordInterpretation` (db/094) — the classical claims-per-house-lord-placement view
   that had no UI consumer yet. The Arudha/Upagraha/Special-Lagna supporting cards and the
   occupancy bar chart from the mockup are not built.
+- **Built (2026-09-14):** 2.2 About Planets — Moon-context fact chips (new
+  `ChartMoonContextRepository` over `vw_ChartMoonContext`, loaded outside `WorkspaceData` like
+  the Current Transit tab's Gochara/Dasha, since only this page needs it) above the "Planets —
+  dignity, kāraka, exaltation" table (new `PlanetDignityTable`), reading one new
+  `ChartViewModel.BuildExaltationRows` (Core) over `lc.KeyDetails` — the classical Uchcha Bindu
+  constants from the sourcing-status table above, hard-coded there exactly as decided
+  (`tbl_Rule_Exaltation` remains a `workstream/database` follow-up). Rahu/Ketu appear in the
+  table with "—" in the three exaltation-derived columns.
+- **Dropped (2026-09-14, rammyps):** the closeness-to-exaltation bar chart (`ExaltationClosenessChart`)
+  built alongside the table above was removed from the page the same day — 2.2 is table-only
+  now, joining 2.1 as an exception to this page's "one chart + one table" design rule. The
+  component, its golden snapshot, and its `ChartFixture.ExaltationD1` fixture were deleted
+  outright (nothing else referenced them); `ChartViewModel.BuildExaltationRows`/`ExaltationRow`
+  stayed — the table still reads them.
+- **Built (2026-09-14) — three-level tab restructure, rammyps's directive:** a new outer
+  "master" `MudTabs` (`Position="Position.Left"`) holds one panel per step — "D1-TRANSIT" (step
+  1) and "2. ABOUT" (step 2) — as a vertical rail on the page's left edge; each panel opens with
+  its own `ki-stephead` (Step N of 6 pill + heading) to its right, then that step's own inner
+  horizontal `MudTabs` (D1 Birth/Current Transit, or 2.1/2.2) and all its content. Every tab at
+  every level now follows the new app-wide fill convention — see `design-language.md` "Tabs" —
+  instead of MudBlazor's default text-plus-underline look. `ChartViewModel`'s classical
+  exaltation constants also back-filled a real bug found while building 2.2:
+  `ShadbalaCalculator.DeepExaltation`'s Venus entry was 327° (Aquarius 27°) instead of the
+  classical 357° (Pisces 27°) every other reference in the codebase uses — fixed; a 30° error
+  isolated to Venus's Uccha/Ishta/Kashta Bala, now visible in 3.1's per-planet breakdown.
+- **Built (2026-09-14) — Step 3 "Strength," rammyps's directive to match the round-2 mockup
+  PNGs closely (not the flatter original spec above):** `PlanetStrengthChart` (3.1) and
+  `HouseStrengthChart` (3.2), new `Components/Charts/*.razor` + own `.razor.css` (no golden
+  snapshot — table-shaped like PlanetDignityTable et al., not a standalone SVG chart module).
+  Both read new typed repository methods — `PlanetaryStrengthRepository`/
+  `BhavaStrengthRepository`'s `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId` — over
+  `vw_ChartShadbala`/`vw_ChartBhavaBala` plus the two `tbl_Fact_*Component` tables (previously
+  only reachable through `AstrologerEvidenceRepository`'s generic dynamic-row query). Status
+  thresholds (Planet: ≥100%/80–99%/&lt;80% Strong/Moderate/Weak; House: ≥7/5–6.99/&lt;5 Rūpas)
+  and the whole `--bala-*` component-category palette are presentation-only, no `tbl_Rule_*`
+  source yet — same status as the 2.2 exaltation constants above. 3.1 ranks strongest-first
+  (PercentOfMinimum desc, not the mockup's unexplained order) and offers a Performance/
+  Composition bar toggle (Composition reuses the per-row expand's stacked-Bala-share bar,
+  clamped so a negative Dṛk/other share never draws past 100% of the track — a real bug hit
+  building this, see `PlanetStrengthChart.SharePercent`'s comment). 3.2's Rank column always
+  reflects Bhava Bala strength even when "House order" is toggled — only display order changes.
+  Two rendering pitfalls worth remembering for the next chart-in-a-table component: Razor's
+  "email address" heuristic silently drops `@expr` when glued directly to a preceding word
+  character with a `.` later in the same token (`H@row.HouseNumber` rendered as literal text —
+  fixed with `H@(row.HouseNumber)`); and a `<span>` bar/track needs an explicit `display:block`
+  (or a flex/grid parent, which auto-blockifies it) or its `width`/`height` are silently ignored
+  as an inline element (`HouseStrengthChart`'s `.hsc-track` hit this, `PlanetStrengthChart`'s
+  `.psc-track` was saved by its `.psc-trackrow{display:flex}` parent).

@@ -1,0 +1,240 @@
+@using System.Globalization
+@* Key Inference 3.1 "Planet Strength" — Shadbala summary (vw_ChartShadbala) with a
+   Performance/Composition bar toggle and a per-graha expandable component breakdown
+   (tbl_Fact_PlanetaryStrengthComponent). docs/ui/components/key-inference.md step 3. Bars are
+   plain div width% (chart-catalog.md's "inline SVG / CSS grid" — no charting library), same
+   discipline as every other chart here; this one just reads more like a rich table than a
+   standalone SVG so it skips the golden-snapshot harness (table components do too — PlanetDignityTable et al). *@
+<div class="psc">
+    <div class="psc-head">
+        <div>
+            <h2 class="psc-title">Planet Strength — Shadbala</h2>
+            <p class="psc-sub">Comparative planetary strength based on Shadbala (minimum = 100%)</p>
+        </div>
+        <div class="psc-toggle" role="group" aria-label="Bar display mode">
+            <button type="button" class="@(_mode == BarMode.Performance ? "psc-toggle-on" : "")" @onclick="() => _mode = BarMode.Performance">Performance</button>
+            <button type="button" class="@(_mode == BarMode.Composition ? "psc-toggle-on" : "")" @onclick="() => _mode = BarMode.Composition">Composition</button>
+        </div>
+    </div>
+
+    @if (_mode == BarMode.Performance)
+    {
+        <div class="psc-legend">
+            <span class="psc-legend-item"><span class="psc-dot psc-status-strong"></span>&ge;100% Strong</span>
+            <span class="psc-legend-item"><span class="psc-dot psc-status-moderate"></span>80&ndash;99% Moderate</span>
+            <span class="psc-legend-item"><span class="psc-dot psc-status-weak"></span>&lt;80% Weak</span>
+        </div>
+    }
+    else
+    {
+        <div class="psc-legend">
+            @foreach (var g in BalaGroups)
+            {
+                <span class="psc-legend-item"><span class="psc-dot psc-bala-@g.Token"></span>@g.Label</span>
+            }
+        </div>
+    }
+
+    <div class="psc-colheads">
+        <span class="psc-c-rank">Rank</span>
+        <span class="psc-c-planet">Planet</span>
+        <span class="psc-c-bar">@(_mode == BarMode.Performance ? "Planetary strength (% of minimum)" : "Component composition (rūpas)")</span>
+        <span class="psc-c-num">Rūpas</span>
+        <span class="psc-c-num">Min.</span>
+        <span class="psc-c-num">% Min.</span>
+        <span class="psc-c-status">Status</span>
+    </div>
+
+    @foreach (var (rank, row) in Ranked)
+    {
+        var (label, css) = StatusOf(row.PercentOfMinimum);
+        var expanded = _expanded.Contains(row.Planet);
+        <div class="psc-row-wrap">
+            <button type="button" class="psc-row" @onclick="() => Toggle(row.Planet)" aria-expanded="@(expanded ? "true" : "false")">
+                <span class="psc-c-rank"><span class="psc-rankbadge">@rank</span></span>
+                <span class="psc-c-planet"><span class="psc-chevron @(expanded ? "psc-chevron-open" : "")">&#8250;</span>@row.Planet</span>
+                <span class="psc-c-bar">
+                    @if (_mode == BarMode.Performance)
+                    {
+                        <span class="psc-barwrap">
+                            @if (rank == 1)
+                            {
+                                <span class="psc-scale">
+                                    <span class="psc-tick psc-tick-0">0%</span>
+                                    <span class="psc-tick psc-tick-100">100% (Minimum)</span>
+                                    <span class="psc-tick psc-tick-200">200%</span>
+                                </span>
+                            }
+                            <span class="psc-trackrow">
+                                <span class="psc-track">
+                                    <span class="psc-refline"></span>
+                                    <span class="psc-fill @css" style="width:@(BarWidthPercent(row.PercentOfMinimum).ToString("0.##", CultureInfo.InvariantCulture))%"></span>
+                                    <span class="psc-marker @css" style="left:@(BarWidthPercent(row.PercentOfMinimum).ToString("0.##", CultureInfo.InvariantCulture))%"></span>
+                                </span>
+                                <span class="psc-pctlabel @css">@(row.PercentOfMinimum is { } p ? $"{p:0}%" : "—")</span>
+                            </span>
+                        </span>
+                    }
+                    else
+                    {
+                        var shares = GroupShares(row);
+                        <span class="psc-stack">
+                            @foreach (var s in shares.Where(s => s.Rupas > 0))
+                            {
+                                <span class="psc-stackseg psc-bala-@s.Token" style="width:@(SharePercent(shares, s.Rupas).ToString("0.##", CultureInfo.InvariantCulture))%" title="@($"{s.Label} {s.Rupas:0.00}")"></span>
+                            }
+                        </span>
+                    }
+                </span>
+                <span class="psc-c-num psc-mono">@row.ShadbalaRupas.ToString("0.00", CultureInfo.InvariantCulture)</span>
+                <span class="psc-c-num psc-mono">@(row.MinimumRequiredRupas is { } m ? m.ToString("0.0", CultureInfo.InvariantCulture) : "—")</span>
+                <span class="psc-c-num psc-mono">@(row.PercentOfMinimum is { } pm ? $"{pm:0}%" : "—")</span>
+                <span class="psc-c-status"><span class="psc-pill @css">@label</span></span>
+            </button>
+
+            @if (expanded)
+            {
+                var shares = GroupShares(row);
+                var groups = ComponentGroups(row.Planet).ToList();
+                <div class="psc-detail">
+                    <h3 class="psc-detail-title">
+                        @row.Planet &mdash; Component Breakdown
+                        <span class="psc-detail-meta">(Total R&#363;pas @row.ShadbalaRupas.ToString("0.00", CultureInfo.InvariantCulture)
+                            @(row.MinimumRequiredRupas is { } dm ? $"| Minimum {dm:0.00}" : "")
+                            @(row.PercentOfMinimum is { } dp ? $"| {dp:0}%" : ""))</span>
+                    </h3>
+                    <div class="psc-detail-body">
+                        <div class="psc-detail-chart">
+                            <span class="psc-stack psc-stack-lg">
+                                @foreach (var s in shares)
+                                {
+                                    <span class="psc-stackseg psc-bala-@s.Token" style="width:@(SharePercent(shares, s.Rupas).ToString("0.##", CultureInfo.InvariantCulture))%">@(s.Rupas > 0 ? s.Rupas.ToString("0.00", CultureInfo.InvariantCulture) : "")</span>
+                                }
+                            </span>
+                            <div class="psc-detail-legend">
+                                @foreach (var s in shares)
+                                {
+                                    <span class="psc-legend-item"><span class="psc-dot psc-bala-@s.Token"></span>@s.Label<br /><b>@s.Rupas.ToString("0.00", CultureInfo.InvariantCulture)</b></span>
+                                }
+                            </div>
+                        </div>
+                        <div class="psc-detail-table">
+                            <table>
+                                <thead><tr><th>Bala</th><th>Sub-component</th><th>Virupas</th></tr></thead>
+                                <tbody>
+                                    @foreach (var g in groups)
+                                    {
+                                        @foreach (var c in g)
+                                        {
+                                            <tr>
+                                                <td>@BalaLabel(g.Key)</td>
+                                                <td>@SubLabel(c.SubComponentCode)</td>
+                                                <td class="psc-mono">@c.ValueVirupas.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            </tr>
+                                        }
+                                    }
+                                    @if (groups.Count == 0)
+                                    {
+                                        <tr><td colspan="3" class="psc-muted">No stored component rows for this planet yet.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ShadbalaSummaryRow> Rows { get; set; } = Array.Empty<ShadbalaSummaryRow>();
+    [Parameter, EditorRequired] public IReadOnlyList<ShadbalaComponentRow> Components { get; set; } = Array.Empty<ShadbalaComponentRow>();
+
+    private enum BarMode { Performance, Composition }
+    private BarMode _mode = BarMode.Performance;
+    private readonly HashSet<string> _expanded = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Ranked strongest-first (PercentOfMinimum desc) — Shadbala has no other natural
+    /// display order for "which graha is strongest right now" the way this table frames it.</summary>
+    private IReadOnlyList<(int Rank, ShadbalaSummaryRow Row)> Ranked =>
+        Rows.OrderByDescending(r => r.PercentOfMinimum ?? -1)
+            .Select((r, i) => (i + 1, r)).ToList();
+
+    private static readonly (string Code, string Label, string Token)[] BalaGroups =
+    {
+        ("STHANA_BALA", "Sthāna", "sthana"),
+        ("DIG_BALA", "Dig", "dig"),
+        ("KALA_BALA", "Kāla", "kala"),
+        ("CHESTA_BALA", "Cheṣṭā", "cheshta"),
+        ("NAISARGIKA_BALA", "Naisargika", "naisargika"),
+        ("DRIK_BALA", "Dṛk", "drik"),
+        ("YUDDHA_BALA", "Yuddha", "yuddha"),
+    };
+
+    private static readonly IReadOnlyDictionary<string, string> SubComponentLabels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["UCHCHA_BALA"] = "Uchcha Bala",
+        ["SAPTAVARGAJA_BALA"] = "Saptavargaja Bala",
+        ["OJHA_YUGMA_RASYAMSA_BALA"] = "Ojayugma Bala",
+        ["KENDRADI_BALA"] = "Kendradi Bala",
+        ["DREKKANA_BALA"] = "Drekkana Bala",
+        ["DIG_BALA"] = "Dig Bala",
+        ["NATHONNATA_BALA"] = "Nathonnata Bala",
+        ["PAKSHA_BALA"] = "Paksha Bala",
+        ["NAISARGIKA_BALA"] = "Naisargika Bala",
+        ["DRIK_BALA"] = "Dṛk Bala",
+        ["YUDDHA_BALA"] = "Yuddha Bala",
+    };
+
+    private void Toggle(string planet)
+    {
+        if (!_expanded.Add(planet)) _expanded.Remove(planet);
+    }
+
+    /// <summary>Classical Parasari %-of-minimum bands (mirrors the mockup's traffic-light read):
+    /// &ge;100% strong, 80&ndash;99% moderate, below weak. Presentation-only threshold, not a DB rule.</summary>
+    private static (string Label, string CssClass) StatusOf(decimal? percent) => percent switch
+    {
+        null => ("—", "psc-status-none"),
+        _ when percent >= 100 => ("Strong", "psc-status-strong"),
+        _ when percent >= 80 => ("Moderate", "psc-status-moderate"),
+        _ => ("Weak", "psc-status-weak"),
+    };
+
+    /// <summary>0-200% scale mapped to a 0-100% bar width, clamped so a planet far over its
+    /// minimum (e.g. 250%) still fits the track instead of overflowing it.</summary>
+    private static double BarWidthPercent(decimal? percent) =>
+        (double)Math.Min(Math.Max(percent ?? 0, 0), 200) / 2.0;
+
+    private static IReadOnlyList<(string Token, string Label, decimal Rupas)> GroupShares(ShadbalaSummaryRow row)
+    {
+        decimal[] virupas =
+        {
+            row.SthanaBalaVirupas, row.DigBalaVirupas, row.KalaBalaVirupas,
+            row.CheshtaBalaVirupas, row.NaisargikaBalaVirupas, row.DrikBalaVirupas, row.YuddhaBalaVirupas,
+        };
+        return BalaGroups.Select((g, i) => (g.Token, g.Label, Math.Round(virupas[i] / 60m, 2))).ToList();
+    }
+
+    /// <summary>Denominator is the sum of POSITIVE shares only — Dṛk Bala (and, rarely, other
+    /// groups) can be negative (malefic aspect net), and a negative share never draws a bar
+    /// segment (0% width below), so counting it in the total would make the positive segments
+    /// overflow past 100% of the track (Mars's Dṛk -0.41 was doing exactly that).</summary>
+    private static double SharePercent(IReadOnlyList<(string Token, string Label, decimal Rupas)> shares, decimal rupas)
+    {
+        var total = shares.Sum(s => Math.Max(s.Rupas, 0));
+        return total <= 0 || rupas <= 0 ? 0 : (double)(rupas / total * 100m);
+    }
+
+    private IEnumerable<IGrouping<string, ShadbalaComponentRow>> ComponentGroups(string planet) =>
+        Components.Where(c => c.Planet.Equals(planet, StringComparison.OrdinalIgnoreCase)).GroupBy(c => c.BalaCode);
+
+    private static string BalaLabel(string code)
+    {
+        foreach (var g in BalaGroups) { if (g.Code == code) return g.Label; }
+        return code;
+    }
+
+    private static string SubLabel(string code) => SubComponentLabels.GetValueOrDefault(code, code);
+}
