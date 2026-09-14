@@ -72,8 +72,15 @@ public sealed class KarakaPolarWheelChartTests : BunitContext
         var cut = Render<KarakaPolarWheelChart>(p => p
             .Add(x => x.Sectors, sectors).Add(x => x.Primary, new[] { new NaisargikaKarakaRow(1, "Sun", "Self") })
             .Add(x => x.Details, Array.Empty<NaisargikaKarakatwaRow>()).Add(x => x.LifeMatters, matters)
-            .Add(x => x.PlanetPlacements, new[] { new KarakaPolarWheelChart.PlanetPlacement("Sun", "Aries", "Mars", "Ashwini", "Ketu", "Venus", 1) })
-            .Add(x => x.HouseLords, new[] { new KarakaPolarWheelChart.HouseLordPoint(1, "Mars", 3, "Gemini") })
+            .Add(x => x.PlanetPlacements, new[] { new KarakaPolarWheelChart.PlanetPlacement("Sun", "Aries", "Mars", "Ashwini", "Ketu", "Venus", "Exalted", 1) })
+            .Add(x => x.HouseLords, new[] { new KarakaPolarWheelChart.HouseLordPoint(1, "Aries", "Mars", 3, "Gemini") })
+            .Add(x => x.HouseReadings, new[] { new HouseReadingRow(1, "Self", "Self, body and vitality") })
+            .Add(x => x.SignReadings, new[] { new SignReadingRow("Aries", "Dynamic and enterprising") })
+            .Add(x => x.ReferencePoints, new[]
+            {
+                new KarakaPolarWheelChart.ReferencePoint("LAGNA", "Sign Lagna", "Aries", "The whole of life.", 1),
+                new KarakaPolarWheelChart.ReferencePoint("HORA_LAGNA", "Hora Lagna", "Pisces", "Wealth and money.", 2)
+            })
             .Add(x => x.ChartCode, "D1"));
         Assert.Contains("What does this placement indicate about physical self?", cut.Markup);
         Assert.DoesNotContain("Mind", cut.Markup);
@@ -82,6 +89,9 @@ public sealed class KarakaPolarWheelChartTests : BunitContext
         Assert.Contains("House lord", cut.Markup);
         Assert.Contains("Ashwini", cut.Markup);
         Assert.Equal(2, cut.FindAll(".kpw-data-ring").Count);
+        cut.FindAll(".kpw-reference-tabs button")[1].Click();
+        Assert.Contains("HOUSE 2 FROM HORA LAGNA", cut.Markup);
+        Assert.DoesNotContain("What does this placement indicate about physical self?", cut.Markup);
     }
 
     private static readonly string[] Signs = { "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricornus", "Aquarius", "Pisces" };

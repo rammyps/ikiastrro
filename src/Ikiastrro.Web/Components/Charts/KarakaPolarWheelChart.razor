@@ -67,7 +67,7 @@
   var selectedPlanet=_selectedPlanet??natural?.Graha;
   var houseLord=HouseLords.FirstOrDefault(h=>SameSign(h.HouseSign,selected.Sign));
   var placement=PlanetPlacements.FirstOrDefault(p=>string.Equals(p.Planet,selectedPlanet,StringComparison.OrdinalIgnoreCase));
-  var lifeMatters=LifeMatters.Where(m=>MatchesChart(m.PrimaryChartsText,ChartCode)&&MatchesHouse(m.HouseFromLagnaText,activeHouse)&&MatchesKaraka(m,selectedPlanet,_selectedRole)).OrderBy(m=>m.CategoryName).ThenBy(m=>m.DisplayOrder).ToList();
+  var lifeMatters=(_referenceCode=="LAGNA"?LifeMatters.Where(m=>MatchesChart(m.PrimaryChartsText,ChartCode)&&MatchesHouse(m.HouseFromLagnaText,activeHouse)&&MatchesKaraka(m,selectedPlanet,_selectedRole)):Enumerable.Empty<LifeMatterReferenceRow>()).OrderBy(m=>m.CategoryName).ThenBy(m=>m.DisplayOrder).ToList();
   var houseReading=HouseReadings.FirstOrDefault(h=>h.HouseNumber==activeHouse);
   var signReading=SignReadings.FirstOrDefault(s=>SameSign(s.SignName,selected.Sign));
   var relation=FindRelationship(placement);
@@ -75,14 +75,14 @@
    <p class="kpw-eyebrow">HOUSE @activeHouse FROM @SelectedReference.Name.ToUpperInvariant() · @DisplaySign(selected.Sign)</p>
    @if(selectedPlanet is not null){<h2><span>@PlanetCode(selectedPlanet)</span> @selectedPlanet @if(_selectedRole is not null){<small>· @_selectedRole</small>}</h2>}
    <section class="kpw-reading-lines" aria-label="House, sign and Nakshatra reading">
-    <p><b>House</b> H@activeHouse — @(houseReading?.HouseSummary??natural?.MattersSignified??"No house description is available.")</p>
+    <p><b>House</b> @($"H{activeHouse}") — @(houseReading?.HouseSummary??natural?.MattersSignified??"No house description is available.")</p>
     <p><b>Rāśi</b> @DisplaySign(selected.Sign) — @(signReading?.SignIndication??"No Rāśi characteristics are available.")</p>
     <p><b>Combination</b> @CombinationLine(activeHouse,selected.Sign,placement,relation)</p>
     <p><b>Planet behavior</b> @BehaviorLine(placement,relation)</p>
    </section>
    <p class="kpw-reference-perspective"><b>@SelectedReference.Name:</b> @SelectedReference.Perspective</p>
    <section class="kpw-placement" aria-label="Selected house and planet details">
-    <div><small>House lord</small><b>@(houseLord?.LordPlanet??"—")</b>@if(houseLord is not null){<span>@($"Placed H{houseLord.LordPlacedInHouse} · {DisplaySign(houseLord.LordPlacedInSign)}")</span>}</div>
+    <div><small>House lord</small><b>@(houseLord?.LordPlanet??"—")</b>@if(houseLord is not null){<span>@($"Placed H{HouseFromReference(houseLord.LordPlacedInSign)} from {SelectedReference.Name} · {DisplaySign(houseLord.LordPlacedInSign)}")</span>}</div>
     <div><small>Rāśi lord</small><b>@(placement?.SignLord??"—")</b><span>@(placement is null?"No planet placement":DisplaySign(placement.Sign))</span></div>
     <div><small>Nakshatra lord</small><b>@(placement?.NakshatraLord??"—")</b><span>@(placement?.Nakshatra??"Not available")</span></div>
     <div><small>Nakshatra sub-lord</small><b>@(placement?.NakshatraSubLord??"—")</b><span>KP sub-lord</span></div>
@@ -106,7 +106,7 @@
    }
    else
    {
-    <h3>Questions to explore</h3><p class="kpw-empty">No focused questions are defined for this chart, house and Karaka combination.</p>
+    <h3>Questions to explore</h3><p class="kpw-empty">@(_referenceCode=="LAGNA"?"No focused questions are defined for this chart, house and Karaka combination.":"Life-matter questions are defined from Sign Lagna. Switch to Sign Lagna to view them.")</p>
    }
   </aside>
  }
@@ -124,30 +124,39 @@
  .kpw-question small{margin:.16rem 0;color:var(--brand-muted);font-size:.66rem}
  .kpw-question span{color:var(--brand-muted);font-size:.7rem}
  .kpw-placement{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;margin:.85rem 0 1rem}.kpw-placement>div{min-width:0;padding:.62rem .68rem;border:1px solid #e6ded2;background:#fff}.kpw-placement small,.kpw-placement b,.kpw-placement span{display:block}.kpw-placement small{color:var(--brand-muted);font-size:.62rem;font-weight:850;letter-spacing:.07em;text-transform:uppercase}.kpw-placement b{margin:.18rem 0;color:var(--brand-midnight);font-size:.86rem}.kpw-placement span{color:var(--brand-muted);font-size:.66rem;line-height:1.3}
+ .kpw-reference-tabs{display:flex;gap:.4rem;margin:0 0 1rem;padding:.35rem;overflow-x:auto;border:1px solid #e6ded2;background:#fffaf2}.kpw-reference-tabs button{min-width:max-content;padding:.5rem .75rem;border:1px solid transparent;background:transparent;color:var(--brand-muted);cursor:pointer;text-align:left}.kpw-reference-tabs button b,.kpw-reference-tabs button span{display:block}.kpw-reference-tabs button b{font-size:.72rem}.kpw-reference-tabs button span{font-size:.62rem}.kpw-reference-tabs button.is-active{border-color:var(--brand-sunset);background:#fee0c8;color:var(--brand-midnight)}
+ .kpw-reading-lines{margin:.75rem 0 1rem;padding:.25rem .8rem;border-left:3px solid var(--brand-sunset);background:#fff}.kpw-reading-lines p{margin:.5rem 0;color:var(--brand-muted);font-size:.74rem;line-height:1.45}.kpw-reading-lines b{color:var(--brand-midnight)}.kpw-reference-perspective{margin:.5rem 0 .8rem;color:var(--brand-muted);font-size:.7rem;line-height:1.4}
 </style>
 
 @code{
  public sealed record Sector(int HouseNumber,string Sign);
  public sealed record CharaPoint(string Graha,string Role,int HouseNumber,string Sign);
- public sealed record PlanetPlacement(string Planet,string Sign,string? SignLord,string? Nakshatra,string? NakshatraLord,string? NakshatraSubLord,int HouseNumber);
- public sealed record HouseLordPoint(int HouseNumber,string LordPlanet,int LordPlacedInHouse,string LordPlacedInSign);
+ public sealed record PlanetPlacement(string Planet,string Sign,string? SignLord,string? Nakshatra,string? NakshatraLord,string? NakshatraSubLord,string? DignityStatus,int HouseNumber);
+ public sealed record HouseLordPoint(int HouseNumber,string HouseSign,string LordPlanet,int LordPlacedInHouse,string LordPlacedInSign);
+ public sealed record ReferencePoint(string Code,string Name,string Sign,string Perspective,int SortOrder);
  [Parameter,EditorRequired]public IReadOnlyList<Sector>Sectors{get;set;}=Array.Empty<Sector>();
  [Parameter,EditorRequired]public IReadOnlyList<NaisargikaKarakaRow>Primary{get;set;}=Array.Empty<NaisargikaKarakaRow>();
  [Parameter,EditorRequired]public IReadOnlyList<NaisargikaKarakatwaRow>Details{get;set;}=Array.Empty<NaisargikaKarakatwaRow>();
  [Parameter]public IReadOnlyList<LifeMatterReferenceRow>LifeMatters{get;set;}=Array.Empty<LifeMatterReferenceRow>();
+ [Parameter]public IReadOnlyList<HouseReadingRow>HouseReadings{get;set;}=Array.Empty<HouseReadingRow>();
+ [Parameter]public IReadOnlyList<SignReadingRow>SignReadings{get;set;}=Array.Empty<SignReadingRow>();
+ [Parameter]public IReadOnlyList<SignNakshatraRelationshipRow>SignNakshatraRelationships{get;set;}=Array.Empty<SignNakshatraRelationshipRow>();
  [Parameter]public IReadOnlyList<CharaPoint>CharaPoints{get;set;}=Array.Empty<CharaPoint>();
  [Parameter]public IReadOnlyList<PlanetPlacement>PlanetPlacements{get;set;}=Array.Empty<PlanetPlacement>();
  [Parameter]public IReadOnlyList<HouseLordPoint>HouseLords{get;set;}=Array.Empty<HouseLordPoint>();
+ [Parameter]public IReadOnlyList<ReferencePoint>ReferencePoints{get;set;}=Array.Empty<ReferencePoint>();
  [Parameter]public bool ShowCharaKarakas{get;set;}=true;
  [Parameter]public string ChartCode{get;set;}="D1"; [Parameter]public string AscendantSign{get;set;}="Aries";
  [Parameter]public bool ShowSigns{get;set;}=true; [Parameter]public bool ShowHouses{get;set;}=true;
- private int _selectedHouse=1; private string? _selectedPlanet; private string? _selectedRole; private string? _lastChartCode;
+ private int _selectedHouse=1; private string? _selectedPlanet; private string? _selectedRole; private string? _lastChartCode; private string _referenceCode="LAGNA";
  private Sector? SelectedSector=>Sectors.FirstOrDefault(s=>s.HouseNumber==_selectedHouse);
+ private ReferencePoint SelectedReference=>ReferencePoints.FirstOrDefault(r=>r.Code==_referenceCode)??new("LAGNA","Sign Lagna",AscendantSign,"Houses counted from the natal ascendant.",0);
  protected override void OnParametersSet()
  {
   if(string.Equals(_lastChartCode,ChartCode,StringComparison.OrdinalIgnoreCase))return;
-  _lastChartCode=ChartCode;_selectedRole=null;_selectedPlanet=Primary.FirstOrDefault(p=>p.HouseNumber==_selectedHouse)?.Graha;
+  _lastChartCode=ChartCode;_referenceCode=ReferencePoints.FirstOrDefault()?.Code??"LAGNA";_selectedRole=null;_selectedPlanet=Primary.FirstOrDefault(p=>p.HouseNumber==HouseFromReference(SelectedSector?.Sign??AscendantSign))?.Graha;
  }
+ private void SelectReference(string code){_referenceCode=code;var house=HouseFromReference(SelectedSector?.Sign??AscendantSign);_selectedRole=null;_selectedPlanet=Primary.FirstOrDefault(p=>p.HouseNumber==house)?.Graha;}
  private void SelectHouse(int house,string? planet){_selectedHouse=house;_selectedPlanet=planet;_selectedRole=null;}
  private void SelectPlanet(int house,string planet,string? role){_selectedHouse=house;_selectedPlanet=planet;_selectedRole=role;}
  private bool IsSelected(string planet,string? role)=>_selectedHouse==SelectedSector?.HouseNumber&&string.Equals(_selectedPlanet,planet,StringComparison.OrdinalIgnoreCase)&&string.Equals(_selectedRole,role,StringComparison.OrdinalIgnoreCase);
@@ -155,6 +164,13 @@
  private static string AnnularSector(double s,double z,double i,double o){var(a,b)=Xy(s,o);var(c,d)=Xy(z,o);var(e,f)=Xy(z,i);var(g,h)=Xy(s,i);return $"M {F(a)} {F(b)} A {F(o)} {F(o)} 0 0 1 {F(c)} {F(d)} L {F(e)} {F(f)} A {F(i)} {F(i)} 0 0 0 {F(g)} {F(h)} Z";}
  private static string F(double v)=>v.ToString("0.##",CultureInfo.InvariantCulture);
  private static string DisplaySign(string s)=>s=="Capricornus"?"Capricorn":s;
+ private static bool SameSign(string a,string b)=>string.Equals(DisplaySign(a),DisplaySign(b),StringComparison.OrdinalIgnoreCase);
+ private int HouseFromReference(string sign)
+ {
+  string[] signs={"Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"};
+  var from=Array.FindIndex(signs,s=>SameSign(s,SelectedReference.Sign));var to=Array.FindIndex(signs,s=>SameSign(s,sign));
+  return from<0||to<0?1:(to-from+12)%12+1;
+ }
  private static string SignCode(string s)=>DisplaySign(s) switch{"Aries"=>"ARI","Taurus"=>"TAU","Gemini"=>"GEM","Cancer"=>"CAN","Leo"=>"LEO","Virgo"=>"VIR","Libra"=>"LIB","Scorpio"=>"SCO","Sagittarius"=>"SAG","Capricorn"=>"CAP","Aquarius"=>"AQU","Pisces"=>"PIS",_=>s[..Math.Min(3,s.Length)].ToUpperInvariant()};
  private static string PlanetCode(string p)=>ChartViewModel.PlanetGlyph(p);
  private static int CharaRank(string r)=>r switch{"AK"=>0,"AmK"=>1,"BK"=>2,"MK"=>3,"PiK"=>4,"PK"=>5,"GK"=>6,"DK"=>7,_=>8};
@@ -165,7 +181,15 @@
   role is not null
    ? string.Equals(matter.CharaKarakaCode,role,StringComparison.OrdinalIgnoreCase)
    : planet is not null&&Regex.IsMatch(matter.KarakaText,$@"(?<![A-Za-z]){Regex.Escape(planet)}(?![A-Za-z])",RegexOptions.IgnoreCase);
- private bool HasQuestions(int house,string planet,string? role)=>LifeMatters.Any(m=>MatchesChart(m.PrimaryChartsText,ChartCode)&&MatchesHouse(m.HouseFromLagnaText,house)&&MatchesKaraka(m,planet,role));
+ private bool HasQuestions(int house,string planet,string? role)=>_referenceCode=="LAGNA"&&LifeMatters.Any(m=>MatchesChart(m.PrimaryChartsText,ChartCode)&&MatchesHouse(m.HouseFromLagnaText,house)&&MatchesKaraka(m,planet,role));
+ private SignNakshatraRelationshipRow? FindRelationship(PlanetPlacement? placement)=>placement?.Nakshatra is null?null:SignNakshatraRelationships.FirstOrDefault(r=>SameSign(r.RasiName,placement.Sign)&&string.Equals(r.NakshatraName,placement.Nakshatra,StringComparison.OrdinalIgnoreCase)&&string.Equals(r.SubLordName,placement.NakshatraSubLord,StringComparison.OrdinalIgnoreCase));
+ private static string CombinationLine(int house,string sign,PlanetPlacement? placement,SignNakshatraRelationshipRow? relation)=>placement?.Nakshatra is null
+  ? $"{DisplaySign(sign)} carries the H{house} themes; no active planet Nakshatra is available."
+  : $"H{house} falls in {DisplaySign(sign)}; the active planet occupies {DisplaySign(placement.Sign)} in {placement.Nakshatra}, ruled by {placement.NakshatraLord??"—"}{RelationshipSuffix(relation?.RasiLordNakshatraLordRelationship)}.";
+ private static string BehaviorLine(PlanetPlacement? placement,SignNakshatraRelationshipRow? relation)=>placement is null
+  ? "Select a planet marker to see how it operates through its Rāśi and Nakshatra."
+  : $"{placement.Planet} is {placement.DignityStatus??"of unclassified dignity"} in {DisplaySign(placement.Sign)}; {placement.NakshatraLord??"the Nakshatra lord"} and sub-lord {placement.NakshatraSubLord??"—"}{RelationshipSuffix(relation?.RasiLordSubLordRelationship)} condition its expression.";
+ private static string RelationshipSuffix(string? relationship)=>string.IsNullOrWhiteSpace(relationship)?string.Empty:$" ({relationship.ToLowerInvariant()} to the Rāśi lord)";
  private static string QuestionFor(string matter)=>$"What does this placement indicate about {char.ToLowerInvariant(matter[0])}{matter[1..]}?";
  private static string Ordinal(int house)=>house+(house switch{1=>"st",2=>"nd",3=>"rd",_=>"th"});
 }

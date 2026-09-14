@@ -52,7 +52,7 @@ public sealed class NaisargikaKarakaRepository(SqlConnectionFactory factory)
             ORDER BY lm.CategoryName, lm.DisplayOrder, lm.Id
             """).ToList();
         var houses = connection.Query<HouseReadingRow>("""
-            SELECT h.HouseNumber, COALESCE(h.EnglishName, h.ShortName) AS HouseName,
+            SELECT CAST(h.HouseNumber AS INT) AS HouseNumber, COALESCE(h.EnglishName, h.ShortName) AS HouseName,
                    STRING_AGG(s.SignificationText, ', ') WITHIN GROUP (ORDER BY s.DisplayOrder) AS HouseSummary
             FROM dbo.tbl_Dim_House h
             JOIN dbo.tbl_Rule_HouseSignification s ON s.HouseNumber = h.HouseNumber AND s.IsActive = 1
