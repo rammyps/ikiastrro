@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-10
+last_updated: 2026-09-14
 workstream: ui
 togaf: C — Application Architecture (UI)
 safe: Solution Intent — UX
@@ -59,11 +59,12 @@ Retired in v2: `/add`, `/charts/{id}/evidence`, `/charts/{id}/varga/{code}`, the
 
 ## Navigation
 
-Shared MudBlazor header (`MudAppBar`). **`HOME`** is a fixed navy pill straddling the app-bar /
-context-band edge, hard left. The per-person tabs — **`TRANSIT` · `ALL CHARTS` · `KEY INFERENCE`**
-— sit next to it and are **hidden until a person is opened** (every inner page is per-person).
-Brand lockup **Iki-Astrro | Where Passion, Purpose & Planets Align.** on the right. Preferences
-is an inline Home control, not a nav item. Person name in the band is a `▾` switch back to Home.
+Shared MudBlazor header (`MudAppBar`) spans the viewport in three zones. **`HOME`** and the
+per-person **`ALL / CHARTS` · `KEY / INFERENCE`** pills sit left; those person tabs are hidden
+until a person is open. The compact **Iki-Astrro | Where Passion, Purpose & Planets Align.**
+lockup stays centred. **`SAVED / CHARTS`** is always pinned at the extreme right. All header
+tabs use the shared filled-pill grammar; the active header tab uses midnight fill for contrast
+on the sunset bar. Person name in the band opens the saved-person switcher.
 
 ## Non-functional requirements (UI)
 

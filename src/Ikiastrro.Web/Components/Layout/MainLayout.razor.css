@@ -5,7 +5,7 @@
 /* Three-zone app bar shared by every route: navigation left, brand centred, saved charts
    pinned to the far right. */
 ::deep .ik-appbar .mud-toolbar {
-    max-width: var(--maxw);
+    max-width: none;
     width: 100%;
     margin-inline: auto;
     padding-inline: var(--pad-x);
@@ -37,7 +37,7 @@
     border: 0;
     background: rgb(255 250 242 / 0.48);
     color: var(--brand-midnight);
-    font: 750 calc(var(--font-size-control) * 0.82) / 0.95 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 calc(var(--font-size-control) * 0.82) / 0.95 var(--font-interface);
     letter-spacing: 0.06em;
     text-decoration: none;
     white-space: nowrap;
@@ -54,7 +54,7 @@
 .ik-brand {
     justify-self: center;
     color: var(--brand-midnight);
-    font: 700 calc(var(--font-size-control) * 0.78) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 calc(var(--font-size-control) * 0.78) / 1.1 var(--font-interface);
     letter-spacing: 0.01em;
     white-space: nowrap;
 }
@@ -92,7 +92,7 @@
     padding: 0;
     cursor: pointer;
     color: var(--brand-midnight);
-    font: 700 calc(var(--font-size-control) * 1.05) / 1.1 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 calc(var(--font-size-control) * 1.05) / 1.1 var(--font-interface);
     letter-spacing: -0.01em;
 }
 
@@ -108,7 +108,7 @@
 
 .ik-person-birth {
     color: var(--brand-muted);
-    font: 500 calc(var(--font-size-control) * 0.75) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    font: 500 calc(var(--font-size-control) * 0.75) / 1.2 var(--font-interface);
 }
 
 /* "Ramya ▾" now opens a real dropdown of the other saved people (rammyps) instead of just
@@ -148,7 +148,7 @@
     padding: 6px 8px;
     cursor: pointer;
     text-align: left;
-    font: 600 calc(var(--font-size-control) * 0.85) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+    font: 600 calc(var(--font-size-control) * 0.85) / 1.3 var(--font-interface);
     color: var(--brand-midnight);
 }
 
@@ -164,7 +164,7 @@
 .ik-person-menu-empty {
     padding: 6px 8px;
     color: var(--brand-muted);
-    font: 500 calc(var(--font-size-control) * 0.8) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+    font: 500 calc(var(--font-size-control) * 0.8) / 1.3 var(--font-interface);
 }
 
 .ik-person-menu-all { border-top: 1px solid var(--brand-line); margin-top: 4px; padding-top: 4px; }
@@ -198,7 +198,7 @@
     padding: 20px var(--pad-x);
     text-align: center;
     color: var(--brand-midnight);
-    font: 600 var(--font-size-control) / 1.4 'Manrope', 'Segoe UI', sans-serif;
+    font: 600 var(--font-size-control) / 1.4 var(--font-interface);
 }
 
 /* One line — never split between the dedication and the "By …" credit. */
@@ -224,8 +224,11 @@
     z-index: 1000;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1100px) {
     .ik-tagline { display: none; }
+}
+
+@media (max-width: 760px) {
     ::deep .ik-appbar .mud-toolbar { gap: 6px; padding-inline: 8px; }
     .ik-header-start, .ik-globalnav, .ik-tabs { gap: 4px; }
     .ik-headtab { min-width: 58px; min-height: 34px; padding: 4px 7px; letter-spacing: 0.02em; }

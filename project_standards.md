@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-09-10
-reflects: chart-module rename to *_Detailed / *Chart naming; chart-catalog + db_view_catalog added
+last_updated: 2026-09-14
+reflects: chart-module conventions, UI table contracts, shared typography and navigation shell
 ---
 
 # ikiastrro — project standards
@@ -124,10 +124,23 @@ recomputes (`docs/architecture/domain-contracts.md`).
   `docs/database/schema.md`); `db_view_catalog.md` is the consumer-side index and links to
   both.
 
+## 5. Shared UI typography and navigation
+
+- **Manrope is the sole interface family**, supplied by the bundled 400/500/600/700/800 files.
+  Components inherit `--font-interface`; chart labels and tabular values may change weight,
+  spacing or use `font-variant-numeric: tabular-nums`, but must not switch families.
+- Request only bundled weights. Use 700 instead of 750 and 800 instead of 850/900 so the
+  browser never synthesizes a weight differently across platforms.
+- The shared `MainLayout` header is the only top-level navigation implementation. It spans the
+  viewport, keeps person navigation at left, centres the compact brand line, and anchors the
+  two-line **SAVED / CHARTS** pill at the extreme right on every route.
+
 ---
 
 ## Change log
 
+- **2026-09-14** — added §5 after the app-wide font and shared-header audit; standardized
+  Manrope inheritance/available weights and recorded the viewport-wide three-zone header.
 - **2026-09-10** — created. Adopted §3 (chart-module naming / file set / versioning) and §4
   (UI table ⇄ view catalogue). First application: `SouthIndianGrid` → `SouthIndianGrid_Detailed`,
   `NatalTransitWheel` → `Natal_Transit_Comp_WheelChart` (+ page/repo/math/tests), `transit.md`

@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-14
 workstream: ui
 status: canonical
 togaf: B — experience principles
@@ -38,10 +38,11 @@ to stay readable on the warm canvas; they must not redefine the core palette.
 
 ## Typography
 
-**Manrope** everywhere. Exactly three interface sizes — Display `clamp(38px, 3.05vw, 53px)`
+**Manrope** everywhere through `--font-interface`, using only the bundled 400–800 weights.
+Exactly three interface sizes — Display `clamp(38px, 3.05vw, 53px)`
 ("Discover Your Path"); Tagline `clamp(20px, 2vw, 37px)`; Control `19px` (nav, "Preferences").
-Weight, spacing and colour carry the rest of the hierarchy. Tabular numerals for dates,
-degrees, scores, periods.
+Weight, spacing and colour carry the rest of the hierarchy. Tabular numerals—not a monospace
+font—for dates, degrees, scores and periods.
 
 ## Main-screen copy
 

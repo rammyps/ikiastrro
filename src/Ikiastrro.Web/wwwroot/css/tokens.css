@@ -27,6 +27,7 @@
  */
 
 :root {
+    --font-interface: 'Manrope', 'Segoe UI', sans-serif;
     --paper: #f7f1e1;
     --paper-raised: #efe4cb;
     --paper-line: #a3763e;
@@ -155,7 +156,7 @@ html {
 body {
     background: var(--brand-canvas);
     color: var(--brand-midnight);
-    font-family: 'Manrope', 'Segoe UI', sans-serif;
+    font-family: var(--font-interface);
     overflow-x: clip;
     /* Sticky footer (MainLayout's .ik-footer): a short page's footer still sits at the bottom
        of the viewport; a page taller than the viewport just runs to its natural end. This has
@@ -183,7 +184,7 @@ body {
 }
 
 h1, h2, h3 {
-    font-family: 'Manrope', 'Segoe UI', sans-serif;
+    font-family: var(--font-interface);
     font-weight: 400;
 }
 

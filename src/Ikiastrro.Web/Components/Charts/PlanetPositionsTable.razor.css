@@ -40,7 +40,7 @@ table.ppt tr.asc td {
 }
 
 table.ppt .mono {
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-family: var(--font-interface);
     font-variant-numeric: tabular-nums;
 }
 

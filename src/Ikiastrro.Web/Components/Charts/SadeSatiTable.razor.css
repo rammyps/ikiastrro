@@ -20,7 +20,7 @@ table.sst th {
 }
 
 table.sst .mono {
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-family: var(--font-interface);
     font-variant-numeric: tabular-nums;
     color: var(--ink-soft);
     white-space: nowrap;

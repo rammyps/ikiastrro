@@ -74,7 +74,7 @@ try {
     assert.equal(shell.home, 'HOME');
     assert.equal(shell.homeFirst, true);
     assert.deepEqual(shell.tabs, ['ALL CHARTS', 'KEY INFERENCE']);
-    assert.equal(shell.saved, 'SAVED CHART');
+    assert.equal(shell.saved, 'SAVED CHARTS');
     assert.ok(shell.person && shell.person.length > 0);
 
     // D1 Birth tab (active by default) — persisted rows via PlanetPositionsTable, Lagna first.

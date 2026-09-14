@@ -21,7 +21,7 @@
     min-height: calc(100vh - 160px);
     color: var(--brand-midnight);
     background: var(--brand-canvas);
-    font-family: 'Manrope', 'Segoe UI', sans-serif;
+    font-family: var(--font-interface);
     font-size: var(--font-size-control);
 }
 

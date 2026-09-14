@@ -1,4 +1,4 @@
-.ntw { display: block; width: 100%; height: auto; overflow: visible; font-family: 'Manrope', 'Segoe UI', sans-serif; }
+.ntw { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--font-interface); }
 .ntw-transit { fill: var(--brand-midnight); stroke: var(--brand-midnight); stroke-width: 3; }
 .ntw-nak { fill: #fff; stroke: var(--brand-midnight); stroke-width: 2; }
 .ntw-nak-sector { stroke: none; }
@@ -24,7 +24,7 @@
 .ntw-center-date { text-anchor: middle; fill: var(--brand-midnight); font-size: 17px; font-weight: 800; }
 .ntw-point circle { stroke-width: 2; }
 .ntw-point text { font-size: 12px; font-weight: 800; }
-.ntw-karaka { text-anchor: middle; fill: var(--brand-midnight); font-size: 9px; font-weight: 750; }
+.ntw-karaka { text-anchor: middle; fill: var(--brand-midnight); font-size: 9px; font-weight: 700; }
 .ntw-point-natal circle { fill: var(--brand-sunset); stroke: var(--brand-midnight); }
 .ntw-point-natal text { fill: var(--brand-midnight); }
 .ntw-point-transit circle { fill: var(--brand-sunset); stroke: var(--brand-midnight); }

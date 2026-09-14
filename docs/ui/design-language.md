@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-14
 workstream: ui
 togaf: C — UI standards
 ---
@@ -21,6 +21,14 @@ One language, everywhere. Detail on colours/type: [`brand.md`](brand.md).
   `Natal_Transit_Comp_WheelChart`, `MiniGrid`, `ChartFrame`, `LifeWeeks`. MudBlazor does not draw these. See
   [`dataviz.md`](dataviz.md); full catalogue [`components/chart-catalog.md`](components/chart-catalog.md).
 - **`dotnet format`** before committing.
+
+## Typography
+
+**Manrope everywhere**, inherited from `--font-interface`. Only the bundled 400, 500, 600,
+700 and 800 weights may be requested; do not use synthetic 750/850/900 weights. Dates,
+degrees, scores and periods use `font-variant-numeric: tabular-nums` rather than changing to
+a monospace family. Display hierarchy comes from the three `--font-size-*` tokens plus weight,
+spacing and colour—not a second typeface.
 
 ## Tables — headers vs. horizontal scroll (implementation note)
 
@@ -59,6 +67,11 @@ default text-plus-underline-slider look —
 This is a distinct convention from the "Actions" (buttons) treatment in
 [`brand.md`](brand.md#actions) — tabs get their own small token family so the two can be
 retuned independently.
+
+The app header follows the same filled-pill grammar. Its active state uses midnight fill for
+contrast on the sunset app bar. The header spans the viewport as three zones: Home/person tabs
+at left, the compact brand line centred, and **SAVED / CHARTS** at the extreme right. The two
+words are visually stacked but retain the accessible name “Saved Charts”.
 
 **Implementation note — `::deep` through a MudBlazor component's `Class` parameter doesn't
 work.** Blazor's CSS-isolation scope attribute is only added to elements written literally in
