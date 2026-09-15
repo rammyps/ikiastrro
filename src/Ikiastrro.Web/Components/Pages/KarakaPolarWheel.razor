@@ -65,7 +65,7 @@ else
   .Select(k=>new PolarGridLagnaSelect.PlanetPlacement(k.Planet,k.Sign,k.DignityStatus)).ToList();
  private static IReadOnlyList<PolarGridLagnaSelect.ReferencePoint> BuildReferencePoints(LoadedChart c,IReadOnlyList<LagnaReferenceRow> definitions)
  {
-  var points=c.SpecialPoints.Where(p=>p.PointKind=="SpecialLagna").ToDictionary(p=>p.Planet,p=>p.Sign,StringComparer.OrdinalIgnoreCase);
+  var points=c.SpecialPoints.Where(p=>p.PointKind is "SpecialLagna" or "Arudha").ToDictionary(p=>p.Planet,p=>p.Sign,StringComparer.OrdinalIgnoreCase);
   return definitions.Where(d=>d.ReferenceCode=="LAGNA"||d.Abbreviation is not null&&points.ContainsKey(d.Abbreviation))
    .Where(d=>d.AppliesInVarga=="Any"||d.AppliesInVarga=="Rasi"&&c.ChartType=="D1"||d.AppliesInVarga=="Navamsa"&&c.ChartType=="D9")
    .Where(d=>d.ReferenceCode is "LAGNA" or "ARUDHA_LAGNA" or "HORA_LAGNA" or "SREE_LAGNA" or "GHATI_LAGNA")

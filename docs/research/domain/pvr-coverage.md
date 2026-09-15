@@ -138,3 +138,19 @@ _(append one line per chapter as it is reconciled: date · chapter · what chang
   (B.V. Raman) and is not reconciled against this migration. Applied to dev with `sqlcmd -f 65001`
   (needed for the Nyāya/Mokṣa diacritics — without it sqlcmd mis-decodes them); verify-rules
   (42/42 tbl_Rule_Catalog coverage) / verify-schema ALL PASS.
+
+- 2026-09-14 — Research pass (no migration yet), `chara-karaka-life-area-pvr.md`: worked
+  through rammyps's "chart → primary subject → chara karaka" worksheet against Table 13
+  (ch. 8, pg 80–81, karaka → persons shown) and Table 11 (§6.3, chart → life area).
+  Chara karaka has zero rule-table presence beyond 087's two PVR_DIRECT rows (DK/spouse,
+  PK/child) — never cross-referenced against Table 11. Of the worksheet's 18 chart+subject
+  pairs: 2 already match existing 087 rows, ~12 collide with an existing single-naisargika-
+  graha row on the same matter (same shape as the DK/PK case — likely wants a second row,
+  not a second field, per that precedent), 4 have no matching row at all. Also found: the
+  worksheet's D-40 ("maternal lineage") and D-45 ("paternal lineage") don't match PVR's own
+  Table 11 wording for those charts (auspicious/inauspicious events; all matters) — that
+  lineage reading is a real classical convention but not sourceable to `SRC_PVR_INTEGRATED`
+  as-is. Sthira karaka confirmed to have no DB presence and a second, unreconciled
+  B.V.-Raman-sourced list already in `LifeAreaMap.cs`. No migration written; decisions on
+  table shape (new purpose-built table vs. more 087 rows) and the D-40/D-45 sourcing
+  question are open.

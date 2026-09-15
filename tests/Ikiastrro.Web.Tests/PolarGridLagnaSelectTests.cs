@@ -7,7 +7,7 @@ namespace Ikiastrro.Web.Tests;
 public sealed class PolarGridLagnaSelectTests : BunitContext
 {
     [Fact]
-    public void RendersOrderedSingleSelectLagnaChoicesWithoutKarakasOrDetailTable()
+    public void RendersOrderedAdditiveLagnaChoicesWithoutKarakasOrDetailTable()
     {
         var cut = Render<PolarGridLagnaSelect>(p => p
             .Add(x => x.Sectors, Sectors)
@@ -28,7 +28,7 @@ public sealed class PolarGridLagnaSelectTests : BunitContext
     }
 
     [Fact]
-    public void ChangesReferenceAndSupportsSouthIndianGridView()
+    public void SelectsMultipleReferencesAndSupportsSideBySideSouthIndianGrids()
     {
         var polar = Render<PolarGridLagnaSelect>(p => p
             .Add(x => x.Sectors, Sectors)
@@ -36,8 +36,13 @@ public sealed class PolarGridLagnaSelectTests : BunitContext
             .Add(x => x.ChartCode, "D1"));
 
         polar.FindAll(".pgls-check input")[1].Change(true);
-        Assert.Contains("ARUDHA LAGNA", polar.Find(".pgls-check.is-active").TextContent);
-        Assert.Contains("Arudha Lagna", polar.Markup);
+        Assert.Equal(2, polar.FindAll(".pgls-check.is-active").Count);
+        Assert.Equal(2, polar.FindAll(".pgls-check input[checked]").Count);
+        Assert.Contains("LAGNA H1", polar.Markup);
+        Assert.Contains("AL H2", polar.Markup);
+        Assert.Equal(24, polar.FindAll(".pgls-house tspan").Count);
+        Assert.Contains("ref-lagna", polar.FindAll(".pgls-check")[0].ClassList);
+        Assert.Contains("ref-arudha", polar.FindAll(".pgls-check")[1].ClassList);
         Assert.Contains("Pisces", polar.Markup);
 
         var south = Render<PolarGridLagnaSelect>(p => p
@@ -46,8 +51,9 @@ public sealed class PolarGridLagnaSelectTests : BunitContext
             .Add(x => x.ChartCode, "D9")
             .Add(x => x.View, "south"));
 
-        Assert.Single(south.FindAll(".pgls-south-grid"));
-        Assert.Single(south.FindAll(".chart"));
+        south.FindAll(".pgls-check input")[1].Change(true);
+        Assert.Equal(2, south.FindAll(".pgls-south-grid").Count);
+        Assert.Equal(2, south.FindAll(".chart").Count);
         Assert.Empty(south.FindAll(".pgls-polar"));
     }
 
