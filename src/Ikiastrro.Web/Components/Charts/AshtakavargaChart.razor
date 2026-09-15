@@ -1,0 +1,66 @@
+@using System.Globalization
+
+<section class="av" aria-labelledby="av-title">
+    <article class="av-card">
+        <header class="av-card-head">
+            <div><h2 id="av-title">Sarvāṣṭakavarga</h2><p>Bindus by sign and whole-sign house</p></div>
+            <strong>@GrandTotal <span>total</span></strong>
+        </header>
+        <div class="av-bars" role="img" aria-label="Sarvashtakavarga bindus by sign and house">
+            @foreach (var row in SavRows)
+            {
+                <div class="av-bar-row">
+                    <span class="av-sign"><b>@ShortSign(row.SignNumber)</b><small>H@HouseNumber(row.SignNumber)</small></span>
+                    <span class="av-track"><span class="av-fill" style="width:@BarWidth(row.TotalBindus)%"></span></span>
+                    <b class="av-value">@row.TotalBindus</b>
+                </div>
+            }
+        </div>
+    </article>
+
+    <article class="av-card">
+        <header class="av-card-head"><div><h2>Bhinnāṣṭakavarga</h2><p>Individual graha contributions</p></div></header>
+        <div class="av-table-scroll">
+            <table>
+                <thead><tr><th>Recipient</th>@foreach (var sign in Signs) { <th><span>@ShortSign(sign)</span><small>H@HouseNumber(sign)</small></th> }<th>Σ</th></tr></thead>
+                <tbody>
+                    @foreach (var recipient in Recipients)
+                    {
+                        var cells = Rows.Where(r => r.RecipientCode.Equals(recipient, StringComparison.OrdinalIgnoreCase)).ToDictionary(r => (int)r.SignNumber);
+                        <tr><th>@DisplayRecipient(recipient)</th>@foreach (var sign in Signs) { var value = cells.GetValueOrDefault(sign)?.BinduCount; <td class="@(value == 0 ? "av-zero" : value >= 6 ? "av-high" : "")">@(value?.ToString() ?? "—")</td> }<td class="av-sum">@cells.Values.Sum(r => r.BinduCount)</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    @if (PindaRows.Count > 0)
+    {
+        <article class="av-card">
+            <header class="av-card-head"><div><h2>Piṇḍa</h2><p>Post-śodhana totals</p></div></header>
+            <div class="av-table-scroll"><table class="av-pinda"><thead><tr><th>Recipient</th><th>Rāśi Piṇḍa</th><th>Graha Piṇḍa</th><th>Śodhya Piṇḍa</th></tr></thead><tbody>
+                @foreach (var row in PindaRows) { <tr><th>@DisplayRecipient(row.RecipientCode)</th><td>@Value(row.RasiPinda)</td><td>@Value(row.GrahaPinda)</td><td class="av-sum">@Value(row.SodhyaPinda)</td></tr> }
+            </tbody></table></div>
+        </article>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<AshtakavargaRow> Rows { get; set; } = Array.Empty<AshtakavargaRow>();
+    [Parameter] public IReadOnlyList<AshtakavargaPindaRow> PindaRows { get; set; } = Array.Empty<AshtakavargaPindaRow>();
+    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "Aries";
+
+    private static readonly int[] Signs = Enumerable.Range(1, 12).ToArray();
+    private static readonly string[] SignNames = { "", "Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis" };
+    private static readonly string[] FullSignNames = { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces" };
+    private static readonly string[] RecipientOrder = { "SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN" };
+    private IEnumerable<string> Recipients => RecipientOrder.Where(x => Rows.Any(r => r.RecipientCode.Equals(x, StringComparison.OrdinalIgnoreCase)));
+    private IReadOnlyList<(int SignNumber, int TotalBindus)> SavRows => Signs.Select(s => (s, Rows.Where(r => r.SignNumber == s).Select(r => (int?)r.SarvaBindus).FirstOrDefault(v => v is not null) ?? Rows.Where(r => r.SignNumber == s).Sum(r => (int)r.BinduCount))).ToList();
+    private int GrandTotal => SavRows.Sum(r => r.TotalBindus);
+    private int LagnaSignNumber => Math.Max(1, Array.FindIndex(FullSignNames, s => s.Equals(AscendantSign, StringComparison.OrdinalIgnoreCase)));
+    private int HouseNumber(int signNumber) => ((signNumber - LagnaSignNumber + 12) % 12) + 1;
+    private static string ShortSign(int signNumber) => SignNames[signNumber];
+    private static string DisplayRecipient(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(code.ToLowerInvariant());
+    private static string Value(short? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "—";
+    private static string BarWidth(int bindus) => Math.Clamp(bindus / 40d * 100d, 0, 100).ToString("0.##", CultureInfo.InvariantCulture);
+}

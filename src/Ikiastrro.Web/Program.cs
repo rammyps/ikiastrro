@@ -33,6 +33,7 @@ builder.Services.AddScoped<PlanetaryStateRuleRepository>();
 builder.Services.AddScoped<PlanetaryStateRepository>();
 builder.Services.AddScoped<PlanetaryStrengthRepository>();
 builder.Services.AddScoped<BhavaStrengthRepository>();
+builder.Services.AddScoped<AshtakavargaRepository>();
 builder.Services.AddScoped<VargottamaRepository>();
 builder.Services.AddScoped<YogaInputRepository>();
 builder.Services.AddScoped<AstrologerEvidenceRepository>();
