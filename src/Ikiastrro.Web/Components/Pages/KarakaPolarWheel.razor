@@ -19,30 +19,27 @@
 }
 else if (_data is null || _rules is null)
 {
- <section class="karaka-unavailable" role="status"><h1>KARAKA WHEEL</h1><p>No generated divisional charts were found for this person.</p><a href="/">Choose a saved person</a></section>
+ <section class="karaka-unavailable" role="status"><h1>SPECIAL LAGNAS &amp; KARAKAS</h1><p>No generated divisional charts were found for this person.</p><a href="/">Choose a saved person</a></section>
 }
 else
 {
- <header class="karaka-head"><div><p class="karaka-kicker">NATURAL + VARIABLE SIGNIFICATORS</p><h1>KARAKA WHEEL</h1><p>Fixed Naisargika house meanings with Chara Karakas shown in their relevant D1 and D9 contexts.</p></div>
-  <label>Divisional chart<select value="@_chartCode" @onchange="ChangeChart">@foreach(var chart in AvailableCharts){<option value="@chart.ChartType">@chart.ChartType · @chart.SanskritName</option>}</select></label>
+ <header class="karaka-head">
+  <h1>SPECIAL LAGNAS &amp; KARAKAS</h1>
+  <nav class="karaka-view-tabs" aria-label="Chart view">
+   <button type="button" class="@(_view == "polar" ? "is-active" : null)" @onclick="ShowPolar">Polar-Wheel</button>
+   <button type="button" class="@(_view == "south" ? "is-active" : null)" @onclick="ShowSouth">SouthIND-Grid</button>
+  </nav>
  </header>
+ <label class="karaka-chart-selector">Chart<select value="@_chartCode" @onchange="ChangeChart">@foreach(var chart in AvailableCharts){<option value="@chart.ChartType">@chart.ChartType · @chart.SanskritName</option>}</select></label>
  @if (SelectedChart is { } selected)
  {
-  <KarakaPolarWheelChart Sectors="BuildSectors(selected)" Primary="_rules.Primary" Details="_rules.Details" LifeMatters="_rules.LifeMatters" HouseReadings="_rules.Houses" SignReadings="_rules.Signs" SignNakshatraRelationships="_rules.SignNakshatraRelationships" CharaPoints="BuildCharaPoints(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" HouseLords="BuildHouseLords(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ShowCharaKarakas="SupportsCharaKarakas(selected.ChartType)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" />
-  @if (SupportsCharaKarakas(selected.ChartType))
-  {
-   <p class="karaka-note">Chara roles are assigned from D1 longitudes. D1 shows the natal assignments; D9 follows those same role-bearing grahas and identifies the AK's Karakamsa sign.</p>
-  }
-  else
-  {
-   <p class="karaka-note">This varga shows fixed Naisargika significators only. Chara Karakas are available in D1 and D9.</p>
-  }
+  <PolarGridLagnaSelect Sectors="BuildSectors(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" View="@_view" />
  }
 }
 @code {
  [Parameter] public int Id { get; set; }
  [Parameter] public bool Embedded { get; set; }
- private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1";
+ private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1"; private string _view = "polar";
  private IEnumerable<LoadedChart> AvailableCharts => _data?.Charts.Values.OrderBy(c => _data.ChartTypes.FirstOrDefault(t => t.Code == c.ChartType)?.DivisionalFactor ?? int.MaxValue) ?? Enumerable.Empty<LoadedChart>();
  private LoadedChart? SelectedChart => _data?.Charts.GetValueOrDefault(_chartCode);
  protected override void OnParametersSet()
@@ -54,29 +51,24 @@ else
   if(_data is null){Active.Clear();return;} var p=_data.Person; Active.Set(Id,p.Name,$"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
  }
  private void ChangeChart(ChangeEventArgs e) => _chartCode=e.Value?.ToString()??"D1";
- private static IReadOnlyList<KarakaPolarWheelChart.Sector> BuildSectors(LoadedChart c)
+ private void ShowPolar() => _view = "polar";
+ private void ShowSouth() => _view = "south";
+ private static IReadOnlyList<PolarGridLagnaSelect.Sector> BuildSectors(LoadedChart c)
  {
   string[] signs={"Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricornus","Aquarius","Pisces"};
   var lagnaIndex=Array.FindIndex(signs,s=>string.Equals(s,c.AscendantSign,StringComparison.OrdinalIgnoreCase));
   if(lagnaIndex<0) lagnaIndex=0;
-  return Enumerable.Range(1,12)
-   .Select(h=>new KarakaPolarWheelChart.Sector(h,signs[(lagnaIndex+h-1)%12]))
-   .ToList();
+  return Enumerable.Range(1,12).Select(h=>new PolarGridLagnaSelect.Sector(h,signs[(lagnaIndex+h-1)%12])).ToList();
  }
- private static bool SupportsCharaKarakas(string chartCode) => chartCode is "D1" or "D9";
- private static IReadOnlyList<KarakaPolarWheelChart.CharaPoint> BuildCharaPoints(LoadedChart c) =>
-  SupportsCharaKarakas(c.ChartType)
-   ? c.Grahas.Where(k=>!string.IsNullOrWhiteSpace(k.CharaKaraka)).Select(k=>new KarakaPolarWheelChart.CharaPoint(k.Planet,k.CharaKaraka!,k.HouseNumberFromLagna,k.Sign)).ToList()
-   : Array.Empty<KarakaPolarWheelChart.CharaPoint>();
- private static IReadOnlyList<KarakaPolarWheelChart.PlanetPlacement> BuildPlanetPlacements(LoadedChart c) => c.Grahas
-  .Select(k=>new KarakaPolarWheelChart.PlanetPlacement(k.Planet,k.Sign,k.SignLordPlanet,k.Nakshatra,k.NakshatraLordPlanet,k.NakshatraSubLordPlanet,k.DignityStatus,k.HouseNumberFromLagna)).ToList();
- private static IReadOnlyList<KarakaPolarWheelChart.HouseLordPoint> BuildHouseLords(LoadedChart c) => c.HouseLords
-  .Select(h=>new KarakaPolarWheelChart.HouseLordPoint(h.HouseNumber,h.HouseSign,h.LordPlanet,h.LordPlacedInHouseFromLagna,h.LordPlacedInSign)).ToList();
- private static IReadOnlyList<KarakaPolarWheelChart.ReferencePoint> BuildReferencePoints(LoadedChart c,IReadOnlyList<LagnaReferenceRow> definitions)
+ private static IReadOnlyList<PolarGridLagnaSelect.PlanetPlacement> BuildPlanetPlacements(LoadedChart c) => c.Grahas
+  .Where(k=>k.Planet!="Ascendant")
+  .Select(k=>new PolarGridLagnaSelect.PlanetPlacement(k.Planet,k.Sign,k.DignityStatus)).ToList();
+ private static IReadOnlyList<PolarGridLagnaSelect.ReferencePoint> BuildReferencePoints(LoadedChart c,IReadOnlyList<LagnaReferenceRow> definitions)
  {
   var points=c.SpecialPoints.Where(p=>p.PointKind=="SpecialLagna").ToDictionary(p=>p.Planet,p=>p.Sign,StringComparer.OrdinalIgnoreCase);
   return definitions.Where(d=>d.ReferenceCode=="LAGNA"||d.Abbreviation is not null&&points.ContainsKey(d.Abbreviation))
    .Where(d=>d.AppliesInVarga=="Any"||d.AppliesInVarga=="Rasi"&&c.ChartType=="D1"||d.AppliesInVarga=="Navamsa"&&c.ChartType=="D9")
-   .Select(d=>new KarakaPolarWheelChart.ReferencePoint(d.ReferenceCode,d.ReferenceCode=="LAGNA"?"Sign Lagna":d.ReferenceName,d.ReferenceCode=="LAGNA"?c.AscendantSign:points[d.Abbreviation!],d.Perspective,d.SortOrder)).ToList();
+   .Where(d=>d.ReferenceCode is "LAGNA" or "ARUDHA_LAGNA" or "HORA_LAGNA" or "SREE_LAGNA" or "GHATI_LAGNA")
+   .Select(d=>new PolarGridLagnaSelect.ReferencePoint(d.ReferenceCode,d.ReferenceCode=="LAGNA"?"Sign Lagna":d.ReferenceName,d.ReferenceCode=="LAGNA"?c.AscendantSign:points[d.Abbreviation!])).ToList();
  }
 }
