@@ -59,11 +59,34 @@
 }
 
 .ik-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     justify-self: center;
     color: var(--brand-midnight);
     font: 700 calc(var(--font-size-control) * 0.78) / 1.1 var(--font-interface);
     letter-spacing: 0.01em;
+}
+
+.ik-brand-icon {
+    width: 40px;
+    height: 40px;
+    padding: 4px;
+    border-radius: 10px;
+    background: var(--brand-midnight);
+    object-fit: contain;
+    flex: none;
+}
+
+.ik-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
     white-space: nowrap;
+}
+
+.ik-brand-name {
+    font-weight: 700;
 }
 
 .ik-tagline {

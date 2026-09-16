@@ -26,11 +26,11 @@
 
 .home-main {
     max-width: 640px;
-    padding-top: 1.5rem;
+    padding-top: 0.75rem;
 }
 
 .home-title {
-    margin: 0.25rem 0 1.25rem;
+    margin: 0.15rem 0 0.6rem;
     color: var(--brand-midnight);
     font: 800 var(--font-size-display) / 1.1 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: -0.03em;
@@ -114,13 +114,24 @@
 
 .home-add-new:hover { text-decoration: underline; }
 
+/* Two-up grid — Name+Sex, DOB+TOB, City+Country — so the six fields read as three compact
+   rows instead of a tall single-column stack (fits the Add-New form under the fixed top nav
+   without page scroll). Buttons span both columns below. One panel: the cosmic image sits
+   under a translucent canvas scrim (tokens only) so field labels/text stay legible over both
+   the image's dark edges and bright core. */
 .home-form {
     display: grid;
-    gap: 0.85rem;
-    max-width: 480px;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--brand-line);
+    grid-template-columns: 1fr 1fr;
+    align-content: start;
+    gap: 0.5rem 0.75rem;
+    max-width: 520px;
+    margin-top: 0.6rem;
+    padding: 0.85rem 0.9rem 0.9rem;
+    border: 1px solid var(--brand-line);
+    border-radius: 14px;
+    background:
+        linear-gradient(color-mix(in srgb, var(--brand-canvas) 55%, transparent), color-mix(in srgb, var(--brand-canvas) 55%, transparent)),
+        url('/images/BigBang-i2.png') center / cover no-repeat;
 }
 
 .home-form-caption {
@@ -128,14 +139,20 @@
     font-weight: 700;
 }
 
-/* Sex — an always-visible option box (no dropdown), required. */
-.home-sex {
-    display: grid;
-    gap: 2px;
+/* Dark-blue field text/labels so entries stay legible over the panel's cosmic-image
+   background (both its dark edges and bright core). */
+.home-form ::deep .mud-input-control input,
+.home-form ::deep .mud-input-label,
+.home-form ::deep .mud-input-adornment-icon,
+.home-form ::deep .mud-radio-group label {
+    color: var(--brand-midnight);
 }
 
-.home-sex-label {
-    color: var(--brand-muted);
+/* Sex — an always-visible option box (no dropdown), required (enforced by validation on
+   submit, not a visible label — keeps this row the same compact height as Name beside it). */
+.home-sex {
+    display: flex;
+    align-items: center;
 }
 
 .home-sex ::deep .mud-input-control {
@@ -148,12 +165,14 @@
 }
 
 .home-form-actions {
+    grid-column: 1 / -1;
     display: flex;
     gap: 0.75rem;
-    margin-top: 0.5rem;
+    margin-top: 0.15rem;
 }
 
 .home-form-error {
+    grid-column: 1 / -1;
     color: var(--danger, #b3261e);
 }
 
@@ -178,7 +197,38 @@
     object-position: right center;
 }
 
+/* Add-New (.home--compact): the art column no longer pins tall — it STRETCHES to match
+   .home-main's own compact height instead. The image is taken out of flow (position:absolute)
+   so it contributes no intrinsic height of its own; grid's `align-items: stretch` then sizes
+   the row entirely off .home-main's (shorter) content, and .home-art's box — now that same
+   height — is handed to the absolutely-positioned, object-fit:contain image, which shrinks to
+   fit. Net effect: the panel's top and bottom line up exactly with the art's top and bottom,
+   with no leftover space and no page scroll. */
+.home--compact {
+    align-items: stretch;
+    min-height: 0;
+}
+
+.home--compact .home-art {
+    position: relative;
+    top: 0;
+    align-self: stretch;
+    max-height: none;
+    overflow: hidden;
+}
+
+.home--compact .home-art img {
+    position: absolute;
+    inset: 0;
+}
+
 /* Primary buttons are sunset-filled via the app theme (IkiastrroTheme). */
+
+@media (max-width: 480px) {
+    .home-form {
+        grid-template-columns: 1fr;
+    }
+}
 
 @media (max-width: 900px) {
     .home {
