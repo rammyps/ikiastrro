@@ -76,8 +76,10 @@ every chart type.
   (compatibility views over `tbl_Rule_KarakaMatter`, replacing the dropped
   `tbl_Rule_Naisargika_Karakas` / `Karakatwas`; migration 103).
 - Functions: `fn_GetNakshatraRulingPlanetId` (scalar); `tvf_Chart_LifeWeeks(@BirthDetailId)`,
-  `tvf_Chart_SadeSatiPeriods(@BirthDetailId)`, `tvf_PlanetSignAtDate(@PlanetId, @AsOfUtc)`
-  (inline TVFs).
+  `tvf_Chart_SadeSatiPeriods(@BirthDetailId)`, `tvf_PlanetSignAtDate(@PlanetId, @AsOfUtc)`,
+  `tvf_Chart_SignNakshatraRasiRelationship(@ChartResultId)` (full 5-tier Pañcadhā Maitrī between
+  every `tbl_Rule_SignNakshatra` row and all 12 Rasis, using this chart's actual placements;
+  migration 105) (inline TVFs).
 
 ## Reference / master data
 
@@ -85,3 +87,8 @@ Seeded and cross-checked against the engine's hard-coded lookups, **not yet read
 engine**. Deliberately NULL pending a cited source: `tbl_SignAttributes.RisingType`;
 `tbl_Nakshatras` Guna / Gana / Yoni / Nadi / Varna / Tatva / Direction. Full design and
 sourcing status live with the domain research (`docs/research/domain/`).
+
+`tbl_SignAttributes.ExaltedNakshatraId` / `DebilitatedNakshatraId` (migration 104) — which
+Nakshatra each sign's `ExaltedDegree`/`DebilitatedDegree` falls in (absolute-degree range match
+against `tbl_Nakshatras`). Degrees themselves already matched PVR exactly before this migration —
+cross-checked against `tbl_Rule_GrahaDignity` and `AstroMath.DeepExaltationPoints`, no mismatch.

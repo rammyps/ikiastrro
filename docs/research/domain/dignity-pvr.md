@@ -144,9 +144,16 @@ for the classical seven; the node rows are new.
 PVR Table 6 (and this note) is **axis A** only: `EXALTED` / `MOOLATRIKONA` / `OWN` / `DEBILITATED`,
 a function of planet + sign + degree. The friend/neutral/enemy standing of the *other* 8 signs is
 **axis B** — Panchadhā Maitrī — which is chart-specific (Tatkālika/temporary friendship needs the
-sign-lord's live position) and already fully built in IkiAstrro: `tbl_Rule_NaturalRelationship` (42
-rows) + `tbl_Rule_TemporaryFriendshipDistance` (12 rows) + `DignityEngine.CombineToPanchadha` →
-`Great Friend` / `Friend` / `Neutral` / `Enemy` / `Great Enemy`.
+sign-lord's live position). **Correction (2026-09-16, verified by reading the source directly):**
+`DignityEngine.CombineToPanchadha` (`src/Ikiastrro.Core/Engines/Dignity/DignityEngine.cs:105-110`)
+is still 100% hardcoded — `private static`, takes three plain `bool`s, returns a bare `string`, no
+DB read anywhere, no score field on `DignityResult`. Reading `tbl_Rule_NaturalRelationship` (42
+rows) + `tbl_Rule_TemporaryFriendshipDistance` (12 rows) + `tbl_Rule_CompoundRelationship` (6 rows)
+"instead of hard-coding the grid" is still the unbuilt **"Phase 2"**
+`db/24_add_rule_compound_relationship.sql:20-22` names it — not current reality. The first genuinely
+DB-driven implementation of this exact formula is `tvf_Chart_SignNakshatraRasiRelationship`
+(migration 105, `docs/database/rules-engine.md`) — built for a different consumer (Nakshatra/Rasi
+lord pairs), not a retrofit of `DignityEngine` itself.
 
 `tbl_Rule_GrahaDignity` holds **axis A rows only** — no `FRIEND` / `NEUTRAL` / `ENEMY` rows.
 `DignityEngine.Evaluate` already merges the two by priority (axis A wins where it applies) into the
@@ -206,10 +213,10 @@ configurable weights (`Dignity×w₁ + Relationship×w₂ + House×w₃ + …`),
 | Neutral + temp-enemy | `SHATRU` | Śatru | Enemy | −1 |
 | Enemy + temp-enemy | `ADHISHATRU` | Adhiśatru | Great Enemy | −2 |
 
-`CombineToPanchadha` reads this 2×3 matrix instead of hard-coding it and returns
-`(Status, RelationshipScore)`. `DignityResult` surfaces **both** scores; `verify-dignity` pins each
-ladder independently. The merged 9-value `DignityStatus` label is still produced (axis A wins by
-priority) for display + the `tbl_Rule_WakefulnessState` join.
+This is the target shape for `CombineToPanchadha` to read instead of hard-coding — still unbuilt
+(see the correction above). Today `CombineToPanchadha` returns a bare `Status` string only;
+`DignityResult` has no `RelationshipScore` field. The merged 9-value `DignityStatus` label is still
+produced (axis A wins by priority) for display + the `tbl_Rule_WakefulnessState` join.
 
 `tbl_Rule_NaturalRelationship` — 42 data rows unchanged (**the Moon row is kept as-is** — neutral to
 Mars/Jupiter/Venus/Saturn, no enemies; the 3-column grid in the source note had a column slip on that
