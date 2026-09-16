@@ -1,6 +1,7 @@
 ---
-last_updated: 2026-09-14
-reflects: chart-module conventions, UI table contracts, shared typography and navigation shell
+last_updated: 2026-09-16
+reflects: chart-module conventions, UI table contracts, shared typography and navigation shell,
+  workstream boundary enforcement
 ---
 
 # ikiastrro — project standards
@@ -36,7 +37,13 @@ bumped in the same edit; `reflects:` when the doc tracks code). This file includ
 
 Two value streams, **three long-lived workstream branches** — `workstream/database`,
 `workstream/cli`, `workstream/ui` — each a `git worktree` under `D:\@ClaudeSpace\ikiastrro.wt\`
-with the disjoint path scope declared in `docs/<ws>/MASTER.md`.
+with the disjoint path scope declared in `docs/<ws>/MASTER.md`, consolidated here:
+
+| Workstream | Owns |
+|---|---|
+| `workstream/database` | `db/`, `src/Ikiastrro.Data/` |
+| `workstream/cli` | `src/Ikiastrro.Core/`, `src/Ikiastrro.Cli/`, `tests/Ikiastrro.Yoga.Tests/` |
+| `workstream/ui` | `src/Ikiastrro.Web/`, `tests/Ikiastrro.Web.Tests/`, `tests/Ikiastrro.Web.E2E/` |
 
 - **Claude Code is the primary** (AGENT-01) — owns root/cross-cutting files and integration to
   `master`.
@@ -48,6 +55,30 @@ with the disjoint path scope declared in `docs/<ws>/MASTER.md`.
   remaining work, next action.
 - Concurrent edits to the same file: coordinate first (§R); split by file, re-read before
   editing, never two agents renaming in the same tree at once.
+
+### 2.1 No direct commits to an owned path, no parallel rebuilds (added 2026-09-16)
+
+Closes the gap that let `master` and `workstream/cli` independently build the same
+Ashtakavarga/Jaimini/Shadbala engines — see the change log entry below.
+
+- **WORKSTREAM-01/02 has no exceptions.** If a change touches a path owned by a workstream
+  (table above), it is committed on that workstream's branch — full stop. This includes small
+  fixes, "just this once," and clearing out a backlog of unrelated pending edits directly on
+  `master`. Before committing to `master`, diff the changed paths against the ownership table;
+  if anything falls under a workstream's ownership, move the change to that branch/worktree
+  instead of committing it where it sits. This applies in both directions — a workstream branch
+  reaching into another workstream's owned path (e.g. `cli` editing something under
+  `src/Ikiastrro.Data/`) is the same violation as `master` reaching into `cli`'s or `ui`'s.
+- **Check for a parallel build before starting a new engine, calculator, repository, or
+  table.** Grep the *other* workstreams' `docs/<ws>/MASTER.md` "Current state" sections and
+  `masterproduct.md`'s feature register for the feature name first. Two independently-built
+  implementations of the same feature is the specific failure this rule exists to prevent.
+- **Keep divergence short.** At the start of a session, or before adding new work to a
+  workstream branch, run `git log master..workstream/<X> --oneline` and
+  `git log workstream/<X>..master -- <X's owned paths>` for each workstream. Either command
+  returning commits means unmerged or boundary-crossing work exists — integrate it before
+  piling on more, rather than letting a branch sit divergent for many commits (this project has
+  no PR gate to force WORKSTREAM-03's rebase-before-merge, so this check is the substitute).
 
 ## 3. Chart modules — naming, files, versioning
 
@@ -139,6 +170,20 @@ recomputes (`docs/architecture/domain-contracts.md`).
 
 ## Change log
 
+- **2026-09-16** — added §2.1 after finding `master` and `workstream/cli` had independently
+  built conflicting implementations of the same features. Root cause: commit `590dc72`
+  ("Add Bhaava/Ghati/Sree Lagna engines; commit accumulated pending work to master") put
+  `cli`-owned-path work (`src/Ikiastrro.Core/Engines/Karakas/`, `.../Strength/`) directly on
+  `master` instead of `workstream/cli`; separately, `workstream/cli` had itself added
+  `Insert`/`Delete*` methods to `src/Ikiastrro.Data/AshtakavargaRepository.cs`, a
+  `database`-owned path. Neither crossing was caught until the two branches were merged 8
+  commits later, producing add/add conflicts on `AshtakavargaRepository.cs`,
+  `BhaavaLagnaCalculator.cs`, `GhatiLagnaCalculator.cs`, and `SreeLagnaCalculator.cs`, plus
+  content conflicts in `ShadbalaCalculator.cs`, `ChartPipeline.cs`, `ChartBundle.cs`,
+  `ChartGenerationService.cs`, and `src/Ikiastrro.Cli/Program.cs`'s `verify-*` command list.
+  Resolved by hand-merging both sides (commit `b6603ba`); §2.1 adds the ownership table, the
+  no-exceptions rule, the pre-build duplication check, and the divergence-check cadence so the
+  next parallel-build isn't caught this late.
 - **2026-09-14** — full-app standardization pass (rammyps's directive): Key Inference's nested
   tabs (1.1/1.2, 2.1/2.2, 3.1/3.2) now ALL CAPS and restyled onto the master step rail's pill
   look (one tab convention app-wide, not two — see `docs/ui/design-language.md` "Tabs");
