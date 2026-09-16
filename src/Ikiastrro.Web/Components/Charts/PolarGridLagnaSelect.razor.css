@@ -1,6 +1,6 @@
 .pgls{color:var(--brand-midnight);--ref-lagna:#9f2f3f;--ref-arudha:#126b87;--ref-hora:#9a5b05;--ref-sree:#5c3fa3;--ref-ghati:#2d7a4a}
 .pgls-lagnas{display:flex;justify-content:center;gap:.85rem 1.75rem;margin:1rem auto 1.5rem;flex-wrap:wrap}
-/* Grid-display toggles (Upagrahas/Gra-Arudha/Arudha-Lagna/HN-Moon/HN-Sun, 2026-09-17) — same
+/* Grid-display toggles (Upagrahas/Gra-Arudha/Spl Lagnas/HN-Moon/HN-Sun, 2026-09-17) — same
    checkbox-pill convention as .pgls-lagnas above, just one shared accent instead of a distinct
    colour per item (these aren't tied to distinct wheel rings, unlike the Lagna references). */
 .pgls-extras{display:flex;justify-content:center;gap:.85rem 1.5rem;margin:0 auto 1.5rem;flex-wrap:wrap}
@@ -47,11 +47,9 @@
 .pgls-core{fill:var(--brand-sunset);stroke:var(--brand-midnight);stroke-width:4}
 .pgls-core-chart{fill:var(--brand-midnight);font-size:22px;font-weight:800}
 .pgls-empty{margin:2rem 0;color:var(--brand-muted);font-weight:700}
-.pgls-south-grids{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:1.5rem;width:100%}
-.pgls-south-grid{width:100%;max-width:680px;margin-inline:auto;border-top:4px solid transparent;padding-top:.5rem}
-.pgls-south-grid.ref-lagna{border-color:var(--ref-lagna)}
-.pgls-south-grid.ref-arudha{border-color:var(--ref-arudha)}
-.pgls-south-grid.ref-hora{border-color:var(--ref-hora)}
-.pgls-south-grid.ref-sree{border-color:var(--ref-sree)}
-.pgls-south-grid.ref-ghati{border-color:var(--ref-ghati)}
+/* 2026-09-17: one grid, not one per selected Lagna reference (SplLagnaLabels folds all 4
+   special-lagna corner labels onto this single grid instead) — plain centring wrapper, no more
+   auto-fit multi-column layout or per-reference accent border. */
+.pgls-south-grids{display:flex;justify-content:center;width:100%}
+.pgls-south-grid{width:100%;max-width:820px}
 @media(max-width:720px){.pgls-lagnas{justify-content:flex-start}}

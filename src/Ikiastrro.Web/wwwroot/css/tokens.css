@@ -52,11 +52,15 @@
     --house-lagna-fg: #fbeee7;
     --house-moon: #c9932b;
     --house-moon-fg: #2a2118;
-    /* Third axis, SouthIndianGrid_Micro only (2026-09-17) — house counted from the natal Sun,
-       toggleable via the "HN-Sun" checkbox. Teal keeps it visually distinct from the maroon/gold
-       pair above at a glance. */
-    --house-sun: #2d6b7a;
-    --house-sun-fg: #eaf6f8;
+    /* SouthIndianGrid_Micro's own house-badge palette (2026-09-17, rammyps's call) — Sun reads
+       the app's sunset accent, Moon reads silver, both toggleable via "HN-Sun"/"HN-Moon". Kept
+       separate from --house-moon above rather than repainting it in place (project_standards.md
+       §3.3, "tokens are additive") — that token still backs SouthIndianGrid_Detailed's silver-
+       named-but-gold badge everywhere else, unchanged by this. */
+    --house-sun: var(--brand-sunset);
+    --house-sun-fg: var(--brand-midnight);
+    --house-micro-moon: #b7bcc4;
+    --house-micro-moon-fg: #2a2118;
 
     /* Destructive-action color (Delete buttons/icons, the confirm dialog) — one shared token
        instead of a one-off hex. A deeper, more saturated red than --accent's maroon so "danger"

@@ -8,14 +8,16 @@
 
 .chart {
     /* No aspect-ratio, same reasoning as Detailed: cell height is content-driven, and a Micro
-       cell's content varies far more than Detailed's ever did. */
+       cell's content varies far more than Detailed's ever did. Wider than Detailed's 480px cap —
+       this is now the only grid on the page (2026-09-17: one big grid, not one per selected Lagna
+       reference), so it can take the room those side-by-side grids used to share. */
     width: 100%;
-    max-width: 560px;
+    max-width: 800px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
     gap: 3px;
-    background: var(--paper-line);
+    background: transparent;
     border: 3px solid var(--accent-line);
     border-radius: 4px;
     box-shadow: 0 12px 32px var(--shadow);
@@ -23,7 +25,19 @@
 
 .cell { background: var(--paper-raised); padding: 6px 7px; display: flex; flex-direction: column; gap: 3px; position: relative; min-width: 0; }
 .cell.center { background: var(--paper); align-items: center; justify-content: center; text-align: center; padding: 14px; }
-.cell.ascendant { background: var(--asc-glow); box-shadow: inset 0 0 0 2px var(--accent); }
+
+/* Lagna / Arudha Lagna / Hora Lagna markers (2026-09-17): a thin top strip per reference instead
+   of tinting the whole cell — a cell can carry more than one (e.g. Arudha Lagna landing on the
+   actual Ascendant sign), so each active one stacks as its own bar rather than fighting over one
+   background. Colours match the Wheel view's own ring accents (--ref-lagna/--ref-arudha/
+   --ref-hora, set on the shared ancestor .pgls in PolarGridLagnaSelect.razor.css and inherited
+   here via custom-property cascade — same cross-scope pattern SouthIndianGrid_Detailed documents
+   for --paper/--ink/etc.) so a reader can connect a Grid-view strip to its Wheel-view ring. */
+.lagna-strips { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column; gap: 1px; }
+.lagna-strip { height: 4px; }
+.lagna-strip.lagna { background: var(--ref-lagna, var(--accent)); }
+.lagna-strip.arudha { background: var(--ref-arudha, var(--accent)); }
+.lagna-strip.hora { background: var(--ref-hora, var(--accent)); }
 
 .sign-label { display: flex; }
 .sign-en { font-size: 10px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.02em; }
@@ -58,7 +72,7 @@
 }
 
 .house-num.from-lagna { color: var(--house-lagna-fg); background: var(--house-lagna); }
-.house-num.from-moon { color: var(--house-moon-fg); background: var(--house-moon); }
+.house-num.from-moon { color: var(--house-micro-moon-fg); background: var(--house-micro-moon); }
 .house-num.from-sun { color: var(--house-sun-fg); background: var(--house-sun); }
 
 /* Every content row below is a normal-flow flex child (never absolutely positioned) — that's

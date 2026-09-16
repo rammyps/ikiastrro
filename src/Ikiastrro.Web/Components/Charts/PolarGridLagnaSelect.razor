@@ -2,15 +2,18 @@
 @using Ikiastrro.Core.Presentation
 
 <section class="pgls" aria-label="Special Lagna chart">
- <div class="pgls-lagnas" role="group" aria-label="Lagna references">
-  @foreach (var reference in OrderedReferences)
-  {
-   <label class="pgls-check @ReferenceClass(reference.Code) @(_selectedReferenceCodes.Contains(reference.Code) ? "is-active" : null)">
-    <input type="checkbox" checked="@_selectedReferenceCodes.Contains(reference.Code)" @onchange="e => ToggleReference(reference.Code, e)" />
-    <span>@reference.Name.ToUpperInvariant()</span>
-   </label>
-  }
- </div>
+ @if (View == "polar")
+ {
+  <div class="pgls-lagnas" role="group" aria-label="Lagna references">
+   @foreach (var reference in OrderedReferences)
+   {
+    <label class="pgls-check @ReferenceClass(reference.Code) @(_selectedReferenceCodes.Contains(reference.Code) ? "is-active" : null)">
+     <input type="checkbox" checked="@_selectedReferenceCodes.Contains(reference.Code)" @onchange="e => ToggleReference(reference.Code, e)" />
+     <span>@reference.Name.ToUpperInvariant()</span>
+    </label>
+   }
+  </div>
+ }
  @if (View == "south")
  {
   <div class="pgls-extras" role="group" aria-label="Grid display">
@@ -24,7 +27,7 @@
   </div>
  }
  <div class="pgls-canvas">
-  @if (SelectedReferences.Count == 0)
+  @if (View == "polar" && SelectedReferences.Count == 0)
   {
    <p class="pgls-empty" role="status">Select one or more lagnas to compare.</p>
   }
@@ -95,16 +98,14 @@
   else
   {
    <div class="pgls-south-grids">
-    @foreach (var reference in SelectedReferences)
-    {
-     <div class="pgls-south-grid @ReferenceClass(reference.Code)">
-      <SouthIndianGrid_Micro AscendantSign="@reference.Sign" MoonSign="@EffectiveMoonSign" SunSign="@EffectiveSunSign"
-          PlanetsBySign="MicroPlanetsBySign" UpagrahaLabels="UpagrahaLabels" GrahaArudhaLabels="GrahaArudhaLabels"
-          ArudhaLagnaLabels="ArudhaLagnaLabels" AspectLabels="AspectLabels" CenterTitle="@ChartCode">
-       <CenterMeta><b>@reference.Name</b> · @DisplaySign(reference.Sign)</CenterMeta>
-      </SouthIndianGrid_Micro>
-     </div>
-    }
+    <div class="pgls-south-grid">
+     <SouthIndianGrid_Micro AscendantSign="@AscendantSign" ArudhaLagnaSign="@ArudhaLagnaSign" HoraLagnaSign="@HoraLagnaSign"
+         MoonSign="@EffectiveMoonSign" SunSign="@EffectiveSunSign"
+         PlanetsBySign="MicroPlanetsBySign" UpagrahaLabels="UpagrahaLabels" GrahaArudhaLabels="GrahaArudhaLabels"
+         SplLagnaLabels="SplLagnaLabels" AspectLabels="AspectLabels" CenterTitle="@ChartCode">
+      <CenterMeta><b>Lagna</b> · @DisplaySign(AscendantSign)</CenterMeta>
+     </SouthIndianGrid_Micro>
+    </div>
    </div>
   }
  </div>
@@ -161,11 +162,11 @@
  // vary by which the selected chart supports).
  private static readonly (string Code,string Label)[] GridExtraOptions =
  {
-  ("UPAGRAHA","UPAGRAHAS"), ("GRAHA_ARUDHA","GRA-ARUDHA"), ("ARUDHA_LAGNA","ARUDHA-LAGNA"),
+  ("UPAGRAHA","UPAGRAHAS"), ("GRAHA_ARUDHA","GRA-ARUDHA"), ("SPL_LAGNAS","SPL LAGNAS"),
   ("HN_MOON","HN-MOON"), ("HN_SUN","HN-SUN")
  };
  private readonly HashSet<string> _selectedGridExtras = new(StringComparer.OrdinalIgnoreCase)
-  { "UPAGRAHA", "GRAHA_ARUDHA", "ARUDHA_LAGNA", "HN_MOON", "HN_SUN" };
+  { "UPAGRAHA", "GRAHA_ARUDHA", "SPL_LAGNAS", "HN_MOON", "HN_SUN" };
  private static readonly IReadOnlyDictionary<string,IReadOnlyList<string>> EmptyLabels = new Dictionary<string,IReadOnlyList<string>>();
  private void ToggleGridExtra(string code,ChangeEventArgs e){if(e.Value is true)_selectedGridExtras.Add(code);else _selectedGridExtras.Remove(code);}
 
@@ -188,7 +189,14 @@
   .Where(k=>k.PointKind=="GrahaArudha")
   .GroupBy(k=>k.Sign)
   .ToDictionary(g=>g.Key,g=>(IReadOnlyList<string>)g.Select(k=>$"GA-{ChartViewModel.PlanetGlyph(k.Planet.Replace("GA_",""))}").ToList());
- private IReadOnlyDictionary<string,IReadOnlyList<string>> ArudhaLagnaLabels=>_selectedGridExtras.Contains("ARUDHA_LAGNA")?SpecialPointLabels:EmptyLabels;
+ // All 4 non-Sign special-lagna short codes (AR/HO/SR/GH — SpecialPointLabels already excludes
+ // "LAGNA" itself), one combined toggle rather than per-reference ones now that Grid view renders
+ // a single chart instead of one grid per selected Lagna reference.
+ private IReadOnlyDictionary<string,IReadOnlyList<string>> SplLagnaLabels=>_selectedGridExtras.Contains("SPL_LAGNAS")?SpecialPointLabels:EmptyLabels;
+ // Strip markers (below) are unconditional — always drawn when the reference exists, regardless
+ // of the SPL LAGNAS toggle, which only governs the AR/HO/SR/GH text tags inside cells.
+ private string? ArudhaLagnaSign=>ReferencePoints.FirstOrDefault(r=>r.Code=="ARUDHA_LAGNA")?.Sign;
+ private string? HoraLagnaSign=>ReferencePoints.FirstOrDefault(r=>r.Code=="HORA_LAGNA")?.Sign;
  private IReadOnlyDictionary<string,IReadOnlyList<string>> AspectLabels=>ChartViewModel.BuildAspectedByMicro(KeyDetails,Aspects);
  private string? EffectiveMoonSign=>_selectedGridExtras.Contains("HN_MOON")?KeyDetails.FirstOrDefault(k=>k.Planet=="Moon")?.Sign:null;
  private string? EffectiveSunSign=>_selectedGridExtras.Contains("HN_SUN")?KeyDetails.FirstOrDefault(k=>k.Planet=="Sun")?.Sign:null;

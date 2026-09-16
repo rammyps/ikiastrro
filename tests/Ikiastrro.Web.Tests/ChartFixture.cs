@@ -117,8 +117,8 @@ internal static class ChartFixture
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> MicroGrahaArudhaLabels =
         new Dictionary<string, IReadOnlyList<string>> { ["Taurus"] = new[] { "GA-Su" } };
 
-    public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> MicroArudhaLagnaLabels =
-        new Dictionary<string, IReadOnlyList<string>> { ["Cancer"] = new[] { "AL" } };
+    public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> MicroSplLagnaLabels =
+        new Dictionary<string, IReadOnlyList<string>> { ["Cancer"] = new[] { "AR", "HO" } };
 
     public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> MicroAspectLabels =
         new Dictionary<string, IReadOnlyList<string>> { ["Libra"] = new[] { "Ma(4)" } };

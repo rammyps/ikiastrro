@@ -49,12 +49,14 @@ public class ChartSnapshotTests : BunitContext
     {
         var cut = Render<SouthIndianGrid_Micro>(ps => ps
             .Add(p => p.AscendantSign, "Aries")
+            .Add(p => p.ArudhaLagnaSign, "Pisces")
+            .Add(p => p.HoraLagnaSign, "Taurus")
             .Add(p => p.MoonSign, "Taurus")
             .Add(p => p.SunSign, "Aries")
             .Add(p => p.PlanetsBySign, ChartFixture.MicroGridGlyphs)
             .Add(p => p.UpagrahaLabels, ChartFixture.MicroUpagrahaLabels)
             .Add(p => p.GrahaArudhaLabels, ChartFixture.MicroGrahaArudhaLabels)
-            .Add(p => p.ArudhaLagnaLabels, ChartFixture.MicroArudhaLagnaLabels)
+            .Add(p => p.SplLagnaLabels, ChartFixture.MicroSplLagnaLabels)
             .Add(p => p.AspectLabels, ChartFixture.MicroAspectLabels)
             .Add(p => p.CenterTitle, "D1 · Rasi")
             .Add(p => p.CenterMeta, "<span>Lagna Aries · Moon Taurus</span>"));

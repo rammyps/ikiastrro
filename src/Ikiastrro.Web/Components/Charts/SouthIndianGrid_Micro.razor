@@ -25,10 +25,12 @@
             @foreach (var cell in GridCells)
             {
                 var isAscendant = cell.MatchSign == AscendantSign;
+                var isArudhaLagna = !string.IsNullOrEmpty(ArudhaLagnaSign) && cell.MatchSign == ArudhaLagnaSign;
+                var isHoraLagna = !string.IsNullOrEmpty(HoraLagnaSign) && cell.MatchSign == HoraLagnaSign;
                 var glyphs = PlanetsBySign.TryGetValue(cell.MatchSign, out var list) ? list : Array.Empty<MicroPlanetGlyph>();
                 var upagrahas = UpagrahaLabels.TryGetValue(cell.MatchSign, out var ul) ? ul : Array.Empty<string>();
                 var grahaArudhas = GrahaArudhaLabels.TryGetValue(cell.MatchSign, out var gl) ? gl : Array.Empty<string>();
-                var arudhaLagnas = ArudhaLagnaLabels.TryGetValue(cell.MatchSign, out var al) ? al : Array.Empty<string>();
+                var splLagnas = SplLagnaLabels.TryGetValue(cell.MatchSign, out var al) ? al : Array.Empty<string>();
                 var aspectTags = AspectLabels.TryGetValue(cell.MatchSign, out var at) ? at : Array.Empty<string>();
                 var cellSign = Enum.Parse<ZodiacName>(cell.MatchSign);
                 var houseFromLagna = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(AscendantSign), cellSign);
@@ -40,6 +42,14 @@
                     : AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(SunSign), cellSign);
 
                 <div class="cell @(isAscendant ? "ascendant" : "")" style="grid-column:@cell.Col;grid-row:@cell.Row;">
+                    @if (isAscendant || isArudhaLagna || isHoraLagna)
+                    {
+                        <div class="lagna-strips">
+                            @if (isAscendant) { <span class="lagna-strip lagna" title="Lagna"></span> }
+                            @if (isArudhaLagna) { <span class="lagna-strip arudha" title="Arudha Lagna"></span> }
+                            @if (isHoraLagna) { <span class="lagna-strip hora" title="Hora Lagna"></span> }
+                        </div>
+                    }
                     @if (isAscendant)
                     {
                         <span class="lagna-tag">LAGNA</span>
@@ -89,11 +99,11 @@
                             @foreach (var u in upagrahas) { <span class="point-tag">@u</span> }
                         </div>
                     }
-                    @if (grahaArudhas.Count > 0 || arudhaLagnas.Count > 0)
+                    @if (grahaArudhas.Count > 0 || splLagnas.Count > 0)
                     {
                         <div class="row arudhas">
                             @foreach (var g in grahaArudhas) { <span class="point-tag">@g</span> }
-                            @foreach (var a in arudhaLagnas) { <span class="point-tag">@a</span> }
+                            @foreach (var s in splLagnas) { <span class="point-tag">@s</span> }
                         </div>
                     }
                     @if (aspectTags.Count > 0)
@@ -116,6 +126,16 @@
 @code {
     [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
 
+    /// <summary>Arudha Lagna's sign, for the top strip marker (2026-09-17 — replaces the old
+    /// full-cell ascendant tint; a thin coloured bar instead, one per applicable reference, so a
+    /// cell can carry more than one without a background fight). Null → no Arudha Lagna strip
+    /// anywhere.</summary>
+    [Parameter] public string? ArudhaLagnaSign { get; set; }
+
+    /// <summary>Hora Lagna's sign, for its own top strip marker — same convention as
+    /// ArudhaLagnaSign above.</summary>
+    [Parameter] public string? HoraLagnaSign { get; set; }
+
     /// <summary>This chart's own natal Moon sign. Null → the house-from-Moon badge doesn't
     /// render (same null-gating convention as SouthIndianGrid_Detailed's MoonSign).</summary>
     [Parameter] public string? MoonSign { get; set; }
@@ -134,13 +154,13 @@
         = new Dictionary<string, IReadOnlyList<string>>();
 
     /// <summary>Graha Arudha short codes by sign. Empty when the caller's "Gra-Arudha" toggle is
-    /// off. Kept separate from ArudhaLagnaLabels — each has its own toggle.</summary>
+    /// off. Kept separate from SplLagnaLabels — each has its own toggle.</summary>
     [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> GrahaArudhaLabels { get; set; }
         = new Dictionary<string, IReadOnlyList<string>>();
 
-    /// <summary>Arudha Lagna ("AL") by sign. Empty when the caller's "Arudha-Lagna" toggle is
-    /// off.</summary>
-    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> ArudhaLagnaLabels { get; set; }
+    /// <summary>Special-Lagna short codes (Arudha/Hora/Sree/Ghati Lagna — "AR"/"HO"/"SR"/"GH") by
+    /// sign. Empty when the caller's "SPL LAGNAS" toggle is off.</summary>
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> SplLagnaLabels { get; set; }
         = new Dictionary<string, IReadOnlyList<string>>();
 
     /// <summary>Inline "Ma(4)"-style aspect tags by the aspected sign — ChartViewModel.BuildAspectedByMicro's
