@@ -29,13 +29,20 @@ public static class BaadhakaCalculator
     // Dual (Gemini, Virgo, Sagittarius, Pisces) is the implicit remainder — every ZodiacName value
     // is movable, fixed or dual, so this three-way split is exhaustive.
 
+    /// <summary>Movable/Fixed/Dual classification of a rasi — same classical split as
+    /// tbl_SignAttributes.type_house_keyattri (Chara/Sthira/Dwiswabhava). Shared with
+    /// <see cref="RasiDrishtiCalculator"/> so the movable/fixed/dual sign lists
+    /// exist exactly once in C#.</summary>
+    public static SignModality GetModality(ZodiacName sign) =>
+        Movable.Contains(sign) ? SignModality.Movable
+            : Fixed.Contains(sign) ? SignModality.Fixed
+            : SignModality.Dual;
+
     /// <summary>Baadhaka sthaana + baadhaka lord for a house/arudha occupying <paramref name="sign"/>,
     /// independent of any Lagna — reads directly off PVR Table 31.</summary>
     public static BaadhakaResult For(ZodiacName sign)
     {
-        var modality = Movable.Contains(sign) ? SignModality.Movable
-            : Fixed.Contains(sign) ? SignModality.Fixed
-            : SignModality.Dual;
+        var modality = GetModality(sign);
         var sthaanaOffset = modality switch
         {
             SignModality.Movable => 11,

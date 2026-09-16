@@ -5,10 +5,10 @@ using Ikiastrro.Core.Models;
 namespace Ikiastrro.Core.Engines.Karakas;
 
 /// <summary>Computes every special point's D1 longitude for a person: AL + the 12 Bhava
-/// Arudhas (A2–A12), all 4 special lagnas (Bhaava/Hora/Ghati/Sree — tbl_Dim_SpecialLagnas,
-/// db/28, all built as of 2026-09-13), and all eleven upagrahas when rules are supplied.
-/// The compatibility API without rules returns only Gulika/Maandi. Points are projected into every varga
-/// by SpecialPointProjector.</summary>
+/// Arudhas (A2–A12), all 9 Graha Arudhas (GA_Sun..GA_Ketu), all 4 special lagnas (Bhaava/Hora/
+/// Ghati/Sree — tbl_Dim_SpecialLagnas, db/28, all built as of 2026-09-13), and all eleven
+/// upagrahas when rules are supplied. The compatibility API without rules returns only Gulika/
+/// Maandi. Points are projected into every varga by SpecialPointProjector.</summary>
 public static class SpecialPointCalculator
 {
     public static IReadOnlyList<SpecialPointSeed> ComputeSeeds(
@@ -19,6 +19,7 @@ public static class SpecialPointCalculator
 
         var seeds = new List<SpecialPointSeed>();
         seeds.AddRange(ArudhaCalculator.Compute(d1));
+        seeds.AddRange(GrahaArudhaCalculator.Compute(d1));
         seeds.Add(BhaavaLagnaCalculator.Compute(birthDetails, sun, ayanamsa));
         seeds.Add(HoraLagnaCalculator.Compute(birthDetails, sun, ayanamsa));
         seeds.Add(GhatiLagnaCalculator.Compute(birthDetails, sun, ayanamsa));
