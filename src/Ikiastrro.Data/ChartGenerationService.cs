@@ -42,6 +42,23 @@ public class ChartGenerationService
     private readonly YogaInputRepository _yogaInputRepo;
     private readonly AshtakavargaRepository _ashtakavargaRepo;
     private readonly PanchangaRepository _panchangaRepo;
+    private readonly AmsabalaRepository _amsabalaRepo;
+    private readonly AmsabalaSchemeRepository _amsabalaSchemeRepo;
+    private readonly KpSubLordChainRepository? _kpSubLordChainRepo;
+
+    // Amsabala's scheme groups/names (tbl_Rule_AmsabalaGroup/Name) are the same for the whole
+    // GenerateAll/Recompute call — load once per ruleSetId, like PlanetaryStateRules above.
+    private int? _amsabalaSchemeRuleSetId;
+    private IReadOnlyList<AmsabalaGroupMember> _amsabalaGroups = Array.Empty<AmsabalaGroupMember>();
+    private IReadOnlyList<AmsabalaNameEntry> _amsabalaNames = Array.Empty<AmsabalaNameEntry>();
+
+    private void EnsureAmsabalaScheme(int ruleSetId)
+    {
+        if (_amsabalaSchemeRuleSetId == ruleSetId) return;
+        _amsabalaGroups = _amsabalaSchemeRepo.GetGroups(ruleSetId);
+        _amsabalaNames = _amsabalaSchemeRepo.GetNames(ruleSetId);
+        _amsabalaSchemeRuleSetId = ruleSetId;
+    }
 
     // The avastha rule/dim rows are the same for the whole GenerateAll/Recompute call — load once.
     private PlanetaryStateRuleSet? _planetaryStateRules;
@@ -59,7 +76,9 @@ public class ChartGenerationService
         PlanetaryStrengthRepository planetaryStrengthRepo,
         BhavaStrengthRepository bhavaStrengthRepo,
         VargottamaRepository vargottamaRepo, YogaInputRepository yogaInputRepo,
-        AshtakavargaRepository ashtakavargaRepo, PanchangaRepository panchangaRepo)
+        AshtakavargaRepository ashtakavargaRepo, PanchangaRepository panchangaRepo,
+        AmsabalaRepository amsabalaRepo, AmsabalaSchemeRepository amsabalaSchemeRepo,
+        KpSubLordChainRepository? kpSubLordChainRepo = null)
     {
         _orchestrator = orchestrator;
         _dashaService = dashaService;
@@ -80,6 +99,9 @@ public class ChartGenerationService
         _yogaInputRepo = yogaInputRepo;
         _ashtakavargaRepo = ashtakavargaRepo;
         _panchangaRepo = panchangaRepo;
+        _amsabalaRepo = amsabalaRepo;
+        _amsabalaSchemeRepo = amsabalaSchemeRepo;
+        _kpSubLordChainRepo = kpSubLordChainRepo;
     }
 
     private AyanamsaDefinition ResolveAyanamsa(AyanamsaDefinition? requested) =>
@@ -105,7 +127,9 @@ public class ChartGenerationService
         _bhavaStrengthRepo.DeleteByBirthDetailId(birthDetails.Id);
         _vargottamaRepo.DeleteByBirthDetailId(birthDetails.Id);
         _ashtakavargaRepo.DeleteByBirthDetailId(birthDetails.Id);  // FKs to tbl_ChartResults have no cascade
+        _amsabalaRepo.DeleteByBirthDetailId(birthDetails.Id);      // FK to tbl_ChartResults has no cascade
         _panchangaRepo.DeleteByBirthDetailId(birthDetails.Id);
+        _kpSubLordChainRepo?.DeleteByBirthDetailId(birthDetails.Id); // FK_Fact_KpSubLordChain_ChartResult (no cascade); optional until Web/Cli composition roots register it
         foreach (var calc in _orchestrator.Calculators)
             _chartResultsRepo.DeleteByBirthDetailIdAndChartType(birthDetails.Id, calc.ChartType);
 
@@ -287,6 +311,28 @@ public class ChartGenerationService
             _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input), (int)input.AscendantSign + 1);
             _panchangaRepo.DeleteByChartResultId(chartResultId);
             _panchangaRepo.Insert(chartResultId, ruleSetId, panchanga);
+
+            EnsureAmsabalaScheme(ruleSetId);
+            _amsabalaRepo.DeleteByChartResultId(chartResultId);
+            foreach (var planet in AmsabalaPlanets)
+                _amsabalaRepo.Insert(chartResultId, ruleSetId, planet.ToString().ToUpperInvariant(),
+                    AmsabalaCalculator.Calculate(planet, charts, _amsabalaGroups, _amsabalaNames));
+
+            // KP sub-lord chain levels 2-7 (level 1 already on keyDetails.NakshatraSubLordPlanetId
+            // above). Optional dependency — see KpSubLordChainRepository's own doc comment; silently
+            // skipped until Web/Cli composition roots register it.
+            if (_kpSubLordChainRepo is not null)
+            {
+                _kpSubLordChainRepo.DeleteByChartResultId(chartResultId);
+                var grahas = keyDetails
+                    .Where(r => r.PointKind == "Graha" && r.PlanetId.HasValue)
+                    .Select(r => (r.PlanetId!.Value, r.NirayanaLongitudeDegrees));
+                _kpSubLordChainRepo.InsertAll(chartResultId, grahas);
+            }
         }
     }
+
+    private static readonly PlanetName[] AmsabalaPlanets =
+        { PlanetName.Sun, PlanetName.Moon, PlanetName.Mars, PlanetName.Mercury,
+          PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn };
 }

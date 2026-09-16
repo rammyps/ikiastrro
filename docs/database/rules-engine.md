@@ -66,8 +66,12 @@ Part A:
 | `tbl_Rule_SpecialLagnaFraction` / `SpecialLagnaTimeRate` | — | HL/BL/GL rate-per-clock-minute (`SpecialLagnaTimeRate`) and SL's nakshatra-fraction method (`SpecialLagnaFraction`) | mirror — CLI `verify-jaimini` reproduces the JHora export exactly (BL/GL/SL D1+D9 signs and longitudes); `HoraLagnaCalculator`/`BhaavaLagnaCalculator`/`GhatiLagnaCalculator`/`SreeLagnaCalculator` are 100% hardcoded, zero DB reads |
 | `tbl_Rule_Ayanamsa` | 22 | JHora ayanāṁśa catalogue + system default | live (`AyanamsaDefinition`) |
 | `tbl_Rule_Yoga` / `tbl_Rule_YogaChartApplicability` / `tbl_Rule_YogaContextRequirement` | — | source-attributed Raman 1–300 + PVR yoga corpus, D1/D9 requirements, sex/day-night/phase/exact-longitude context | in progress |
-| `tbl_Rule_Karaka` | 8 (Chara) | Chara Kāraka rank order (`KarakaScheme='Chara'`, `OrderIndex`/`TargetValue`/`ReverseForRahu`), SRC_PVR_INTEGRATED §8.2 Table 13, verified against the raw extract; Sthira/Naisargika schemes still reserved/empty (Sthira/Naisargika still hardcoded in `LifeAreaMap`) | mirror — seeded by migration 085 (closing the 2026-09-11 rule-mapping audit's "no DB citation at all" gap); CLI `verify-jaimini` cross-checks the order against `CharaKarakaCalculator`'s hardcoded enum; `CharaKarakaCalculator` itself stays 100% hardcoded, zero DB reads |
+| `tbl_Rule_Karaka` | 8 (Chara) | Chara Kāraka rank order (`KarakaScheme='Chara'`, `OrderIndex`/`TargetValue`/`ReverseForRahu`), SRC_PVR_INTEGRATED §8.2 Table 13, verified against the raw extract; Sthira scheme still reserved/empty (still hardcoded in `LifeAreaMap`) — Naisargika is normalized separately, see `tbl_Rule_KarakaMatter` below | mirror — seeded by migration 085 (closing the 2026-09-11 rule-mapping audit's "no DB citation at all" gap); CLI `verify-jaimini` cross-checks the order against `CharaKarakaCalculator`'s hardcoded enum; `CharaKarakaCalculator` itself stays 100% hardcoded, zero DB reads |
+| `tbl_Dim_KarakaRole` | 17 (9 Naisargika + 8 Chara) | Shared karaka-role catalogue: one row per Naisargika graha, one per Chara role (driven from `tbl_Rule_Karaka`'s 8 Chara rows). Sthira reserved/unseeded. | seeded (migration 103); read by `NaisargikaKarakaRepository` via `vw_Rule_PrimaryNaisargikaKaraka`/`vw_Rule_NaisargikaKarakatwa` |
+| `tbl_Dim_LifeMatter` | 128 (32 Karakatwa grid + 96 life-matter set) | Life-matter vocabulary: a stable `Code` join target replacing free-text matter names, kept as two separate vocabularies (no cross-linking between the grid's 32 and the specific-matter set's 96) | seeded (migration 103) |
+| `tbl_Rule_KarakaMatter` | 149 (12 `IsPrimary`) | Canonical karaka-role↔life-matter bridge (`docs/database/karakafix.md`): replaces `tbl_Rule_Naisargika_Karakas`/`Karakatwas` (dropped, migration 103) and the free-text `KarakaText` parsing in `tbl_Rule_LifeMatterReference` (which keeps its legacy columns, now also linked via a new `LifeMatterId` FK). Compound karakas (e.g. Mars+Rahu) are separate rows sharing one `LifeMatterId`. | mirror — read by `NaisargikaKarakaRepository` via the two compatibility views; no calculator reads it live yet (same status the superseded tables had) |
 | `tbl_Rule_HouseSignification` / `tbl_Rule_HouseReferenceMatter` / `tbl_Rule_HouseAttribute` | — | house reference rules | seeded |
+| `tbl_Rule_SignNakshatra` | 243 (27 Nakshatras × 9 KP sub-divisions) | KP levels 1-2 (Nakshatra-lord + Sub-lord) per sub-division, migration 096 | seeded; `vw_Rule_SignNakshatraRelationship` (mig. 097) reads it for each row's own primary Rasi, natural-relationship only; `tvf_Chart_SignNakshatraRasiRelationship(@ChartResultId)` (mig. 105) extends it to all 12 Rasis with the full chart-specific 5-tier compound relationship — see `schema.md` "Views & functions" |
 | `tbl_Rule_DashaApplicability` | reserved | source-attributed applicability conditions for conditional dasha systems | unseeded — table created by migration 46, zero rows, no source cited |
 | `tbl_Rule_PanchangaFormula` | 4 | Tithi / Karana / Nitya Yoga / Hora Lord derivation formulas (PVR §1.3.8–1.3.11); cross-checked against the JHora Ramakrishnan export | mirror — CLI `verify-panchanga` reproduces the JHora export exactly; `PanchangaCalculator` is 100% hardcoded, zero DB reads |
 | `tbl_Rule_SourceReferenceAshtakavargaMethod` / `…Contributor` / `…Reduction` | — | `research.*` schema: per-source Ashtakavarga method identity + contributor/reduction rule rows, pending verification against a cited edition before promotion to the production `tbl_Rule_Ashtakavarga*` tables above | orphaned by design — research staging area, not read by any calculator |
@@ -77,8 +81,10 @@ Part A:
 | `tbl_Rule_VimshottariPeriod` | 9 | Vimshottari Dasha's core 9-planet order + 120-year split, SRC_PVR_INTEGRATED §16.2 Table 38, verified against the raw extract | mirror — added + seeded by migration 085; CLI `verify-dasha` cross-checks `SequenceOrder`/`YearsInCycle` against `AstroMath.NakshatraLordOrder`/`VimshottariYearsByLord` (also the KP-2 sub-lord division's source); `VimshottariDashaCalculator` itself stays 100% hardcoded, zero DB reads |
 | `tbl_Rule_ArudhaFormula` | 1 | Arudha pada counting rule (house → lord's sign → pada, 1st/7th → 10th exception), SRC_PVR_INTEGRATED §9.2, verified against the raw extract | mirror — added + seeded by migration 085; CLI `verify-jaimini` asserts the row exists and cites the right source (a narrative row, same shape as `tbl_Rule_PostureStateFormula`/`PanchangaFormula` — nothing to numerically round-trip); `ArudhaCalculator` itself stays 100% hardcoded, zero DB reads |
 
-The proposed normalization connecting Naisargika, Sthira and Chara roles to a shared life-matter
-vocabulary—and applying friendship only during chart evaluation—is in [`karakafix.md`](karakafix.md).
+The Naisargika/Chara half of this normalization (shared life-matter vocabulary, `tbl_Rule_KarakaMatter`
+bridge) is implemented — migration 103, see [`karakafix.md`](karakafix.md)'s implementation record.
+Sthira roles and applying friendship only during chart evaluation (`tvf_ChartKarakaCondition`)
+remain open, same doc.
 
 ## Formulas computed in C#/SQL with no `tbl_Rule_*` citation at all
 
@@ -156,3 +162,21 @@ full 360°.
 `tbl_Fact_*` rows record which `RuleSetId` produced them, so a chart's evidence is traceable
 to the exact rule version. Written by the `*Computer` classes inside
 `ChartGenerationService.PersistAnalytics`.
+
+`tbl_Fact_KpSubLordChain` (migration 095) — levels 2-7 of `AstroMath.GetKpSubLordChain`
+(level 1 stays on `tbl_Chart_KeyDetails.NakshatraSubLordPlanetId`), D1 only. Now has a repository
+(`KpSubLordChainRepository`) and is wired into `PersistAnalytics`'s D1 block, but as an
+**optional** constructor dependency (default `null`) — `ChartGenerationService`'s other two
+composition roots (`Ikiastrro.Web/Program.cs`, `Ikiastrro.Cli/Program.cs`) haven't registered it
+yet (out of the database workstream's owned paths), so no rows are written by either app today.
+Verified correct end-to-end via a throwaway harness (9 planets × 6 levels, byte-for-byte match
+against `AstroMath` computed independently) before this doc was written. **Follow-up for
+`workstream/ui`**: one `builder.Services.AddScoped<KpSubLordChainRepository>();` line in
+`Program.cs`. **Follow-up for `workstream/cli`**: one
+`new KpSubLordChainRepository(connectionFactory)` argument to the manual
+`new ChartGenerationService(...)` call, plus the matching argument in
+`BirthDetailDeletionService`'s construction.
+
+`tbl_Fact_HouseFromReference` (migration 32) remains schema-only — out of scope this round (the
+"4. KARAKAS" UI page's house numbers are a live house-from-Lagna calculation in
+`KarakaPolarWheel.razor`/`PolarGridLagnaSelect`, unrelated to this table).
