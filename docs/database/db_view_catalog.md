@@ -1,8 +1,8 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-09-16
 workstream: database
 togaf: C — Data Architecture
-reflects: UI table components as of master @ c1116af + the planned Key Inference 6-step flow (round 2, mockup only); Yoga Type/Rule DB-backed as of db/079
+reflects: UI table components as of master @ b6603ba + the planned Key Inference 6-step flow (round 2, mockup only); Yoga Type/Rule DB-backed as of db/079; Ashtakavarga live as of b6603ba
 ---
 
 # Database — view catalogue (UI table ⇄ view binding)
@@ -59,7 +59,7 @@ read-only, no recompute.
 | 2.2 · About Planets | derived: closeness-to-exaltation % | `tbl_Chart_KeyDetails` (+ `vw_ChartMoonContext` facts card) | `ChartKeyDetailsRepository` · `AstrologerEvidenceRepository` | exaltation point / Δ / closeness need a new **`tbl_Rule_Exaltation`** (7 rows) — not built |
 | 3 · Strength | `vw_ChartShadbala` (%-of-minimum/composition bar inline in 3.1's table) | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` (3.1) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (3.2) | `PlanetaryStrengthRepository`/`BhavaStrengthRepository` (new `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`, `PlanetStrengthChart`/`HouseStrengthChart`) | built 2026-09-14; first UI consumer of both views outside `AstrologerEvidenceRepository`'s generic dynamic-row dump |
 | 4 · Planet-Chart | derived: Vaiśeṣikāṁśa stacked bar, from `tbl_Chart_KeyDetails.DignityStatus` over 16 vargas | `tbl_Chart_KeyDetails.Sign` across the 16 divisional `ChartType`s (Ṣoḍaśavarga grid) | `ChartKeyDetailsRepository` | Vargottama (`tbl_Fact_Vargottama`) + Varga-Dignity highlights are inline tags, not tables |
-| 5 · Ashtakavarga | `vw_ChartAshtakavarga` (SAV bar) | `vw_ChartAshtakavarga` (BAV grid) + `tbl_Fact_AshtakavargaPinda` (Piṇḍa) | `AshtakavargaRepository` (read side — currently on `workstream/cli` `be7e37d`, not on `master`) | needs the Ashtakavarga engine merged so Web-generated people have the facts |
+| 5 · Ashtakavarga | `vw_ChartAshtakavarga` (SAV bar) | `vw_ChartAshtakavarga` (BAV grid) + `tbl_Fact_AshtakavargaPinda` (Piṇḍa) | `AshtakavargaRepository` (read + write, merged onto `master` `b6603ba` 2026-09-16) | live — `verify-ashtakavarga` all-pass; every saved person backfilled via `recompute-keydetails` |
 | 6 · Yoga | `vw_ChartYogaEvaluations` aggregate (coverage donut) | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) | `AstrologerEvidenceRepository` | **Type** (`YogaTypeCode`) + **Rule** (`YogaRule`) are DB-backed as of `db/079` — `tbl_Rule_Yoga.FormationFamilyCode`/`ShortFormationRule`, one row per YogaCode, left-joined in; `SourceVariantCode` dropped from display |
 
 `Chara Karaka` (`tbl_Chart_KeyDetails.CharaKaraka`, D1) moved from its own sub-tab into the
@@ -80,9 +80,9 @@ deliberate row here, not a silent add: `vw_Chart_Consolidated`,
 
 Spoken-for by the **planned** Key Inference page above, but not yet read by shipped code:
 `vw_ChartShadbala` · `vw_ChartBhavaBala` · `vw_ChartYogaEvaluations` (CLI + evidence today) ·
-`vw_ChartMoonContext` · `vw_ChartAshtakavarga` (BAV grid + SAV per sign; `db/074`) +
-`tbl_Fact_AshtakavargaPinda` (`db/074`) — live once `KeyInference.razor` and the
-`workstream/cli` Ashtakavarga engine land on `master`.
+`vw_ChartMoonContext`. `vw_ChartAshtakavarga` (BAV grid + SAV per sign; `db/074`) +
+`tbl_Fact_AshtakavargaPinda` (`db/074`) are live in `KeyInference.razor` "3.3 ASTAVARGA" as of
+`master` `b6603ba` (2026-09-16) — see row 5 above.
 
 **Not yet created:** `tbl_Rule_Exaltation` (7 rows — the classical Uchcha Bindu sign+degree
 per graha, needed for step 2.2's closeness-to-exaltation column) — a `workstream/database`
