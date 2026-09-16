@@ -284,7 +284,7 @@ public class ChartGenerationService
                 BhavaBalaCalculator.Calculate(input, strengths));
             _vargottamaRepo.InsertAll(chartResultId, ruleSetId, VargottamaDetector.Calculate(charts));
             _ashtakavargaRepo.DeleteByChartResultId(chartResultId);
-            _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input));
+            _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input), (int)input.AscendantSign + 1);
             _panchangaRepo.DeleteByChartResultId(chartResultId);
             _panchangaRepo.Insert(chartResultId, ruleSetId, panchanga);
         }

@@ -30,7 +30,9 @@
 
    Three tab levels (2026-09-14 restructure, rammyps's directive): an outer "master" MudTabs
    (_masterTab) with one panel per step — "1. D1-TRANSIT", "2. ABOUT", "3. STRENGTH",
-   "4. KARAKAS" (more steps
+   "4. SPL LAGNAS" (renamed from "4. KARAKAS" 2026-09-16 — the embedded KarakaPolarWheel already
+   titles itself "SPECIAL LAGNAS & KARAKAS" and now also lists all 4 special lagnas in a table,
+   not just the 3 marked on the wheel; more steps
    land here later) — each panel opens with its own `ki-stephead` (Step N of 6 + heading) then
    its own inner MudTabs: D1-TRANSIT's is 1.1 D1 - BIRTH CHART/1.2 TRANSIT CHART (_activeTab);
    About's is 2.1 ABOUT HOUSE/2.2 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/
@@ -302,7 +304,7 @@ else
                     }
                     else
                     {
-                        <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" AscendantSign="@lc.AscendantSign" />
+                        <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" />
                     }
                 </MudTabPanel>
             </MudTabs>
@@ -310,11 +312,11 @@ else
             </div>
         </MudTabPanel>
 
-        <MudTabPanel Text="4. KARAKAS">
+        <MudTabPanel Text="4. SPL LAGNAS">
             <div class="ki-panelbody">
             <div class="ki-stephead">
                 <span class="ki-stepnum">Step 4 of 6</span>
-                <h1 class="ki-heading">KARAKAS</h1>
+                <h1 class="ki-heading">SPL LAGNAS</h1>
             </div>
 
             <KarakaPolarWheel Id="@Id" Embedded="true" />
@@ -352,7 +354,7 @@ else
 
     protected override void OnParametersSet()
     {
-        if (Step is "4" or "karakas") _masterTab = 3;
+        if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
         if (Step is "3" or "strength") _masterTab = 2;
         if (Step is "3.3" or "astavarga" or "ashtakavarga")
         {

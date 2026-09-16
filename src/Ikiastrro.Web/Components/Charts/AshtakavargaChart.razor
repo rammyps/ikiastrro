@@ -48,17 +48,22 @@
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<AshtakavargaRow> Rows { get; set; } = Array.Empty<AshtakavargaRow>();
     [Parameter] public IReadOnlyList<AshtakavargaPindaRow> PindaRows { get; set; } = Array.Empty<AshtakavargaPindaRow>();
-    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "Aries";
 
     private static readonly int[] Signs = Enumerable.Range(1, 12).ToArray();
     private static readonly string[] SignNames = { "", "Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis" };
-    private static readonly string[] FullSignNames = { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces" };
     private static readonly string[] RecipientOrder = { "SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN" };
     private IEnumerable<string> Recipients => RecipientOrder.Where(x => Rows.Any(r => r.RecipientCode.Equals(x, StringComparison.OrdinalIgnoreCase)));
     private IReadOnlyList<(int SignNumber, int TotalBindus)> SavRows => Signs.Select(s => (s, Rows.Where(r => r.SignNumber == s).Select(r => (int?)r.SarvaBindus).FirstOrDefault(v => v is not null) ?? Rows.Where(r => r.SignNumber == s).Sum(r => (int)r.BinduCount))).ToList();
     private int GrandTotal => SavRows.Sum(r => r.TotalBindus);
-    private int LagnaSignNumber => Math.Max(1, Array.FindIndex(FullSignNames, s => s.Equals(AscendantSign, StringComparison.OrdinalIgnoreCase)));
-    private int HouseNumber(int signNumber) => ((signNumber - LagnaSignNumber + 12) % 12) + 1;
+
+    /// <summary>Persisted whole-sign house number (db/106) keyed by absolute sign — one lookup
+    /// per sign, built once from <see cref="Rows"/> instead of re-deriving it from an
+    /// AscendantSign display string on every render (see db/106's header for the bug that fixed).</summary>
+    private IReadOnlyDictionary<int, int> HouseBySign =>
+        Rows.Where(r => r.HouseNumber.HasValue)
+            .GroupBy(r => (int)r.SignNumber)
+            .ToDictionary(g => g.Key, g => (int)g.First().HouseNumber!.Value);
+    private int HouseNumber(int signNumber) => HouseBySign.TryGetValue(signNumber, out var h) ? h : signNumber;
     private static string ShortSign(int signNumber) => SignNames[signNumber];
     private static string DisplayRecipient(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(code.ToLowerInvariant());
     private static string Value(short? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "—";

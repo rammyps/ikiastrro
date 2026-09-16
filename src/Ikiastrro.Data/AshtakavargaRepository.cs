@@ -3,7 +3,7 @@ using Ikiastrro.Core.Engines.Ashtakavarga;
 
 namespace Ikiastrro.Data;
 
-public sealed record AshtakavargaRow(string RecipientCode, byte SignNumber, byte BinduCount, byte? SarvaBindus);
+public sealed record AshtakavargaRow(string RecipientCode, byte SignNumber, byte? HouseNumber, byte BinduCount, byte? SarvaBindus);
 public sealed record AshtakavargaPindaRow(string RecipientCode, short? RasiPinda, short? GrahaPinda, short? SodhyaPinda);
 
 /// <summary>
@@ -21,7 +21,7 @@ public sealed class AshtakavargaRepository
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         return connection.Query<AshtakavargaRow>("""
-            SELECT RecipientCode, SignNumber, BinduCount, SarvaBindus
+            SELECT RecipientCode, SignNumber, HouseNumber, BinduCount, SarvaBindus
             FROM dbo.vw_ChartAshtakavarga
             WHERE BirthDetailId = @birthDetailId AND ChartType = 'D1'
             ORDER BY RecipientCode, SignNumber
@@ -42,15 +42,23 @@ public sealed class AshtakavargaRepository
             """, new { birthDetailId }).ToList();
     }
 
-    public void Insert(int chartResultId, int ruleSetId, AshtakavargaResult result)
+    /// <summary>
+    /// Whole-sign house number for one absolute sign, given the chart's Lagna sign — same
+    /// counting rule as <c>AshtakavargaChart.razor</c>'s (now-removed) client-side derivation,
+    /// moved server-side onto integer sign numbers (see db/106) instead of a display-string match.
+    /// </summary>
+    private static int HouseNumber(int signNumber, int ascendantSignNumber) =>
+        ((signNumber - ascendantSignNumber + 12) % 12) + 1;
+
+    public void Insert(int chartResultId, int ruleSetId, AshtakavargaResult result, int ascendantSignNumber)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
 
         connection.Execute(
             """
             INSERT dbo.tbl_Fact_BhinnaAshtakavarga
-                (ChartResultId, RuleSetId, MethodCode, RecipientCode, SignNumber, BinduCount, SourceRefCode)
-            VALUES (@ChartResultId, @RuleSetId, @MethodCode, @RecipientCode, @SignNumber, @BinduCount, @SourceRefCode)
+                (ChartResultId, RuleSetId, MethodCode, RecipientCode, SignNumber, HouseNumber, BinduCount, SourceRefCode)
+            VALUES (@ChartResultId, @RuleSetId, @MethodCode, @RecipientCode, @SignNumber, @HouseNumber, @BinduCount, @SourceRefCode)
             """,
             result.Bhinna.SelectMany(b => Enumerable.Range(0, 12).Select(s => new
             {
@@ -59,6 +67,7 @@ public sealed class AshtakavargaRepository
                 MethodCode = AshtakavargaResult.MethodCode,
                 RecipientCode = b.Recipient,
                 SignNumber = s + 1,
+                HouseNumber = HouseNumber(s + 1, ascendantSignNumber),
                 BinduCount = b.Bindus[s],
                 SourceRefCode = AshtakavargaResult.SourceRefCode,
             })));
@@ -87,8 +96,8 @@ public sealed class AshtakavargaRepository
         connection.Execute(
             """
             INSERT dbo.tbl_Fact_SarvaAshtakavarga
-                (ChartResultId, RuleSetId, MethodCode, SignNumber, TotalBindus, IncludesLagna)
-            VALUES (@ChartResultId, @RuleSetId, @MethodCode, @SignNumber, @TotalBindus, 0)
+                (ChartResultId, RuleSetId, MethodCode, SignNumber, HouseNumber, TotalBindus, IncludesLagna)
+            VALUES (@ChartResultId, @RuleSetId, @MethodCode, @SignNumber, @HouseNumber, @TotalBindus, 0)
             """,
             Enumerable.Range(0, 12).Select(s => new
             {
@@ -96,6 +105,7 @@ public sealed class AshtakavargaRepository
                 RuleSetId = ruleSetId,
                 MethodCode = AshtakavargaResult.MethodCode,
                 SignNumber = s + 1,
+                HouseNumber = HouseNumber(s + 1, ascendantSignNumber),
                 TotalBindus = result.Sarva.Bindus[s],
             }));
 

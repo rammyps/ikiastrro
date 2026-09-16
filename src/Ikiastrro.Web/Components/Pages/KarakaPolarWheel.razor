@@ -34,6 +34,23 @@ else
  @if (SelectedChart is { } selected)
  {
   <PolarGridLagnaSelect Sectors="BuildSectors(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" View="@_view" />
+
+  var lagnaRows = BuildSpecialLagnaRows(selected, _rules.LagnaReferences);
+  @if (lagnaRows.Count > 0)
+  {
+   <h3 class="karaka-sectionhead">Special Lagnas</h3>
+   <div class="karaka-scroll">
+    <table class="karaka-table">
+     <thead><tr><th>Special Lagna</th><th>Sign</th><th>House</th><th>Degree</th><th>Signifies</th></tr></thead>
+     <tbody>
+      @foreach (var r in lagnaRows)
+      {
+       <tr><td>@r.Name <span class="karaka-code">(@r.Code)</span></td><td>@r.Sign</td><td class="num">@r.House</td><td class="num">@r.Degree</td><td>@r.Signifies</td></tr>
+      }
+     </tbody>
+    </table>
+   </div>
+  }
  }
 }
 @code {
@@ -71,4 +88,20 @@ else
    .Where(d=>d.ReferenceCode is "LAGNA" or "ARUDHA_LAGNA" or "HORA_LAGNA" or "SREE_LAGNA" or "GHATI_LAGNA")
    .Select(d=>new PolarGridLagnaSelect.ReferencePoint(d.ReferenceCode,d.ReferenceCode=="LAGNA"?"Sign Lagna":d.ReferenceName,d.ReferenceCode=="LAGNA"?c.AscendantSign:points[d.Abbreviation!])).ToList();
  }
+
+ /// <summary>All 4 special lagnas (BL/HL/GL/SL — tbl_Dim_SpecialLagnas) with their computed
+ /// position (tbl_Chart_KeyDetails, PointKind='SpecialLagna') and classical signification
+ /// (tbl_Dim_HouseReference.Perspective, PVR sec 7.3). Unlike <see cref="BuildReferencePoints"/>
+ /// (which only marks Hora/Sree/Ghati on the wheel diagram — Bhaava is PVR "for completeness"
+ /// only), this table surfaces all four, previously computed but never shown anywhere.</summary>
+ private static IReadOnlyList<SpecialLagnaRow> BuildSpecialLagnaRows(LoadedChart c,IReadOnlyList<LagnaReferenceRow> definitions)
+ {
+  var points=c.SpecialPoints.Where(p=>p.PointKind=="SpecialLagna").ToDictionary(p=>p.Planet,StringComparer.OrdinalIgnoreCase);
+  return definitions.Where(d=>d.Abbreviation is not null&&points.ContainsKey(d.Abbreviation))
+   .Where(d=>d.AppliesInVarga=="Any"||d.AppliesInVarga=="Rasi"&&c.ChartType=="D1"||d.AppliesInVarga=="Navamsa"&&c.ChartType=="D9")
+   .OrderBy(d=>d.SortOrder)
+   .Select(d=>{var p=points[d.Abbreviation!];return new SpecialLagnaRow(d.Abbreviation!,d.ReferenceName,p.Sign,p.HouseNumberFromLagna,p.DegreesInSignDisplay??"—",d.Perspective);})
+   .ToList();
+ }
+ private sealed record SpecialLagnaRow(string Code,string Name,string Sign,int House,string Degree,string Signifies);
 }
