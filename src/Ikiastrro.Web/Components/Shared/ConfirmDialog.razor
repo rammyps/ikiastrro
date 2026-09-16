@@ -10,7 +10,7 @@
             <div class="dialog-actions">
                 <button type="button" class="btn-cancel" @onclick="Cancel" disabled="@IsBusy">Cancel</button>
                 <button type="button" class="btn-confirm" @onclick="Confirm" disabled="@IsBusy">
-                    @(IsBusy ? "Deleting…" : ConfirmLabel)
+                    @(IsBusy ? BusyLabel : ConfirmLabel)
                 </button>
             </div>
         </div>
@@ -21,6 +21,7 @@
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public string Message { get; set; } = "Are you sure?";
     [Parameter] public string ConfirmLabel { get; set; } = "Delete";
+    [Parameter] public string BusyLabel { get; set; } = "Deleting…";
     [Parameter] public bool IsBusy { get; set; }
     [Parameter] public EventCallback OnConfirm { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }

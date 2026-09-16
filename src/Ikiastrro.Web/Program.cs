@@ -55,6 +55,7 @@ builder.Services.AddScoped<ChartGenerationService>();
 builder.Services.AddScoped<BirthDetailDeletionService>();
 builder.Services.AddScoped<BirthDetailsCsvService>();
 builder.Services.AddScoped<JkdInterchangeService>();
+builder.Services.AddScoped<DatabaseMaintenanceService>();
 builder.Services.AddScoped<IPlaceResolver, NominatimPlaceResolver>();
 
 // v2 shell — the person currently opened; read by MainLayout for the header tabs + band.

@@ -2106,6 +2106,31 @@ if (args.Length > 0 && args[0] == "backfill-charts")
     return;
 }
 
+// --- One-off mode: `dotnet run -- rebuild-all` ---
+// Force-regenerates every registered chart type + Vimshottari Dasha for every saved person,
+// even ones already built (unlike backfill-charts, which only fills gaps). Backs the "RECALCULATE"
+// button on SavedCharts.razor via Rebuild-AllGeneratedData.ps1 -- see docs/database/rebuild-generated-data-plan.md.
+if (args.Length > 0 && args[0] == "rebuild-all")
+{
+    var peopleToRebuild = birthDetailsRepo.GetAll().ToList();
+    var rebuildFailures = new List<string>();
+    for (var i = 0; i < peopleToRebuild.Count; i++)
+    {
+        var person = peopleToRebuild[i];
+        Console.WriteLine($"[{i + 1}/{peopleToRebuild.Count}] {person.Name}...");
+        try { chartGenerationService.GenerateAll(person); }
+        catch (Exception ex)
+        {
+            rebuildFailures.Add(person.Name);
+            Console.WriteLine($"  FAILED: {ex.Message}");
+        }
+    }
+    Console.WriteLine(rebuildFailures.Count == 0
+        ? $"Rebuilt {peopleToRebuild.Count}/{peopleToRebuild.Count} people."
+        : $"Rebuilt {peopleToRebuild.Count - rebuildFailures.Count}/{peopleToRebuild.Count}; failed: {string.Join(", ", rebuildFailures)}");
+    Environment.Exit(rebuildFailures.Count == 0 ? 0 : 1);
+}
+
 // --- One-off mode: `dotnet run -- list-rule-sets` ---
 // Lists every tbl_Rule_Sets row -- which named classical schemes exist, which is active.
 if (args.Length > 0 && args[0] == "list-rule-sets")
