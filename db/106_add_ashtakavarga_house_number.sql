@@ -45,8 +45,11 @@ GO
 -- --- Backfill every already-generated D1 chart -----------------------------
 -- Whole-sign house counting: HouseNumber = ((SignNumber - LagnaSignId + 12) % 12) + 1.
 
+-- SignNumber/SignId are both TINYINT (unsigned in SQL Server) — the subtraction must be
+-- widened to INT before it goes negative, or SQL Server overflows narrowing the
+-- intermediate result back to TINYINT instead of the final CAST below.
 UPDATE f
-    SET f.HouseNumber = CAST((((f.SignNumber - lagna.SignId + 12) % 12) + 1) AS TINYINT)
+    SET f.HouseNumber = CAST(((CAST(f.SignNumber AS INT) - CAST(lagna.SignId AS INT) + 12) % 12) + 1 AS TINYINT)
     FROM dbo.tbl_Fact_BhinnaAshtakavarga f
     JOIN dbo.tbl_Chart_KeyDetails lagna
       ON lagna.ChartResultId = f.ChartResultId AND lagna.Planet = 'Ascendant'
@@ -54,7 +57,7 @@ UPDATE f
 GO
 
 UPDATE f
-    SET f.HouseNumber = CAST((((f.SignNumber - lagna.SignId + 12) % 12) + 1) AS TINYINT)
+    SET f.HouseNumber = CAST(((CAST(f.SignNumber AS INT) - CAST(lagna.SignId AS INT) + 12) % 12) + 1 AS TINYINT)
     FROM dbo.tbl_Fact_SarvaAshtakavarga f
     JOIN dbo.tbl_Chart_KeyDetails lagna
       ON lagna.ChartResultId = f.ChartResultId AND lagna.Planet = 'Ascendant'
@@ -79,7 +82,7 @@ GO
 
 INSERT dbo.SchemaMigrations (ScriptName, Note)
 SELECT '106_add_ashtakavarga_house_number.sql',
-       'HouseNumber TINYINT on tbl_Fact_BhinnaAshtakavarga + tbl_Fact_SarvaAshtakavarga, backfilled from tbl_Chart_KeyDetails.SignId (Ascendant row); vw_ChartAshtakavarga now surfaces HouseNumber instead of the UI deriving it from AscendantSign text.'
+       'HouseNumber TINYINT on Bhinna/SarvaAshtakavarga, backfilled from Chart_KeyDetails.SignId; vw_ChartAshtakavarga surfaces it instead of UI deriving from AscendantSign text.'
 WHERE NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE ScriptName = '106_add_ashtakavarga_house_number.sql');
 GO
 
