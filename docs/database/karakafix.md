@@ -1,7 +1,7 @@
 ---
 last_updated: 2026-09-16
 workstream: database
-status: proposed
+status: implemented
 ---
 
 # Karaka data-model connection plan
@@ -149,3 +149,30 @@ each input to whichever rule set is active can mix versions.
 
 No schema or data change is implemented by this document; it is the design input for a future
 database-workstream migration and matching CLI/UI consumer changes.
+
+## Implementation record (2026-09-16, migration 103)
+
+`db/103_create_karaka_role_matter_model.sql` built the target model largely as designed above,
+with three scope decisions made at implementation time:
+
+- **Built as-is**: `tbl_Dim_KarakaRole` (17 rows: 9 Naisargika + 8 Chara, the latter driven from
+  `tbl_Rule_Karaka WHERE KarakaScheme='Chara'` rather than re-hardcoded), `tbl_Dim_LifeMatter`
+  (128 rows: 32 from the Karakatwa grid, kept as its own vocabulary, + 96 from
+  `tbl_Rule_LifeMatterReference`, kept 1:1 rather than fuzzy-merged against the grid), and
+  `tbl_Rule_KarakaMatter` (149 rows, 12 flagged `IsPrimary`). Two compatibility views
+  (`vw_Rule_PrimaryNaisargikaKaraka`, `vw_Rule_NaisargikaKarakatwa`) replaced
+  `tbl_Rule_Naisargika_Karakas`/`Karakatwas`, which were then dropped —
+  `NaisargikaKarakaRepository` now reads the views.
+- **Not built**: `STHIRA` roles (still no verified source — type stays reserved, as this doc
+  said), and `tvf_ChartKarakaCondition` (the friendship/dignity connection to an actual chart).
+  Both are open follow-ups, not represented anywhere else yet.
+- **Kept, not narrowed**: `tbl_Rule_LifeMatterReference` itself survives with all its legacy
+  columns (`KarakaText`, `NaisargikaGrahaId`, `CharaKarakaCode`, `PrimaryChartsText`,
+  `HouseFromLagnaText`, `HouseFromKarakaText`) intact — it gained a `LifeMatterId` FK into the
+  new model but its divisional-chart/house-counting/citation content has no other home yet, so
+  narrowing it stays migration-sequence step 9, still open.
+
+The 21 originally text-only `KarakaText` cases split into 20 parsed two-planet compounds (e.g.
+"Mars and Rahu" → two `tbl_Rule_KarakaMatter` rows, one per graha) + 1 genuine non-karaka case
+(`KarakaText='Lagna lord'`, on "Inherent strengths and weaknesses") that gets no bridge row at
+all, matching this doc's own allowance for "an explicitly modeled non-karaka reference."

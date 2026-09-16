@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-09-16
 workstream: database
 togaf: C — Data Architecture
 ---
@@ -72,7 +72,9 @@ every chart type.
   (Tithi/Karana/Nitya Yoga/Vedic Weekday/Hora Lord names; migration 081), `vw_ChartKarakamsa`
   (the D9 sign of AK — a read over existing `tbl_Chart_KeyDetails`, no new storage; migration
   082), `vw_ChartYogaEvaluations`, `vw_YogaChartApplicability`, `vw_YogaContextRequirements`,
-  `vw_Dignity_Legend`.
+  `vw_Dignity_Legend`, `vw_Rule_PrimaryNaisargikaKaraka` / `vw_Rule_NaisargikaKarakatwa`
+  (compatibility views over `tbl_Rule_KarakaMatter`, replacing the dropped
+  `tbl_Rule_Naisargika_Karakas` / `Karakatwas`; migration 103).
 - Functions: `fn_GetNakshatraRulingPlanetId` (scalar); `tvf_Chart_LifeWeeks(@BirthDetailId)`,
   `tvf_Chart_SadeSatiPeriods(@BirthDetailId)`, `tvf_PlanetSignAtDate(@PlanetId, @AsOfUtc)`
   (inline TVFs).

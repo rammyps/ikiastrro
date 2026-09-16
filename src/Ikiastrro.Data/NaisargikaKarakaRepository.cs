@@ -30,14 +30,14 @@ public sealed class NaisargikaKarakaRepository(SqlConnectionFactory factory)
         using var connection = factory.CreateOpenConnection();
         var primary = connection.Query<NaisargikaKarakaRow>("""
             SELECT CAST(nk.HouseNumber AS INT) AS HouseNumber, p.PlanetName AS Graha, nk.MattersSignified
-            FROM dbo.tbl_Rule_Naisargika_Karakas nk
+            FROM dbo.vw_Rule_PrimaryNaisargikaKaraka nk
             JOIN dbo.tbl_Rule_Sets rs ON rs.Id = nk.RuleSetId AND rs.IsActive = 1
             JOIN dbo.tbl_Planets p ON p.Id = nk.GrahaId
             WHERE nk.IsActive = 1 ORDER BY nk.HouseNumber
             """).ToList();
         var details = connection.Query<NaisargikaKarakatwaRow>("""
             SELECT CAST(nk.HouseNumber AS INT) AS HouseNumber, p.PlanetName AS Graha, nk.Matter, CAST(nk.DisplayOrder AS INT) AS DisplayOrder
-            FROM dbo.tbl_Rule_Naisargika_Karakatwas nk
+            FROM dbo.vw_Rule_NaisargikaKarakatwa nk
             JOIN dbo.tbl_Rule_Sets rs ON rs.Id = nk.RuleSetId AND rs.IsActive = 1
             JOIN dbo.tbl_Planets p ON p.Id = nk.GrahaId
             WHERE nk.IsActive = 1 ORDER BY nk.HouseNumber, nk.DisplayOrder, p.Id
