@@ -32,6 +32,7 @@ DELETE FROM dbo.tbl_Fact_AyanamsaComparisonRuns;
 DELETE FROM dbo.tbl_Fact_YogaValidationResults;
 DELETE FROM dbo.tbl_Fact_YogaValidationRuns;   -- also FKs tbl_BirthDetails directly
 
+DELETE FROM dbo.tbl_Fact_Amsabala;
 DELETE FROM dbo.tbl_Fact_AshtakavargaPinda;
 DELETE FROM dbo.tbl_Fact_BhavaStrength;
 DELETE FROM dbo.tbl_Fact_BhavaStrengthComponent;
@@ -89,6 +90,7 @@ DBCC CHECKIDENT ('dbo.tbl_Fact_DashaBenchmarkComparisons', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_AyanamsaComparisonRuns', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_YogaValidationResults', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_YogaValidationRuns', RESEED, 0);
+DBCC CHECKIDENT ('dbo.tbl_Fact_Amsabala', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_AshtakavargaPinda', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_BhavaStrength', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_BhavaStrengthComponent', RESEED, 0);

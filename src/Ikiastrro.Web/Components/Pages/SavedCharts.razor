@@ -8,6 +8,7 @@
 @inject BirthDetailsCsvService CsvService
 @inject JkdInterchangeService JkdService
 @inject IPlaceResolver PlaceResolver
+@inject DatabaseMaintenanceService DbMaintenanceService
 
 <PageTitle>Saved Charts — ikiastrro</PageTitle>
 
@@ -43,6 +44,8 @@
                         </div>
                     }
                 </div>
+                <button type="button" class="sp-danger-btn" @onclick="@(() => _pendingRecalculate = true)" disabled="@AnyBusy">RECALCULATE</button>
+                <button type="button" class="sp-danger-btn sp-danger-btn-strong" @onclick="@(() => _pendingDbReset = true)" disabled="@AnyBusy">DB RESET</button>
             </div>
         </div>
 
@@ -78,7 +81,7 @@
             <p class="sp-count">@_rows.Count saved chart@(_rows.Count == 1 ? "" : "s")</p>
             @if (MissingCount > 0)
             {
-                <button type="button" class="sp-build-btn" @onclick="BuildMissing" disabled="@_isBuilding">
+                <button type="button" class="sp-build-btn" @onclick="BuildMissing" disabled="@AnyBusy">
                     @(_isBuilding ? "Building…" : $"Build missing ({MissingCount})")
                 </button>
             }
@@ -96,6 +99,16 @@
         <ConfirmDialog IsOpen="@(_pendingDelete is not null)"
                        Message="@($"Delete {_pendingDelete?.Person.Name}'s chart and all computed data? This can't be undone.")"
                        IsBusy="_isDeleting" OnConfirm="HandleDelete" OnCancel="() => _pendingDelete = null" />
+
+        <ConfirmDialog IsOpen="_pendingDbReset"
+                       Message="Permanently delete ALL saved people and every generated chart on this server. This can't be undone."
+                       ConfirmLabel="Reset Database" BusyLabel="Resetting…"
+                       IsBusy="_isResettingDb" OnConfirm="HandleDbReset" OnCancel="() => _pendingDbReset = false" />
+
+        <ConfirmDialog IsOpen="_pendingRecalculate"
+                       Message="Force-recalculate every saved person's charts and Dasha, even ones already built. Existing results are overwritten."
+                       ConfirmLabel="Recalculate All" BusyLabel="Recalculating…"
+                       IsBusy="_isRecalculating" OnConfirm="HandleRecalculate" OnCancel="() => _pendingRecalculate = false" />
 
 @if (_edit is not null)
 {
@@ -178,6 +191,13 @@
     private int _buildDone;
     private int _buildTotal;
     private int MissingCount => _rows.Count(r => !r.IsBuilt);
+
+    // --- DB RESET / RECALCULATE state ---
+    private bool _pendingDbReset;
+    private bool _isResettingDb;
+    private bool _pendingRecalculate;
+    private bool _isRecalculating;
+    private bool AnyBusy => _isBuilding || _isDeleting || _isSaving || _isResettingDb || _isRecalculating;
 
     // --- edit state ---
     private EditForm? _edit;
@@ -318,6 +338,51 @@
         finally
         {
             _isDeleting = false;
+        }
+    }
+
+    /// <summary>Shells to db/checks/Reset-AllTransactionalData.ps1 (DatabaseMaintenanceService) —
+    /// full wipe, including every saved person.</summary>
+    private async Task HandleDbReset()
+    {
+        _isResettingDb = true;
+        _error = null;
+        try
+        {
+            await DbMaintenanceService.ResetAllDataAsync();
+            _pendingDbReset = false;
+            Load();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Database reset failed: {ex.Message}";
+        }
+        finally
+        {
+            _isResettingDb = false;
+        }
+    }
+
+    /// <summary>Shells to db/checks/Rebuild-AllGeneratedData.ps1 (DatabaseMaintenanceService) —
+    /// force-regenerates every saved person's charts + Dasha via `dotnet run -- rebuild-all`,
+    /// even people already marked Built.</summary>
+    private async Task HandleRecalculate()
+    {
+        _isRecalculating = true;
+        _error = null;
+        try
+        {
+            await DbMaintenanceService.RecalculateAllChartsAsync();
+            _pendingRecalculate = false;
+            Load();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Recalculate failed: {ex.Message}";
+        }
+        finally
+        {
+            _isRecalculating = false;
         }
     }
 
