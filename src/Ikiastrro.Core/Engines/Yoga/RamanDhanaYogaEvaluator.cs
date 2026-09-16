@@ -79,10 +79,13 @@ public static class RamanDhanaYogaEvaluator
     private static bool Aspects(PlanetName p,string a,string b){var d=Distance(a,b);return d==7||p==PlanetName.Mars&&d is 4 or 8||p==PlanetName.Jupiter&&d is 5 or 9||p==PlanetName.Saturn&&d is 3 or 10;}
     private static int Distance(string a,string b)=>(((int)Enum.Parse<ZodiacName>(b)-(int)Enum.Parse<ZodiacName>(a)+12)%12)+1;
     private static bool IsNaturalBenefic(PlanetName p)=>p is PlanetName.Moon or PlanetName.Mercury or PlanetName.Jupiter or PlanetName.Venus;
+    // Was a fourth independent hardcoded exaltation-degree dictionary (found alongside the three
+    // named in the 2026-09-11 rule-mapping audit); now reads AstroMath.DeepExaltationPoints.
     private static bool DeeplyExalted(ChartAnalysisInput c,PlanetName p)
     {
-        var degrees=new Dictionary<PlanetName,double>{{PlanetName.Sun,10},{PlanetName.Moon,33},{PlanetName.Mars,298},{PlanetName.Mercury,165},{PlanetName.Jupiter,95},{PlanetName.Venus,327},{PlanetName.Saturn,200}};
-        var x=Find(c,p);return x?.NirayanaLongitudeDegrees is double lon&&Math.Abs(lon-degrees[p])<.000001;
+        var (sign,degree)=AstroMath.DeepExaltationPoints[p];
+        var exact=(int)sign*30+degree;
+        var x=Find(c,p);return x?.NirayanaLongitudeDegrees is double lon&&Math.Abs(lon-exact)<.000001;
     }
     private static PlanetName Lord(ChartAnalysisInput c,int h)=>Enum.Parse<PlanetName>(HouseEngine.GetSignLord(HouseEngine.GetHouseSign(c.AscendantSign,h)));
     private static PlanetPosition? Find(ChartAnalysisInput c,PlanetName p)=>c.Planets.SingleOrDefault(x=>x.Planet==p.ToString());

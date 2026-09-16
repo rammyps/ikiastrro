@@ -165,7 +165,10 @@ public static class AstroMath
     /// Nakshatra-lord cycle (Vimshottari Dasha order), Aswini's lord first — nakshatraIndex % 9
     /// indexes directly into this. Single source of truth for VimshottariDashaCalculator's dasha
     /// sequencing AND ChartAnalyzer's per-planet NakshatraLordPlanet (2026-08-28) — both are the
-    /// same classical 9-lord cycle, just consumed differently.
+    /// same classical 9-lord cycle, just consumed differently. Mirrors
+    /// <c>tbl_Rule_VimshottariPeriod</c> (migration 085, SRC_PVR_INTEGRATED sec.16.2, Table 38,
+    /// verified against the raw book extract) — cited there but not read from there;
+    /// CLI <c>verify-dasha</c> cross-checks this against that table.
     /// </summary>
     public static readonly IReadOnlyList<PlanetName> NakshatraLordOrder = new[]
     {
@@ -183,7 +186,9 @@ public static class AstroMath
     /// <summary>
     /// Vimshottari dasha years per planet — the classical 120-year total split. Single source of
     /// truth for VimshottariDashaCalculator AND the KP nakshatra sub-lord division
-    /// (GetNakshatraSubLord), the same way NakshatraLordOrder is shared. Ordered map, not positional.
+    /// (GetNakshatraSubLord), the same way NakshatraLordOrder is shared. Ordered map, not
+    /// positional. Mirrors <c>tbl_Rule_VimshottariPeriod</c> (migration 085) — see
+    /// <see cref="NakshatraLordOrder"/>'s doc comment.
     /// </summary>
     public static readonly IReadOnlyDictionary<PlanetName, int> VimshottariYearsByLord = new Dictionary<PlanetName, int>
     {
@@ -191,6 +196,28 @@ public static class AstroMath
         [PlanetName.Mars] = 7, [PlanetName.Rahu] = 18, [PlanetName.Jupiter] = 16, [PlanetName.Saturn] = 19,
         [PlanetName.Mercury] = 17
     };
+
+    /// <summary>
+    /// Classical deep-exaltation point (sign + degree-in-sign) for each of the 7 tara grahas —
+    /// PVR Table 6 (SRC_PVR_INTEGRATED). Single source of truth for DignityEngine's own-sign/
+    /// exaltation classification, ShadbalaCalculator's Uchcha Bala (distance from the
+    /// debilitation point), and RamanYogaBatchFiveEvaluator's/RamanDhanaYogaEvaluator's yoga
+    /// predicates — previously four independent hardcoded copies (found + consolidated by the
+    /// 2026-09-11 rule-mapping audit).
+    /// Mirrors <c>tbl_Rule_GrahaDignity</c> WHERE <c>DignityTypeCode='EXALTED'</c> (seeded under
+    /// RuleSetId 2/3 only — RuleSetId 1, the global active set, carries no GrahaDignity rows at
+    /// all; a pre-existing ruleset-wiring gap, out of scope here). CLI <c>verify-dignity</c>
+    /// cross-checks this directly against <c>tbl_SignAttributes</c>, itself already cross-checked
+    /// against <c>tbl_Rule_GrahaDignity</c>'s RuleSetId 2 rows.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<PlanetName, (ZodiacName Sign, double Degree)> DeepExaltationPoints =
+        new Dictionary<PlanetName, (ZodiacName, double)>
+        {
+            [PlanetName.Sun] = (ZodiacName.Aries, 10), [PlanetName.Moon] = (ZodiacName.Taurus, 3),
+            [PlanetName.Mars] = (ZodiacName.Capricornus, 28), [PlanetName.Mercury] = (ZodiacName.Virgo, 15),
+            [PlanetName.Jupiter] = (ZodiacName.Cancer, 5), [PlanetName.Venus] = (ZodiacName.Pisces, 27),
+            [PlanetName.Saturn] = (ZodiacName.Libra, 20)
+        };
 
     /// <summary>
     /// The 27 nakshatra names in sidereal order, spelled to match tbl_Nakshatras.NakshatraName

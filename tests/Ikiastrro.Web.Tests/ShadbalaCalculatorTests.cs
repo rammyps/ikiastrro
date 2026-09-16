@@ -1,4 +1,5 @@
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.Strength;
 using Ikiastrro.Core.Models;
 using Ikiastrro.Core.Pipeline;
@@ -21,13 +22,15 @@ public class ShadbalaCalculatorTests
         var positions = Positions();
         var sun = new SunTimes(DateTimeOffset.UtcNow.AddHours(-6), DateTimeOffset.UtcNow.AddHours(6), DateTimeOffset.UtcNow.AddDays(1), false);
 
-        var results = ShadbalaCalculator.Calculate(new[] { chart }, positions, sun);
+        var results = ShadbalaCalculator.Calculate(new[] { chart }, positions, sun, Panchanga(sun));
 
         Assert.Equal(7, results.Count);
         Assert.All(results, result =>
         {
             Assert.True(result.ShadbalaVirupas > 0);
             Assert.True(result.ShadbalaRupas > 0);
+            // Yuddha Bala (a 7th BalaCode) is present only when two of the five tara grahas are
+            // within 1 degree -- not the case for this fixture's widely-spaced longitudes.
             Assert.Equal(6, result.Components.Select(c => c.BalaCode).Distinct().Count());
         });
         Assert.Equal(60, results.Single(r => r.Planet == "Sun").Components.Single(c => c.SubComponentCode == "UCHCHA_BALA").ValueVirupas, 3);
@@ -40,8 +43,8 @@ public class ShadbalaCalculatorTests
         {
             Planet("Sun", "Aries", 10, 1), Planet("Rahu", "Cancer", 2, 4), Planet("Ketu", "Capricornus", 2, 10)
         });
-        var results = ShadbalaCalculator.Calculate(new[] { chart }, Positions(),
-            new SunTimes(DateTimeOffset.UtcNow.AddHours(-6), DateTimeOffset.UtcNow.AddHours(6), DateTimeOffset.UtcNow.AddDays(1), false));
+        var sun = new SunTimes(DateTimeOffset.UtcNow.AddHours(-6), DateTimeOffset.UtcNow.AddHours(6), DateTimeOffset.UtcNow.AddDays(1), false);
+        var results = ShadbalaCalculator.Calculate(new[] { chart }, Positions(), sun, Panchanga(sun));
 
         Assert.DoesNotContain(results, r => r.Planet is "Rahu" or "Ketu");
     }
@@ -90,8 +93,8 @@ public class ShadbalaCalculatorTests
             Planet("Jupiter", "Cancer", 5, 4), Planet("Venus", "Pisces", 27, 12),
             Planet("Saturn", "Libra", 20, 7)
         });
-        var strengths = ShadbalaCalculator.Calculate(new[] { chart }, Positions(),
-            new SunTimes(DateTimeOffset.UtcNow.AddHours(-6), DateTimeOffset.UtcNow.AddHours(6), DateTimeOffset.UtcNow.AddDays(1), false));
+        var sun = new SunTimes(DateTimeOffset.UtcNow.AddHours(-6), DateTimeOffset.UtcNow.AddHours(6), DateTimeOffset.UtcNow.AddDays(1), false);
+        var strengths = ShadbalaCalculator.Calculate(new[] { chart }, Positions(), sun, Panchanga(sun));
 
         var results = BhavaBalaCalculator.Calculate(chart, strengths);
 
@@ -136,4 +139,15 @@ public class ShadbalaCalculatorTests
         longs[PlanetName.Moon] = 40;
         return new SiderealPositions(0, longs, lats, speeds, 24, 12);
     }
+
+    /// <summary>A minimal, internally-consistent PanchangaResult for these Shadbala fixtures --
+    /// weekday Tuesday (Mars), Hora Lord Venus. The Tithi/Karana/NityaYoga fields are unused by
+    /// ShadbalaCalculator and are filled with placeholder-but-valid values.</summary>
+    private static PanchangaResult Panchanga(SunTimes sun) => new(
+        sun.Sunrise, sun.Sunset, sun.NextSunrise, sun.IsNightBirth,
+        JanmaGhatis: 30, SunMoonDeltaDegrees: 30,
+        TithiId: 3, TithiPercentRemaining: 50,
+        KaranaId: 1, KaranaPercentRemaining: 50,
+        SunMoonSumDegrees: 50, NityaYogaId: 1, NityaYogaPercentRemaining: 50,
+        VedicWeekdayId: 3, HoraLordPlanetId: AstroIds.PlanetId(PlanetName.Venus));
 }

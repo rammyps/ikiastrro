@@ -15,7 +15,7 @@ work. One repository per table/view in `src/Ikiastrro.Data/`.
 - **Baseline** `db/ikiastrro.sql` — whole schema + reference/master seed + the
   `tbl_Dim_LifeCalendar` day dimension.
 - **Forward changes** are numbered scripts `db/NN_<slug>.sql`, applied in order, each
-  appending its `ScriptName` to `dbo.SchemaMigrations`. Active range `22`–`076`.
+  appending its `ScriptName` to `dbo.SchemaMigrations`. Active range `22`–`078`.
 - **Never edit an applied migration.** A change is a new script. A rule change is a new
   `RuleSetId`, not an `UPDATE`.
 - `db/_archive/` holds the pre-consolidation `001..034` chain (frozen, historical).
@@ -33,7 +33,7 @@ work. One repository per table/view in `src/Ikiastrro.Data/`.
 | Reference / master | `tbl_Planets` (9), `tbl_SignAttributes` (12), `tbl_Nakshatras` (27), `tbl_NakshatraPadas` (108), `tbl_NakshatraSubLords` (243, KP L1–L2), `tbl_PlanetSignTransitEvents` (Sa/Ju/Ra sign-crossing log 1930–2060), `tbl_TransitPositionReference` (currently stores current `MotionDirection` only — **UI needs two new columns: `InSignMotion`, `NextChangeMotion`**; see [`../ui/components/spec_Natal_Transit_Comp_Wheel.md`](../ui/components/spec_Natal_Transit_Comp_Wheel.md)), `tbl_Dim_Tithi` (30) / `tbl_Dim_Karana` (11) / `tbl_Dim_NityaYoga` (27) / `tbl_Dim_VedicWeekday` (7) / `tbl_Dim_HoraSequence` (7) (migration 081) | seed / CLI backfill |
 | Rules engine (versioned; every row carries `RuleSetId`) | see [`rules-engine.md`](rules-engine.md) | seed |
 | Dimensions | `tbl_Dim_LifeCalendar`, `tbl_Dim_PlanetaryState`, `tbl_Dim_ChartType`, `tbl_Dim_Source`, `tbl_Dim_LifeArea` / `House` / `HouseCategory` / `HouseReference` / `SubPlanets` / `SpecialLagnas` / `DivisionalSubject` / `InterpretationDimension` / `GrahaAttribute`, `tbl_Dim_AyanamsaBenchmark*`, `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden Ṣaḍbala totals), `tbl_Dim_DashaSystems` / `DashaBenchmarkPeriods` | seed / CTE |
-| Facts (per chart, star-schema) | `tbl_Fact_PlanetaryState`, `tbl_Fact_PlanetaryStrength` / `…Component`, `tbl_Fact_BhavaStrength` / `…Component`, `tbl_Fact_Vargottama`, `tbl_Fact_YogaInputEvaluations`, `tbl_Fact_HouseFromReference`, `tbl_Fact_Ayanamsa*` / `Dasha*Comparisons`, `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda` (Ashtakavarga schema live; calculator pending) | computers via `ChartGenerationService` |
+| Facts (per chart, star-schema) | `tbl_Fact_PlanetaryState`, `tbl_Fact_PlanetaryStrength` / `…Component`, `tbl_Fact_BhavaStrength` / `…Component`, `tbl_Fact_Vargottama`, `tbl_Fact_YogaInputEvaluations`, `tbl_Fact_HouseFromReference`, `tbl_Fact_Ayanamsa*` / `Dasha*Comparisons`, `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda` (written by `AshtakavargaCalculator`) | computers via `ChartGenerationService` |
 
 ## Chart-generic analytics — the design
 

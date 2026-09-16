@@ -1,3 +1,4 @@
+using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.PlanetaryStates;
@@ -39,6 +40,7 @@ public class ChartGenerationService
     private readonly BhavaStrengthRepository _bhavaStrengthRepo;
     private readonly VargottamaRepository _vargottamaRepo;
     private readonly YogaInputRepository _yogaInputRepo;
+    private readonly AshtakavargaRepository _ashtakavargaRepo;
     private readonly PanchangaRepository _panchangaRepo;
 
     // The avastha rule/dim rows are the same for the whole GenerateAll/Recompute call — load once.
@@ -57,7 +59,7 @@ public class ChartGenerationService
         PlanetaryStrengthRepository planetaryStrengthRepo,
         BhavaStrengthRepository bhavaStrengthRepo,
         VargottamaRepository vargottamaRepo, YogaInputRepository yogaInputRepo,
-         PanchangaRepository panchangaRepo)
+        AshtakavargaRepository ashtakavargaRepo, PanchangaRepository panchangaRepo)
     {
         _orchestrator = orchestrator;
         _dashaService = dashaService;
@@ -76,6 +78,7 @@ public class ChartGenerationService
         _bhavaStrengthRepo = bhavaStrengthRepo;
         _vargottamaRepo = vargottamaRepo;
         _yogaInputRepo = yogaInputRepo;
+        _ashtakavargaRepo = ashtakavargaRepo;
         _panchangaRepo = panchangaRepo;
     }
 
@@ -101,6 +104,7 @@ public class ChartGenerationService
         _planetaryStrengthRepo.DeleteByBirthDetailId(birthDetails.Id);  // FK_Fact_PlanetaryStrength_ChartResult has no cascade
         _bhavaStrengthRepo.DeleteByBirthDetailId(birthDetails.Id);
         _vargottamaRepo.DeleteByBirthDetailId(birthDetails.Id);
+        _ashtakavargaRepo.DeleteByBirthDetailId(birthDetails.Id);  // FKs to tbl_ChartResults have no cascade
         _panchangaRepo.DeleteByBirthDetailId(birthDetails.Id);
         foreach (var calc in _orchestrator.Calculators)
             _chartResultsRepo.DeleteByBirthDetailIdAndChartType(birthDetails.Id, calc.ChartType);
@@ -237,7 +241,8 @@ public class ChartGenerationService
         foreach (var r in keyDetails)
             if (r.PointKind == "Graha" && charaKarakaByPlanet.TryGetValue(r.Planet, out var ck))
                 r.CharaKaraka = ck;
-        var planetaryStates = PlanetaryStateComputer.Compute(input, keyDetails, PlanetaryStateRules);
+        var janmaGhatis = SwissEphemerisProvider.JanmaGhatis(bd, sunTimes);
+        var planetaryStates = PlanetaryStateComputer.Compute(input, keyDetails, PlanetaryStateRules, janmaGhatis);
 
         // Multi-graha conjunction groups: derived from the built graha KeyDetail rows (which already
         // carry the stitched DignityStatus / IsCombust). The 2-planet case is a group too.
@@ -271,16 +276,17 @@ public class ChartGenerationService
             _bhavaStrengthRepo.DeleteByChartResultId(chartResultId);
             _vargottamaRepo.DeleteByChartResultId(chartResultId);
             var charts = allCharts ?? new[] { input };
-            var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes);
+            var panchanga = PanchangaCalculator.Calculate(bd, positions, sunTimes);
+            var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes, panchanga);
             _yogaInputRepo.Replace(chartResultId, ruleSetId, positions, charts, sunTimes, strengths);
             _planetaryStrengthRepo.InsertAll(chartResultId, ruleSetId, strengths);
             _bhavaStrengthRepo.InsertAll(chartResultId, ruleSetId,
                 BhavaBalaCalculator.Calculate(input, strengths));
             _vargottamaRepo.InsertAll(chartResultId, ruleSetId, VargottamaDetector.Calculate(charts));
-
-
+            _ashtakavargaRepo.DeleteByChartResultId(chartResultId);
+            _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input));
             _panchangaRepo.DeleteByChartResultId(chartResultId);
-            _panchangaRepo.Insert(chartResultId, ruleSetId, PanchangaCalculator.Calculate(bd, positions, sunTimes));
+            _panchangaRepo.Insert(chartResultId, ruleSetId, panchanga);
         }
     }
 }

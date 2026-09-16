@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- net8.0, not net10.0-only: this project is domain-agnostic and meant to be droppable
+         into another .NET project as-is (decision 003 Part C). SwissEphNet 2.8.0.2 ships
+         net40 + netstandard1.0 lib targets, both consumable from net8.0. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SwissEphNet" Version="2.8.0.2" />
+  </ItemGroup>
+
+</Project>

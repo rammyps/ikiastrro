@@ -11,6 +11,13 @@ namespace Ikiastrro.Core.Engines.Karakas;
 /// on from L's sign (inclusive). If the pada lands on H's own sign or the 7th from it, take
 /// the 10th sign from the pada. The pada is placed at the natal Lagna's degree-in-sign so it
 /// has a longitude for varga projection. A1 is emitted under the code "AL".
+///
+/// SRC_PVR_INTEGRATED sec.9.2 "Computation of Bhava Arudhas" (verified against the raw book
+/// extract). Mirrors <c>tbl_Rule_ArudhaFormula</c> (migration 085) — cited there but not read
+/// from there; CLI <c>verify-jaimini</c> asserts that row exists and cites the right source.
+/// PVR's Aquarius/Scorpio "take the stronger co-lord" rule (Saturn-vs-Rahu, Mars-vs-Ketu) is
+/// not modeled — <see cref="Houses.HouseEngine.GetSignLord"/> always returns the classical sole
+/// lord (Saturn, Mars); the strength-comparison exception is a known, documented simplification.
 /// </summary>
 public static class ArudhaCalculator
 {

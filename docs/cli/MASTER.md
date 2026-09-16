@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-11
 workstream: cli
 togaf: C — Application Architecture (engine)
 safe: Solution Intent (fixed)
@@ -23,20 +23,26 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
 
 ## Current state
 
-- **`Ikiastrro.Core`** — 13 named engines under `Engines/<Name>/`, `ChartPipeline` /
+- **`Ikiastrro.Core`** — 14 named engines under `Engines/<Name>/`, `ChartPipeline` /
   `ChartBundle` DB-free façade. All classical logic original; only raw longitudes from
   `SwissEphNet` (Moshier mode).
 - **21 position chart types** computed and persisted per person (D1 + 20 vargas), plus
   3-level Vimśottari dasha, dignity, house lordship, conjunctions (+ groups), aspects,
   retrograde / combustion, nakṣatra linkage, Chara Karakas + special points + 11 upagrahas,
-  Bālādi + Jāgradādi avasthas, Ṣaḍbala / Bhāva Bala foundation, source-attributed yoga
-  inputs, slow-planet transits, Sade Sati / Kantaka / Ashtama, functional benefic/malefic,
-  baadhaka.
-- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` (124) +
-  `tests/Ikiastrro.Web.Tests` (166). `dotnet build` / `dotnet test` run from the terminal.
-- **Green now:** all 12 `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
-  `verify-dignity`, `verify-rules`, `verify-pipeline`, `verify-sources`, `verify-terminology`,
-  `verify-avastha`, `verify-functional-nature`, `verify-upagrahas`, `verify-baadhaka`.
+  Bālādi + Jāgradādi avasthas, Ṣaḍbala / Bhāva Bala foundation, **Parāśari Ashtakavarga
+  (BAV / SAV / Sodhya Piṇḍa)**, **Pañchāṅga (Tithi / Karaṇa / Nitya Yoga / Vedic weekday /
+  Hora Lord)**, **Karakāṁśa (AK in D9) + Bhaava/Ghati/Sree Lagna**, **Sayanaadi Avastha
+  (PostureState)**, **Dina / Hora / Tribhāga Bala + Graha Yuddha detection**, source-attributed
+  yoga inputs, slow-planet transits, Sade Sati / Kantaka / Ashtama, functional benefic/malefic,
+  baadhaka, KP sub-lord chain.
+- **Verification:** `verify-*` CLI modes + `tests/Ikiastrro.Yoga.Tests` + `tests/Ikiastrro.Web.Tests`.
+  `dotnet build` / `dotnet test` run from the terminal. Test counts TBD — rerun `dotnet test`
+  post-merge (2026-09-16 `workstream/cli` → `master` merge changed both suites; the pre-merge
+  124/166 and 147/187 counts from each side no longer apply).
+- **Green now:** 17 `verify-*` modes — `verify-schema`, `verify-vargas`, `verify-jaimini`,
+  `verify-ashtakavarga`, `verify-panchanga`, `verify-strength`, `verify-dasha`, `verify-dignity`,
+  `verify-rules`, `verify-pipeline`, `verify-sources`, `verify-terminology`, `verify-avastha`,
+  `verify-functional-nature`, `verify-upagrahas`, `verify-baadhaka`, `verify-kp-sublords`.
 
 ## In flight
 
@@ -45,14 +51,93 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   / `verify-jaimini` green. Still open: re-seed the `BENCH_RAMAKRISHNAN_P_JHORA_1981`
   benchmark case row and add a `verify-ayanamsa` mode (deferred).
 - **`FEAT-STRENGTH-01`** — implement the seeded-but-uncomputed Kālabala components; planetary
-  war; per-planet minimum-rūpa thresholds; reconcile Iṣṭa/Kaṣṭa/Cheṣṭā.
+  war; per-planet minimum-rūpa thresholds; reconcile Iṣṭa/Kaṣṭa/Cheṣṭā. (DB rules seeded,
+  migrations 071–073, 076.)
+- **`FEAT-ASHTAKAVARGA-01`** — DB + Core + Verify **done** (migrations 074–078;
+  `AshtakavargaCalculator`; `verify-ashtakavarga` reproduces the JHora export exactly).
+  Remaining: a UI Ashtakavarga table over `vw_ChartAshtakavarga`.
+- **`FEAT-DATA-06` — Pañchāṅga / time layer** — DB + Core + Verify **done** (migration 081;
+  `Engines/Panchanga/{PanchangaModels,PanchangaCalculator}`; `PanchangaRepository`; wired into
+  `ChartBundle.Panchanga`, `ChartPipeline.Run`, and `ChartGenerationService`'s D1 branch;
+  `verify-panchanga` reproduces the JHora export exactly — Krishna Tritiya, Vanija, Vyatipaata,
+  Tuesday, Hora Lord Venus, Janma Ghatis 58.89; `tests/Ikiastrro.Yoga.Tests/PanchangaCalculatorTests`
+  (6) use JHora's own printed longitudes directly, no ephemeris round-trip). Deliberately not
+  computed (no PVR §1.3 source): Karana lord, Nitya Yoga lord, Samvatsara, lunar month, Mahakala
+  Hora, Kaala Lord — see the migration-081 header. Remaining: a UI Panchanga strip over
+  `vw_ChartPanchanga`.
+- **Jaimini special lagnas / Karakamsa** — DB + Core + Verify **done** (migration 082
+  `vw_ChartKarakamsa`; `Engines/Karakas/{BhaavaLagnaCalculator,GhatiLagnaCalculator,
+  SreeLagnaCalculator}`, wired into `SpecialPointCalculator.ComputeSeeds` alongside
+  `HoraLagnaCalculator` — BL/GL/HL/SL all project into every varga via the existing
+  `SpecialPointProjector`; `verify-jaimini` reproduces the JHora export exactly — BL/GL/SL
+  D1+D9 signs and longitudes, Karakamsa AK=Rahu -> Libra;
+  `tests/Ikiastrro.Yoga.Tests/SreeLagnaCalculatorTests` (2) against PVR's own worked example
+  + the JHora export). Karakamsa needed no new computation at all — `CharaKaraka` was already
+  stamped onto every chart type including D9, `vw_ChartKarakamsa` just surfaces it. Deliberately
+  out of scope — `SRC_PVR_INTEGRATED` §5.7 states outright these are "beyond the scope of this
+  book", no other registered source covers them: Vighati Lagna, Varnada Lagna, Pranapada Lagna,
+  Indu Lagna, Bhṛgu Bindu. Remaining: a UI special-lagnas strip.
+- **`FEAT-AVASTHA-05` — Sayanaadi (PostureState)** — DB + Core + Verify **done** (migration 083;
+  `PostureStateCalculator`, wired into `PlanetaryStateComputer.Compute` behind a new
+  `janmaGhatis` parameter threaded from `ChartPipeline.Run` / `ChartGenerationService`'s D1
+  branch via the new `SwissEphemerisProvider.JanmaGhatis` helper; `verify-avastha` reproduces
+  the JHora export's Activity table exactly, all 9 grahas;
+  `tests/Ikiastrro.Yoga.Tests/PostureStateCalculatorTests` (4)). Bug caught along the way: the
+  lookup from `tbl_Chart_KeyDetails.Nakshatra` (AstroMath's canonical display names, e.g.
+  "Ashwini") must not go through `Enum.TryParse<ConstellationName>` — that enum's member
+  spellings are an unrelated legacy form ("Aswini") per its own doc comment; fixed to index
+  against `AstroMath.NakshatraCanonicalNames` instead. Deliberately not built: the secondary
+  Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (PVR's Table 37 sound-map is OCR-ambiguous in the
+  raw extract). Deeptādi/Lajjitādi (`FEAT-AVASTHA-03/04`) remain unbuilt — real precedence-order
+  ambiguity in the source, not a missing-input blocker like this one was.
+- **`FEAT-STRENGTH-01` (CLI slice)** — Dina / Horā / Tribhāga Bala + Graha Yuddha detection
+  **done** (migrations 072/076/084 on `workstream/database`; `ShadbalaCalculator` extended,
+  `verify-strength` new, `tests/Ikiastrro.Yoga.Tests/ShadbalaKalaBalaTests` (5)). Dina Bala (45
+  virupas to the weekday lord) and Hora Bala (60 to the running hora lord) reuse
+  `PanchangaCalculator`'s own verified `VedicWeekdayId`/`HoraLordPlanetId` rather than
+  re-deriving them — `ShadbalaCalculator.Calculate` now takes a `PanchangaResult` parameter;
+  Tribhaga Bala (day/night thirds, Mercury/Sun/Saturn by day, Moon/Venus/Mars by night, 60
+  virupas to the part's lord, Jupiter classically exempt and always 60) reuses `JanmaGhatis`.
+  `ComputeYuddha` detects the five tara grahas within 1° of D1 longitude and picks the winner
+  by ecliptic latitude; the diameter-based delta *magnitude* is deliberately left at 0 — the
+  Raman DJVU has no text extract, and 1_Ramakrishnan has no war either way (Mars/Mercury/Venus
+  are all >2° apart in Aries; Jupiter/Saturn are 2°14' apart in Virgo), so nothing forced a
+  guess. Also fixed along the way: `verify-rules` (tbl_Rule_PanchangaFormula/PostureStateFormula
+  were never registered in `tbl_Rule_Catalog` — migration 084) and `verify-terminology` (the 12
+  Sayanadi `tbl_Dim_PlanetaryState` rows from migration 083 were never terminology-seeded — ran
+  `seed-terminology` + added their English glosses to `TerminologySeed.cs`), both leftover gaps
+  from the two prior turns, not from this one. Remaining: Varsa/Masa/Ayana Bala and the Yuddha
+  Bala magnitude both need `SRC_RAMAN_GRAHA_BHAVA_BALAS` (DJVU, no text extract); populate
+  `MinimumRequiredRupas` on newly-computed rows; Cheshta reconciliation; Vimsopaka Bala.
 - **`FEAT-YOGA-01`** — Raman predicates 201–300, PVR P0 additions, structured
   missing-requirement codes, source-qualified strength policy.
 
 ## Planned
 
 - `ChartGenerationService.GenerateAll` adopts the `ChartPipeline` bundle path.
-- Reserved engine seams: Dispositor, Vimśopaka, Sthira/Naisargika Karaka, additional avasthas
-  (Dīptādi / Lajjitādi / Śayanādi).
-- Ashtakavarga + full Ṣaḍbala port from the vendored MIT `jyotishganit` (attribution).
-- Panchanga / time layer (tithi, karana, nitya yoga, Vedic weekday, janma ghaṭis).
+- Reserved engine seams: Dispositor, Vimśopaka, Sthira/Naisargika Karaka, Dīptādi/Lajjitādi
+  avasthas.
+- Full Ṣaḍbala port from the vendored MIT `jyotishganit` (attribution).
+- **2026-09-11 rule-mapping audit** (`../database/rules-engine.md`) found formulas this
+  workstream has delivered and CLI-verified, but that carry **no `tbl_Rule_*` citation at
+  all** (distinct from the already-tracked "mirror"/"orphaned" tables, which at least exist):
+  Vimshottari Dasha's core 9-planet/120-year table (`AstroMath.NakshatraLordOrder` /
+  `VimshottariYearsByLord`, also the KP-2 sub-lord division's source), Chara Karaka assignment
+  (`CharaKarakaCalculator` — `tbl_Rule_Karaka` is schema-ready and empty for exactly this),
+  and the Arudha Pada counting rule (`ArudhaCalculator`). Also found: exaltation degrees were
+  hardcoded independently in four places (`DignityEngine`, `ShadbalaCalculator`,
+  `RamanYogaBatchFiveEvaluator`, `RamanDhanaYogaEvaluator`) with no shared source.
+  `LagnaFunctionalNature` is a deliberate exception (its DB mirror was intentionally dropped),
+  not a gap.
+
+  **All closed same day.** Migration 085 (`workstream/database`) seeds `tbl_Rule_Karaka`
+  (Chara Karaka) and adds `tbl_Rule_VimshottariPeriod` / `tbl_Rule_ArudhaFormula`, each cited to
+  a verified `SRC_PVR_INTEGRATED` section/table in the raw book extract. The four exaltation
+  dictionaries now read one shared `AstroMath.DeepExaltationPoints` (no new table needed —
+  `tbl_Rule_GrahaDignity` already carried the degree). New `verify-dasha` mode; `verify-jaimini`
+  and `verify-dignity` extended with cross-checks. Every calculator stays hardcoded per the
+  project's "verified mirror" pattern — only the citations and cross-checks are new. Full
+  test suite (356) and all 15 `verify-*` modes green after. Sade Sati/Kantaka/Ashtama's
+  `SourceRefCode` gap and the `tbl_Rule_YogaValidationDefinition` reproducibility gap are
+  deliberately **not** addressed — no verified source text for the former, out of scope for the
+  latter (see `rules-engine.md`).

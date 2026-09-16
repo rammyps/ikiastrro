@@ -9,7 +9,10 @@
   <ItemGroup>
     <PackageReference Include="GeoTimeZone" Version="6.1.0" />
     <PackageReference Include="TimeZoneConverter" Version="7.2.0" />
-    <PackageReference Include="SwissEphNet" Version="2.8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SwissEphemeris.Interpreter\SwissEphemeris.Interpreter.csproj" />
   </ItemGroup>
 
 </Project>

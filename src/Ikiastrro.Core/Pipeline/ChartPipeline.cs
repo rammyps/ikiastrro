@@ -1,3 +1,4 @@
+using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Karakas;
 using Ikiastrro.Core.Engines.Panchanga;
@@ -42,6 +43,7 @@ public sealed class ChartPipeline
         var charts = computed.Select(c => c.Input).ToList();
 
         var charaKarakaByPlanet = CharaKarakaByPlanet(positions);
+        var janmaGhatis = SwissEphemerisProvider.JanmaGhatis(birth, sunTimes);
 
         // States — PlanetaryStateComputer.Compute per chart, exactly as ChartGenerationService's
         // PersistAnalytics does now (chara-karaka is stamped onto the local ChartKeyDetail list first,
@@ -54,19 +56,19 @@ public sealed class ChartPipeline
             foreach (var r in keyDetails)
                 if (r.PointKind == "Graha" && charaKarakaByPlanet.TryGetValue(r.Planet, out var ck))
                     r.CharaKaraka = ck;
-            states.AddRange(PlanetaryStateComputer.Compute(input, keyDetails, _planetaryStateRules));
+            states.AddRange(PlanetaryStateComputer.Compute(input, keyDetails, _planetaryStateRules, janmaGhatis));
         }
 
-        var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes);
+        var panchanga = PanchangaCalculator.Calculate(birth, positions, sunTimes);
+        var strengths = ShadbalaCalculator.Calculate(charts, positions, sunTimes, panchanga);
         var d1 = charts.First(c => c.ChartType.Equals("D1", StringComparison.OrdinalIgnoreCase));
         return new ChartBundle(birth, positions, sunTimes, charts, charaKarakaByPlanet, states)
         {
             Strengths = strengths,
             BhavaStrengths = BhavaBalaCalculator.Calculate(d1, strengths),
             Vargottama = VargottamaDetector.Calculate(charts),
-
-
-            Panchanga = PanchangaCalculator.Calculate(birth, positions, sunTimes)
+            Ashtakavarga = AshtakavargaCalculator.Calculate(d1),
+            Panchanga = panchanga
         };
     }
 

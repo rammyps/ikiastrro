@@ -21,11 +21,15 @@ public record WakefulnessStateRuleRow(
     byte Id, byte RuleSetId, string DignityStatus, byte AvasthaStateId, string StateName);
 
 /// <summary>Everything a chart's planetary-state computation needs from the Rule/Dim layer for one
-/// RuleSetId — loaded once by PlanetaryStateRuleRepository, handed to PlanetaryStateComputer.</summary>
+/// RuleSetId — loaded once by PlanetaryStateRuleRepository, handed to PlanetaryStateComputer.
+/// <see cref="PostureStatesBySequence"/> is keyed by the Sayanaadi index (1-12,
+/// tbl_Dim_PlanetaryState.SequenceOrder) — no separate Rule row per state (unlike AgeState /
+/// WakefulnessState): PostureStateCalculator computes the index, this just names it.</summary>
 public record PlanetaryStateRuleSet(
     byte RuleSetId,
     IReadOnlyList<AgeStateRuleRow> AgeBands,
-    IReadOnlyDictionary<string, WakefulnessStateRuleRow> WakefulnessByDignity);
+    IReadOnlyDictionary<string, WakefulnessStateRuleRow> WakefulnessByDignity,
+    IReadOnlyDictionary<byte, PlanetaryStateRow> PostureStatesBySequence);
 
 /// <summary>One row of dbo.tbl_Fact_PlanetaryState — the computed avastha states for one planet in
 /// one chart. Ascendant excluded. The age state is D1-only (needs within-sign degree); the
@@ -47,4 +51,9 @@ public class PlanetaryStateFact
 
     /// <summary>FK to tbl_Dim_PlanetaryState (AvasthaSystem = 'Jagradadi'). Populated for every chart type. Null only if DignityStatus was absent.</summary>
     public byte? WakefulnessStateId { get; set; }
+
+    /// <summary>FK to tbl_Dim_PlanetaryState (AvasthaSystem = 'Sayanadi'). D1 only — needs a
+    /// continuous within-sign degree (for the navamsa index) and the birth-moment Janma Ghatis,
+    /// same D1-only reasoning as AgeStateId.</summary>
+    public byte? PostureStateId { get; set; }
 }

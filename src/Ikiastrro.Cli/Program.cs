@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Dapper;
 using Ikiastrro.Cli;
+using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.DivisionalCharts;
@@ -131,7 +132,7 @@ var chartGenerationService = new ChartGenerationService(
     new PlanetaryStrengthRepository(connectionFactory),
     new BhavaStrengthRepository(connectionFactory),
     new VargottamaRepository(connectionFactory), new YogaInputRepository(connectionFactory),
-    new PanchangaRepository(connectionFactory));
+    new AshtakavargaRepository(connectionFactory), new PanchangaRepository(connectionFactory));
 
 // --- One-off backfill mode: `dotnet run -- backfill-analytics` ---
 // Unconditionally re-derives all four analytics tables (KeyDetails/HouseLords/Conjunctions/Aspects)
@@ -599,6 +600,36 @@ if (args.Length > 0 && args[0] == "verify-avastha")
     Check("Jagradadi(Debilitated)", Jagradadi("Debilitated"), "Sushupti");
     Check("Jagradadi(null)",        Jagradadi(null!),         null);
 
+    // Sayanaadi — hand-computed from the JHora export for 1_Ramakrishnan (PVR sec 15.4.4):
+    // M = Anuraadha (17), G = ghati 59 (Janma Ghatis 58.8892), L = Aries (1) for both.
+    // Sun: C = Aswini (1), P = 1, A = 3rd navamsa (8.205deg in sign) -> index 8 = Aagama.
+    Check("Sayanaadi(Sun) hand-computed",
+        PostureStateCalculator.For(PostureStateCalculator.ComputeIndex(1, 1, 3, 17, 59, 1), rules.PostureStatesBySequence)?.StateName,
+        "Aagama");
+    // Moon: C = Anuraadha (17), P = 2, A = 3rd navamsa (7.293deg in sign) -> index 11 = Kautuka.
+    Check("Sayanaadi(Moon) hand-computed",
+        PostureStateCalculator.For(PostureStateCalculator.ComputeIndex(17, 2, 3, 17, 59, 1), rules.PostureStatesBySequence)?.StateName,
+        "Kautuka");
+
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        // JHora export's printed "Activity" table for 1_Ramakrishnan, all 9 grahas.
+        var stored = conn.Query<(string Planet, string? PostureState)>(
+            @"SELECT Planet, PostureState FROM dbo.vw_ChartPlanetEvidence
+              WHERE BirthDetailId = (SELECT Id FROM dbo.tbl_BirthDetails WHERE Name = 'Ramakrishnan')
+                AND ChartType = 'D1' AND PointKind = 'Graha'")
+            .ToDictionary(r => r.Planet, r => r.PostureState);
+        Check("Sayanaadi(Sun)     -> Aagama",      stored.GetValueOrDefault("Sun"),     "Aagama");
+        Check("Sayanaadi(Moon)    -> Kautuka",     stored.GetValueOrDefault("Moon"),    "Kautuka");
+        Check("Sayanaadi(Mars)    -> Kautuka",     stored.GetValueOrDefault("Mars"),    "Kautuka");
+        Check("Sayanaadi(Mercury) -> Bhojana",     stored.GetValueOrDefault("Mercury"), "Bhojana");
+        Check("Sayanaadi(Jupiter) -> Gamana",      stored.GetValueOrDefault("Jupiter"), "Gamana");
+        Check("Sayanaadi(Venus)   -> Gamana",      stored.GetValueOrDefault("Venus"),   "Gamana");
+        Check("Sayanaadi(Saturn)  -> Bhojana",     stored.GetValueOrDefault("Saturn"),  "Bhojana");
+        Check("Sayanaadi(Rahu)    -> Bhojana",     stored.GetValueOrDefault("Rahu"),    "Bhojana");
+        Check("Sayanaadi(Ketu)    -> Gamana",      stored.GetValueOrDefault("Ketu"),    "Gamana");
+    }
+
     Console.WriteLine(failures == 0 ? "\nverify-avastha: ALL PASS" : $"\nverify-avastha: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
@@ -723,6 +754,23 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         Check("D9 AK label travels", d9ak, "Rahu");
     }
 
+    // --- Phase 2b: CharaKarakaCalculator.Ranked order == tbl_Rule_Karaka (migration 085) ---
+    // Closes the 2026-09-11 rule-mapping audit's "Chara Karaka has no DB citation" gap: the
+    // table was schema-ready (KarakaScheme/OrderIndex/ReverseForRahu) since migration 18 but
+    // empty until 085 seeded it. This is the "verified mirror" check migration 085's own header
+    // promised — CharaKarakaCalculator itself stays hardcoded (the project's usual pattern).
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var dbOrder = conn.Query<(int OrderIndex, string TargetValue, bool ReverseForRahu)>(
+            @"SELECT OrderIndex, TargetValue, ReverseForRahu FROM dbo.tbl_Rule_Karaka
+              WHERE RuleSetId = 1 AND KarakaScheme = 'Chara' ORDER BY OrderIndex").ToList();
+        Check("tbl_Rule_Karaka has 8 Chara rows", dbOrder.Count, 8);
+        var codeOrder = string.Join(",", Enum.GetValues<CharaKaraka>().Take(8));
+        var dbCodeOrder = string.Join(",", dbOrder.Select(r => r.TargetValue));
+        Check("tbl_Rule_Karaka order == CharaKaraka enum order (AK..DK)", dbCodeOrder, codeOrder);
+        Check("tbl_Rule_Karaka.ReverseForRahu is set on every Chara row", dbOrder.Count(r => r.ReverseForRahu), dbOrder.Count);
+    }
+
     // --- Phase 3: Arudha Lagna + 12 Bhava Arudhas ---
     using (var conn = connectionFactory.CreateOpenConnection())
     {
@@ -746,6 +794,12 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
               JOIN dbo.tbl_BirthDetails bd ON bd.Id=cr.BirthDetailId
               WHERE bd.Name='Ramakrishnan' AND cr.ChartType='D1' AND kd.Planet='AL'");
         var expectedD9 = VargaSignRuleFactory.For("NavamsaD9", 9).SignFor(alD1Lon).ToString();
+        // tbl_Rule_ArudhaFormula (migration 085) closes the same audit's Arudha-has-no-DB-
+        // citation gap. A single narrative row, so this checks presence + citation, not a
+        // numeric round-trip (same shape as tbl_Rule_PostureStateFormula/PanchangaFormula).
+        var arudhaSource = conn.ExecuteScalar<string?>(
+            "SELECT SourceRefCode FROM dbo.tbl_Rule_ArudhaFormula WHERE RuleSetId = 1");
+        Check("tbl_Rule_ArudhaFormula cites SRC_PVR_INTEGRATED", arudhaSource, "SRC_PVR_INTEGRATED");
         Check("AL D9 channel integrity", SpSign("D9", "AL"), expectedD9);
     }
 
@@ -783,8 +837,8 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         CheckLon("Gulika longitude", SpLon("Gulika"), 198.1169, 0.5);
         CheckLon("Maandi longitude", SpLon("Maandi"), 187.7439, 0.5);
 
-        // JHora export: Bhava Lagna 0 Ar 35'00" (Aswi, Ar/Ar) · Ghati Lagna 3 Pi 55'31" (UBha, Pi/Le)
-        // · Sree Lagna 17 Cn 33'01" (Asre, Cn/Sg) — Bhaava/Ghati/Sree Lagna built 2026-09-13.
+        // --- Phase 5: Bhaava / Ghati / Sree Lagna (JHora export: BL 0 Ar 35'00" · GL 3 Pi
+        //     55'31" · SL 17 Cn 33'01"; D9 columns Ar/Le/Sg respectively) ---
         Check("BL (D1) -> Aries",       SpSign("D1", "BL"), "Aries");
         Check("BL (D9) -> Aries",       SpSign("D9", "BL"), "Aries");
         Check("GL (D1) -> Pisces",      SpSign("D1", "GL"), "Pisces");
@@ -796,7 +850,153 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         CheckLon("SL longitude", SpLon("SL"), 107.5502, 0.5);
     }
 
+    // --- Phase 6: Karakamsa (AK in D9) — JHora export: Rahu (AK) Navamsa column "Li" ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var k = conn.QuerySingle<(string AtmaKarakaPlanet, string KarakamsaSign)>(
+            @"SELECT k.AtmaKarakaPlanet, k.KarakamsaSign FROM dbo.vw_ChartKarakamsa k
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = k.BirthDetailId
+              WHERE bd.Name = 'Ramakrishnan'");
+        Check("Karakamsa AK", k.AtmaKarakaPlanet, "Rahu");
+        Check("Karakamsa sign -> Libra", k.KarakamsaSign, "Libra");
+    }
+
     Console.WriteLine(failures == 0 ? "\nverify-jaimini: ALL PASS" : $"\nverify-jaimini: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- One-off check: `dotnet run -- verify-ashtakavarga` ---
+// Parasari Ashtakavarga (AshtakavargaCalculator) must (1) mirror the seeded rule matrix,
+// (2) reproduce the JHora export for 1_Ramakrishnan — BAV grid, Sarvashtakavarga, and the
+// Rasi/Graha/Sodhya Pinda — exactly, and (3) match what GenerateAll persisted.
+if (args.Length > 0 && args[0] == "verify-ashtakavarga")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+    static string Csv(IEnumerable<int> xs) => string.Join(" ", xs);
+
+    // --- Phase 1: the C# BENEFIC_HOUSES matrix mirrors tbl_Rule_AshtakavargaContribution ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var dbRows = conn.Query<(string RecipientCode, string ContributorCode, string BeneficPlacesJson)>(
+            @"SELECT RecipientCode, ContributorCode, BeneficPlacesJson
+              FROM dbo.tbl_Rule_AshtakavargaContribution
+              WHERE RuleSetId = 1 AND MethodCode = 'PVR_PARASARA_BAV'").ToList();
+        Check("rule matrix row count", dbRows.Count, 56);
+
+        var mismatches = 0;
+        var grand = 0;
+        foreach (var recipient in AshtakavargaTables.Recipients)
+        {
+            var recipientTotal = 0;
+            foreach (var contributor in AshtakavargaTables.Contributors)
+            {
+                var cs = AshtakavargaTables.BeneficPlaces[recipient][contributor];
+                recipientTotal += cs.Length;
+                var row = dbRows.FirstOrDefault(r => r.RecipientCode == recipient && r.ContributorCode == contributor);
+                var db = row.BeneficPlacesJson is null
+                    ? Array.Empty<int>()
+                    : JsonSerializer.Deserialize<int[]>(row.BeneficPlacesJson) ?? Array.Empty<int>();
+                if (Csv(cs.OrderBy(x => x)) != Csv(db.OrderBy(x => x))) mismatches++;
+            }
+            grand += recipientTotal;
+        }
+        Check("C# matrix == DB matrix (per cell)", mismatches, 0);
+        Check("Sarvashtakavarga grand total", grand, 337);
+    }
+
+    var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var bundle = new ChartPipeline(orchestrator, psRules).Run(ram);
+    var av = bundle.Ashtakavarga ?? throw new InvalidOperationException("ChartBundle.Ashtakavarga is null.");
+
+    // --- Phase 2: BAV grid == the JHora benchmark (research.* cells) ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var benchBav = conn.Query<(string RecipientCode, int SignNumber, int BinduValue)>(
+            @"SELECT c.RecipientCode, c.SignNumber, c.BinduValue
+              FROM research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkCell c
+              JOIN research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkRun r ON r.Id = c.RunId
+              JOIN research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkCase cs ON cs.Id = r.CaseId
+              WHERE cs.CaseCode = 'BENCH_RAMAKRISHNAN_P_JHORA_1981' AND c.MetricCode = 'BAV'
+                AND c.RecipientCode <> 'AS'")
+            .ToLookup(x => x.RecipientCode, x => (x.SignNumber, x.BinduValue));
+
+        foreach (var b in av.Bhinna)
+        {
+            var expected = Enumerable.Range(1, 12)
+                .Select(s => benchBav[b.Recipient].First(t => t.SignNumber == s).BinduValue);
+            Check($"BAV {b.Recipient,-8} vs JHora", Csv(b.Bindus), Csv(expected));
+        }
+
+        // --- Phase 3: SAV == column sums of the benchmark BAV; total 337 ---
+        var savExpected = Enumerable.Range(1, 12)
+            .Select(s => AshtakavargaTables.Recipients.Sum(rp => benchBav[rp].First(t => t.SignNumber == s).BinduValue))
+            .ToArray();
+        Check("SAV vs JHora column sums", Csv(av.Sarva.Bindus), Csv(savExpected));
+        Check("SAV total", av.Sarva.Total, 337);
+
+        // --- Phase 4: Rasi / Graha / Sodhya Pinda == the JHora benchmark (exact) ---
+        var notes = conn.ExecuteScalar<string?>(
+            @"SELECT r.Notes
+              FROM research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkRun r
+              JOIN research.tbl_Dim_SourceReferenceAshtakavargaBenchmarkCase cs ON cs.Id = r.CaseId
+              WHERE cs.CaseCode = 'BENCH_RAMAKRISHNAN_P_JHORA_1981' AND r.SourceSystemCode = 'JAGANNATHA_HORA'")
+            ?? throw new InvalidOperationException("JHora Ashtakavarga benchmark run notes (Pinda JSON) not seeded — apply db/075.");
+        var pinda = JsonDocument.Parse(notes).RootElement.GetProperty("pinda");
+        var abbrev = new Dictionary<string, string>
+        {
+            ["SUN"] = "Su", ["MOON"] = "Mo", ["MARS"] = "Ma", ["MERCURY"] = "Me",
+            ["JUPITER"] = "Ju", ["VENUS"] = "Ve", ["SATURN"] = "Sa",
+        };
+        foreach (var p in av.Pinda)
+        {
+            var e = pinda.GetProperty(abbrev[p.Recipient]);
+            Check($"Pinda {p.Recipient,-8} (rasi/graha/sodhya)",
+                $"{p.RasiPinda}/{p.GrahaPinda}/{p.SodhyaPinda}",
+                $"{e.GetProperty("rasi").GetInt32()}/{e.GetProperty("graha").GetInt32()}/{e.GetProperty("sodhya").GetInt32()}");
+        }
+    }
+
+    // --- Phase 5: persisted tbl_Fact_* for the stored Ramakrishnan D1 == the engine ---
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        const string where =
+            @"JOIN dbo.tbl_ChartResults cr ON cr.Id = f.ChartResultId
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
+              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1'";
+
+        var storedBav = conn.Query<(string RecipientCode, int SignNumber, int BinduCount)>(
+            $"SELECT f.RecipientCode, f.SignNumber, f.BinduCount FROM dbo.tbl_Fact_BhinnaAshtakavarga f {where}")
+            .ToLookup(x => x.RecipientCode, x => (x.SignNumber, x.BinduCount));
+        foreach (var b in av.Bhinna)
+        {
+            var stored = Enumerable.Range(1, 12).Select(s => storedBav[b.Recipient].FirstOrDefault(t => t.SignNumber == s).BinduCount);
+            Check($"persisted BAV {b.Recipient,-8}", Csv(stored), Csv(b.Bindus));
+        }
+
+        var storedSav = conn.Query<int>(
+            $"SELECT f.TotalBindus FROM dbo.tbl_Fact_SarvaAshtakavarga f {where} ORDER BY f.SignNumber").ToArray();
+        Check("persisted SAV", Csv(storedSav), Csv(av.Sarva.Bindus));
+
+        var storedPinda = conn.Query<(string RecipientCode, int RasiPinda, int GrahaPinda, int SodhyaPinda)>(
+            $"SELECT f.RecipientCode, f.RasiPinda, f.GrahaPinda, f.SodhyaPinda FROM dbo.tbl_Fact_AshtakavargaPinda f {where}")
+            .ToDictionary(x => x.RecipientCode);
+        foreach (var p in av.Pinda)
+        {
+            var s = storedPinda.GetValueOrDefault(p.Recipient);
+            Check($"persisted Pinda {p.Recipient,-8}",
+                $"{s.RasiPinda}/{s.GrahaPinda}/{s.SodhyaPinda}",
+                $"{p.RasiPinda}/{p.GrahaPinda}/{p.SodhyaPinda}");
+        }
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-ashtakavarga: ALL PASS" : $"\nverify-ashtakavarga: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
@@ -861,6 +1061,125 @@ if (args.Length > 0 && args[0] == "verify-panchanga")
     }
 
     Console.WriteLine(failures == 0 ? "\nverify-panchanga: ALL PASS" : $"\nverify-panchanga: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- `dotnet run -- verify-strength` : the FEAT-STRENGTH-01 Kaala Bala slice
+// (Dina/Hora/Tribhaga Bala + Graha Yuddha detection) for 1_Ramakrishnan. No JHora per-component
+// breakdown is printed in the export (only the Shadbala grand total is), so this is a
+// self-consistency check against the classical formula applied to this specific birth, not a
+// cross-tool numeric match — see ShadbalaCalculator.ComputeYuddha's doc comment for why the
+// Yuddha Bala *magnitude* stays 0 (Raman DJVU has no text extract).
+if (args.Length > 0 && args[0] == "verify-strength")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var bundle = new ChartPipeline(orchestrator, psRules).Run(ram);
+    var strengths = bundle.Strengths ?? throw new InvalidOperationException("ChartBundle.Strengths is null.");
+
+    double Component(string planet, string subComponentCode) =>
+        strengths.Single(r => r.Planet == planet).Components
+            .SingleOrDefault(c => c.SubComponentCode == subComponentCode)?.ValueVirupas ?? 0;
+
+    Console.WriteLine("-- Phase 1: the engine, hand-derived from the JHora export's own printed times --");
+    // Weekday Tuesday -> Mars (verify-panchanga).
+    Check("Dina Bala Mars (weekday lord)", Component("Mars", "DINA_BALA"), 45);
+    foreach (var p in new[] { "Sun", "Moon", "Mercury", "Jupiter", "Venus", "Saturn" })
+        Check($"Dina Bala {p} (not weekday lord)", Component(p, "DINA_BALA"), 0);
+
+    // Hora Lord Venus (verify-panchanga).
+    Check("Hora Bala Venus (running hora lord)", Component("Venus", "HORA_BALA"), 60);
+    foreach (var p in new[] { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Saturn" })
+        Check($"Hora Bala {p} (not hora lord)", Component(p, "HORA_BALA"), 0);
+
+    // Janma Ghatis 58.8892 -> 23h33m21s after sunrise, into the night's 3rd third -> Mars;
+    // Jupiter is classically exempt and always scores the full 60.
+    Check("Tribhaga Bala Mars (night-3rd-third lord)", Component("Mars", "TRIBHAGA_BALA"), 60);
+    Check("Tribhaga Bala Jupiter (classical exemption)", Component("Jupiter", "TRIBHAGA_BALA"), 60);
+    foreach (var p in new[] { "Sun", "Moon", "Mercury", "Venus", "Saturn" })
+        Check($"Tribhaga Bala {p} (neither)", Component(p, "TRIBHAGA_BALA"), 0);
+
+    // No Graha Yuddha: Mars/Mercury/Venus are >2 degrees apart in Aries, Jupiter/Saturn 2.23
+    // degrees apart in Virgo -- none within the 1-degree war orb.
+    Check("Yuddha Bala virupas (no war present)", strengths.Sum(r => r.YuddhaBalaVirupas), 0.0);
+
+    Console.WriteLine("\n-- Phase 2: persisted tbl_Fact_PlanetaryStrengthComponent == the engine --");
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var stored = conn.Query<(string Planet, string SubComponentCode, double ValueVirupas)>(
+            @"SELECT p.PlanetName AS Planet, c.SubComponentCode, c.ValueVirupas
+              FROM dbo.tbl_Fact_PlanetaryStrengthComponent c
+              JOIN dbo.tbl_ChartResults cr ON cr.Id = c.ChartResultId
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
+              JOIN dbo.tbl_Planets p ON p.Id = c.PlanetId
+              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1'
+                AND c.SubComponentCode IN ('DINA_BALA', 'HORA_BALA', 'TRIBHAGA_BALA')").ToList();
+        if (stored.Count == 0)
+        {
+            Console.WriteLine("  [SKIP] no persisted tbl_Fact_PlanetaryStrengthComponent rows for Ramakrishnan's D1 — run GenerateAll first.");
+        }
+        else
+        {
+            foreach (var s in stored)
+                Check($"persisted {s.Planet}/{s.SubComponentCode}", s.ValueVirupas, Component(s.Planet, s.SubComponentCode));
+        }
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-strength: ALL PASS" : $"\nverify-strength: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- `dotnet run -- verify-dasha` : Vimshottari Dasha's core table vs tbl_Rule_VimshottariPeriod
+// (migration 085). Closes the 2026-09-11 rule-mapping audit's "the 9-planet order/120-year split
+// has no DB citation at all" gap — AstroMath.NakshatraLordOrder / VimshottariYearsByLord (also the
+// KP-2 sub-lord division's source) stay hardcoded per the project's "verified mirror" pattern;
+// this is the CLI check that pattern requires.
+if (args.Length > 0 && args[0] == "verify-dasha")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    using var conn = connectionFactory.CreateOpenConnection();
+    var dbRows = conn.Query<(int SequenceOrder, string PlanetName, int YearsInCycle)>(
+        @"SELECT r.SequenceOrder, p.PlanetName, r.YearsInCycle
+          FROM dbo.tbl_Rule_VimshottariPeriod r
+          JOIN dbo.tbl_Planets p ON p.Id = r.PlanetId
+          WHERE r.RuleSetId = 1 ORDER BY r.SequenceOrder").ToList();
+
+    Check("tbl_Rule_VimshottariPeriod has 9 rows", dbRows.Count, 9);
+    Check("YearsInCycle totals 120", dbRows.Sum(r => r.YearsInCycle), 120);
+
+    var codeOrder = string.Join(",", AstroMath.NakshatraLordOrder);
+    var dbOrder = string.Join(",", dbRows.Select(r => r.PlanetName));
+    Check("SequenceOrder == AstroMath.NakshatraLordOrder", dbOrder, codeOrder);
+
+    var yearMismatch = 0;
+    foreach (var r in dbRows)
+    {
+        var planet = Enum.Parse<PlanetName>(r.PlanetName);
+        var expectedYears = AstroMath.VimshottariYearsByLord[planet];
+        if (r.YearsInCycle != expectedYears)
+        {
+            yearMismatch++;
+            Console.WriteLine($"    {r.PlanetName}: DB {r.YearsInCycle}y, AstroMath {expectedYears}y");
+        }
+    }
+    Check("YearsInCycle == AstroMath.VimshottariYearsByLord for every planet", yearMismatch, 0);
+
+    Console.WriteLine(failures == 0 ? "\nverify-dasha: ALL PASS" : $"\nverify-dasha: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
@@ -937,17 +1256,16 @@ if (args.Length > 0 && args[0] == "verify-sources")
     Check("Code is unique",
         Count("SELECT COUNT(*) - COUNT(DISTINCT Code) FROM dbo.tbl_Dim_Source"));
 
-    // Forward-looking: every SourceRefCode used by a rule/terminology table must resolve.
-    // No such columns exist yet (Plan 1) — this loop is a no-op today, a tripwire later.
-    var refColumns = conn.Query<(string SchemaName, string TableName, string ColumnName)>(@"
-        SELECT s.name, t.name, c.name
-        FROM sys.columns c
-        JOIN sys.tables t ON t.object_id = c.object_id
-        JOIN sys.schemas s ON s.schema_id = t.schema_id
-        WHERE c.name = 'SourceRefCode'").ToList();
-    foreach (var (schema, tbl, col) in refColumns)
-        Check($"{schema}.{tbl}.{col} all resolve in tbl_Dim_Source",
-            Count($@"SELECT COUNT(*) FROM [{schema}].[{tbl}] x
+    // Forward-looking: every SourceRefCode used by a dbo rule/fact table must resolve.
+    // Scoped to schema dbo — the research.* corpus (migrations 056/067/070) carries its own
+    // SourceRefCode / SourceRefLocator columns that this dbo-only tripwire must not touch.
+    var refColumns = conn.Query<(string TableName, string ColumnName)>(@"
+        SELECT t.name, c.name
+        FROM sys.columns c JOIN sys.tables t ON t.object_id = c.object_id
+        WHERE c.name = 'SourceRefCode' AND t.schema_id = SCHEMA_ID('dbo')").ToList();
+    foreach (var (tbl, col) in refColumns)
+        Check($"{tbl}.{col} all resolve in tbl_Dim_Source",
+            Count($@"SELECT COUNT(*) FROM dbo.[{tbl}] x
                      WHERE x.[{col}] IS NOT NULL
                        AND NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_Source s WHERE s.Code = x.[{col}])"));
 
@@ -1332,6 +1650,27 @@ if (args.Length > 0 && args[0] == "verify-dignity")
                   AND NOT EXISTS (SELECT 1 FROM dbo.tbl_SignAttributes s
                                   WHERE s.Id = d.SignId AND s.DebilitatedPlanetId = d.PlanetId
                                     AND s.DebilitatedDegree = d.DeepDegree)"));
+
+    // 10b. The three previously-independent C# exaltation dictionaries (DignityEngine,
+    // ShadbalaCalculator, RamanYogaBatchFiveEvaluator) were consolidated onto
+    // AstroMath.DeepExaltationPoints (2026-09-11 rule-mapping audit). Close the loop: that
+    // shared constant must itself agree with tbl_SignAttributes -- and, transitively via the two
+    // checks just above, with tbl_Rule_GrahaDignity's own PVR-cited EXALTED rows.
+    var exaltationMismatch = 0;
+    foreach (var (planet, point) in AstroMath.DeepExaltationPoints)
+    {
+        var seed = conn.QuerySingleOrDefault<(int ExaltedPlanetId, decimal ExaltedDegree)?>(
+            "SELECT ExaltedPlanetId, ExaltedDegree FROM dbo.tbl_SignAttributes WHERE Id = @SignId",
+            new { SignId = AstroIds.SignId(point.Sign) });
+        var ok = seed is { } s && s.ExaltedPlanetId == AstroIds.PlanetId(planet) && s.ExaltedDegree == (decimal)point.Degree;
+        if (!ok)
+        {
+            exaltationMismatch++;
+            Console.WriteLine($"    {planet}: AstroMath says {point.Sign} {point.Degree}, tbl_SignAttributes says {seed}");
+        }
+    }
+    Check("AstroMath.DeepExaltationPoints agrees with tbl_SignAttributes", exaltationMismatch);
+
     // Moolatrikona range: strict for Su/Ma/Ju/Ve/Sa; the two PVR divergences (Moon 3 deg vs
     // seed 4/NULL, Mercury 15 deg vs seed 16) are documented in
     // docs/research/dignity-pvr-integrated.md "Divergence" -- reported, not failed.

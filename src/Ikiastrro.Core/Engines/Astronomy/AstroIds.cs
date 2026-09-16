@@ -14,6 +14,9 @@ public static class AstroIds
 
     public static int PlanetId(PlanetName planet) => (int)planet + PlanetIdOffset;
 
+    /// <summary>Inverse of <see cref="PlanetId"/> — recovers the enum from a stored tbl_Planets.Id.</summary>
+    public static PlanetName PlanetFromId(int planetId) => (PlanetName)(planetId - PlanetIdOffset);
+
     public static int SignId(ZodiacName sign) => (int)sign + SignIdOffset;
 
     /// <summary>Null for "Ascendant" (not a graha); otherwise the tbl_Planets.Id for the name.</summary>

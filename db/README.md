@@ -62,7 +62,7 @@ rows, and the planetary-war rule.
 bindu matrix (per-recipient totals 48/49/39/54/56/52/39; grand total 337), the two reduction
 rules, and the JHora BAV grid + derived Sarvashtakavarga from the `research.*` benchmark.
 
-Migrations `055`–`076` are applied to dev but **not yet folded forward** into
+Migrations `055`–`078` are applied to dev but **not yet folded forward** into
 `db/ikiastrro.sql`; do that once they are proven on the other environments.
 
 ## Verifying a migrated / rebuilt DB

@@ -94,7 +94,7 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 | AVASTHA | cli | 5 | 32% | 3 | 3 | 3 | 5 | 3 |
 | DISPOSITOR | cli | 1 | 0% | 1 | 1 | 1 | 1 | 1 |
 | STRENGTH | cli | 2 | 40% | 1 | 2 | 2 | 2 | 1 |
-| ASHTAKAVARGA | cli | 1 | 30% | 0 | 1 | 1 | 1 | 0 |
+| ASHTAKAVARGA | cli | 1 | 80% | 0 | 0 | 0 | 1 | 0 |
 | DASHA | cli | 2 | 90% | 0 | 0 | 0 | 0 | 1 |
 | YOGA | cli | 1 | 0% | 1 | 1 | 1 | 1 | 1 |
 | TRANSIT | cli | 2 | 80% | 0 | 0 | 0 | 1 | 0 |
@@ -246,18 +246,20 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 
 ## ASHTAKAVARGA — workstream: cli
 
-- **FEAT-ASHTAKAVARGA-01 · Bhinna / Sarva Ashtakavarga + Sodhya Piṇḍa** — DB · 30% · Research: sourced
-  DB [x] · Core [ ] · Verify [ ] · Web [ ] · Docs [x]
-  **DB slice done** (migrations 074–076): production `dbo` schema —
-  `tbl_Rule_AshtakavargaContribution` (56-row Parāśari benefic-places matrix, per-recipient
-  totals 48/49/39/54/56/52/39, SAV grand total 337; BPHS, cross-checked vs the vendored MIT
-  `jyotishganit`, hand-verified against the JHora export — the Saturn BAV row reproduces
-  exactly), `tbl_Rule_AshtakavargaReduction` (Trikoṇa + Ekādhipatya Śodhana),
+- **FEAT-ASHTAKAVARGA-01 · Bhinna / Sarva Ashtakavarga + Sodhya Piṇḍa** — Verified · 80% · Verify `verify-ashtakavarga`
+  DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [x]
+  Production `dbo` schema (migrations 074–078): `tbl_Rule_AshtakavargaContribution` (56-row
+  Parāśari benefic-places matrix — per-recipient totals 48/49/39/54/56/52/39, SAV grand
+  total 337; Moon/Venus carry the Parāśari corrections JHora uses),
+  `tbl_Rule_AshtakavargaReduction` (Ṭrikoṇa / Ekādhipatya / Sodhya-Piṇḍa steps),
   `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`,
-  `tbl_Fact_AshtakavargaPinda`, `vw_ChartAshtakavarga`. The JHora BAV grid + Piṇḍa are
-  seeded into the `research.*` benchmark for `BENCH_RAMAKRISHNAN_P_JHORA_1981`.
-  Remaining (CLI): `AshtakavargaCalculator` (BAV → SAV → Trikoṇa/Ekādhipatya → Sodhya
-  Piṇḍa), repository, `GenerateAll` wiring, `verify-ashtakavarga`, and a UI table.
+  `tbl_Fact_AshtakavargaPinda`, `vw_ChartAshtakavarga`.
+  `AshtakavargaCalculator` (Core `Engines/Ashtakavarga/`, `ChartBundle.Ashtakavarga`,
+  wired into `ChartGenerationService`) + `AshtakavargaRepository`.
+  `verify-ashtakavarga` reproduces the JHora export for `1_Ramakrishnan` **exactly** —
+  every BAV cell, the SAV, and all seven Rāśi/Graha/Sodhya Piṇḍa triples — and checks the
+  persisted `tbl_Fact_*`. `tests/Ikiastrro.Yoga.Tests/AshtakavargaCalculatorTests` (6).
+  Remaining: a UI Ashtakavarga table over `vw_ChartAshtakavarga` (`Web [ ]`).
 
 ## DASHA — workstream: cli
 

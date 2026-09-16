@@ -1,3 +1,4 @@
+using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.PlanetaryStates;
@@ -33,7 +34,11 @@ public sealed record ChartBundle(
     /// <summary>Explicit D1/D9 same-sign results; Vargottama is reported separately from Shadbala points.</summary>
     public IReadOnlyList<VargottamaResult> Vargottama { get; init; } = Array.Empty<VargottamaResult>();
 
+    /// <summary>Parāśari Ashtakavarga (BAV / SAV / Sodhya Piṇḍa) over the D1 chart. Null only when
+    /// no D1 chart is present in <see cref="Charts"/>.</summary>
+    public AshtakavargaResult? Ashtakavarga { get; init; }
+
     /// <summary>Tithi / Karana / Nitya Yoga / Vedic Weekday / Hora Lord for the birth moment.
-    /// D1-only — never null once <see cref="Run"/> has built it.</summary>
+    /// D1-only, like <see cref="Ashtakavarga"/> — never null once <see cref="Run"/> has built it.</summary>
     public PanchangaResult? Panchanga { get; init; }
 }

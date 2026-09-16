@@ -1,4 +1,5 @@
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Models;
 using Ikiastrro.Core.Pipeline;
 
@@ -17,17 +18,14 @@ public static class ShadbalaCalculator
         PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn
     };
 
-    private static readonly IReadOnlyDictionary<PlanetName, double> DeepExaltation =
-        new Dictionary<PlanetName, double>
-        {
-            [PlanetName.Sun] = 10,
-            [PlanetName.Moon] = 33,
-            [PlanetName.Mars] = 298,
-            [PlanetName.Mercury] = 165,
-            [PlanetName.Jupiter] = 95,
-            [PlanetName.Venus] = 357, // Pisces 27° — was 327 (Aquarius 27°), a 30° error; see RamanYogaBatchFiveEvaluator's DeepExaltation and PvrDignityEvaluator, both already Pisces 27°
-            [PlanetName.Saturn] = 200
-        };
+    /// <summary>Deep-exaltation point as an absolute 0-360 longitude, from the shared
+    /// AstroMath.DeepExaltationPoints (previously an independent hardcoded copy here — 2026-09-11
+    /// rule-mapping audit).</summary>
+    private static double DeepExaltationLongitude(PlanetName planet)
+    {
+        var (sign, degree) = AstroMath.DeepExaltationPoints[planet];
+        return (int)sign * 30 + degree;
+    }
 
     private static readonly IReadOnlyDictionary<PlanetName, double> Naisargika =
         new Dictionary<PlanetName, double>
@@ -50,17 +48,30 @@ public static class ShadbalaCalculator
             [PlanetName.Saturn] = 7
         };
 
-    /// <summary>Calculates the seven classical planets from the D1 and available varga inputs.</summary>
+    /// <summary>Graha Yuddha (planetary war) participants and orb — tbl_Rule_PlanetaryWar
+    /// (migration 072, SRC_RAMAN_GRAHA_BHAVA_BALAS). Sun/Moon/nodes never take part.</summary>
+    private static readonly PlanetName[] WarParticipants =
+        { PlanetName.Mars, PlanetName.Mercury, PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn };
+    private const double WarOrbDegrees = 1.00;
+
+    /// <summary>Calculates the seven classical planets from the D1 and available varga inputs.
+    /// <paramref name="panchanga"/> supplies the already-verified Vedic weekday and Hora Lord
+    /// (<see cref="PanchangaCalculator"/>) so Dina/Hora Bala reuse that layer instead of
+    /// re-deriving it.</summary>
     public static IReadOnlyList<PlanetaryStrengthResult> Calculate(
         IReadOnlyList<ChartAnalysisInput> charts,
         SiderealPositions positions,
-        SunTimes sunTimes)
+        SunTimes sunTimes,
+        PanchangaResult panchanga)
     {
         var d1 = charts.FirstOrDefault(c => c.ChartType.Equals("D1", StringComparison.OrdinalIgnoreCase))
                   ?? charts.FirstOrDefault()
                   ?? throw new ArgumentException("At least one chart input is required.", nameof(charts));
 
-        var results = new List<PlanetaryStrengthResult>(ClassicalPlanets.Length);
+        var provisional = new List<(PlanetName Planet, List<ShadbalaComponentResult> Components,
+            double Sthana, double Dig, double Kala, double Cheshta, double Naisargika, double Drik,
+            double TotalBeforeWar)>(ClassicalPlanets.Length);
+
         foreach (var planet in ClassicalPlanets)
         {
             var name = planet.ToString();
@@ -70,7 +81,7 @@ public static class ShadbalaCalculator
             var components = new List<ShadbalaComponentResult>();
             AddSthana(components, planet, p, charts);
             AddDig(components, planet, p);
-            AddKala(components, planet, p, positions, sunTimes);
+            AddKala(components, planet, p, positions, sunTimes, panchanga);
             AddCheshta(components, planet, p, positions);
             AddNaisargika(components, planet);
             AddDrik(components, planet, d1);
@@ -81,14 +92,33 @@ public static class ShadbalaCalculator
             var cheshta = Sum(components, "CHESTA_BALA");
             var naisargika = Sum(components, "NAISARGIKA_BALA");
             var drik = Sum(components, "DRIK_BALA");
-            var total = sthana + dig + kala + cheshta + naisargika + drik;
+            provisional.Add((planet, components, sthana, dig, kala, cheshta, naisargika, drik,
+                sthana + dig + kala + cheshta + naisargika + drik));
+        }
+
+        // Yuddha Bala (Graha Yuddha) is not one of the six sources; it adjusts the six-fold
+        // total afterwards, per tbl_Rule_PlanetaryWar (migration 072).
+        var yuddha = ComputeYuddha(d1, positions);
+
+        var results = new List<PlanetaryStrengthResult>(provisional.Count);
+        foreach (var row in provisional)
+        {
+            var components = row.Components;
+            var yuddhaVirupas = 0.0;
+            if (yuddha.TryGetValue(row.Planet, out var yuddhaRow))
+            {
+                components.Add(yuddhaRow);
+                yuddhaVirupas = yuddhaRow.ValueVirupas;
+            }
+
+            var total = row.TotalBeforeWar + yuddhaVirupas;
             var uchcha = components.First(x => x.SubComponentCode == "UCHCHA_BALA").ValueVirupas;
-            var ishta = Math.Sqrt(Math.Max(0, uchcha * cheshta));
+            var ishta = Math.Sqrt(Math.Max(0, uchcha * row.Cheshta));
 
             results.Add(new PlanetaryStrengthResult(
-                name, components, Round(sthana), Round(dig), Round(kala), Round(cheshta),
-                Round(naisargika), Round(drik), Round(total), Round(total / 60.0),
-                Round(ishta), Round(60.0 - ishta)));
+                row.Planet.ToString(), components, Round(row.Sthana), Round(row.Dig), Round(row.Kala),
+                Round(row.Cheshta), Round(row.Naisargika), Round(row.Drik), Round(yuddhaVirupas),
+                Round(total), Round(total / 60.0), Round(ishta), Round(60.0 - ishta)));
         }
         return results;
     }
@@ -97,7 +127,7 @@ public static class ShadbalaCalculator
         PlanetPosition p, IReadOnlyList<ChartAnalysisInput> charts)
     {
         var longitude = p.NirayanaLongitudeDegrees!.Value;
-        var exalt = DeepExaltation[planet];
+        var exalt = DeepExaltationLongitude(planet);
         var distanceFromDebilitation = AngularDistance(longitude, (exalt + 180) % 360);
         rows.Add(Row("STHANA_BALA", "UCHCHA_BALA", distanceFromDebilitation / 3.0,
             "DEBILITATION_DISTANCE", "Raman/PVR: distance from the deep-debilitation point."));
@@ -152,7 +182,7 @@ public static class ShadbalaCalculator
     }
 
     private static void AddKala(List<ShadbalaComponentResult> rows, PlanetName planet, PlanetPosition p,
-        SiderealPositions positions, SunTimes sunTimes)
+        SiderealPositions positions, SunTimes sunTimes, PanchangaResult panchanga)
     {
         var dayStrong = planet is PlanetName.Sun or PlanetName.Jupiter or PlanetName.Venus;
         var nathonnata = sunTimes.IsNightBirth == dayStrong ? 0 : 60;
@@ -165,6 +195,62 @@ public static class ShadbalaCalculator
         var paksha = planet == PlanetName.Moon ? Math.Abs(180 - phase) / 3.0 : 0;
         rows.Add(Row("KALA_BALA", "PAKSHA_BALA", 60 - paksha,
             "MOON_PHASE", "Lunar-phase component; additional calendrical components are added in the next slice."));
+
+        // Dina (Vara) Bala -- 45 virupas to the lord of the birth weekday (sunrise-to-sunrise).
+        // Reuses PanchangaCalculator's own weekday-lord mapping (VedicWeekdayId 1=Sunday..7=Saturday
+        // -> PlanetName ordinal) rather than re-deriving it -- verify-panchanga already confirms
+        // Tuesday for 1_Ramakrishnan.
+        var weekdayLord = (PlanetName)(panchanga.VedicWeekdayId - 1);
+        rows.Add(Row("KALA_BALA", "DINA_BALA", planet == weekdayLord ? 45 : 0,
+            "WEEKDAY_LORD", $"Vara Bala: full strength only to the birth weekday's lord ({weekdayLord})."));
+
+        // Hora Bala -- 60 virupas to the lord of the planetary hour running at birth. Reuses
+        // PanchangaCalculator's own Hora Lord (verify-panchanga: Venus for 1_Ramakrishnan).
+        var horaLord = AstroIds.PlanetFromId(panchanga.HoraLordPlanetId);
+        rows.Add(Row("KALA_BALA", "HORA_BALA", planet == horaLord ? 60 : 0,
+            "HORA_LORD", $"Hora Bala: full strength only to the running planetary-hour lord ({horaLord})."));
+
+        // Tribhaga Bala -- day (sunrise-sunset) splits into 3 parts ruled Mercury/Sun/Saturn;
+        // night (sunset-next sunrise) into 3 parts ruled Moon/Venus/Mars. 60 virupas to the part's
+        // lord; Jupiter is classically exempt and always scores the full 60 regardless of the part.
+        // Elapsed-since-sunrise reuses panchanga.JanmaGhatis (already verified) rather than
+        // re-deriving the birth moment.
+        var (tribhagaValue, tribhagaNarrative) = TribhagaValue(planet, sunTimes, panchanga);
+        rows.Add(Row("KALA_BALA", "TRIBHAGA_BALA", tribhagaValue, "DAY_NIGHT_THIRD", tribhagaNarrative));
+    }
+
+    private static readonly PlanetName[] DayTribhagaLords = { PlanetName.Mercury, PlanetName.Sun, PlanetName.Saturn };
+    private static readonly PlanetName[] NightTribhagaLords = { PlanetName.Moon, PlanetName.Venus, PlanetName.Mars };
+
+    private static (double Value, string Narrative) TribhagaValue(
+        PlanetName planet, SunTimes sunTimes, PanchangaResult panchanga)
+    {
+        var dayLengthMinutes = (sunTimes.Sunset - sunTimes.Sunrise).TotalMinutes;
+        var nightLengthMinutes = (sunTimes.NextSunrise - sunTimes.Sunset).TotalMinutes;
+        var elapsedSinceSunrise = panchanga.JanmaGhatis * 24.0;
+
+        PlanetName partLord;
+        string phase;
+        if (elapsedSinceSunrise <= dayLengthMinutes)
+        {
+            var third = Math.Min(2, (int)(elapsedSinceSunrise / (dayLengthMinutes / 3.0)));
+            partLord = DayTribhagaLords[third];
+            phase = $"day-third #{third + 1}";
+        }
+        else
+        {
+            var intoNight = elapsedSinceSunrise - dayLengthMinutes;
+            var third = Math.Min(2, (int)(intoNight / (nightLengthMinutes / 3.0)));
+            partLord = NightTribhagaLords[third];
+            phase = $"night-third #{third + 1}";
+        }
+
+        if (planet == PlanetName.Jupiter)
+            return (60, $"Jupiter is classically exempt and always scores full Tribhaga Bala " +
+                        $"(birth fell in the {phase}, ruled by {partLord}).");
+
+        return (planet == partLord ? 60 : 0,
+            $"Birth fell in the {phase} (ruled by {partLord}); full Tribhaga Bala goes only to that lord.");
     }
 
     private static void AddCheshta(List<ShadbalaComponentResult> rows, PlanetName planet, PlanetPosition p,
@@ -196,6 +282,54 @@ public static class ShadbalaCalculator
         }
         rows.Add(Row("DRIK_BALA", "DRIK_BALA", total / 4.0,
             "SPUTA_DRISHTI", "Aspect strength from benefic and malefic planetary influence."));
+    }
+
+    /// <summary>
+    /// Graha Yuddha (planetary war) among the five tara grahas (tbl_Rule_PlanetaryWar, migration
+    /// 072): within <see cref="WarOrbDegrees"/> of D1 longitude, the planet with the more
+    /// northern ecliptic latitude wins. The winner/loser detection and criterion are cited
+    /// (SRC_RAMAN_GRAHA_BHAVA_BALAS via SRC_PVR_INTEGRATED); the delta MAGNITUDE (the seeded
+    /// diameter-based formula) is deliberately left at 0 virupas here -- the Raman edition that
+    /// carries the exact apparent-diameter coefficients has no text extract available, so
+    /// fabricating a number for it would violate this engine's source-honesty rule. 1_Ramakrishnan
+    /// has no war among his five tara grahas (Mars/Mercury/Venus are all >2° apart in Aries;
+    /// Jupiter/Saturn are 2°14' apart in Virgo), so this never fires for the golden record.
+    /// </summary>
+    private static IReadOnlyDictionary<PlanetName, ShadbalaComponentResult> ComputeYuddha(
+        ChartAnalysisInput d1, SiderealPositions positions)
+    {
+        var longitude = new Dictionary<PlanetName, double>();
+        foreach (var planet in WarParticipants)
+        {
+            var pos = d1.Planets.FirstOrDefault(x => x.Planet.Equals(planet.ToString(), StringComparison.OrdinalIgnoreCase));
+            if (pos?.NirayanaLongitudeDegrees is { } lon) longitude[planet] = lon;
+        }
+
+        var result = new Dictionary<PlanetName, ShadbalaComponentResult>();
+        for (var i = 0; i < WarParticipants.Length; i++)
+        for (var j = i + 1; j < WarParticipants.Length; j++)
+        {
+            var a = WarParticipants[i];
+            var b = WarParticipants[j];
+            if (!longitude.TryGetValue(a, out var lonA) || !longitude.TryGetValue(b, out var lonB)) continue;
+            var orb = AngularDistance(lonA, lonB);
+            if (orb > WarOrbDegrees) continue;
+
+            var latA = positions.PlanetLatitudes.GetValueOrDefault(a);
+            var latB = positions.PlanetLatitudes.GetValueOrDefault(b);
+            var (winner, loser) = latA >= latB ? (a, b) : (b, a);
+
+            result[winner] = Row("YUDDHA_BALA", "YUDDHA_BALA", 0, "GRAHA_YUDDHA_LATITUDE",
+                $"Graha Yuddha vs {loser}: orb {orb:0.###}°, {winner} wins on more northern latitude " +
+                $"({positions.PlanetLatitudes.GetValueOrDefault(winner):0.###}° vs " +
+                $"{positions.PlanetLatitudes.GetValueOrDefault(loser):0.###}°). Magnitude deliberately left " +
+                "at 0 -- the diameter-based delta in tbl_Rule_PlanetaryWar needs the cited Raman edition " +
+                "(SRC_RAMAN_GRAHA_BHAVA_BALAS), which has no text extract available.");
+            result[loser] = Row("YUDDHA_BALA", "YUDDHA_BALA", 0, "GRAHA_YUDDHA_LATITUDE",
+                $"Graha Yuddha vs {winner}: orb {orb:0.###}°, {loser} loses on more southern latitude. " +
+                $"Magnitude deferred -- see {winner}'s row.");
+        }
+        return result;
     }
 
     private static ShadbalaComponentResult Row(string bala, string sub, double value, string method, string narrative) =>

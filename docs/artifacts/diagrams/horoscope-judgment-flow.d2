@@ -1,0 +1,76 @@
+# =============================================================================
+# ikiastrro — how an astrologer judges a horoscope, end to end
+# One stage per classical step; colour = ikiastrro build status, not classical
+# importance. Companion to docs/cli/reading/horoscope-judgment-flow.md.
+# Status as of 2026-09-11.  Render:  d2 horoscope-judgment-flow.d2 horoscope-judgment-flow.svg
+# =============================================================================
+direction: down
+
+classes: {
+  live:    { style: { fill: "#1b5e20"; font-color: "#ffffff"; stroke: "#2e7d32" } }
+  planned: { style: { fill: "#b71c1c"; font-color: "#ffffff"; stroke: "#c62828" } }
+  manual:  { style: { fill: "#4a148c"; font-color: "#ffffff"; stroke: "#6a1b9a" } }
+}
+
+title: "How an astrologer judges a horoscope — ikiastrro build status" {
+  near: top-center
+  style.font-size: 20
+}
+
+legend: |md
+  🟢 live in the engine + a UI screen · 🔴 planned / reserved seam · 🟣 astrologer synthesis (not automatable)
+| { near: top-right }
+
+intake: "0. Intake\nname / DOB / time / place -> tbl_BirthDetails" { class: live }
+
+cast: "1. Cast the chart\nD1 + 20 vargas + Panchanga + 3-level Dasha\n(compute-all / Home Add flow)" { class: live }
+
+foundation: "2. Foundational D1 read" {
+  lagna: "Lagna sign + lord"; lagna.class: live
+  placements: "Placements, houses, conjunctions + aspects"; placements.class: live
+  dignity: "Dignity: exalt / debil / own / MT / friend-enemy"; dignity.class: live
+  functional: "Functional benefic/malefic for this Lagna"; functional.class: live
+  combustion: "Combustion / retrograde / planetary war"; combustion.class: live
+}
+
+strength: "3. Strength & quality" {
+  shadbala: "Shadbala: Sthana + Dig + Kala\n(incl. Dina/Hora/Tribhaga Bala)"; shadbala.class: live
+  bhavabala: "Bhava Bala (12 houses)"; bhavabala.class: live
+  vimsopaka: "Vimsopaka / Vaiseshikamsa\n(cross-varga strength score)"; vimsopaka.class: planned
+}
+
+avastha: "4. Avastha (planet's condition)" {
+  baladi: "Baladi (age state)"; baladi.class: live
+  jagradadi: "Jagradadi (alertness state)"; jagradadi.class: live
+  sayanadi: "Sayanadi (posture state)"; sayanadi.class: live
+  deeptadi: "Deeptadi / Lajjitadi (mood / dignity state)"; deeptadi.class: planned
+}
+
+jaimini: "5. Jaimini overlay\nChara Karakas + Karakamsa (AK in D9)\n+ Arudha Lagna + BL / GL / HL / SL" { class: live }
+
+yoga: "6. Yoga scan\nRaman + PVR corpus, source-qualified outcomes,\nNOT_EVALUATED where P0 context is missing" { class: live }
+
+varga_loop: "7. Divisional confirmation loop (per life domain: D9 marriage, D10 career, ...)" {
+  subject: "Fix subject: bhava + natural karaka + chara-karaka overlay"; subject.class: live
+  vlagna: "Varga Lagna + its lord"; vlagna.class: live
+  assess: "Assess significators: varga house, dignity, retro, combustion"; assess.class: live
+  confirm: "Vargottama / same-sign-as-D1 check"; confirm.class: live
+  vyoga: "Yoga inside the varga (incl. Parivartana)"; vyoga.class: live
+  overlay: "JHora overlay cells (AL / GL / HL / Md / Gk)"; overlay.class: live
+}
+
+ashtakavarga: "8. Ashtakavarga\nBAV / SAV / Sodhya Pinda — sign-by-sign transit favourability" { class: live }
+
+timing: "9. Timing" {
+  dasha: "Vimshottari Dasha (Maha / Antar / Prat)\njudge the period lord's condition in D1 + the relevant varga"; dasha.class: live
+  transit: "Gochara (slow-planet transits)"; transit.class: live
+  sadesati: "Sade Sati / Kantaka / Ashtama windows"; sadesati.class: live
+}
+
+verdict: "10. Synthesis & verdict\nWeigh D1 vs varga vs dasha vs yoga vs strength.\nA varga overturns D1 only if: birth time is rectified AND\nthe signal is unambiguous AND corroborated by a 2nd source.\nOtherwise: report as a caution. Framework, not prophecy." { class: manual }
+
+intake -> cast -> foundation -> strength -> avastha -> jaimini -> yoga -> varga_loop -> ashtakavarga -> timing -> verdict
+
+varga_loop.confirm -> foundation.dignity: "corroborates / cautions the D1 read" { style.stroke-dash: 4 }
+timing.dasha -> varga_loop: "re-judge the running period lord\nin its relevant varga" { style.stroke-dash: 4 }
+strength.shadbala -> verdict: "planet quality feeds every stage's weight" { style.stroke-dash: 4; style.opacity: 0.6 }

@@ -166,7 +166,11 @@ internal sealed class TerminologySeedData
         {
             ["Baala"] = "Infant", ["Kumara"] = "Child", ["Yuva"] = "Youth",
             ["Vriddha"] = "Old", ["Mrita"] = "Dead",
-            ["Jagrat"] = "Awake", ["Swapna"] = "Dreaming", ["Sushupti"] = "Sleeping"
+            ["Jagrat"] = "Awake", ["Swapna"] = "Dreaming", ["Sushupti"] = "Sleeping",
+            ["Sayana"] = "Lying Down", ["Upavesana"] = "Sitting", ["Netrapaani"] = "Eyes and Hands",
+            ["Prakaasana"] = "Shining", ["Gamana"] = "Going", ["Aagamana"] = "Returning",
+            ["Sabhaa"] = "At Assembly", ["Aagama"] = "Acquiring", ["Bhojana"] = "Eating",
+            ["Nriyalipsaa"] = "Longing to Dance", ["Kautuka"] = "Eager", ["Nidraa"] = "Sleeping"
         };
         // Hardcoded ASCII glosses — NOT taken from tbl_Dim_PlanetaryState.Meaning: that VARCHAR
         // column stores raw UTF-8 bytes under a CP1252 collation, so its em-dash reads back mojibaked.
@@ -179,7 +183,19 @@ internal sealed class TerminologySeedData
             ["Mrita"] = "Dead stage - no effect.",
             ["Jagrat"] = "Awake - full result (own sign, exaltation or moolatrikona).",
             ["Swapna"] = "Dreaming - middling result (friendly or neutral sign).",
-            ["Sushupti"] = "Sleeping - weak result (enemy sign or debilitation)."
+            ["Sushupti"] = "Sleeping - weak result (enemy sign or debilitation).",
+            ["Sayana"] = "Sayanaadi state 1 of 12 - lying down, resting.",
+            ["Upavesana"] = "Sayanaadi state 2 of 12 - sitting down.",
+            ["Netrapaani"] = "Sayanaadi state 3 of 12 - using eyes and hands.",
+            ["Prakaasana"] = "Sayanaadi state 4 of 12 - shining.",
+            ["Gamana"] = "Sayanaadi state 5 of 12 - going, on the move.",
+            ["Aagamana"] = "Sayanaadi state 6 of 12 - coming, returning.",
+            ["Sabhaa"] = "Sayanaadi state 7 of 12 - being at an assembly.",
+            ["Aagama"] = "Sayanaadi state 8 of 12 - coming, acquiring.",
+            ["Bhojana"] = "Sayanaadi state 9 of 12 - eating.",
+            ["Nriyalipsaa"] = "Sayanaadi state 10 of 12 - longing to dance.",
+            ["Kautuka"] = "Sayanaadi state 11 of 12 - being eager.",
+            ["Nidraa"] = "Sayanaadi state 12 of 12 - sleeping."
         };
         var states = conn.Query<(int Id, string AvasthaSystem, string StateName)>(
             "SELECT Id, AvasthaSystem, StateName FROM dbo.tbl_Dim_PlanetaryState ORDER BY Id").ToList();

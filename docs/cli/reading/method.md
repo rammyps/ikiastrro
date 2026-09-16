@@ -5,7 +5,10 @@
 `d9-navamsa.md`, `d10-dasamsa.md`,
 `d60-shashtiamsa.md`) assumes this method and only documents what is
 *specific* to that varga. `varga-index.md` lists every remaining varga
-with a short note.
+with a short note. This method is step 7 of the full end-to-end judgment flow —
+see [`horoscope-judgment-flow.md`](horoscope-judgment-flow.md) for where it fits
+alongside strength, avastha, yoga and timing, with a D2 diagram of the whole
+astrologer's user flow.
 
 **Scope of these docs:** interpretation methodology and the classical significations the
 `ikiastrro` engine is built to serve — *how a chart is read*, not new calculation rules.

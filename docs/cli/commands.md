@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-09
+last_updated: 2026-09-11
 workstream: cli
 togaf: C — Application Architecture
 ---
@@ -42,17 +42,23 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 | `verify-sources` | every `SourceRefCode` resolves in `tbl_Dim_Source` | **PASS** |
 | `verify-dignity` | PVR dignity tiling, `DignityScore` / `RelationshipScore` ladders, `tbl_SignAttributes` cross-check | **PASS** (2 documented PVR divergences) |
 | `verify-terminology` | terminology coverage | **PASS** |
-| `verify-avastha` | Bālādi / Jāgradādi worked examples | **PASS** |
+| `verify-avastha` | Bālādi / Jāgradādi worked examples + Sayanaadi (PostureState) vs the JHora export's Activity table (all 9 grahas) | **PASS** |
 | `verify-functional-nature` | `LagnaFunctionalNature` worked examples | **PASS** |
 | `verify-baadhaka` | `BaadhakaCalculator` — all 12 rasis vs PVR Table 31 + 2 book worked examples | **PASS** |
 | `verify-upagrahas` | live rule loading + in-memory upagraha output, all 21 charts | **PASS** |
 | `verify-vargas` | hand-computed `IVargaSignRule` checks + **the JHora export grid** (180 cells) | **PASS** (on the Lahiri default, `FEAT-DATA-04`) |
-| `verify-jaimini` | HL / Gulika / Maandi longitudes + Chara Karakas vs the JHora export | **PASS** |
+| `verify-jaimini` | HL / Gulika / Maandi / BL / GL / SL longitudes + Chara Karakas + Karakamsa vs the JHora export, then `tbl_Rule_Karaka` (Chara Karaka order) + `tbl_Rule_ArudhaFormula` (citation) | **PASS** |
+| `verify-ashtakavarga` | C# matrix ⇄ `tbl_Rule_AshtakavargaContribution`, then BAV + SAV + all seven Rāśi/Graha/Sodhya Piṇḍa vs the JHora export for `1_Ramakrishnan` (exact), then vs the persisted `tbl_Fact_*` | **PASS** |
+| `verify-panchanga` | Tithi / Karaṇa / Nitya Yoga / Vedic weekday / Hora Lord / Janma Ghaṭis vs the JHora export for `1_Ramakrishnan` (exact / within rounding), then vs the persisted `tbl_Chart_Panchanga` | **PASS** |
+| `verify-strength` | Dina / Horā / Tribhāga Bala + Graha Yuddha detection, hand-derived from the JHora export's own sunrise/sunset/birth-time data (no per-component breakdown printed to cross-check), then vs the persisted `tbl_Fact_PlanetaryStrengthComponent` | **PASS** |
+| `verify-dasha` | `AstroMath.NakshatraLordOrder` / `VimshottariYearsByLord` (9-planet order, 120-year split) vs `tbl_Rule_VimshottariPeriod` | **PASS** |
 
 ## Tests
 
-`tests/Ikiastrro.Yoga.Tests` (124) — yoga engine, shadbala, sub-planet, transit selection.
-`tests/Ikiastrro.Web.Tests` (166, bUnit) — golden-SVG snapshots of the hand-rolled chart
+`tests/Ikiastrro.Yoga.Tests` (147) — yoga engine, shadbala (incl. Dina/Hora/Tribhaga Bala +
+Graha Yuddha detection), ashtakavarga, panchanga, Sree Lagna, Sayanaadi avastha, sub-planet,
+transit selection.
+`tests/Ikiastrro.Web.Tests` (187, bUnit) — golden-SVG snapshots of the hand-rolled chart
 components (`docs/artifacts/ui/README.md`; mint with `IKIASTRRO_UPDATE_SNAPSHOTS=1`).
 
 ## Golden record
