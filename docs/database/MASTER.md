@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-09-16
 workstream: database
 togaf: C — Data Architecture
 safe: Solution Intent (fixed) — data model
@@ -20,7 +20,10 @@ Publishes to the CLI and UI streams under
 |---|---|
 | [`schema.md`](schema.md) | Table inventory, chart-generic analytics, reference/master data, views & functions, migration policy |
 | [`rules-engine.md`](rules-engine.md) | `tbl_Dim_*` / `tbl_Rule_*` / `tbl_Fact_*` model — every rule table, its columns, its source rule |
+| [`karakafix.md`](karakafix.md) | Proposed normalized connection across Naisargika, Sthira and Chara karakas, life matters, and chart-level friendship evaluation |
 | [`db_view_catalog.md`](db_view_catalog.md) | UI table component ⇄ backing view / TVF binding — consumer-side index (definitions stay in `schema.md`); see [`../../project_standards.md`](../../project_standards.md) § 4 |
+| [`action-required-audit.md`](action-required-audit.md) | Live zero-row/suspended-population sweep: cause, priority, required action, and completion evidence |
+| [`rebuild-generated-data-plan.md`](rebuild-generated-data-plan.md) | Planned safe reset + bulk CLI + PowerShell orchestration for regenerating supported facts |
 
 ## Current state
 

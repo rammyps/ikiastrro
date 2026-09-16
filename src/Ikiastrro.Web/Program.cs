@@ -35,6 +35,7 @@ builder.Services.AddScoped<PlanetaryStrengthRepository>();
 builder.Services.AddScoped<BhavaStrengthRepository>();
 builder.Services.AddScoped<AshtakavargaRepository>();
 builder.Services.AddScoped<VargottamaRepository>();
+builder.Services.AddScoped<PanchangaRepository>();
 builder.Services.AddScoped<YogaInputRepository>();
 builder.Services.AddScoped<AstrologerEvidenceRepository>();
 builder.Services.AddScoped<Natal_Transit_Comp_WheelRepository>();

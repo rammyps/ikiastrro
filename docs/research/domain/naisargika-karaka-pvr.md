@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-09-16
 ---
 
 # Naisargika karaka — PVR ch. 8 (pg 79)
@@ -12,6 +12,9 @@ Normalized form of rammyps's naisargika-karaka worksheet. Backs
 
 Two distinct, dedicated tables — not the reserved generic `tbl_Rule_Karaka` (migration 18),
 which stays empty/reserved for a future chara/sthira layer:
+
+The follow-on normalization and connection plan across Naisargika, Sthira, Chara, life-matter,
+and friendship evaluation is documented in [`../../database/karakafix.md`](../../database/karakafix.md).
 
 | Table | Shape | Rows |
 |---|---|---|

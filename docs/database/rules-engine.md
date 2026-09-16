@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-14
+last_updated: 2026-09-16
 workstream: database
 togaf: C — Data Architecture
 safe: Solution Intent (fixed)
@@ -76,6 +76,9 @@ Part A:
 | `tbl_Rule_YogaValidationDefinition` | 1,002 | An imported external yoga-expression corpus (`ExpressionLanguage`/`ExpressionText`, `ValidationSystemId`) for cross-checking `ProductionYogaEngine`'s own evaluators | **reproducibility gap, not a Live? question** — `dbo.SchemaMigrations` records `054_add_yoga_validation_tables.sql` as applied, but no file by that name exists under `db/` (only `054_set_lahiri_ayanamsa_default.sql` does — the pre-existing duplicate-054 numbering). A from-scratch `db/ikiastrro.sql` build cannot currently reproduce this table's 1,002 rows. Needs either recovering/recreating that script or removing the stale `SchemaMigrations` row if the table is to be re-seeded fresh. **Not addressed by migration 085** — deliberately out of scope (see that migration's header). |
 | `tbl_Rule_VimshottariPeriod` | 9 | Vimshottari Dasha's core 9-planet order + 120-year split, SRC_PVR_INTEGRATED §16.2 Table 38, verified against the raw extract | mirror — added + seeded by migration 085; CLI `verify-dasha` cross-checks `SequenceOrder`/`YearsInCycle` against `AstroMath.NakshatraLordOrder`/`VimshottariYearsByLord` (also the KP-2 sub-lord division's source); `VimshottariDashaCalculator` itself stays 100% hardcoded, zero DB reads |
 | `tbl_Rule_ArudhaFormula` | 1 | Arudha pada counting rule (house → lord's sign → pada, 1st/7th → 10th exception), SRC_PVR_INTEGRATED §9.2, verified against the raw extract | mirror — added + seeded by migration 085; CLI `verify-jaimini` asserts the row exists and cites the right source (a narrative row, same shape as `tbl_Rule_PostureStateFormula`/`PanchangaFormula` — nothing to numerically round-trip); `ArudhaCalculator` itself stays 100% hardcoded, zero DB reads |
+
+The proposed normalization connecting Naisargika, Sthira and Chara roles to a shared life-matter
+vocabulary—and applying friendship only during chart evaluation—is in [`karakafix.md`](karakafix.md).
 
 ## Formulas computed in C#/SQL with no `tbl_Rule_*` citation at all
 
