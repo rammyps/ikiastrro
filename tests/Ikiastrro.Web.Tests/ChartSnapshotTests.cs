@@ -45,6 +45,24 @@ public class ChartSnapshotTests : BunitContext
     }
 
     [Fact]
+    public void SouthIndianGrid_Micro()
+    {
+        var cut = Render<SouthIndianGrid_Micro>(ps => ps
+            .Add(p => p.AscendantSign, "Aries")
+            .Add(p => p.MoonSign, "Taurus")
+            .Add(p => p.SunSign, "Aries")
+            .Add(p => p.PlanetsBySign, ChartFixture.MicroGridGlyphs)
+            .Add(p => p.UpagrahaLabels, ChartFixture.MicroUpagrahaLabels)
+            .Add(p => p.GrahaArudhaLabels, ChartFixture.MicroGrahaArudhaLabels)
+            .Add(p => p.ArudhaLagnaLabels, ChartFixture.MicroArudhaLagnaLabels)
+            .Add(p => p.AspectLabels, ChartFixture.MicroAspectLabels)
+            .Add(p => p.CenterTitle, "D1 · Rasi")
+            .Add(p => p.CenterMeta, "<span>Lagna Aries · Moon Taurus</span>"));
+
+        cut.MatchesGolden(nameof(SouthIndianGrid_Micro));
+    }
+
+    [Fact]
     public void MiniGrid()
     {
         var cut = Render<MiniGrid>(ps => ps

@@ -11,6 +11,18 @@
    </label>
   }
  </div>
+ @if (View == "south")
+ {
+  <div class="pgls-extras" role="group" aria-label="Grid display">
+   @foreach (var extra in GridExtraOptions)
+   {
+    <label class="pgls-check @(_selectedGridExtras.Contains(extra.Code) ? "is-active" : null)">
+     <input type="checkbox" checked="@_selectedGridExtras.Contains(extra.Code)" @onchange="e => ToggleGridExtra(extra.Code, e)" />
+     <span>@extra.Label</span>
+    </label>
+   }
+  </div>
+ }
  <div class="pgls-canvas">
   @if (SelectedReferences.Count == 0)
   {
@@ -86,9 +98,11 @@
     @foreach (var reference in SelectedReferences)
     {
      <div class="pgls-south-grid @ReferenceClass(reference.Code)">
-      <SouthIndianGrid_Detailed AscendantSign="@reference.Sign" PlanetsBySign="PlanetsBySign" SpecialPointLabels="SpecialPointLabels" CenterTitle="@ChartCode">
+      <SouthIndianGrid_Micro AscendantSign="@reference.Sign" MoonSign="@EffectiveMoonSign" SunSign="@EffectiveSunSign"
+          PlanetsBySign="MicroPlanetsBySign" UpagrahaLabels="UpagrahaLabels" GrahaArudhaLabels="GrahaArudhaLabels"
+          ArudhaLagnaLabels="ArudhaLagnaLabels" AspectLabels="AspectLabels" CenterTitle="@ChartCode">
        <CenterMeta><b>@reference.Name</b> · @DisplaySign(reference.Sign)</CenterMeta>
-      </SouthIndianGrid_Detailed>
+      </SouthIndianGrid_Micro>
      </div>
     }
    </div>
@@ -103,6 +117,14 @@
  [Parameter,EditorRequired]public IReadOnlyList<Sector>Sectors{get;set;}=Array.Empty<Sector>();
  [Parameter]public IReadOnlyList<PlanetPlacement>PlanetPlacements{get;set;}=Array.Empty<PlanetPlacement>();
  [Parameter]public IReadOnlyList<ReferencePoint>ReferencePoints{get;set;}=Array.Empty<ReferencePoint>();
+ // Grid-view-only data (2026-09-17) — additive, defaulting empty so the Wheel view and any other
+ // caller are unaffected. Raw KeyDetails/Aspects (not the lighter PlanetPlacement/ReferencePoint
+ // records above) since SouthIndianGrid_Micro's content needs more than those carry: PointKind
+ // discrimination (Graha/Upagraha/GrahaArudha), CharaKaraka, and full ChartAspect rows for the
+ // Ma(4)-style tags.
+ [Parameter]public IReadOnlyList<ChartKeyDetail>KeyDetails{get;set;}=Array.Empty<ChartKeyDetail>();
+ [Parameter]public IReadOnlyList<ChartAspect>Aspects{get;set;}=Array.Empty<ChartAspect>();
+ [Parameter]public IReadOnlyList<NaisargikaKarakaRow>NaisargikaKarakas{get;set;}=Array.Empty<NaisargikaKarakaRow>();
  [Parameter]public string ChartCode{get;set;}="D1";
  [Parameter]public string AscendantSign{get;set;}="Aries";
  [Parameter]public string View{get;set;}="polar";
@@ -132,6 +154,44 @@
  private string SelectedReferenceNames=>string.Join(" · ",SelectedReferences.Select(r=>ShortName(r.Code)));
  private IReadOnlyDictionary<string,IReadOnlyList<GridPlanetGlyph>> PlanetsBySign=>PlanetPlacements.GroupBy(p=>p.Sign).ToDictionary(g=>g.Key,g=>(IReadOnlyList<GridPlanetGlyph>)g.Select(p=>new GridPlanetGlyph(p.Planet,ChartViewModel.DignityToken(p.DignityStatus),false,false)).ToList());
  private IReadOnlyDictionary<string,IReadOnlyList<string>> SpecialPointLabels=>ReferencePoints.Where(r=>r.Code!="LAGNA").GroupBy(r=>r.Sign).ToDictionary(g=>g.Key,g=>(IReadOnlyList<string>)g.Select(r=>ShortName(r.Code)).Distinct().ToList());
+
+ // --- Grid-display toggles + Micro grid data (2026-09-17) --- one checkbox group, default
+ // everything on (same "all selected by default" convention _selectedReferenceCodes uses), not
+ // reset on chart change since these aren't chart-dependent (unlike the Lagna references, which
+ // vary by which the selected chart supports).
+ private static readonly (string Code,string Label)[] GridExtraOptions =
+ {
+  ("UPAGRAHA","UPAGRAHAS"), ("GRAHA_ARUDHA","GRA-ARUDHA"), ("ARUDHA_LAGNA","ARUDHA-LAGNA"),
+  ("HN_MOON","HN-MOON"), ("HN_SUN","HN-SUN")
+ };
+ private readonly HashSet<string> _selectedGridExtras = new(StringComparer.OrdinalIgnoreCase)
+  { "UPAGRAHA", "GRAHA_ARUDHA", "ARUDHA_LAGNA", "HN_MOON", "HN_SUN" };
+ private static readonly IReadOnlyDictionary<string,IReadOnlyList<string>> EmptyLabels = new Dictionary<string,IReadOnlyList<string>>();
+ private void ToggleGridExtra(string code,ChangeEventArgs e){if(e.Value is true)_selectedGridExtras.Add(code);else _selectedGridExtras.Remove(code);}
+
+ // Both karaka tags are a display-only gate to D1/D9 (spec_SouthIndianGrid_Micro.md) — the
+ // underlying data (CharaKaraka, Naisargika Karaka) is the same for every chart type.
+ private bool ShowKarakas=>ChartCode is "D1" or "D9";
+ private IReadOnlyDictionary<string,IReadOnlyList<int>> NaisargikaHousesByGraha=>NaisargikaKarakas.GroupBy(k=>k.Graha).ToDictionary(g=>g.Key,g=>(IReadOnlyList<int>)g.Select(k=>k.HouseNumber).OrderBy(h=>h).ToList());
+ private IReadOnlyDictionary<string,IReadOnlyList<MicroPlanetGlyph>> MicroPlanetsBySign=>KeyDetails
+  .Where(k=>k.PointKind=="Graha"&&k.Planet!="Ascendant")
+  .GroupBy(k=>k.Sign)
+  .ToDictionary(g=>g.Key,g=>(IReadOnlyList<MicroPlanetGlyph>)g.Select(k=>new MicroPlanetGlyph(
+   k.Planet, ChartViewModel.DignityToken(k.DignityStatus), k.IsRetrograde??false, k.IsCombust??false,
+   ShowKarakas&&NaisargikaHousesByGraha.TryGetValue(k.Planet,out var houses)?$"NK{string.Join(",",houses)}":null,
+   ShowKarakas?k.CharaKaraka:null)).ToList());
+ private IReadOnlyDictionary<string,IReadOnlyList<string>> UpagrahaLabels=>!_selectedGridExtras.Contains("UPAGRAHA")?EmptyLabels:KeyDetails
+  .Where(k=>k.PointKind=="Upagraha")
+  .GroupBy(k=>k.Sign)
+  .ToDictionary(g=>g.Key,g=>(IReadOnlyList<string>)g.Select(k=>k.Planet switch{"Gulika"=>"Gk","Maandi"=>"Md",_=>k.Planet}).ToList());
+ private IReadOnlyDictionary<string,IReadOnlyList<string>> GrahaArudhaLabels=>!_selectedGridExtras.Contains("GRAHA_ARUDHA")?EmptyLabels:KeyDetails
+  .Where(k=>k.PointKind=="GrahaArudha")
+  .GroupBy(k=>k.Sign)
+  .ToDictionary(g=>g.Key,g=>(IReadOnlyList<string>)g.Select(k=>$"GA-{ChartViewModel.PlanetGlyph(k.Planet.Replace("GA_",""))}").ToList());
+ private IReadOnlyDictionary<string,IReadOnlyList<string>> ArudhaLagnaLabels=>_selectedGridExtras.Contains("ARUDHA_LAGNA")?SpecialPointLabels:EmptyLabels;
+ private IReadOnlyDictionary<string,IReadOnlyList<string>> AspectLabels=>ChartViewModel.BuildAspectedByMicro(KeyDetails,Aspects);
+ private string? EffectiveMoonSign=>_selectedGridExtras.Contains("HN_MOON")?KeyDetails.FirstOrDefault(k=>k.Planet=="Moon")?.Sign:null;
+ private string? EffectiveSunSign=>_selectedGridExtras.Contains("HN_SUN")?KeyDetails.FirstOrDefault(k=>k.Planet=="Sun")?.Sign:null;
 
  // Default is every reference this chart supports selected (rammyps's call, 2026-09-16 evening —
  // was just Sign Lagna before, back when all 5 were overlaid on one shared ring of text; now each

@@ -32,7 +32,8 @@ else
  </header>
  @if (SelectedChart is { } selected)
  {
-  <PolarGridLagnaSelect Sectors="BuildSectors(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" View="@_view" />
+  <PolarGridLagnaSelect Sectors="BuildSectors(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" View="@_view"
+      KeyDetails="selected.KeyDetails" Aspects="selected.Aspects" NaisargikaKarakas="_rules.Primary" />
 
   var lagnaRows = BuildSpecialLagnaRows(selected, _rules.LagnaReferences);
   @if (lagnaRows.Count > 0)

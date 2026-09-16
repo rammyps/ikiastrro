@@ -1,0 +1,101 @@
+/* Scoped to this component by Blazor's CSS isolation. Reads --paper/--ink/--dignity-* etc. from the
+   caller's .page-scoped tokens, same as SouthIndianGrid_Detailed.razor.css — see that file's own
+   header comment for why cross-scope custom-property inheritance works here. */
+
+* { box-sizing: border-box; }
+
+.chart-wrap { display: flex; justify-content: center; }
+
+.chart {
+    /* No aspect-ratio, same reasoning as Detailed: cell height is content-driven, and a Micro
+       cell's content varies far more than Detailed's ever did. */
+    width: 100%;
+    max-width: 560px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 3px;
+    background: var(--paper-line);
+    border: 3px solid var(--accent-line);
+    border-radius: 4px;
+    box-shadow: 0 12px 32px var(--shadow);
+}
+
+.cell { background: var(--paper-raised); padding: 6px 7px; display: flex; flex-direction: column; gap: 3px; position: relative; min-width: 0; }
+.cell.center { background: var(--paper); align-items: center; justify-content: center; text-align: center; padding: 14px; }
+.cell.ascendant { background: var(--asc-glow); box-shadow: inset 0 0 0 2px var(--accent); }
+
+.sign-label { display: flex; }
+.sign-en { font-size: 10px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.02em; }
+
+.lagna-tag {
+    position: absolute; top: 5px; right: 6px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--accent); background: var(--paper);
+    padding: 1px 5px; border-radius: 3px; border: 1px solid var(--accent-line);
+}
+
+.house-nums {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+}
+/* Room for the LAGNA tag above the badge stack on the ascendant cell. */
+.cell.ascendant .house-nums { top: 20px; }
+
+.house-num {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 0 3px;
+    border-radius: 3px;
+    line-height: 1.4;
+    min-width: 14px;
+    text-align: center;
+}
+
+.house-num.from-lagna { color: var(--house-lagna-fg); background: var(--house-lagna); }
+.house-num.from-moon { color: var(--house-moon-fg); background: var(--house-moon); }
+.house-num.from-sun { color: var(--house-sun-fg); background: var(--house-sun); }
+
+/* Every content row below is a normal-flow flex child (never absolutely positioned) — that's
+   what keeps a dense cell's rows from ever overlapping each other no matter how many tags land
+   in it; they wrap and the cell grows instead. Rows still read as visually distinct by icon/tag
+   style, not by forced separation. */
+.row { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+
+.planet-glyph {
+    display: inline-flex; align-items: center; gap: 2px;
+    font-size: 12px; font-weight: 700; color: var(--ink);
+    line-height: 1.4;
+    /* No background/border fill here — Micro drops the chip look Detailed's .planet-glyph has,
+       on purpose (spec: "planet background color is not needed"), to leave more room for the
+       karaka tags that ride alongside each glyph. */
+}
+.planet-glyph .dot { width: 5px; height: 5px; border-radius: 50%; flex: none; }
+.planet-glyph .combust-icon { font-size: 9px; line-height: 1; }
+
+.karaka-tag {
+    font-size: 8px; font-weight: 700; line-height: 1.3;
+    border-radius: 2px; padding: 0 2px;
+}
+.karaka-tag.nk { color: var(--ink-soft); border: 1px solid var(--paper-line); }
+.karaka-tag.ck { color: var(--accent); border: 1px solid var(--accent-line); }
+
+.point-tag {
+    font-size: 9px; color: var(--ink-soft); border: 1px solid var(--paper-line);
+    border-radius: 2px; padding: 0 3px; line-height: 1.4;
+}
+.point-tag.aspect { color: var(--aspect-faint); border-style: dashed; }
+
+.center-title { font-family: var(--font-interface); font-size: 15px; color: var(--ink); margin-bottom: 4px; }
+.center-meta { font-size: 11px; color: var(--ink-faint); line-height: 1.6; }
+.center-meta b { color: var(--ink-soft); font-weight: 600; }
+
+@media (max-width: 480px) {
+    .cell { padding: 5px 6px; }
+    .lagna-tag { display: none; }
+}

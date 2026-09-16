@@ -47,6 +47,11 @@
     --house-lagna-fg: #fbeee7;
     --house-moon: #c9932b;
     --house-moon-fg: #2a2118;
+    /* Third axis, SouthIndianGrid_Micro only (2026-09-17) — house counted from the natal Sun,
+       toggleable via the "HN-Sun" checkbox. Teal keeps it visually distinct from the maroon/gold
+       pair above at a glance. */
+    --house-sun: #2d6b7a;
+    --house-sun-fg: #eaf6f8;
 
     /* Destructive-action color (Delete buttons/icons, the confirm dialog) — one shared token
        instead of a one-off hex. A deeper, more saturated red than --accent's maroon so "danger"

@@ -98,6 +98,31 @@ internal static class ChartFixture
         Graha("Ketu", "Virgo"),
     };
 
+    // --- SouthIndianGrid_Micro: sign -> MicroPlanetGlyph (direct + retrograde + both karaka tags) ---
+    public static readonly IReadOnlyDictionary<string, IReadOnlyList<MicroPlanetGlyph>> MicroGridGlyphs =
+        new Dictionary<string, IReadOnlyList<MicroPlanetGlyph>>
+        {
+            ["Aries"] = new[] { new MicroPlanetGlyph("Sun", "exalted", false, false, "NK1", "AK") },
+            ["Taurus"] = new[] { new MicroPlanetGlyph("Moon", "exalted", true, false, null, "AmK") },
+            ["Pisces"] = new[]
+            {
+                new MicroPlanetGlyph("Mercury", "debilitated", true, true, null, null),
+                new MicroPlanetGlyph("Venus", "exalted", false, false, "NK7", null),
+            },
+        };
+
+    public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> MicroUpagrahaLabels =
+        new Dictionary<string, IReadOnlyList<string>> { ["Aries"] = new[] { "Gk", "Md" } };
+
+    public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> MicroGrahaArudhaLabels =
+        new Dictionary<string, IReadOnlyList<string>> { ["Taurus"] = new[] { "GA-Su" } };
+
+    public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> MicroArudhaLagnaLabels =
+        new Dictionary<string, IReadOnlyList<string>> { ["Cancer"] = new[] { "AL" } };
+
+    public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> MicroAspectLabels =
+        new Dictionary<string, IReadOnlyList<string>> { ["Libra"] = new[] { "Ma(4)" } };
+
     private static ChartKeyDetail Graha(string planet, string sign) =>
         new() { Planet = planet, Sign = sign, PointKind = "Graha" };
 

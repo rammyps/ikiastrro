@@ -203,6 +203,18 @@ public static class ChartViewModel
         IReadOnlyList<ChartAspect> aspects) =>
         BuildAspectedBy(keyDetails, aspects, FormatAspectPlain);
 
+    /// <summary>"Ma(4)" style label (glyph + parenthesized house-count, always shown — unlike
+    /// FormatAspectChip's default-7th omission and FormatAspectPlain's dash separator) for
+    /// SouthIndianGrid_Micro's inline aspect row (rammyps's explicit format, 2026-09-17) — same
+    /// per-sign grouping as BuildAspectedByGlyphs above, just a different label shape.</summary>
+    public static IReadOnlyDictionary<string, IReadOnlyList<string>> BuildAspectedByMicro(
+        IReadOnlyList<ChartKeyDetail> keyDetails,
+        IReadOnlyList<ChartAspect> aspects) =>
+        BuildAspectedBy(keyDetails, aspects, FormatAspectMicro);
+
+    private static string FormatAspectMicro(string aspectingPlanet, string aspectType) =>
+        $"{PlanetGlyph(aspectingPlanet)}({new string(aspectType.TakeWhile(char.IsDigit).ToArray())})";
+
     private static IReadOnlyDictionary<string, IReadOnlyList<string>> BuildAspectedBy(
         IReadOnlyList<ChartKeyDetail> keyDetails,
         IReadOnlyList<ChartAspect> aspects,

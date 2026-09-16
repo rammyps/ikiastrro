@@ -1,0 +1,166 @@
+@*
+    Denser sibling of SouthIndianGrid_Detailed — same fixed 4x4 sign-position grid, but built for
+    one specific consumer (PolarGridLagnaSelect's Grid view, Key Inference step "4. Spl Lagnas")
+    that needs far more per-cell content than Detailed was ever designed to hold: regular planets
+    plus Gulika/Maandi, Graha Arudha, Arudha Lagna, two karaka tags per planet (D1/D9 only), and
+    inline aspect tags. New module per project_standards.md §3.3 ("a new visual treatment of an
+    existing chart module is a new module with its own suffixed name, never a rewrite in place")
+    — SouthIndianGrid_Detailed and its other consumers are untouched.
+
+    Spec: docs/ui/components/spec_SouthIndianGrid_Micro.md. Tab-level spec:
+    docs/ui/components/specs_KI_spllagna.md.
+
+    Every optional row below (planets/upagrahas/arudhas/aspects) is a normal-flow flex child, not
+    absolutely positioned — this is what keeps cells from ever overlapping their own content no
+    matter how many rows/tags a sign ends up with; only the corner LAGNA tag and house-number
+    badges (unchanged from Detailed) are absolutely positioned.
+*@
+
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Presentation
+
+<div class="grid-root">
+    <div class="chart-wrap">
+        <div class="chart">
+            @foreach (var cell in GridCells)
+            {
+                var isAscendant = cell.MatchSign == AscendantSign;
+                var glyphs = PlanetsBySign.TryGetValue(cell.MatchSign, out var list) ? list : Array.Empty<MicroPlanetGlyph>();
+                var upagrahas = UpagrahaLabels.TryGetValue(cell.MatchSign, out var ul) ? ul : Array.Empty<string>();
+                var grahaArudhas = GrahaArudhaLabels.TryGetValue(cell.MatchSign, out var gl) ? gl : Array.Empty<string>();
+                var arudhaLagnas = ArudhaLagnaLabels.TryGetValue(cell.MatchSign, out var al) ? al : Array.Empty<string>();
+                var aspectTags = AspectLabels.TryGetValue(cell.MatchSign, out var at) ? at : Array.Empty<string>();
+                var cellSign = Enum.Parse<ZodiacName>(cell.MatchSign);
+                var houseFromLagna = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(AscendantSign), cellSign);
+                int? houseFromMoon = string.IsNullOrEmpty(MoonSign)
+                    ? null
+                    : AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(MoonSign), cellSign);
+                int? houseFromSun = string.IsNullOrEmpty(SunSign)
+                    ? null
+                    : AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(SunSign), cellSign);
+
+                <div class="cell @(isAscendant ? "ascendant" : "")" style="grid-column:@cell.Col;grid-row:@cell.Row;">
+                    @if (isAscendant)
+                    {
+                        <span class="lagna-tag">LAGNA</span>
+                    }
+                    <span class="house-nums">
+                        <span class="house-num from-lagna" title="House @houseFromLagna from Lagna">@houseFromLagna</span>
+                        @if (houseFromMoon is int hm)
+                        {
+                            <span class="house-num from-moon" title="House @hm from the Moon">@hm</span>
+                        }
+                        @if (houseFromSun is int hs)
+                        {
+                            <span class="house-num from-sun" title="House @hs from the Sun">@hs</span>
+                        }
+                    </span>
+                    <div class="sign-label">
+                        <span class="sign-en">@cell.DisplayEn</span>
+                    </div>
+                    @if (glyphs.Count > 0)
+                    {
+                        <div class="row planets">
+                            @foreach (var g in glyphs)
+                            {
+                                var glyph = ChartViewModel.PlanetGlyph(g.PlanetName);
+                                <span class="planet-glyph">
+                                    <span class="glyph-text">@(g.IsRetrograde ? $"({glyph})" : glyph)</span>
+                                    @if (g.DignityToken is not null)
+                                    {
+                                        <span class="dot" style="background:var(--dignity-@g.DignityToken)"></span>
+                                    }
+                                    @if (g.IsCombust) { <span class="combust-icon" title="Combust">🔥</span> }
+                                    @if (g.NaisargikaKarakaTag is not null)
+                                    {
+                                        <span class="karaka-tag nk" title="Naisargika Karaka">@g.NaisargikaKarakaTag</span>
+                                    }
+                                    @if (g.CharaKarakaTag is not null)
+                                    {
+                                        <span class="karaka-tag ck" title="Chara Karaka">@g.CharaKarakaTag</span>
+                                    }
+                                </span>
+                            }
+                        </div>
+                    }
+                    @if (upagrahas.Count > 0)
+                    {
+                        <div class="row upagrahas">
+                            @foreach (var u in upagrahas) { <span class="point-tag">@u</span> }
+                        </div>
+                    }
+                    @if (grahaArudhas.Count > 0 || arudhaLagnas.Count > 0)
+                    {
+                        <div class="row arudhas">
+                            @foreach (var g in grahaArudhas) { <span class="point-tag">@g</span> }
+                            @foreach (var a in arudhaLagnas) { <span class="point-tag">@a</span> }
+                        </div>
+                    }
+                    @if (aspectTags.Count > 0)
+                    {
+                        <div class="row aspects">
+                            @foreach (var a in aspectTags) { <span class="point-tag aspect">@a</span> }
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="cell center" style="grid-column:2/4;grid-row:2/4;">
+                <div class="center-title">@CenterTitle</div>
+                <div class="center-meta">@CenterMeta</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
+
+    /// <summary>This chart's own natal Moon sign. Null → the house-from-Moon badge doesn't
+    /// render (same null-gating convention as SouthIndianGrid_Detailed's MoonSign).</summary>
+    [Parameter] public string? MoonSign { get; set; }
+
+    /// <summary>This chart's own natal Sun sign. Null → the house-from-Sun badge doesn't render.
+    /// New relative to Detailed — Detailed has no from-Sun badge at all.</summary>
+    [Parameter] public string? SunSign { get; set; }
+
+    [Parameter, EditorRequired]
+    public IReadOnlyDictionary<string, IReadOnlyList<MicroPlanetGlyph>> PlanetsBySign { get; set; }
+        = new Dictionary<string, IReadOnlyList<MicroPlanetGlyph>>();
+
+    /// <summary>Gulika/Maandi short codes ("Gk"/"Md") by sign. Empty when the caller's
+    /// "Upagrahas" toggle is off.</summary>
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> UpagrahaLabels { get; set; }
+        = new Dictionary<string, IReadOnlyList<string>>();
+
+    /// <summary>Graha Arudha short codes by sign. Empty when the caller's "Gra-Arudha" toggle is
+    /// off. Kept separate from ArudhaLagnaLabels — each has its own toggle.</summary>
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> GrahaArudhaLabels { get; set; }
+        = new Dictionary<string, IReadOnlyList<string>>();
+
+    /// <summary>Arudha Lagna ("AL") by sign. Empty when the caller's "Arudha-Lagna" toggle is
+    /// off.</summary>
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> ArudhaLagnaLabels { get; set; }
+        = new Dictionary<string, IReadOnlyList<string>>();
+
+    /// <summary>Inline "Ma(4)"-style aspect tags by the aspected sign — ChartViewModel.BuildAspectedByMicro's
+    /// output, rendered as this cell's own row instead of Detailed's separate bottom strip.</summary>
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> AspectLabels { get; set; }
+        = new Dictionary<string, IReadOnlyList<string>>();
+
+    [Parameter, EditorRequired] public string CenterTitle { get; set; } = "";
+    [Parameter, EditorRequired] public RenderFragment CenterMeta { get; set; } = null!;
+
+    // Fixed South Indian grid: sign never moves. MatchSign uses this project's internal
+    // ZodiacName spelling ("Capricornus"); DisplayEn is the reader-facing label (no Sanskrit
+    // name here — Micro drops it, this grid is already dense enough).
+    private static readonly (string MatchSign, string DisplayEn, int Col, int Row)[] GridCells = new[]
+    {
+        ("Pisces", "Pisces", 1, 1), ("Aries", "Aries", 2, 1),
+        ("Taurus", "Taurus", 3, 1), ("Gemini", "Gemini", 4, 1),
+        ("Aquarius", "Aquarius", 1, 2), ("Cancer", "Cancer", 4, 2),
+        ("Capricornus", "Capricorn", 1, 3), ("Leo", "Leo", 4, 3),
+        ("Sagittarius", "Sagittarius", 1, 4), ("Scorpio", "Scorpio", 2, 4),
+        ("Libra", "Libra", 3, 4), ("Virgo", "Virgo", 4, 4)
+    };
+}

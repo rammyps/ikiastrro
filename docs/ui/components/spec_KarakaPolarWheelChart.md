@@ -7,6 +7,9 @@ route: /key-inference/{id}?step=4 (embedded in Key Inference step "4. Spl Lagnas
 
 # Polar/grid Lagna selector
 
+> Tab-level entry point (controls, layout, Special Lagnas table): [`specs_KI_spllagna.md`](specs_KI_spllagna.md).
+> This file is the component-level spec for `PolarGridLagnaSelect` itself.
+
 ## Purpose
 
 Present the selected divisional chart from one of five special-Lagna counting references without Karaka overlays or a detail table. The component supports two interchangeable chart views: Wheel and Grid.
@@ -32,20 +35,41 @@ Present the selected divisional chart from one of five special-Lagna counting re
   5. Ghati Lagna
 - Only references available for the selected chart are rendered.
 - Selecting a reference immediately recounts houses and changes the highlighted/reference Lagna in both views.
+- **Grid-display checkboxes (2026-09-17), Grid view only** — a second checkbox-styled row, same
+  visual convention as the Lagna-reference row above, rendered only when `View == "south"`. Five
+  independent toggles, all pre-checked, not reset on chart change (unlike the Lagna references,
+  which are chart-dependent):
+  1. Upagrahas — Gulika/Maandi.
+  2. Gra-Arudha — Graha Arudha.
+  3. Arudha-Lagna — the AL tag. A distinct control from the "Arudha Lagna" checkbox in the Lagna
+     reference row above (that one picks Arudha Lagna as this grid's own ascendant reference for
+     its own overlay grid — a different concept from this display toggle).
+  4. HN-Moon — the house-from-Moon badge.
+  5. HN-Sun — the house-from-Sun badge.
 
 ## Data contract
 
 - Selected varga signs and graha placements come from persisted chart rows (`PlanetPlacements`).
 - Lagna reference definitions come from tbl_Dim_HouseReference.
 - Special-Lagna positions come from the chart's persisted SpecialLagna points.
-- No Naisargika Karaka or Chara Karaka data is accepted or rendered.
+- **Grid view only (2026-09-17):** `KeyDetails` (`ChartKeyDetail` rows — Grahas, Upagrahas, Graha
+  Arudha), `Aspects` (`ChartAspect` rows), and `NaisargikaKarakas`
+  (`NaisargikaKarakaRepository.LoadActive().Primary`) are threaded straight through from the host
+  page's already-loaded `WorkspaceData`/`NaisargikaKarakaRules` — no new repository or query.
+  `PolarGridLagnaSelect` derives Sun's/Moon's own sign, the Gulika/Maandi/Graha-Arudha labels, the
+  Naisargika/Chara Karaka tags (gated to D1/D9), and the `Ma(4)`-style aspect tags from these three
+  parameters and hands them to `SouthIndianGrid_Micro` — full per-field mapping in
+  [`spec_SouthIndianGrid_Micro.md`](spec_SouthIndianGrid_Micro.md).
 
 ## Visual contract
 
 The polar (Wheel) view shows signs, **graha placements** (added 2026-09-17 — see below),
 houses counted from the selected Lagna, and available special-Lagna abbreviations. The Grid
 view uses the same selected Lagna as its ascendant reference and shows the same chart
-placements. The former right-side interpretation/detail table is removed.
+placements, via **`SouthIndianGrid_Micro`** (2026-09-17 —
+[`spec_SouthIndianGrid_Micro.md`](spec_SouthIndianGrid_Micro.md)), replacing the
+`SouthIndianGrid_Detailed` this view used before. The former right-side interpretation/detail
+table is removed.
 
 **2026-09-17 fix — planets were missing from the polar view.** `PlanetPlacements` was always
 passed into this component and even converted to `PlanetsBySign` for the Grid view's
