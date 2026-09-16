@@ -16,12 +16,12 @@ namespace Ikiastrro.Data;
 /// Every table with a NO_ACTION FK to tbl_ChartResults must be cleared here, or the final
 /// tbl_ChartResults delete throws SqlException 547 and — from the Web delete button — takes the
 /// whole Blazor circuit down ("An unhandled error has occurred"). The strength / bhava-bala /
-/// vargottama fact tables were added after this service and were missed; they are the same set
-/// GenerateAll clears up-front. (tbl_Fact_YogaInputEvaluations FKs with CASCADE, so it needs no
-/// explicit delete; tbl_Fact_HouseFromReference, tbl_Fact_PlanetAvastha,
-/// tbl_Fact_AshtakavargaPinda/BhinnaAshtakavarga(Contribution)/SarvaAshtakavarga are schema-only —
-/// no calculator populates them yet, so there is nothing for any person to leave behind; wiring one
-/// up must add its delete here too, the same mistake this class's own history warns about.
+/// vargottama / ashtakavarga / amsabala fact tables were added after this service and were
+/// missed; they are the same set GenerateAll clears up-front. (tbl_Fact_YogaInputEvaluations FKs
+/// with CASCADE, so it needs no explicit delete; tbl_Fact_HouseFromReference and
+/// tbl_Fact_PlanetAvastha are still schema-only — no calculator populates them yet, so there is
+/// nothing for any person to leave behind; wiring one up must add its delete here too, the same
+/// mistake this class's own history warns about.
 /// tbl_Fact_KpSubLordChain now has a repository (KpSubLordChainRepository) but it's an OPTIONAL
 /// constructor dependency here — see its own doc comment — because ChartGenerationService's other
 /// composition roots (Web/Program.cs, Cli/Program.cs) haven't been updated to register/pass it yet;
@@ -43,6 +43,8 @@ public class BirthDetailDeletionService
     private readonly PlanetaryStrengthRepository _planetaryStrengthRepo;
     private readonly BhavaStrengthRepository _bhavaStrengthRepo;
     private readonly VargottamaRepository _vargottamaRepo;
+    private readonly AshtakavargaRepository _ashtakavargaRepo;
+    private readonly AmsabalaRepository _amsabalaRepo;
     private readonly DashaPeriodsRepository _dashaPeriodsRepo;
     private readonly ChartResultsRepository _chartResultsRepo;
     private readonly BirthDetailsRepository _birthDetailsRepo;
@@ -58,6 +60,8 @@ public class BirthDetailDeletionService
         PlanetaryStrengthRepository planetaryStrengthRepo,
         BhavaStrengthRepository bhavaStrengthRepo,
         VargottamaRepository vargottamaRepo,
+        AshtakavargaRepository ashtakavargaRepo,
+        AmsabalaRepository amsabalaRepo,
         DashaPeriodsRepository dashaPeriodsRepo,
         ChartResultsRepository chartResultsRepo,
         BirthDetailsRepository birthDetailsRepo,
@@ -72,6 +76,8 @@ public class BirthDetailDeletionService
         _planetaryStrengthRepo = planetaryStrengthRepo;
         _bhavaStrengthRepo = bhavaStrengthRepo;
         _vargottamaRepo = vargottamaRepo;
+        _ashtakavargaRepo = ashtakavargaRepo;
+        _amsabalaRepo = amsabalaRepo;
         _dashaPeriodsRepo = dashaPeriodsRepo;
         _chartResultsRepo = chartResultsRepo;
         _birthDetailsRepo = birthDetailsRepo;
@@ -89,6 +95,8 @@ public class BirthDetailDeletionService
         _planetaryStrengthRepo.DeleteByBirthDetailId(birthDetailId);   // FK_Fact_PlanetaryStrength_ChartResult (no cascade)
         _bhavaStrengthRepo.DeleteByBirthDetailId(birthDetailId);       // FK_Fact_BhavaStrength_ChartResult (no cascade)
         _vargottamaRepo.DeleteByBirthDetailId(birthDetailId);          // FK_Fact_Vargottama_ChartResult (no cascade)
+        _ashtakavargaRepo.DeleteByBirthDetailId(birthDetailId);        // FK_Fact_*Ashtakavarga*_ChartResult (no cascade)
+        _amsabalaRepo.DeleteByBirthDetailId(birthDetailId);            // FK_Fact_Amsabala_ChartResult (no cascade)
         _kpSubLordChainRepo?.DeleteByBirthDetailId(birthDetailId);     // FK_Fact_KpSubLordChain_ChartResult (no cascade); optional, see class doc comment
         _dashaPeriodsRepo.DeleteByBirthDetailId(birthDetailId);
         _chartResultsRepo.DeleteByBirthDetailId(birthDetailId);
