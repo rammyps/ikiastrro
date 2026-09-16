@@ -148,6 +148,23 @@
     color: var(--brand-midnight);
 }
 
+/* Hover/focus (typed or "sample" placeholder alike) — Name/City/Country and the Date/Time
+   pickers all share MudBlazor's `.mud-input-outlined` box, so one rule covers every text box
+   in the panel, sunset-orange fill with dark-blue text/label/icon on top. */
+.home-form ::deep .mud-input-outlined:hover,
+.home-form ::deep .mud-input-outlined:focus-within {
+    background-color: var(--brand-sunset);
+}
+
+.home-form ::deep .mud-input-outlined:hover input,
+.home-form ::deep .mud-input-outlined:focus-within input,
+.home-form ::deep .mud-input-outlined:hover .mud-input-label,
+.home-form ::deep .mud-input-outlined:focus-within .mud-input-label,
+.home-form ::deep .mud-input-outlined:hover .mud-input-adornment-icon,
+.home-form ::deep .mud-input-outlined:focus-within .mud-input-adornment-icon {
+    color: var(--brand-midnight);
+}
+
 /* Sex — an always-visible option box (no dropdown), required (enforced by validation on
    submit, not a visible label — keeps this row the same compact height as Name beside it). */
 .home-sex {
