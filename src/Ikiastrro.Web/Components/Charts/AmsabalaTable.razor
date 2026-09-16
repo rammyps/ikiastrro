@@ -1,0 +1,131 @@
+@using System.Globalization
+
+<section class="am" aria-labelledby="am-title">
+    <article class="am-card">
+        <header class="am-card-head">
+            <div>
+                <h2 id="am-title">@(_scheme == "VARGOTTAMA" ? "Vargottama" : $"Aṁśabala — {SchemeLabel(_scheme)}")</h2>
+                <p class="am-subtext">@Subtext(_scheme)</p>
+                <nav class="am-schemes" aria-label="Varga scheme">
+                    @foreach (var s in SchemeOrder)
+                    {
+                        <button type="button" class="@(s == _scheme ? "is-active" : null)" @onclick="@(() => _scheme = s)">@SchemeShort(s)</button>
+                    }
+                </nav>
+            </div>
+            @if (_scheme != "VARGOTTAMA")
+            {
+                <div class="am-legend" aria-label="Amsa name scale for this scheme">
+                    @foreach (var n in Legend)
+                    {
+                        <span><b>@n.AmsaName</b> – @n.GoodCount</span>
+                    }
+                </div>
+            }
+        </header>
+
+        @if (_scheme == "VARGOTTAMA")
+        {
+            <div class="am-table-scroll">
+                <table>
+                    <thead><tr><th>Graha</th><th>D1 Sign</th><th>D9 Sign</th><th>Match</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in VargottamaRows)
+                        {
+                            <tr>
+                                <th>@DisplayPlanet(r.PlanetCode)</th>
+                                <td>@Disp(r.D1Sign)</td>
+                                <td>@Disp(r.D9Sign)</td>
+                                <td class="@(r.IsVargottama ? "am-high" : "am-zero")">@(r.IsVargottama ? "Yes" : "No")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="am-table-scroll">
+                <table>
+                    <thead><tr><th>Graha</th><th>Match</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in SchemeRows)
+                        {
+                            <tr>
+                                <th>@DisplayPlanet(r.PlanetCode)</th>
+                                <td class="@(r.GoodCount == 0 ? "am-zero" : r.GoodCount * 2 >= r.GroupSize ? "am-high" : "")"><b>@r.GoodCount</b><span>/@r.GroupSize</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </article>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<AmsabalaRow> Rows { get; set; } = Array.Empty<AmsabalaRow>();
+    [Parameter, EditorRequired] public IReadOnlyList<AmsabalaNameEntry> Names { get; set; } = Array.Empty<AmsabalaNameEntry>();
+    [Parameter, EditorRequired] public IReadOnlyList<AmsabalaGroupMember> Groups { get; set; } = Array.Empty<AmsabalaGroupMember>();
+    [Parameter, EditorRequired] public IReadOnlyList<VargottamaRow> Vargottama { get; set; } = Array.Empty<VargottamaRow>();
+
+    private static readonly string[] PlanetOrder = { "SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN" };
+    private static readonly string[] SchemeOrder = { "VARGOTTAMA", "SHADVARGA", "SAPTAVARGA", "DASAVARGA", "SHODASAVARGA" };
+
+    private string _scheme = "VARGOTTAMA";
+
+    private IReadOnlyList<AmsabalaRow> SchemeRows =>
+        PlanetOrder
+            .Select(p => Rows.FirstOrDefault(r => r.PlanetCode.Equals(p, StringComparison.OrdinalIgnoreCase)
+                                                 && r.SchemeCode.Equals(_scheme, StringComparison.OrdinalIgnoreCase)))
+            .Where(r => r is not null)
+            .Select(r => r!)
+            .ToList();
+
+    private IReadOnlyList<VargottamaRow> VargottamaRows =>
+        PlanetOrder
+            .Select(p => Vargottama.FirstOrDefault(r => r.PlanetCode.Equals(p, StringComparison.OrdinalIgnoreCase)))
+            .Where(r => r is not null)
+            .Select(r => r!)
+            .ToList();
+
+    // PVR pg. 63-64: each varga group (6/7/10/16) has its own classical amsa-name scale, keyed by
+    // good-varga count — e.g. Dasavarga's count=2 is "Paarijaatamsa" but Shadvarga/Saptavarga's is
+    // "Kimsukamsa" for the same count. tbl_Rule_AmsabalaName (db/099) is the source of truth; this
+    // legend is that scheme's slice of it, not a hardcoded copy.
+    private IEnumerable<AmsabalaNameEntry> Legend =>
+        Names.Where(n => n.SchemeCode.Equals(_scheme, StringComparison.OrdinalIgnoreCase)).OrderBy(n => n.GoodCount);
+
+    // "N charts compared (Rasi chart with D-x,D-y,...)" — built off the actual seeded group
+    // membership (tbl_Rule_AmsabalaGroup, db/101), not a hardcoded copy of it.
+    private string Subtext(string scheme)
+    {
+        if (scheme == "VARGOTTAMA") return "2 charts compared (Rasi chart with D-9)";
+        var members = Groups.Where(g => g.SchemeCode.Equals(scheme, StringComparison.OrdinalIgnoreCase)).ToList();
+        var rest = members.Where(g => !g.ChartType.Equals("D1", StringComparison.OrdinalIgnoreCase))
+            .Select(g => "D-" + g.ChartType.TrimStart('D', 'd'));
+        return $"{members.Count} charts compared (Rasi chart with {string.Join(",", rest)})";
+    }
+
+    private static string SchemeLabel(string s) => s switch
+    {
+        "SHADVARGA" => "Shadvarga (6)",
+        "SAPTAVARGA" => "Saptavarga (7)",
+        "DASAVARGA" => "Dasavarga (10)",
+        "SHODASAVARGA" => "Shodasavarga (16)",
+        _ => s,
+    };
+
+    private static string SchemeShort(string s) => s switch
+    {
+        "VARGOTTAMA" => "Vargottama",
+        "SHADVARGA" => "Shadvarga",
+        "SAPTAVARGA" => "Saptavarga",
+        "DASAVARGA" => "Dasavarga",
+        "SHODASAVARGA" => "Shodasavarga",
+        _ => s,
+    };
+
+    private static string DisplayPlanet(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(code.ToLowerInvariant());
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+}

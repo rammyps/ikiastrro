@@ -1,0 +1,79 @@
+@using Ikiastrro.Web.Components.Workspace
+
+<section class="vl" aria-labelledby="vl-title">
+    <article class="vl-card">
+        <header class="vl-card-head">
+            <div>
+                <h2 id="vl-title">Vargas &amp; Varga Lords</h2>
+                <p>Sign and lord per divisional chart · highlighted = same sign as D1 (Vargottama at D9)</p>
+            </div>
+        </header>
+        <div class="vl-table-scroll">
+            <table>
+                <thead><tr><th>Graha</th>@foreach (var t in Vargas) { <th><span>@t.Code</span><small>@t.DisplayName</small></th> }</tr></thead>
+                <tbody>
+                    @foreach (var planet in Planets)
+                    {
+                        <tr>
+                            <th>@planet</th>
+                            @foreach (var t in Vargas)
+                            {
+                                var cell = Cell(planet, t.Code);
+                                @if (cell is { } c)
+                                {
+                                    <td class="@(c.Same ? (t.Code == "D9" ? "vl-vargottama" : "vl-same") : "")">
+                                        <b>@ShortSign(c.Sign)</b><small>@(c.Lord ?? "—")</small>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="vl-missing">—</td>
+                                }
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="vl-legend"><span class="vl-swatch vl-vargottama"></span> Vargottama (D9 sign = D1 sign) <span class="vl-swatch vl-same"></span> same sign as D1</p>
+    </article>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
+    [Parameter, EditorRequired] public IReadOnlyList<ChartTypeRow> ChartTypes { get; set; } = Array.Empty<ChartTypeRow>();
+
+    private static readonly string[] PlanetOrder =
+        { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu" };
+
+    private static readonly Dictionary<string, string> ShortNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Aries"] = "Ari", ["Taurus"] = "Tau", ["Gemini"] = "Gem", ["Cancer"] = "Can", ["Leo"] = "Leo",
+        ["Virgo"] = "Vir", ["Libra"] = "Lib", ["Scorpio"] = "Sco", ["Sagittarius"] = "Sag",
+        ["Capricornus"] = "Cap", ["Capricorn"] = "Cap", ["Aquarius"] = "Aqu", ["Pisces"] = "Pis",
+    };
+
+    private IEnumerable<ChartTypeRow> Vargas =>
+        ChartTypes.Where(t => t.DivisionalFactor is > 0 && Charts.ContainsKey(t.Code)).OrderBy(t => t.DivisionalFactor);
+
+    private LoadedChart? D1 => Charts.GetValueOrDefault("D1");
+
+    private IEnumerable<string> Planets =>
+        PlanetOrder.Where(p => D1 is not null && D1.Grahas.Any(k => k.Planet.Equals(p, StringComparison.OrdinalIgnoreCase)));
+
+    private (string Sign, string? Lord, bool Same)? Cell(string planet, string chartCode)
+    {
+        if (!Charts.TryGetValue(chartCode, out var chart)) return null;
+        var graha = chart.Grahas.FirstOrDefault(k => k.Planet.Equals(planet, StringComparison.OrdinalIgnoreCase));
+        if (graha is null) return null;
+
+        var lord = chart.HouseLords
+            .FirstOrDefault(h => h.HouseSign.Equals(graha.Sign, StringComparison.OrdinalIgnoreCase))?.LordPlanet;
+
+        var d1Sign = D1?.Grahas.FirstOrDefault(k => k.Planet.Equals(planet, StringComparison.OrdinalIgnoreCase))?.Sign;
+        var same = chartCode != "D1" && d1Sign is not null && d1Sign.Equals(graha.Sign, StringComparison.OrdinalIgnoreCase);
+        return (graha.Sign, lord, same);
+    }
+
+    private static string ShortSign(string sign) => ShortNames.GetValueOrDefault(sign, sign);
+}

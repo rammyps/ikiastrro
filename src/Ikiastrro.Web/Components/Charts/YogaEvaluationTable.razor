@@ -1,0 +1,62 @@
+@using System.Globalization
+
+<section class="yg" aria-labelledby="yg-title">
+    <article class="yg-card">
+        <header class="yg-card-head">
+            <div>
+                <h2 id="yg-title">Yogas Present</h2>
+                <p>@PresentRows.Count formed of @EvaluatedCount evaluated (@NotEvaluatedCount not yet evaluated)</p>
+            </div>
+        </header>
+        @if (PresentRows.Count == 0)
+        {
+            <p class="yg-empty">No yogas from the evaluated corpus are present in this chart.</p>
+        }
+        else
+        {
+            <div class="yg-table-scroll">
+                <table>
+                    <thead><tr><th>Yoga</th><th>Type</th><th>Rule</th><th>Source</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in PresentRows)
+                        {
+                            <tr>
+                                <td>@DisplayYoga(r.YogaCode)</td>
+                                <td>@(r.YogaTypeCode ?? "—")</td>
+                                <td>@(r.YogaRule ?? "—")</td>
+                                <td class="yg-source">@DisplaySource(r.SourceRefCode)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </article>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<YogaEvaluationRow> Rows { get; set; } = Array.Empty<YogaEvaluationRow>();
+
+    // A YogaCode can be evaluated against several classical source citations independently (e.g.
+    // Daridra matches Raman's combinations #148/#149/#151/#152 separately) — each becomes its
+    // own row in vw_ChartYogaEvaluations, sharing the same YogaCode/Name/Rule. Group by YogaCode
+    // so the same yoga isn't listed multiple times; a yoga counts as present/evaluated if any of
+    // its source citations does, so a variant that didn't match never hides one that did.
+    private IEnumerable<IGrouping<string, YogaEvaluationRow>> ByYoga =>
+        Rows.GroupBy(r => r.YogaCode, StringComparer.OrdinalIgnoreCase);
+
+    private IReadOnlyList<YogaEvaluationRow> PresentRows =>
+        ByYoga.Where(g => g.Any(r => r.Present == true))
+            .Select(g => g.First(r => r.Present == true))
+            .OrderBy(r => r.YogaTypeCode).ThenBy(r => r.YogaCode)
+            .ToList();
+
+    private int EvaluatedCount => ByYoga.Count(g => g.Any(r => r.EvaluationStatus == "EVALUATED"));
+    private int NotEvaluatedCount => ByYoga.Count(g => !g.Any(r => r.EvaluationStatus == "EVALUATED"));
+
+    private static string DisplayYoga(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(
+        code.Replace("YOGA_", "", StringComparison.OrdinalIgnoreCase).Replace('_', ' ').ToLowerInvariant());
+
+    private static string DisplaySource(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(
+        code.Replace("SRC_", "", StringComparison.OrdinalIgnoreCase).Replace('_', ' ').ToLowerInvariant());
+}

@@ -10,7 +10,7 @@
             @foreach (var row in SavRows)
             {
                 <div class="av-bar-row">
-                    <span class="av-sign"><b>@ShortSign(row.SignNumber)</b><small>H@HouseNumber(row.SignNumber)</small></span>
+                    <span class="av-sign"><b>@ShortSign(row.SignNumber)</b><small>H@(HouseNumber(row.SignNumber))</small></span>
                     <span class="av-track"><span class="av-fill" style="width:@BarWidth(row.TotalBindus)%"></span></span>
                     <b class="av-value">@row.TotalBindus</b>
                 </div>
@@ -22,7 +22,7 @@
         <header class="av-card-head"><div><h2>Bhinnāṣṭakavarga</h2><p>Individual graha contributions</p></div></header>
         <div class="av-table-scroll">
             <table>
-                <thead><tr><th>Recipient</th>@foreach (var sign in Signs) { <th><span>@ShortSign(sign)</span><small>H@HouseNumber(sign)</small></th> }<th>Σ</th></tr></thead>
+                <thead><tr><th>Recipient</th>@foreach (var sign in Signs) { <th><span>@ShortSign(sign)</span><small>H@(HouseNumber(sign))</small></th> }<th>Σ</th></tr></thead>
                 <tbody>
                     @foreach (var recipient in Recipients)
                     {

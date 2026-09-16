@@ -17,33 +17,42 @@
 @inject Ikiastrro.Data.PlanetaryStrengthRepository PlanetaryStrengthRepo
 @inject Ikiastrro.Data.BhavaStrengthRepository BhavaStrengthRepo
 @inject Ikiastrro.Data.AshtakavargaRepository AshtakavargaRepo
+@inject Ikiastrro.Data.AmsabalaRepository AmsabalaRepo
+@inject Ikiastrro.Data.AmsabalaSchemeRepository AmsabalaSchemeRepo
+@inject Ikiastrro.Data.VargottamaRepository VargottamaRepo
+@inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
 @inject ActivePerson Active
 
-@* Key Inference — docs/ui/components/key-inference.md. Steps 1, 2.1, 2.2 and 3 built; steps
-   4–6 land in later passes. Same South-Indian grid component as /charts (Codex
-   `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not modified) for the
-   "1.1 D1 - BIRTH CHART" tab. D1 table reuses PlanetPositionsTable (VargaView's Variant="d1")
-   for free styling/columns. The standalone /transit-wheel page has been folded into the
-   "1.2 TRANSIT CHART" tab wholesale — wheel chart, date/dasha selector, and Gochara table —
-   reusing its Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath
-   exactly; only the chart shown under a tab now, not a separate route.
+@* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
+   2026-09-16), 5 (Yogas) and 6 (Vargas) added 2026-09-16; 7 (All Charts) is the separate
+   /charts/{id} page (AllCharts.razor), its heading literally reads "7. ALL CHARTS" so the
+   step numbering reads consistently across the two routes. Same South-Indian grid component
+   as /charts (Codex `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not
+   modified) for the "1.1 D1 - BIRTH CHART" tab. D1 table reuses PlanetPositionsTable
+   (VargaView's Variant="d1") for free styling/columns. The standalone /transit-wheel page has
+   been folded into the "1.2 TRANSIT CHART" tab wholesale — wheel chart, date/dasha selector,
+   and Gochara table — reusing its
+   Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath exactly;
+   only the chart shown under a tab now, not a separate route.
 
    Three tab levels (2026-09-14 restructure, rammyps's directive): an outer "master" MudTabs
    (_masterTab) with one panel per step — "1. D1-TRANSIT", "2. ABOUT", "3. STRENGTH",
    "4. SPL LAGNAS" (renamed from "4. KARAKAS" 2026-09-16 — the embedded KarakaPolarWheel already
    titles itself "SPECIAL LAGNAS & KARAKAS" and now also lists all 4 special lagnas in a table,
-   not just the 3 marked on the wheel; more steps
-   land here later) — each panel opens with its own `ki-stephead` (Step N of 6 + heading) then
-   its own inner MudTabs: D1-TRANSIT's is 1.1 D1 - BIRTH CHART/1.2 TRANSIT CHART (_activeTab);
-   About's is 2.1 ABOUT HOUSE/2.2 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/
-   3.2 HOUSE STRENGTH (both unbound, as before). Every tab text at every level is ALL CAPS.
+   not just the 3 marked on the wheel), "5. YOGAS" and "6. VARGAS" (both added 2026-09-16) —
+   each panel opens straight into its heading (the "Step N of 6" stepnum line was removed
+   2026-09-16, rammyps's call — the ki-stephead wrapper stays for spacing/typography but no
+   longer prints a step count). "4. SPL LAGNAS" has no ki-stephead at all (2026-09-16) — the
+   embedded KarakaPolarWheel already renders its own "SPECIAL LAGNAS & KARAKAS" heading, so a
+   second heading above it was redundant. Where a step has sub-views, its own inner MudTabs:
+   D1-TRANSIT's is 1.1 D1 - BIRTH CHART/1.2 TRANSIT CHART (_activeTab); About's is
+   2.1 ABOUT HOUSES/2.2 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
+   3.3 ASTAVARGA/3.4 AMSABALA (all unbound). Every tab text at every level is ALL CAPS.
    All three levels share `.ki-tabs` styling, unified 2026-09-14 (rammyps's directive) onto the
    same quiet-cream/strong-sunset pill the master step rail (`.ki-master-button`) already used —
    inactive = quiet cream pill + midnight text, active = sunset pill + midnight text
    (tokens.css `--tab-*`, design-language.md "Tabs") — the single app-wide tab convention, no
-   longer split between a pill master rail and a filled-segment nested style. `.ki-stephead`
-   lost its dark-navy pill behind "STEP N OF 6" 2026-09-14 (now
-   plain text, both it and the heading a size step up) — rammyps's call, applies to every step.
+   longer split between a pill master rail and a filled-segment nested style.
    2.2's exaltation-closeness bar + table read ChartViewModel.BuildExaltationRows (Core) over
    lc.KeyDetails; the Moon-context facts read ChartMoonContextRepository (vw_ChartMoonContext)
    separately, same "outside WorkspaceData" pattern as the Current Transit tab's Gochara/Dasha
@@ -51,7 +60,15 @@
    `.razor.css`) read PlanetaryStrengthRepository/BhavaStrengthRepository's new
    GetSummaryByBirthDetailId/GetComponentsByBirthDetailId over vw_ChartShadbala/
    vw_ChartBhavaBala + the two component fact tables — same "outside WorkspaceData" pattern,
-   loaded alongside Moon context/Gochara/Dasha in OnParametersSet. *@
+   loaded alongside Moon context/Gochara/Dasha in OnParametersSet. 3.4 (`AmsabalaTable`) reads
+   AmsabalaRepository over vw_ChartAmsabala (db/101), same pattern as 3.3's AshtakavargaRepository.
+   5 (`YogaEvaluationTable`) reads YogaEvaluationRepository over vw_ChartYogaEvaluations
+   (db/053+079) — the typed read model built for this step, evaluation itself already runs in
+   ChartGenerationService.PersistAnalytics. 6 (`VargaLordsTable`) needs no new repository: it
+   reads straight off `_data.Charts` (every persisted varga's Grahas + HouseLords, already
+   loaded by WorkspaceData.Load for every chart type, same as AllCharts.razor's grid) to show
+   each graha's sign + that sign's lord per divisional chart, highlighting Vargottama (D9 sign
+   = D1 sign) and same-sign-as-D1 elsewhere. *@
 
 <PageTitle>Key Inference — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
 
@@ -75,7 +92,6 @@ else
         <MudTabPanel Text="1. D1-TRANSIT">
             <div class="ki-panelbody">
             <div class="ki-stephead">
-                <span class="ki-stepnum">Step 1 of 6</span>
                 <h1 class="ki-heading">D1-TRANSIT</h1>
             </div>
 
@@ -207,14 +223,10 @@ else
 
         <MudTabPanel Text="2. ABOUT">
             <div class="ki-panelbody">
-            <div class="ki-stephead">
-                <span class="ki-stepnum">Step 2 of 6</span>
-                <h1 class="ki-heading">ABOUT</h1>
-            </div>
 
             <div class="ki-tabs ki-subtabs">
             <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true">
-                <MudTabPanel Text="2.1 ABOUT HOUSE">
+                <MudTabPanel Text="2.1 ABOUT HOUSES">
                     <h3 class="ki-sectionhead">Aspects &amp; conjunctions</h3>
                     <div class="ki-twocol">
                         <div class="ki-col">
@@ -262,11 +274,6 @@ else
 
         <MudTabPanel Text="3. STRENGTH">
             <div class="ki-panelbody">
-            <div class="ki-stephead">
-                <span class="ki-stepnum">Step 3 of 6</span>
-                <h1 class="ki-heading">STRENGTH</h1>
-            </div>
-
             <div class="ki-tabs ki-subtabs">
             <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_strengthTab">
                 <MudTabPanel Text="3.1 PLANET STRENGTH">
@@ -307,6 +314,19 @@ else
                         <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" />
                     }
                 </MudTabPanel>
+
+                <MudTabPanel Text="3.4 AMSABALA">
+                    @if (_amsabala.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Amsabala has not been computed for this chart yet.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <AmsabalaTable Rows="_amsabala" Names="_amsabalaNames" Groups="_amsabalaGroups" Vargottama="_vargottama" />
+                    }
+                </MudTabPanel>
             </MudTabs>
             </div>
             </div>
@@ -314,12 +334,36 @@ else
 
         <MudTabPanel Text="4. SPL LAGNAS">
             <div class="ki-panelbody">
+            <KarakaPolarWheel Id="@Id" Embedded="true" />
+            </div>
+        </MudTabPanel>
+
+        <MudTabPanel Text="5. YOGAS">
+            <div class="ki-panelbody">
             <div class="ki-stephead">
-                <span class="ki-stepnum">Step 4 of 6</span>
-                <h1 class="ki-heading">SPL LAGNAS</h1>
+                <h1 class="ki-heading">YOGAS</h1>
             </div>
 
-            <KarakaPolarWheel Id="@Id" Embedded="true" />
+            @if (_yogaEvaluations.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                    Yogas have not been evaluated for this chart yet.
+                </MudAlert>
+            }
+            else
+            {
+                <YogaEvaluationTable Rows="_yogaEvaluations" />
+            }
+            </div>
+        </MudTabPanel>
+
+        <MudTabPanel Text="6. VARGAS">
+            <div class="ki-panelbody">
+            <div class="ki-stephead">
+                <h1 class="ki-heading">VARGAS</h1>
+            </div>
+
+            <VargaLordsTable Charts="_data.Charts" ChartTypes="_data.ChartTypes" />
             </div>
         </MudTabPanel>
     </MudTabs>
@@ -347,6 +391,11 @@ else
     private IReadOnlyList<Ikiastrro.Data.BhavaBalaComponentRow> _bhavaBalaComponents = Array.Empty<Ikiastrro.Data.BhavaBalaComponentRow>();
     private IReadOnlyList<Ikiastrro.Data.AshtakavargaRow> _ashtakavarga = Array.Empty<Ikiastrro.Data.AshtakavargaRow>();
     private IReadOnlyList<Ikiastrro.Data.AshtakavargaPindaRow> _ashtakavargaPinda = Array.Empty<Ikiastrro.Data.AshtakavargaPindaRow>();
+    private IReadOnlyList<Ikiastrro.Data.AmsabalaRow> _amsabala = Array.Empty<Ikiastrro.Data.AmsabalaRow>();
+    private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaNameEntry> _amsabalaNames = Array.Empty<Ikiastrro.Core.Models.AmsabalaNameEntry>();
+    private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaGroupMember> _amsabalaGroups = Array.Empty<Ikiastrro.Core.Models.AmsabalaGroupMember>();
+    private IReadOnlyList<Ikiastrro.Data.VargottamaRow> _vargottama = Array.Empty<Ikiastrro.Data.VargottamaRow>();
+    private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
 
     private static readonly string[] SignById =
         { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
@@ -355,11 +404,18 @@ else
     protected override void OnParametersSet()
     {
         if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
+        if (Step is "5" or "yogas") _masterTab = 4;
+        if (Step is "6" or "vargas") _masterTab = 5;
         if (Step is "3" or "strength") _masterTab = 2;
         if (Step is "3.3" or "astavarga" or "ashtakavarga")
         {
             _masterTab = 2;
             _strengthTab = 2;
+        }
+        if (Step is "3.4" or "amsabala")
+        {
+            _masterTab = 2;
+            _strengthTab = 3;
         }
 
         _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
@@ -391,6 +447,11 @@ else
         _bhavaBalaComponents = BhavaStrengthRepo.GetComponentsByBirthDetailId(Id);
         _ashtakavarga = AshtakavargaRepo.GetByBirthDetailId(Id);
         _ashtakavargaPinda = AshtakavargaRepo.GetPindaByBirthDetailId(Id);
+        _amsabala = AmsabalaRepo.GetByBirthDetailId(Id);
+        _amsabalaNames = AmsabalaSchemeRepo.GetNames(1);
+        _amsabalaGroups = AmsabalaSchemeRepo.GetGroups(1);
+        _vargottama = VargottamaRepo.GetByBirthDetailId(Id);
+        _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
             ? parsedOffset

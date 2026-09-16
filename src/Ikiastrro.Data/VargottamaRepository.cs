@@ -4,10 +4,26 @@ using Ikiastrro.Core.Engines.Strength;
 
 namespace Ikiastrro.Data;
 
+public sealed record VargottamaRow(string PlanetCode, string D1Sign, string D9Sign, bool IsVargottama);
+
 public sealed class VargottamaRepository
 {
     private readonly SqlConnectionFactory _connectionFactory;
     public VargottamaRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
+
+    /// <summary>Read model for Key Inference 3.4's Vargottama tab — one row per planet, D1 vs D9
+    /// sign and whether they match, already computed/persisted by VargottamaDetector via
+    /// ChartGenerationService (no re-derivation from LoadedChart needed).</summary>
+    public IReadOnlyList<VargottamaRow> GetByBirthDetailId(int birthDetailId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        return connection.Query<VargottamaRow>("""
+            SELECT f.PlanetCode, f.D1Sign, f.D9Sign, f.IsVargottama
+            FROM dbo.tbl_Fact_Vargottama f
+            JOIN dbo.tbl_ChartResults c ON c.Id = f.ChartResultId
+            WHERE c.BirthDetailId = @birthDetailId AND c.ChartType = 'D1'
+            """, new { birthDetailId }).ToList();
+    }
 
     public void InsertAll(int chartResultId, int ruleSetId, IEnumerable<VargottamaResult> results)
     {

@@ -11,17 +11,8 @@
     margin: 16px 0 16px;
 }
 
-/* No pill background any more — "STEP N OF 6" reads as plain text beside the heading
-   (rammyps, 2026-09-14: dropped the dark-navy pill; text stays --brand-sunset, same color as
-   before, both texts a size step up from the app's base control size). */
-.ki-stepnum {
-    display: inline-block;
-    color: var(--brand-sunset);
-    font: 800 calc(var(--font-size-control) * 1.15) / 1 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
+/* "STEP N OF 6" removed entirely 2026-09-16 (rammyps's call) — .ki-stephead now wraps just
+   the heading, kept only for its margin/spacing. */
 .ki-heading {
     margin: 0;
     color: var(--brand-midnight);
@@ -137,6 +128,11 @@
 .ki-mastertabs ::deep .ki-master > .mud-tabs-panels { padding-top: 0; }
 .ki-panelbody { min-width: 0; }
 
+/* Panels with no heading of their own (About, Strength — the "Step N of 6"/heading text was
+   dropped 2026-09-16/09-17) still need breathing room below the master tab row's divider line,
+   same as .ki-stephead used to give every panel before its heading was removed. */
+.ki-panelbody > .ki-tabs:first-child { margin-top: 16px; }
+
 /* Master steps are quiet cream pills; the selected step is the strong sunset pill from
    KEY-INFERENCE-TAB-DESIGN-v2 — same shape/colour as every nested tab level now (.ki-tabs
    above), via the shared --tab-* tokens. Only the label centring is master-specific here
@@ -174,15 +170,18 @@
     padding: 9px 8px;
     text-align: left;
     vertical-align: bottom;
+    background: transparent;
     color: var(--brand-midnight);
-    font-weight: 700;
+    font: 700 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
     border-bottom: 2px solid var(--brand-line);
     white-space: normal;
 }
 
 .ki-tabs ::deep .ki-table td {
     padding: 8px 7px;
+    background: transparent;
     color: var(--brand-midnight);
+    font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
     border-bottom: 1px solid var(--brand-line);
     white-space: normal;
 }

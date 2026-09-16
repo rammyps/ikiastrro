@@ -1,0 +1,14 @@
+.yg { display: grid; gap: 14px; color: var(--brand-midnight); }
+.yg-card { border: 1px solid var(--brand-line); border-radius: 12px; background: var(--brand-surface); overflow: hidden; }
+.yg-card-head { padding: 14px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-peach); }
+.yg-card-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; }
+.yg-card-head p { margin: 3px 0 0; color: var(--brand-muted); font-size: .78rem; }
+.yg-empty { margin: 0; padding: 18px 16px; color: var(--brand-muted); font-size: .85rem; }
+.yg-table-scroll { overflow-x: auto; }
+.yg table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.yg th, .yg td { padding: 9px 12px; border-bottom: 1px solid var(--brand-line); text-align: left; vertical-align: top; }
+.yg thead th { color: var(--brand-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; }
+.yg tbody tr:last-child td { border-bottom: 0; }
+.yg tbody tr:hover td { background: var(--brand-peach); }
+.yg-source { color: var(--brand-muted); font-size: .75rem; white-space: nowrap; }
+@media (max-width: 620px) { .yg-card-head { padding: 12px; } }
