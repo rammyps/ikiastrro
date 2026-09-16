@@ -1,13 +1,17 @@
 .am { display: grid; gap: 14px; color: var(--brand-midnight); }
 .am-card { border: 1px solid var(--brand-line); border-radius: 12px; background: var(--brand-surface); overflow: hidden; }
-.am-card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-peach); }
-.am-card-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; }
+.am-card-head { padding: 14px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-peach); }
+.am-card-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; text-transform: uppercase; letter-spacing: .03em; }
 .am-subtext { margin: 3px 0 8px; color: var(--brand-muted); font-size: .78rem; }
-.am-schemes { display: flex; gap: .4rem; flex-wrap: wrap; }
-.am-schemes button { min-height: 2.1rem; padding: .4rem .9rem; border: 0; border-radius: 999px; background: var(--tab-inactive-bg); color: var(--tab-inactive-fg); cursor: pointer; font: 700 var(--font-size-control) / 1 var(--font-interface); }
-.am-schemes button.is-active { background: var(--tab-active-bg); color: var(--tab-active-fg); }
-.am-legend { display: flex; flex-wrap: wrap; justify-content: flex-end; align-self: center; gap: .3rem .9rem; max-width: 55%; color: var(--brand-muted); font-size: .72rem; }
-.am-legend b { color: var(--brand-midnight); font-weight: 700; }
+/* Chart-control convention (2026-09-17, rammyps's call): a dark-navy segmented pill marks a
+   control as belonging to the chart (not app navigation, which stays the quiet-cream/
+   strong-sunset MudTabs pill) — same treatment as AshtakavargaChart/PlanetStrengthChart/
+   HouseStrengthChart's own toggles. */
+.am-schemes { display: inline-flex; gap: 2px; background: var(--brand-midnight); border-radius: 999px; padding: 3px; flex-wrap: wrap; }
+.am-schemes button { border: 0; padding: 5px 12px; background: transparent; color: var(--brand-canvas); cursor: pointer; font: 700 .72rem/1 var(--font-interface); text-transform: uppercase; letter-spacing: .02em; border-radius: 999px; }
+.am-schemes button.is-active { background: var(--brand-sunset); color: var(--brand-midnight); }
+
+/* Vargottama table (Graha/D1/D9/Match). */
 .am-table-scroll { overflow-x: auto; }
 .am table { width: 100%; max-width: 420px; border-collapse: collapse; font-size: .85rem; }
 .am th, .am td { padding: 9px 8px; border-bottom: 1px solid var(--brand-line); text-align: left; vertical-align: top; }
@@ -18,4 +22,19 @@
 .am td span { color: var(--brand-muted); font-variant-numeric: tabular-nums; }
 .am-high { background: var(--status-strong-bg); font-weight: 800; }
 .am-zero { color: var(--status-weak); }
-@media (max-width: 720px) { .am-card-head { flex-direction: column; } .am-legend { max-width: 100%; justify-content: flex-start; } }
+
+/* Shadvarga/Saptavarga/Dasavarga/Shodasavarga — one stacked bar per graha, one equal-width
+   segment per varga in that scheme (e.g. D1/D2/D3/D9/D12/D30 for Shadvarga), each segment
+   coloured by that planet's actual dignity in that specific chart — same --dignity-* palette
+   SouthIndianGrid_Detailed already colours planet dots with, not a new 2/3-colour scale. */
+.am-bars { display: grid; gap: 8px; padding: 16px 16px 4px; }
+.am-bar-row { display: grid; grid-template-columns: 72px minmax(120px,1fr) 44px; gap: 10px; align-items: center; }
+.am-bar-planet { font-weight: 700; }
+.am-stack { display: flex; gap: 2px; height: 26px; border-radius: 6px; overflow: hidden; }
+.am-seg { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .62rem; font-weight: 700; white-space: nowrap; overflow: hidden; }
+.am-seg-empty { background: var(--brand-line); }
+.am-bar-value { text-align: right; font-variant-numeric: tabular-nums; border-radius: 6px; padding: 2px 4px; }
+.am-bar-value span { color: var(--brand-muted); font-weight: 500; }
+.am-key { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: 0; padding: 10px 16px 16px; color: var(--brand-muted); font-size: .72rem; }
+.am-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+@media (max-width: 620px) { .am-bars { padding: 12px 10px 4px; } .am-bar-row { grid-template-columns: 60px minmax(90px,1fr) 40px; gap: 7px; } }

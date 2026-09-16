@@ -70,14 +70,45 @@ filled-segment nested style:
   (`.mud-tab-slider { display: none; }`).
 
 Applies uniformly to the Key Inference master step rail (1. D1-TRANSIT / 2. ABOUT / 3. STRENGTH
-/ 4. KARAKAS) **and** every nested tab strip beneath it (1.1/1.2, 2.1/2.2, 3.1/3.2) — one tab
-style, not two. `KeyInference.razor.css`'s `.ki-tabs ::deep .mud-tab` rule is the base pill;
-`.ki-mastertabs ::deep .ki-master-button` only adds the master rail's grid-stretch layout
-(`width: 100%; justify-content: center`), not its own colours.
+/ 4. SPL LAGNAS / 5. YOGAS / 6. VARGAS) **and** every nested tab strip beneath it (1.1/1.2,
+2.1/2.2, 3.1/3.2/3.3/3.4) — one tab style, not two. `KeyInference.razor.css`'s
+`.ki-tabs ::deep .mud-tab` rule is the base pill; `.ki-mastertabs ::deep .ki-master-button` only
+adds the master rail's grid-stretch layout (`width: 100%; justify-content: center`), not its own
+colours.
 
 This is a distinct convention from the "Actions" (buttons) treatment in
 [`brand.md`](brand.md#actions) — tabs get their own small token family so the two can be
 retuned independently.
+
+### Chart controls (in-chart toggles) — distinct from navigation tabs
+
+**Decided 2026-09-17 (rammyps's directive).** A control that changes how one chart *inside* a
+step displays itself — Sarvāṣṭakavarga's House order/Strength rank toggle, Planet Strength's
+Performance/Composition toggle, House Strength's House order/Strength rank toggle, Amsabala's
+Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga scheme selector, SPL LAGNAS's Wheel/Grid
+toggle and Chart `<select>` — is **not** styled as a navigation tab. It's a dark-navy
+(`--brand-midnight`) segmented pill, smaller than the card heading next to it, with the same
+sunset-fill selected state:
+
+- Pill container: `background: var(--brand-midnight); border-radius: 999px; padding: 3px;` —
+  segments have no gap/border between them beyond `gap: 2px`.
+- Inactive option: transparent background, `color: var(--brand-canvas)` (cream text on navy).
+- Active/selected option: `background: var(--brand-sunset); color: var(--brand-midnight)` — same
+  active pairing as a nav tab, so "selected = sunset" still reads consistently app-wide.
+- Smaller than a card `<h2>`: `font: 700 .68rem–.78rem/1 var(--font-interface)`, ALL CAPS,
+  `padding: 4-6px 10-14px` (vs a nav tab's `--font-size-control`/6-20px).
+- Positioned on the **right** of the card header, opposite the `<h2>` (and before any trailing
+  stat like Sarvāṣṭakavarga's grand total) — never left-aligned under the heading.
+- A `<select>` that drives the same chart (SPL LAGNAS's divisional-chart picker) matches this
+  same navy/cream/caps look so it reads as part of the same control cluster as the toggle beside
+  it, not a separate form field.
+
+Rationale: this reuses the app's own dark-navy brand color as a visual signal that a control
+"belongs to a chart" (part of that card's own display state) rather than to page navigation
+(which stays the quiet-cream/strong-sunset MudTabs pill above). Each chart component
+re-declares this rule set under its own CSS-isolation scope (`.av-toggle`, `.psc-toggle`,
+`.hsc-toggle`, `.am-schemes`, `.karaka-view-tabs`/`.karaka-chart-select`) — same duplication
+every `.pill`/`.dot` status class in this codebase already carries per component.
 
 The app header follows the same filled-pill grammar (`.ik-headtab`, matching the Key Inference
 master rail). Its active state (`.is-here`) uses midnight fill for contrast on the sunset app

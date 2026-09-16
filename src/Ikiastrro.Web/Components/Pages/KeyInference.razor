@@ -39,12 +39,13 @@
    (_masterTab) with one panel per step — "1. D1-TRANSIT", "2. ABOUT", "3. STRENGTH",
    "4. SPL LAGNAS" (renamed from "4. KARAKAS" 2026-09-16 — the embedded KarakaPolarWheel already
    titles itself "SPECIAL LAGNAS & KARAKAS" and now also lists all 4 special lagnas in a table,
-   not just the 3 marked on the wheel), "5. YOGAS" and "6. VARGAS" (both added 2026-09-16) —
-   each panel opens straight into its heading (the "Step N of 6" stepnum line was removed
-   2026-09-16, rammyps's call — the ki-stephead wrapper stays for spacing/typography but no
-   longer prints a step count). "4. SPL LAGNAS" has no ki-stephead at all (2026-09-16) — the
-   embedded KarakaPolarWheel already renders its own "SPECIAL LAGNAS & KARAKAS" heading, so a
-   second heading above it was redundant. Where a step has sub-views, its own inner MudTabs:
+   not just the 3 marked on the wheel), "5. YOGAS" and "6. VARGAS" (both added 2026-09-16) — the
+   per-panel heading text (D1-TRANSIT/ABOUT/STRENGTH, plus the "Step N of 6" stepnum line before
+   that) was dropped from every panel 2026-09-16/09-17, rammyps's call — the tab pill above
+   already names the step, so panels now open straight into their content. `.ki-panelbody >
+   .ki-tabs:first-child` carries the top margin that heading used to provide. "4. SPL LAGNAS"
+   never had a heading of its own beyond the embedded KarakaPolarWheel's own header. Where a step
+   has sub-views, its own inner MudTabs:
    D1-TRANSIT's is 1.1 D1 - BIRTH CHART/1.2 TRANSIT CHART (_activeTab); About's is
    2.1 ABOUT HOUSES/2.2 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
    3.3 ASTAVARGA/3.4 AMSABALA (all unbound). Every tab text at every level is ALL CAPS.
@@ -91,10 +92,6 @@ else
              @bind-ActivePanelIndex="_masterTab">
         <MudTabPanel Text="1. D1-TRANSIT">
             <div class="ki-panelbody">
-            <div class="ki-stephead">
-                <h1 class="ki-heading">D1-TRANSIT</h1>
-            </div>
-
             <div class="ki-tabs">
             <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_activeTab">
                 <MudTabPanel Text="1.1 D1 - BIRTH CHART">
@@ -324,7 +321,7 @@ else
                     }
                     else
                     {
-                        <AmsabalaTable Rows="_amsabala" Names="_amsabalaNames" Groups="_amsabalaGroups" Vargottama="_vargottama" />
+                        <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" />
                     }
                 </MudTabPanel>
             </MudTabs>
@@ -392,7 +389,6 @@ else
     private IReadOnlyList<Ikiastrro.Data.AshtakavargaRow> _ashtakavarga = Array.Empty<Ikiastrro.Data.AshtakavargaRow>();
     private IReadOnlyList<Ikiastrro.Data.AshtakavargaPindaRow> _ashtakavargaPinda = Array.Empty<Ikiastrro.Data.AshtakavargaPindaRow>();
     private IReadOnlyList<Ikiastrro.Data.AmsabalaRow> _amsabala = Array.Empty<Ikiastrro.Data.AmsabalaRow>();
-    private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaNameEntry> _amsabalaNames = Array.Empty<Ikiastrro.Core.Models.AmsabalaNameEntry>();
     private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaGroupMember> _amsabalaGroups = Array.Empty<Ikiastrro.Core.Models.AmsabalaGroupMember>();
     private IReadOnlyList<Ikiastrro.Data.VargottamaRow> _vargottama = Array.Empty<Ikiastrro.Data.VargottamaRow>();
     private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
@@ -448,7 +444,6 @@ else
         _ashtakavarga = AshtakavargaRepo.GetByBirthDetailId(Id);
         _ashtakavargaPinda = AshtakavargaRepo.GetPindaByBirthDetailId(Id);
         _amsabala = AmsabalaRepo.GetByBirthDetailId(Id);
-        _amsabalaNames = AmsabalaSchemeRepo.GetNames(1);
         _amsabalaGroups = AmsabalaSchemeRepo.GetGroups(1);
         _vargottama = VargottamaRepo.GetByBirthDetailId(Id);
         _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);

@@ -7,10 +7,6 @@
    standalone SVG so it skips the golden-snapshot harness (table components do too — PlanetDignityTable et al). *@
 <div class="psc">
     <div class="psc-head">
-        <div>
-            <h2 class="psc-title">Planet Strength — Shadbala</h2>
-            <p class="psc-sub">Comparative planetary strength based on Shadbala (minimum = 100%)</p>
-        </div>
         <div class="psc-toggle" role="group" aria-label="Bar display mode">
             <button type="button" class="@(_mode == BarMode.Performance ? "psc-toggle-on" : "")" @onclick="() => _mode = BarMode.Performance">Performance</button>
             <button type="button" class="@(_mode == BarMode.Composition ? "psc-toggle-on" : "")" @onclick="() => _mode = BarMode.Composition">Composition</button>

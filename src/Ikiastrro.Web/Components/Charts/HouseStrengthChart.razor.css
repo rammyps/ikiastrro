@@ -12,46 +12,40 @@
 
 .hsc-head {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: flex-start;
     gap: 12px;
     flex-wrap: wrap;
     margin-bottom: 10px;
 }
 
-.hsc-title {
-    margin: 0;
-    color: var(--brand-midnight);
-    font: 700 1.15em/1.2 'Manrope', 'Segoe UI', sans-serif;
-}
-
-.hsc-sub {
-    margin: 2px 0 0;
-    color: var(--brand-muted);
-    font-size: 0.82em;
-}
-
+/* Chart-control convention (2026-09-17, rammyps's call): a dark-navy segmented pill, smaller
+   than a card heading, marks a control as belonging to the chart (not app navigation, which
+   stays the quiet-cream/strong-sunset MudTabs pill) — reused identically across every inline
+   chart's own row-order/mode toggle (AshtakavargaChart/PlanetStrengthChart). */
 .hsc-toggle {
     display: inline-flex;
-    border: 1px solid var(--brand-line);
+    gap: 2px;
+    background: var(--brand-midnight);
     border-radius: 999px;
-    padding: 2px;
-    background: var(--brand-peach);
+    padding: 3px;
 }
 
 .hsc-toggle button {
     border: 0;
     background: transparent;
-    color: var(--brand-midnight);
-    font: 700 0.78em/1.6 'Manrope', 'Segoe UI', sans-serif;
-    padding: 4px 14px;
+    color: var(--brand-canvas);
+    font: 700 .68rem/1 var(--font-interface);
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    padding: 4px 10px;
     border-radius: 999px;
     cursor: pointer;
 }
 
 .hsc-toggle button.hsc-toggle-on {
-    background: var(--brand-midnight);
-    color: #ffd166;
+    background: var(--brand-sunset);
+    color: var(--brand-midnight);
 }
 
 .hsc-legend {

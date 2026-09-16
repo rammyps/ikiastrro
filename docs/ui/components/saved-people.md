@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-14
+last_updated: 2026-09-17
 workstream: ui
 component: SavedCharts
 route: /charts
@@ -14,9 +14,19 @@ persisted rows only; the one write path that recomputes goes through
 `ChartGenerationService`.
 
 Page title / `<h1>` and the global nav pill both read **"Saved Charts"** (the route
-stays `/charts`). Matches `UI_SVG_Templates/V2.1-Build/SAVED-CHART-DESIGN-v5.png`: a
-full-bleed Saturn-rings hero (`wwwroot/images/saturn-rings-brand.png`) on the left,
-title + subtitle + "N saved charts" count + Import/Export toolbar + table on the right.
+stays `/charts`). Originally matched `UI_SVG_Templates/V2.1-Build/SAVED-CHART-DESIGN-v5.png`: a
+full-bleed Saturn-rings hero on the left, title + subtitle + "N saved charts" count +
+Import/Export toolbar + table on the right.
+
+**2026-09-17 — hero image + layout fixed.** Art is now `ganesha-9planet-brand.png` (was
+`saturn-rings-brand.png`). The original full-bleed-left/flush-right `.sp-layout` (a negative
+margin cancelling `.ik-page`'s padding) left an asymmetric gap: `.ik-page` also centres itself
+with `margin-inline:auto` above `--maxw`, which that negative margin never accounted for, so the
+art's left inset grew with viewport width while its right edge stayed flush against
+`.sp-content`. `.sp-layout` now just sits in `.ik-page`'s own gutter like every other page, with
+a shared `gap` keeping both edges equal at any width — same "one page gutter, no page-specific
+bleed trick" shape as the rest of the app. `object-fit` changed `cover` → `contain` (matching
+`Home.razor.css`'s `.home-art` convention) so the art is never cropped.
 
 ## The list
 

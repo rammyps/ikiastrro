@@ -1,4 +1,5 @@
 @using System.Globalization
+@using Ikiastrro.Web.Components.Workspace
 
 <section class="am" aria-labelledby="am-title">
     <article class="am-card">
@@ -13,15 +14,6 @@
                     }
                 </nav>
             </div>
-            @if (_scheme != "VARGOTTAMA")
-            {
-                <div class="am-legend" aria-label="Amsa name scale for this scheme">
-                    @foreach (var n in Legend)
-                    {
-                        <span><b>@n.AmsaName</b> – @n.GoodCount</span>
-                    }
-                </div>
-            }
         </header>
 
         @if (_scheme == "VARGOTTAMA")
@@ -45,29 +37,43 @@
         }
         else
         {
-            <div class="am-table-scroll">
-                <table>
-                    <thead><tr><th>Graha</th><th>Match</th></tr></thead>
-                    <tbody>
-                        @foreach (var r in SchemeRows)
-                        {
-                            <tr>
-                                <th>@DisplayPlanet(r.PlanetCode)</th>
-                                <td class="@(r.GoodCount == 0 ? "am-zero" : r.GoodCount * 2 >= r.GroupSize ? "am-high" : "")"><b>@r.GoodCount</b><span>/@r.GroupSize</span></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="am-bars">
+                @foreach (var r in SchemeRows)
+                {
+                    <div class="am-bar-row">
+                        <span class="am-bar-planet">@DisplayPlanet(r.PlanetCode)</span>
+                        <span class="am-stack">
+                            @foreach (var seg in Segments(r.PlanetCode))
+                            {
+                                @if (seg.Token is "exalted" or "good")
+                                {
+                                    <span class="am-seg" style="background:var(--dignity-@seg.Token)" title="@seg.ChartType — @seg.DignityStatus">@seg.ChartType</span>
+                                }
+                                else
+                                {
+                                    <span class="am-seg am-seg-empty" title="@seg.ChartType — @seg.DignityStatus"></span>
+                                }
+                            }
+                        </span>
+                        <b class="am-bar-value @(r.GoodCount == 0 ? "am-zero" : r.GoodCount * 2 >= r.GroupSize ? "am-high" : "")">@r.GoodCount<span>/@r.GroupSize</span></b>
+                    </div>
+                }
             </div>
+            <p class="am-key">
+                @foreach (var token in DignityKey)
+                {
+                    <span><i style="background:var(--dignity-@token.Token)"></i> @token.Label</span>
+                }
+            </p>
         }
     </article>
 </section>
 
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<AmsabalaRow> Rows { get; set; } = Array.Empty<AmsabalaRow>();
-    [Parameter, EditorRequired] public IReadOnlyList<AmsabalaNameEntry> Names { get; set; } = Array.Empty<AmsabalaNameEntry>();
     [Parameter, EditorRequired] public IReadOnlyList<AmsabalaGroupMember> Groups { get; set; } = Array.Empty<AmsabalaGroupMember>();
     [Parameter, EditorRequired] public IReadOnlyList<VargottamaRow> Vargottama { get; set; } = Array.Empty<VargottamaRow>();
+    [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
 
     private static readonly string[] PlanetOrder = { "SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN" };
     private static readonly string[] SchemeOrder = { "VARGOTTAMA", "SHADVARGA", "SAPTAVARGA", "DASAVARGA", "SHODASAVARGA" };
@@ -88,13 +94,6 @@
             .Where(r => r is not null)
             .Select(r => r!)
             .ToList();
-
-    // PVR pg. 63-64: each varga group (6/7/10/16) has its own classical amsa-name scale, keyed by
-    // good-varga count — e.g. Dasavarga's count=2 is "Paarijaatamsa" but Shadvarga/Saptavarga's is
-    // "Kimsukamsa" for the same count. tbl_Rule_AmsabalaName (db/099) is the source of truth; this
-    // legend is that scheme's slice of it, not a hardcoded copy.
-    private IEnumerable<AmsabalaNameEntry> Legend =>
-        Names.Where(n => n.SchemeCode.Equals(_scheme, StringComparison.OrdinalIgnoreCase)).OrderBy(n => n.GoodCount);
 
     // "N charts compared (Rasi chart with D-x,D-y,...)" — built off the actual seeded group
     // membership (tbl_Rule_AmsabalaGroup, db/101), not a hardcoded copy of it.
@@ -128,4 +127,26 @@
 
     private static string DisplayPlanet(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(code.ToLowerInvariant());
     private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+
+    // One slot per varga in the current scheme (so the row still reads as "N out of GroupSize"),
+    // but only the ones that actually count toward GoodCount — Exalted or Own/Moolatrikona/Great
+    // Friend (AmsabalaCalculator's "isGood") — get coloured and named; the rest render as plain
+    // empty slots. Colour reuses the same --dignity-* tokens every other chart view in the app
+    // already colours planets with, read live off Charts (already loaded by WorkspaceData).
+    private IEnumerable<(string ChartType, string DignityStatus, string Token)> Segments(string planetCode) =>
+        Groups.Where(g => g.SchemeCode.Equals(_scheme, StringComparison.OrdinalIgnoreCase))
+            .Select(g =>
+            {
+                var status = Charts.TryGetValue(g.ChartType, out var chart)
+                    ? chart.Grahas.FirstOrDefault(k => k.Planet.Equals(planetCode, StringComparison.OrdinalIgnoreCase))?.DignityStatus
+                    : null;
+                return (g.ChartType, DignityStatus: status ?? "Unknown",
+                    Token: Ikiastrro.Core.Presentation.ChartViewModel.DignityToken(status));
+            });
+
+    private static readonly (string Token, string Label)[] DignityKey =
+    {
+        ("exalted", "Exalted"),
+        ("good", "Own / Moolatrikona / Great Friend"),
+    };
 }

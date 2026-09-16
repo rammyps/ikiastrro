@@ -1,10 +1,18 @@
 .av { display: grid; gap: 14px; color: var(--brand-midnight); }
 .av-card { border: 1px solid var(--brand-line); border-radius: 12px; background: var(--brand-surface); overflow: hidden; }
 .av-card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-peach); }
-.av-card-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; }
-.av-card-head p { margin: 3px 0 0; color: var(--brand-muted); font-size: .78rem; }
+.av-card-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; text-transform: uppercase; letter-spacing: .03em; }
+.av-head-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .av-card-head strong { color: var(--brand-sunset); font-size: 1.2rem; white-space: nowrap; }
 .av-card-head strong span { color: var(--brand-muted); font-size: .7rem; text-transform: uppercase; }
+
+/* Chart-control convention (2026-09-17, rammyps's call): a dark-navy segmented pill, smaller
+   than the card heading, marks a control as belonging to the chart (not app navigation, which
+   stays the quiet-cream/strong-sunset MudTabs pill) — reused identically across every inline
+   chart's own row-order/mode toggle (PlanetStrengthChart/HouseStrengthChart). */
+.av-toggle { display: inline-flex; gap: 2px; background: var(--brand-midnight); border-radius: 999px; padding: 3px; }
+.av-toggle button { border: 0; background: transparent; color: var(--brand-canvas); font: 700 .68rem/1 var(--font-interface); text-transform: uppercase; letter-spacing: .02em; padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+.av-toggle button.av-toggle-on { background: var(--brand-sunset); color: var(--brand-midnight); }
 .av-bars { display: grid; gap: 8px; padding: 18px 16px; }
 .av-bar-row { display: grid; grid-template-columns: 72px minmax(120px,1fr) 34px; gap: 10px; align-items: center; }
 .av-sign { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }

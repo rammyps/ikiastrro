@@ -16,13 +16,13 @@
         {
             <div class="yg-table-scroll">
                 <table>
-                    <thead><tr><th>Yoga</th><th>Type</th><th>Rule</th><th>Source</th></tr></thead>
+                    <thead><tr><th>Type</th><th>Yoga</th><th>Rule</th><th>Source</th></tr></thead>
                     <tbody>
                         @foreach (var r in PresentRows)
                         {
                             <tr>
-                                <td>@DisplayYoga(r.YogaCode)</td>
                                 <td>@(r.YogaTypeCode ?? "—")</td>
+                                <td>@DisplayYoga(r.YogaCode)</td>
                                 <td>@(r.YogaRule ?? "—")</td>
                                 <td class="yg-source">@DisplaySource(r.SourceRefCode)</td>
                             </tr>
@@ -45,10 +45,20 @@
     private IEnumerable<IGrouping<string, YogaEvaluationRow>> ByYoga =>
         Rows.GroupBy(r => r.YogaCode, StringComparer.OrdinalIgnoreCase);
 
+    // rammyps's requested default order: Lagna, Sun, Moon, Combination first, any other
+    // YogaTypeCode that shows up later follows alphabetically after those four.
+    private static readonly string[] TypeOrder = { "LAGNA", "SUN", "MOON", "COMBINATION" };
+
+    private static int TypeRank(string? type)
+    {
+        var i = Array.IndexOf(TypeOrder, type?.ToUpperInvariant() ?? string.Empty);
+        return i < 0 ? TypeOrder.Length : i;
+    }
+
     private IReadOnlyList<YogaEvaluationRow> PresentRows =>
         ByYoga.Where(g => g.Any(r => r.Present == true))
             .Select(g => g.First(r => r.Present == true))
-            .OrderBy(r => r.YogaTypeCode).ThenBy(r => r.YogaCode)
+            .OrderBy(r => TypeRank(r.YogaTypeCode)).ThenBy(r => r.YogaTypeCode).ThenBy(r => r.YogaCode)
             .ToList();
 
     private int EvaluatedCount => ByYoga.Count(g => g.Any(r => r.EvaluationStatus == "EVALUATED"));

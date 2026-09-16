@@ -8,10 +8,6 @@
    HouseLordshipTable already use, not a new palette. "hsc" = HouseStrengthChart. *@
 <div class="hsc">
     <div class="hsc-head">
-        <div>
-            <h2 class="hsc-title">House Strength — Bhava Bala</h2>
-            <p class="hsc-sub">Comparative house strength based on Bhava Bala (Rūpas, maximum = 9.00)</p>
-        </div>
         <div class="hsc-toggle" role="group" aria-label="Row order">
             <button type="button" class="@(_sort == SortMode.HouseOrder ? "hsc-toggle-on" : "")" @onclick="() => _sort = SortMode.HouseOrder">House order</button>
             <button type="button" class="@(_sort == SortMode.StrengthRank ? "hsc-toggle-on" : "")" @onclick="() => _sort = SortMode.StrengthRank">Strength rank</button>
@@ -31,7 +27,7 @@
         <span class="hsc-c-lord">Lord</span>
         <span class="hsc-c-placed">Lord placed</span>
         <span class="hsc-c-dignity">Dignity</span>
-        <span class="hsc-c-bar">Rūpas (0&ndash;9)</span>
+        <span class="hsc-c-bar">Rūpas (0&ndash;@ScaleMax.ToString("0.#", CultureInfo.InvariantCulture))</span>
         <span class="hsc-c-num">Rūpas</span>
     </div>
 
@@ -95,7 +91,10 @@
     }
 
     <div class="hsc-axis">
-        <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>9</span>
+        @foreach (var t in AxisTicks)
+        {
+            <span>@t.ToString("0.#", CultureInfo.InvariantCulture)</span>
+        }
     </div>
 </div>
 
@@ -140,7 +139,24 @@
         _ => ("Weak", "hsc-status-weak"),
     };
 
-    private static double BarWidthPercent(decimal rupas) => (double)(Math.Min(Math.Max(rupas, 0), 9) / 9m * 100m);
+    // Bhava Bala has no fixed classical ceiling the way Ashtakavarga's 40-bindu practical max
+    // does — Bhavadhipati Bala alone is the house lord's whole Shadbala, which routinely clears
+    // 9 Rupas for a strong lord (observed up to ~10.9 in this database), so a hardcoded /9 scale
+    // silently clipped strong houses at 100% width. Scale to the actual max among the displayed
+    // houses instead, rounded up to a whole Rupa (floor of 1 so an all-zero chart doesn't divide
+    // by zero).
+    private decimal ScaleMax => Math.Max(1m, Math.Ceiling(Rows.Select(r => r.BhavaBalaRupas).DefaultIfEmpty(0).Max()));
+
+    private IEnumerable<decimal> AxisTicks
+    {
+        get
+        {
+            var max = ScaleMax;
+            for (var i = 0; i <= 5; i++) yield return Math.Round(max * i / 5, 1);
+        }
+    }
+
+    private double BarWidthPercent(decimal rupas) => (double)(Math.Min(Math.Max(rupas, 0), ScaleMax) / ScaleMax * 100m);
 
     private static string LordPlacedDisplay(BhavaBalaSummaryRow row) =>
         row.LordPlacedInHouseFromLagna is { } h ? $"H{h} · {row.LordPlacedInSign ?? "—"}" : "—";

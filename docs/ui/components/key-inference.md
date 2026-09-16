@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-09-17
 workstream: ui
 component: KeyInference
 route: /key-inference/{id}
@@ -8,8 +8,12 @@ togaf: C — component spec
 
 # Component — Key Inference
 
-`KeyInference.razor` — **steps 1, 2.1, 2.2, 3 and 4 built** (2026-09-14); steps 5–6 land in
-later passes. This is the spec-of-record for the **round-2 redesign** (2026-09-11), which
+`KeyInference.razor` — **all 6 in-page steps built**, plus step 7 (All Charts) as the separate
+`/charts/{id}` route (its heading literally reads "7. ALL CHARTS" so the numbering stays
+consistent across the two routes). Final step order (2026-09-16/17, superseding the round-1
+6-step plan below): 1 D1-Transit, 2 About, 3 Strength (3.1 Planet Strength / 3.2 House Strength /
+3.3 Astavarga / 3.4 Amsabala), 4 Spl Lagnas (was "Karakas"), 5 Yogas, 6 Vargas. This is the
+spec-of-record for the **round-2 redesign** (2026-09-11), which
 restructures the original flat "KEY INFERENCE header, 8 sub-tabs" shape into a **numbered UX
 flow**. Mockups:
 
@@ -34,10 +38,11 @@ separate headers alongside this flow, not steps in it.
 | **2.1 · About Houses** | — (occupancy bar dropped; see note below) | Aspects (left) + multi-graha Conjunctions (right), side by side; House Lord Placement (lords + occupants); House Lord Key Findings — three tables, not one | `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
 | **2.2 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
-| **3 · Strength** | 3.1 `PlanetStrengthChart` — %-of-minimum bar (Performance) or a component-composition stacked bar (Composition toggle), plus a per-graha expandable Bala breakdown. 3.2 `HouseStrengthChart` — Rūpas (0–9) bar, House order/Strength rank toggle, per-house expandable breakdown | Bar and table are one component each (not chart+table separately — the bar sits inline in the row); "two tables, different columns" from the original spec became two chart+table hybrids instead, closer to the round-2 mockup's PNGs (`UI_SVG_Templates/V2.1-Build/Planet1-Strength-Chart.png` / `House-Strength-Chart.png`) than the flat-table plan below | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` (`PlanetaryStrengthRepository.GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (`BhavaStrengthRepository`, same two methods) |
-| **4 · Karakas** | Interactive Karaka wheel with house, planet and special-Lagna selection | Context reading, lord chain, natural/Chara significators and life-matter questions | `tbl_Rule_LifeMatterReference` + Naisargika/relationship rule tables through `NaisargikaKarakaRepository`; persisted varga placements through `WorkspaceData` |
-| **5 · Ashtakavarga** | Sarvāṣṭakavarga bar (bindus per sign) | Bhinnāṣṭakavarga grid (7×12) + Piṇḍa table | `vw_ChartAshtakavarga` · `tbl_Fact_AshtakavargaPinda` |
-| **6 · Yoga** | coverage donut (Present / Absent / Not evaluated) | Source · Yoga · Type · Rule · Result | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) |
+| **3 · Strength** | 3.1 `PlanetStrengthChart` — %-of-minimum bar (Performance) or a component-composition stacked bar (Composition toggle), plus a per-graha expandable Bala breakdown. 3.2 `HouseStrengthChart` — Rūpas bar (scale is dynamic — see 2026-09-17 note below, not the fixed 0–9 this spec originally called for), House order/Strength rank toggle, per-house expandable breakdown. 3.3 `AshtakavargaChart` — Sarvāṣṭakavarga bar (House order/Strength rank toggle) + Bhinnāṣṭakavarga grid (7×12) + Piṇḍa table. 3.4 `AmsabalaTable` — Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga scheme selector; the 4 varga-group schemes each render a stacked equal-width bar per graha (one segment per varga in that scheme, coloured by that varga's actual planetary dignity, empty for a non-matching varga) | Bar and table are one component each (not chart+table separately — the bar sits inline in the row) | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (both via `PlanetaryStrengthRepository`/`BhavaStrengthRepository`'s `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`) · `vw_ChartAshtakavarga` + `tbl_Fact_AshtakavargaPinda` (`AshtakavargaRepository`) · `vw_ChartAmsabala` + `tbl_Rule_AmsabalaGroup`/`tbl_Rule_AmsabalaName` (`AmsabalaRepository`/`AmsabalaSchemeRepository`) + `tbl_Fact_Vargottama` (`VargottamaRepository.GetByBirthDetailId`) |
+| **4 · Spl Lagnas** | Interactive Karaka wheel (`KarakaPolarWheel`/`PolarGridLagnaSelect`) with house, planet and special-Lagna selection; planets now render on the polar wheel itself (2026-09-17 fix — `PlanetPlacements` was already passed in but never drawn in the `polar` view branch, only the `south` grid view used it) | Special Lagnas table (all 4 — Bhaava/Hora/Ghati/Sree — with Sign/House/Degree/Signifies, not just the 3 marked on the wheel) | `tbl_Rule_LifeMatterReference` + Naisargika/relationship rule tables through `NaisargikaKarakaRepository`; persisted varga placements through `WorkspaceData` |
+| **5 · Yogas** | — (coverage donut planned, not built) | Yogas Present: Type · Yoga · Rule · Source, deduplicated by `YogaCode` (a yoga can match several classical source citations independently — e.g. Daridra against Raman combinations #148/#149/#151/#152 — which used to list it once per citation) and sorted by type in Lagna/Sun/Moon/Combination order, any other `YogaTypeCode` following alphabetically | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) via `YogaEvaluationRepository` |
+| **6 · Vargas** | `VargaLordsTable` — sign + varga lord per planet across every generated divisional chart, highlighting Vargottama (D9 sign = D1 sign) and same-sign-as-D1 elsewhere | (chart doubles as the table — no separate table) | No new repository — reads `WorkspaceData.Charts` (every chart type's `Grahas` + `HouseLords`, already loaded for `AllCharts.razor`'s grid) |
+| **7 · All Charts** | — | Every stored divisional chart as a plain South-Indian grid (unchanged from before this round) | separate `/charts/{id}` route (`AllCharts.razor`), heading reads "7. ALL CHARTS" |
 
 ## New fields — sourcing status
 
@@ -132,3 +137,64 @@ flow above instead of sitting in a side panel:
   (or a flex/grid parent, which auto-blockifies it) or its `width`/`height` are silently ignored
   as an inline element (`HouseStrengthChart`'s `.hsc-track` hit this, `PlanetStrengthChart`'s
   `.psc-track` was saved by its `.psc-trackrow{display:flex}` parent).
+- **Built (2026-09-16/17) — steps 3.4 Amsabala, 5 Yogas, 6 Vargas added; step 4 renamed Karakas
+  → Spl Lagnas; per-panel headings dropped app-wide; chart-control convention introduced:**
+  - **3.3 Astavarga bug:** the same Razor "email address" heuristic noted above hit
+    `AshtakavargaChart`'s `<small>H@HouseNumber(...)</small>` too (`H` immediately before `@`
+    with no separator) — house numbers rendered as literal unevaluated text
+    (`H@HouseNumber(row.SignNumber)`, clipped by the row's fixed width to just "H@House").
+    Fixed the same way, `H@(HouseNumber(...))`.
+  - **3.4 Amsabala** (new): scheme-tabbed Vargottama/Shadvarga/Saptavarga/Dasavarga/
+    Shodasavarga. Vargottama shows D1 sign/D9 sign/Match per graha
+    (`VargottamaRepository.GetByBirthDetailId`, new — the repository only had a write path
+    before). The 4 varga-group schemes render a subtext ("N charts compared (Rasi chart with
+    D-x,D-y,…)") and a stacked equal-width bar per graha, built from `tbl_Rule_AmsabalaGroup`'s
+    actual seeded membership rather than a hardcoded copy of it — one segment per varga in that
+    scheme; a segment is coloured/named only when that specific varga is Exalted or
+    Own/Moolatrikona/Great Friend for that graha (`ChartViewModel.DignityToken`, read live off
+    `WorkspaceData.Charts`, not from `AmsabalaRow.Detail`'s `*`-marked good/not-good boolean —
+    the full dignity tier needed distinguishing "very good" from "fine"), non-matching vargas
+    render as an unlabelled empty slot so the row still reads as "N out of GroupSize".
+  - **5 Yogas** (new, `YogaEvaluationTable`): supersedes the coverage-donut + full-variant-list
+    plan in [`yoga.md`](yoga.md) — see that file for the as-built shape (a single "Yogas
+    Present" table, deduplicated and sorted by type).
+  - **6 Vargas** (new, `VargaLordsTable`): needed no new repository — `WorkspaceData.Charts`
+    already carries every generated chart type's `Grahas` (sign) and `HouseLords` (sign → lord),
+    the same data `AllCharts.razor`'s grid already reads.
+  - **4 Spl Lagnas:** renamed from "4. Karakas" — the embedded `KarakaPolarWheel` already titled
+    itself "Special Lagnas & Karakas". Its own heading was then dropped too (2026-09-17, single
+    tab under this step) along with its Chart-selector `<label>`/"CHART" caption; the Chart
+    `<select>`, and the Wheel/Grid toggle (renamed from Polar-Wheel/SouthIND-Grid) now centre
+    together where the heading used to sit. Planets were missing from the polar wheel entirely —
+    `PolarGridLagnaSelect` received `PlanetPlacements` and even converted it to `PlanetsBySign`
+    for the `south` grid view, but the `polar` SVG branch never referenced it; fixed by drawing
+    each sector's planet glyphs (`ChartViewModel.PlanetGlyph`, dignity-coloured) at radius 260,
+    between the sign ring (292) and the special-Lagna house-count ring (224). Hit the same
+    Razor gotcha this file already had a workaround for once: a literal SVG `<text>` as the
+    *first* tag inside an `@if(){ }` block (right after a `var` statement) is parsed as Razor's
+    own reserved `<text>` markup-transition tag, which can't carry attributes
+    (`RZ1023: "<text>" and "</text>" tags cannot contain attributes`) — wrap it in a `<g>` first,
+    same fix the existing `pgls-point` block already used.
+  - **Per-panel headings dropped everywhere** (D1-Transit/About/Strength's own `<h1>`, and each
+    chart component's card `<h2>`+subtitle where it duplicated the tab pill above it) — the tab
+    pill already names the step, so every panel now opens straight into its content. Where a
+    panel lost its only spacing (the old heading's margin), `.ki-panelbody > .ki-tabs:first-child`
+    carries a `margin-top` instead. Ashtakavarga/Amsabala kept their per-card `<h2>`s (they
+    distinguish sub-sections a single step-level tab can't) but uppercased them and dropped
+    their subtitle `<p>`s as redundant.
+  - **Chart-control convention** (see `design-language.md` "Chart controls") replaced every
+    in-chart toggle's ad hoc styling (`PlanetStrengthChart`/`HouseStrengthChart`'s toggle used
+    to be a one-off midnight-bg/gold-text pair, not the app's tab tokens) with one dark-navy
+    segmented-pill treatment, right-aligned and smaller than the card heading, reused identically
+    by `AshtakavargaChart`, `PlanetStrengthChart`, `HouseStrengthChart`, `AmsabalaTable`'s scheme
+    selector, and `KarakaPolarWheel`'s Wheel/Grid toggle + Chart `<select>`.
+  - **House Strength Rūpas scale bug:** the bar/axis/column-header hardcoded a 0–9 max
+    (`BarWidthPercent(...) / 9m`), but Bhavadhipati Bala alone is the house lord's whole
+    Shadbala, which routinely clears 9 Rūpas for a strong lord — observed up to ~10.9 in the
+    live database, silently clipped to 100% width before this fix. `ScaleMax` now rounds the
+    actual max among the displayed houses up to a whole Rūpa (floor 1), and the axis/column
+    header follow it instead of a fixed constant.
+  - **Saved Charts hero image** moved from `saturn-rings-brand.png` to
+    `ganesha-9planet-brand.png` — see [`saved-people.md`](saved-people.md) for the accompanying
+    layout fix (the old full-bleed-left/flush-right hero had an asymmetric gap and cropped the
+    art with `object-fit:cover`; now a normal symmetric grid gutter with `object-fit:contain`).

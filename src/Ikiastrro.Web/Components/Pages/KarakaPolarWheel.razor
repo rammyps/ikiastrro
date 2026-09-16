@@ -26,8 +26,8 @@ else
  <header class="karaka-head">
   <select class="karaka-chart-select" value="@_chartCode" @onchange="ChangeChart" aria-label="Chart">@foreach(var chart in AvailableCharts){<option value="@chart.ChartType">@chart.ChartType · @chart.SanskritName</option>}</select>
   <nav class="karaka-view-tabs" aria-label="Chart view">
-   <button type="button" class="@(_view == "polar" ? "is-active" : null)" @onclick="ShowPolar">Polar-Wheel</button>
-   <button type="button" class="@(_view == "south" ? "is-active" : null)" @onclick="ShowSouth">SouthIND-Grid</button>
+   <button type="button" class="@(_view == "polar" ? "is-active" : null)" @onclick="ShowPolar">Wheel</button>
+   <button type="button" class="@(_view == "south" ? "is-active" : null)" @onclick="ShowSouth">Grid</button>
   </nav>
  </header>
  @if (SelectedChart is { } selected)

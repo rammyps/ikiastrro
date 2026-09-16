@@ -1,4 +1,5 @@
 @using System.Globalization
+@using Ikiastrro.Core.Presentation
 
 <section class="pgls" aria-label="Special Lagna chart">
  <div class="pgls-lagnas" role="group" aria-label="Lagna references">
@@ -26,6 +27,17 @@
      <g class="pgls-sector">
       <path d="@AnnularSector(angle-15,angle+15,145,338)" />
       <text x="@F(sx)" y="@F(sy)" class="pgls-sign">@SignCode(sector.Sign)</text>
+      @if(PlanetsBySign.TryGetValue(sector.Sign,out var planets)&&planets.Count>0)
+      {
+       var (ppx,ppy)=Xy(angle,260);
+       <g><text x="@F(ppx)" y="@F(ppy)" class="pgls-planets">
+        @foreach (var p in planets)
+        {
+         var fill = p.DignityToken is null ? null : $"fill:var(--dignity-{p.DignityToken})";
+         <tspan style="@fill">@PlanetGlyph(p.PlanetName) </tspan>
+        }
+       </text></g>
+      }
       <text x="@F(hx)" y="@F(hy)" class="pgls-house">
        @foreach (var comparison in HouseComparisons(sector.Sign))
        {
@@ -99,4 +111,5 @@
  private static string ShortName(string code)=>code switch{"ARUDHA_LAGNA"=>"AL","HORA_LAGNA"=>"HL","SREE_LAGNA"=>"SL","GHATI_LAGNA"=>"GL",_=>code};
  private static string ReferenceClass(string code)=>code switch{"ARUDHA_LAGNA"=>"ref-arudha","HORA_LAGNA"=>"ref-hora","SREE_LAGNA"=>"ref-sree","GHATI_LAGNA"=>"ref-ghati",_=>"ref-lagna"};
  private static string SignCode(string s)=>DisplaySign(s) switch{"Aries"=>"ARI","Taurus"=>"TAU","Gemini"=>"GEM","Cancer"=>"CAN","Leo"=>"LEO","Virgo"=>"VIR","Libra"=>"LIB","Scorpio"=>"SCO","Sagittarius"=>"SAG","Capricorn"=>"CAP","Aquarius"=>"AQU","Pisces"=>"PIS",_=>s[..Math.Min(3,s.Length)].ToUpperInvariant()};
+ private static string PlanetGlyph(string planet)=>ChartViewModel.PlanetGlyph(planet);
 }
