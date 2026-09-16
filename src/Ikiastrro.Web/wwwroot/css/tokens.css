@@ -40,6 +40,11 @@
     --asc-glow: rgba(140, 47, 57, 0.14);
     --shadow: rgba(90, 70, 40, 0.22);
 
+    /* MudAppBar's rendered height (Fixed="true", default toolbar size) — measured live via
+       claude-in-chrome, 2026-09-17. Lets sticky-positioned content (e.g. Home.razor's ganesha
+       art) dock its `top` flush under the fixed nav instead of guessing/hardcoding per-page. */
+    --ik-appbar-h: 64px;
+
     /* House-number badges on every South Indian grid cell (SouthIndianGrid_Detailed): the house counted
        from the Lagna reads maroon (= --accent), the house counted from the natal Moon reads gold —
        two axes, two colours, so a glance separates them. */

@@ -1,43 +1,17 @@
 @page "/"
-@using Ikiastrro.Core.Engines.Astronomy
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartGenerationService ChartGenerationService
 @inject IPlaceResolver PlaceResolver
 @inject NavigationManager Nav
-@inject AyanamsaRuleRepository AyanamsaRules
 @inject ActivePerson Active
 
 <PageTitle>Iki-Astrro · Discover Your Path</PageTitle>
 
-<div class="home-prefs">
-    <MudButton Variant="Variant.Text" DropShadow="false" Class="home-prefs-toggle"
-               StartIcon="@(_prefsOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.Tune)"
-               OnClick="@(() => _prefsOpen = !_prefsOpen)">
-        Preferences
-    </MudButton>
-    <MudCollapse Expanded="_prefsOpen">
-        <div class="home-prefs-body">
-            <MudSelect T="string" Label="Choose Ayanāṁśa" Value="_ayanamsaCode"
-                       ValueChanged="OnAyanamsaChanged" Dense="true" Variant="Variant.Outlined">
-                @foreach (var a in AyanamsaDefinition.Catalog)
-                {
-                    <MudSelectItem T="string" Value="@a.Code">@AyanamsaLabel(a)</MudSelectItem>
-                }
-            </MudSelect>
-            <MudSelect T="string" Label="Choose Chart Type" Value="_chartStyle"
-                       ValueChanged="OnChartStyleChanged" Dense="true" Variant="Variant.Outlined">
-                <MudSelectItem T="string" Value="@("south-indian")">South Indian — default</MudSelectItem>
-                <MudSelectItem T="string" Value="@("north-indian")" Disabled="true">North Indian — planned</MudSelectItem>
-                <MudSelectItem T="string" Value="@("west-indian")" Disabled="true">West Indian — planned</MudSelectItem>
-            </MudSelect>
-        </div>
-    </MudCollapse>
-</div>
-
 <div class="home">
-    @* .home-main starts at the heading, not the Preferences toggle above, so its rendered
+    @* .home-main starts at the heading, the first thing under the top nav, so its rendered
        height — from here down to the Cancel button when the Add-New form is open — is what
-       .home-art (align-items:stretch + object-fit:contain below) actually matches. *@
+       .home-art (object-fit:contain below) would match if it stretched; instead .home-art is
+       pinned (position:sticky) so the ganesha art never scrolls out of view as the form grows. *@
     <div class="home-main">
 
         <h1 class="home-title">Discover Your Path<span class="home-title-sprout" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none">
@@ -72,7 +46,6 @@
         @if (_adding)
         {
             <div class="home-form">
-                <MudText Class="home-form-caption">New person</MudText>
                 <MudTextField T="string" Label="Name" @bind-Value="_f.Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 <div class="home-sex">
                     <MudText Typo="Typo.caption" Class="home-sex-label">Sex — required</MudText>
@@ -115,15 +88,9 @@
 
 @code {
     private List<BirthDetails> _people = new();
-    private bool _prefsOpen;
     private bool _adding;
     private bool _busy;
     private string? _error;
-
-    // Preferences — in-memory for the first cut; localStorage / DB default is a follow-up.
-    private string _ayanamsaCode = AyanamsaDefinition.Default.Code;
-    private string _chartStyle = "south-indian";
-    private AyanamsaDefinition _activeDefault = AyanamsaDefinition.Default;
 
     private readonly AddForm _f = new();
     private string _query = string.Empty; // the name-search text; never triggers navigation on its own
@@ -134,20 +101,7 @@
     {
         Active.Clear(); // Home has no active person — hide the per-person nav tabs and band.
         _people = BirthDetailsRepo.GetAll().ToList();
-        try
-        {
-            _activeDefault = AyanamsaRules.GetActiveDefault();
-            _ayanamsaCode = _activeDefault.Code;
-        }
-        catch { /* fall back to AyanamsaDefinition.Default */ }
     }
-
-    private string AyanamsaLabel(AyanamsaDefinition a) =>
-        a.Code == _activeDefault.Code ? $"{a.DisplayName} — default" : a.DisplayName;
-
-    // Selecting a preference applies it and collapses the panel (hides the dropdowns).
-    private void OnAyanamsaChanged(string value) { _ayanamsaCode = value; _prefsOpen = false; }
-    private void OnChartStyleChanged(string value) { _chartStyle = value; _prefsOpen = false; }
 
     // The saved list is only ever *searched* — typing filters, it never navigates. A person is
     // opened only by an explicit "View chart →" click (docs/ui/components/home.md).
@@ -247,7 +201,7 @@
             };
 
             BirthDetailsRepo.Insert(birth);
-            ChartGenerationService.GenerateAll(birth, AyanamsaDefinition.FromCode(_ayanamsaCode));
+            ChartGenerationService.GenerateAll(birth);   // uses the DB's active-default ayanamsa
             Nav.NavigateTo($"/key-inference/{birth.Id}");
         }
         catch (Exception ex)

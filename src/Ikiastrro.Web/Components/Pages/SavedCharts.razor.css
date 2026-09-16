@@ -241,7 +241,7 @@ h1 {
 .sp-menu-panel {
     position: absolute;
     top: calc(100% + 4px);
-    left: 0;
+    right: 0;
     z-index: 20;
     min-width: 230px;
     display: grid;
@@ -254,8 +254,10 @@ h1 {
 
 .sp-menu-item {
     display: block;
+    width: 100%;
     padding: .6rem .9rem;
     color: var(--brand-midnight);
+    font: inherit;
     font-size: .9rem;
     text-decoration: none;
     cursor: pointer;
@@ -265,32 +267,17 @@ h1 {
 }
 
 .sp-menu-item:hover { background: var(--brand-peach); }
+.sp-menu-item:disabled { opacity: .5; cursor: default; }
+.sp-menu-item:disabled:hover { background: none; }
 
-.sp-danger-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: .5rem .9rem;
-    border: 1.5px solid var(--danger, #b3261e);
-    border-radius: 8px;
-    background: var(--brand-surface);
-    color: var(--danger, #b3261e);
-    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    cursor: pointer;
-    white-space: nowrap;
+/* Preferences sub-panel — wider than the plain link-list panels to fit the two selects. */
+.sp-menu-panel-wide { min-width: 320px; }
+
+.sp-prefs-body {
+    display: grid;
+    gap: .75rem;
+    padding: .75rem .9rem;
 }
-
-.sp-danger-btn:hover { background: var(--danger, #b3261e); color: var(--danger-fg, #fbeee7); }
-.sp-danger-btn:disabled { opacity: .5; cursor: default; }
-
-.sp-danger-btn-strong {
-    background: var(--danger, #b3261e);
-    color: var(--danger-fg, #fbeee7);
-    border-color: var(--danger-line, #7d1a15);
-}
-
-.sp-danger-btn-strong:hover { filter: brightness(1.1); }
 
 .sp-menu-backdrop {
     position: fixed;

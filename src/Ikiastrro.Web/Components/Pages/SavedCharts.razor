@@ -1,5 +1,6 @@
 @page "/charts"
 @using Microsoft.AspNetCore.Components.Forms
+@using Ikiastrro.Core.Engines.Astronomy
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
@@ -9,6 +10,7 @@
 @inject JkdInterchangeService JkdService
 @inject IPlaceResolver PlaceResolver
 @inject DatabaseMaintenanceService DbMaintenanceService
+@inject AyanamsaRuleRepository AyanamsaRules
 
 <PageTitle>Saved Charts — ikiastrro</PageTitle>
 
@@ -25,7 +27,44 @@
             </div>
             <div class="sp-toolbar">
                 <div class="sp-menu">
-                    <button type="button" class="sp-menu-btn" @onclick="@(() => ToggleMenu("import"))">Import <span class="sp-caret">▾</span></button>
+                    <button type="button" class="sp-menu-btn" @onclick="@(() => ToggleMenu("settings"))">Settings <span class="sp-caret">▾</span></button>
+                    @if (_openMenu == "settings")
+                    {
+                        <div class="sp-menu-panel">
+                            <button type="button" class="sp-menu-item" @onclick="@(() => ToggleMenu("preferences"))">PREFERENCES</button>
+                            <button type="button" class="sp-menu-item" @onclick="@(() => ToggleMenu("export"))">EXPORT</button>
+                            <button type="button" class="sp-menu-item" @onclick="@(() => ToggleMenu("import"))">IMPORT</button>
+                            <button type="button" class="sp-menu-item" disabled="@AnyBusy" @onclick="@(() => { _openMenu = null; _pendingDbReset = true; })">RESET DB</button>
+                            <button type="button" class="sp-menu-item" disabled="@AnyBusy" @onclick="@(() => { _openMenu = null; _pendingRecalculate = true; })">RECALCULATE</button>
+                        </div>
+                    }
+                    @if (_openMenu == "preferences")
+                    {
+                        <div class="sp-menu-panel sp-menu-panel-wide">
+                            <div class="sp-prefs-body">
+                                <MudSelect T="string" Label="Choose Ayanāṁśa" Value="_ayanamsaCode"
+                                           ValueChanged="OnAyanamsaChanged" Dense="true" Variant="Variant.Outlined">
+                                    @foreach (var a in AyanamsaDefinition.Catalog)
+                                    {
+                                        <MudSelectItem T="string" Value="@a.Code">@AyanamsaLabel(a)</MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudSelect T="string" Label="Choose Chart Type" Value="_chartStyle"
+                                           ValueChanged="OnChartStyleChanged" Dense="true" Variant="Variant.Outlined">
+                                    <MudSelectItem T="string" Value="@("south-indian")">South Indian — default</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("north-indian")" Disabled="true">North Indian — planned</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@("west-indian")" Disabled="true">West Indian — planned</MudSelectItem>
+                                </MudSelect>
+                            </div>
+                        </div>
+                    }
+                    @if (_openMenu == "export")
+                    {
+                        <div class="sp-menu-panel">
+                            <a class="sp-menu-item" href="/export/people.csv" @onclick="@(() => _openMenu = null)">All people as CSV</a>
+                            <a class="sp-menu-item" href="/export/people.jkd" @onclick="@(() => _openMenu = null)">As .JKD</a>
+                        </div>
+                    }
                     @if (_openMenu == "import")
                     {
                         <div class="sp-menu-panel">
@@ -34,18 +73,6 @@
                         </div>
                     }
                 </div>
-                <div class="sp-menu">
-                    <button type="button" class="sp-menu-btn" @onclick="@(() => ToggleMenu("export"))">Export <span class="sp-caret">▾</span></button>
-                    @if (_openMenu == "export")
-                    {
-                        <div class="sp-menu-panel">
-                            <a class="sp-menu-item" href="/export/people.csv" @onclick="@(() => _openMenu = null)">All people as CSV</a>
-                            <a class="sp-menu-item" href="/export/people.jkd" @onclick="@(() => _openMenu = null)">As .JKD</a>
-                        </div>
-                    }
-                </div>
-                <button type="button" class="sp-danger-btn" @onclick="@(() => _pendingRecalculate = true)" disabled="@AnyBusy">RECALCULATE</button>
-                <button type="button" class="sp-danger-btn sp-danger-btn-strong" @onclick="@(() => _pendingDbReset = true)" disabled="@AnyBusy">DB RESET</button>
             </div>
         </div>
 
@@ -183,7 +210,13 @@
     private Row? _pendingDelete;
     private bool _isDeleting;
     private string? _error;
-    private string? _openMenu;   // "import" | "export" | null
+    private string? _openMenu;   // "settings" | "preferences" | "import" | "export" | null
+
+    // --- Preferences (moved here from Home.razor) — in-memory for this session only, same as
+    // before the move; a new person added from Home always uses the DB's active default ayanamsa. ---
+    private string _ayanamsaCode = AyanamsaDefinition.Default.Code;
+    private string _chartStyle = "south-indian";
+    private AyanamsaDefinition _activeDefault = AyanamsaDefinition.Default;
 
     // --- import/build state ---
     private string? _importStatus;
@@ -223,7 +256,23 @@
         </div>),
     };
 
-    protected override void OnInitialized() => Load();
+    protected override void OnInitialized()
+    {
+        Load();
+        try
+        {
+            _activeDefault = AyanamsaRules.GetActiveDefault();
+            _ayanamsaCode = _activeDefault.Code;
+        }
+        catch { /* fall back to AyanamsaDefinition.Default */ }
+    }
+
+    private string AyanamsaLabel(AyanamsaDefinition a) =>
+        a.Code == _activeDefault.Code ? $"{a.DisplayName} — default" : a.DisplayName;
+
+    // Selecting a preference applies it and collapses the panel.
+    private void OnAyanamsaChanged(string value) { _ayanamsaCode = value; _openMenu = null; }
+    private void OnChartStyleChanged(string value) { _chartStyle = value; _openMenu = null; }
 
     private void Load()
     {

@@ -9,14 +9,13 @@
     /* Controls left, art right. The art is BOUNDED (no bleed) — its right edge sits on the
        page gutter, and the gap between the two columns equals that same gutter (--pad-x), so
        the spacing left-of-heading, heading-to-art, and art-to-edge all match.
-       align-items:stretch (the grid default, set explicitly here as documentation) makes both
-       columns exactly as tall as the row needs — which .home-main now defines on its own,
-       since Preferences moved above this grid: .home-main starts at the "Discover Your Path"
-       heading and, once the Add-New form is open, ends at its Cancel button. .home-art then
-       fills that exact height (see object-fit:contain below) with no JS measurement. */
+       .home-main starts at the "Discover Your Path" heading, the first thing under the top
+       nav, and, once the Add-New form is open, can grow tall enough to need page scroll.
+       .home-art does NOT stretch to match (align-self:start below) — it's pinned via
+       position:sticky instead, so it stays visible under the nav the whole time. */
     grid-template-columns: minmax(0, 1fr) minmax(300px, 46%);
     gap: var(--pad-x);
-    align-items: stretch;
+    align-items: start;
     width: 100%;
     min-height: calc(100vh - 160px);
     color: var(--brand-midnight);
@@ -28,19 +27,6 @@
 .home-main {
     max-width: 640px;
     padding-top: 1.5rem;
-}
-
-/* Preferences — top-left disclosure, above the two-column grid so it doesn't shift
-   .home-main's top edge away from the heading (see .home comment above). */
-.home-prefs {
-    margin-bottom: 1.25rem;
-}
-
-.home-prefs-body {
-    display: grid;
-    gap: 0.75rem;
-    max-width: 420px;
-    padding: 0.75rem 0 0.25rem;
 }
 
 .home-title {
@@ -172,10 +158,14 @@
 }
 
 /* Ganesha / Navagraha art — bounded right column. Its right edge lands on the page gutter;
-   --pad-x of clear space on every side. Height matches .home-main exactly (heading → Cancel
-   button, see .home above) via grid stretch + object-fit:contain, not a fixed/aspect-ratio
-   box — no cropping, no distortion, and it grows/shrinks live as the Add-New form opens. */
+   --pad-x of clear space on every side. Pinned just below the fixed top nav (position:sticky)
+   so it stays on screen the whole time instead of stretching/scrolling away as the Add-New
+   form grows — the app bar height (--ik-appbar-h) is measured in MainLayout.razor.css. */
 .home-art {
+    position: sticky;
+    top: var(--ik-appbar-h, 64px);
+    align-self: start;
+    max-height: calc(100vh - var(--ik-appbar-h, 64px) - 2rem);
     overflow: hidden;
 }
 
@@ -189,17 +179,6 @@
 }
 
 /* Primary buttons are sunset-filled via the app theme (IkiastrroTheme). */
-
-.home ::deep .home-prefs-toggle {
-    color: var(--brand-midnight);
-    text-transform: none;
-    font-size: var(--font-size-control);
-}
-
-.home ::deep .home-prefs-toggle:hover {
-    color: var(--brand-sunset);
-    background-color: transparent;
-}
 
 @media (max-width: 900px) {
     .home {
