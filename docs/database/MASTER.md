@@ -171,6 +171,18 @@ Publishes to the CLI and UI streams under
 - **`verify-sources`** — the `SourceRefCode` tripwire loop is now scoped to schema `dbo`
   (it was crashing on the `research.*` tables from migrations 056/067/070); green again,
   and it now also checks the new Ashtakavarga / strength `SourceRefCode`s.
+- **Amsabala fact layer** — `db/101` adds `tbl_Fact_Amsabala` (28 rows/chart: 7 classical
+  planets × 4 varga-group schemes from `db/099`) + `vw_ChartAshtakavarga`'s sibling
+  `vw_ChartAmsabala`, and a new `AmsabalaRepository` (`Insert`/`Delete*`/`GetByBirthDetailId`).
+  Wired into `ChartGenerationService.PersistAnalytics`'s D1 branch alongside Ashtakavarga.
+  Persists `AmsabalaCalculator`'s already-verified output (PVR Example 27) — no new
+  calculation logic, purely the persist-and-read layer the UI contract (§4) requires. Every
+  saved person backfilled via `recompute-keydetails`. Still distinct from Vimśopaka Bala
+  (`tbl_Rule_VimsopakaWeight`), which stays unseeded — PVR never publishes its numeric
+  per-varga weight table. New `YogaEvaluationRepository` (typed `GetByBirthDetailId` over
+  `vw_ChartYogaEvaluations`) added the same pass — evaluation itself was already live, only
+  a typed read model was missing. Both are backend-only; Key Inference UI consumption is a
+  separate `workstream/ui` pass.
 
 ## Planned
 

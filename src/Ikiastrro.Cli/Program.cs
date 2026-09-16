@@ -132,7 +132,8 @@ var chartGenerationService = new ChartGenerationService(
     new PlanetaryStrengthRepository(connectionFactory),
     new BhavaStrengthRepository(connectionFactory),
     new VargottamaRepository(connectionFactory), new YogaInputRepository(connectionFactory),
-    new AshtakavargaRepository(connectionFactory), new PanchangaRepository(connectionFactory));
+    new AshtakavargaRepository(connectionFactory), new PanchangaRepository(connectionFactory),
+    new AmsabalaRepository(connectionFactory), new AmsabalaSchemeRepository(connectionFactory));
 
 // --- One-off backfill mode: `dotnet run -- backfill-analytics` ---
 // Unconditionally re-derives all four analytics tables (KeyDetails/HouseLords/Conjunctions/Aspects)

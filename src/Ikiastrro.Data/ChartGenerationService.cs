@@ -42,6 +42,22 @@ public class ChartGenerationService
     private readonly YogaInputRepository _yogaInputRepo;
     private readonly AshtakavargaRepository _ashtakavargaRepo;
     private readonly PanchangaRepository _panchangaRepo;
+    private readonly AmsabalaRepository _amsabalaRepo;
+    private readonly AmsabalaSchemeRepository _amsabalaSchemeRepo;
+
+    // Amsabala's scheme groups/names (tbl_Rule_AmsabalaGroup/Name) are the same for the whole
+    // GenerateAll/Recompute call — load once per ruleSetId, like PlanetaryStateRules above.
+    private int? _amsabalaSchemeRuleSetId;
+    private IReadOnlyList<AmsabalaGroupMember> _amsabalaGroups = Array.Empty<AmsabalaGroupMember>();
+    private IReadOnlyList<AmsabalaNameEntry> _amsabalaNames = Array.Empty<AmsabalaNameEntry>();
+
+    private void EnsureAmsabalaScheme(int ruleSetId)
+    {
+        if (_amsabalaSchemeRuleSetId == ruleSetId) return;
+        _amsabalaGroups = _amsabalaSchemeRepo.GetGroups(ruleSetId);
+        _amsabalaNames = _amsabalaSchemeRepo.GetNames(ruleSetId);
+        _amsabalaSchemeRuleSetId = ruleSetId;
+    }
 
     // The avastha rule/dim rows are the same for the whole GenerateAll/Recompute call — load once.
     private PlanetaryStateRuleSet? _planetaryStateRules;
@@ -59,7 +75,8 @@ public class ChartGenerationService
         PlanetaryStrengthRepository planetaryStrengthRepo,
         BhavaStrengthRepository bhavaStrengthRepo,
         VargottamaRepository vargottamaRepo, YogaInputRepository yogaInputRepo,
-        AshtakavargaRepository ashtakavargaRepo, PanchangaRepository panchangaRepo)
+        AshtakavargaRepository ashtakavargaRepo, PanchangaRepository panchangaRepo,
+        AmsabalaRepository amsabalaRepo, AmsabalaSchemeRepository amsabalaSchemeRepo)
     {
         _orchestrator = orchestrator;
         _dashaService = dashaService;
@@ -80,6 +97,8 @@ public class ChartGenerationService
         _yogaInputRepo = yogaInputRepo;
         _ashtakavargaRepo = ashtakavargaRepo;
         _panchangaRepo = panchangaRepo;
+        _amsabalaRepo = amsabalaRepo;
+        _amsabalaSchemeRepo = amsabalaSchemeRepo;
     }
 
     private AyanamsaDefinition ResolveAyanamsa(AyanamsaDefinition? requested) =>
@@ -105,6 +124,7 @@ public class ChartGenerationService
         _bhavaStrengthRepo.DeleteByBirthDetailId(birthDetails.Id);
         _vargottamaRepo.DeleteByBirthDetailId(birthDetails.Id);
         _ashtakavargaRepo.DeleteByBirthDetailId(birthDetails.Id);  // FKs to tbl_ChartResults have no cascade
+        _amsabalaRepo.DeleteByBirthDetailId(birthDetails.Id);      // FK to tbl_ChartResults has no cascade
         _panchangaRepo.DeleteByBirthDetailId(birthDetails.Id);
         foreach (var calc in _orchestrator.Calculators)
             _chartResultsRepo.DeleteByBirthDetailIdAndChartType(birthDetails.Id, calc.ChartType);
@@ -287,6 +307,16 @@ public class ChartGenerationService
             _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input));
             _panchangaRepo.DeleteByChartResultId(chartResultId);
             _panchangaRepo.Insert(chartResultId, ruleSetId, panchanga);
+
+            EnsureAmsabalaScheme(ruleSetId);
+            _amsabalaRepo.DeleteByChartResultId(chartResultId);
+            foreach (var planet in AmsabalaPlanets)
+                _amsabalaRepo.Insert(chartResultId, ruleSetId, planet.ToString().ToUpperInvariant(),
+                    AmsabalaCalculator.Calculate(planet, charts, _amsabalaGroups, _amsabalaNames));
         }
     }
+
+    private static readonly PlanetName[] AmsabalaPlanets =
+        { PlanetName.Sun, PlanetName.Moon, PlanetName.Mars, PlanetName.Mercury,
+          PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn };
 }
