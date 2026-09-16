@@ -38,6 +38,7 @@
         <span class="psc-c-num">Rūpas</span>
         <span class="psc-c-num">Min.</span>
         <span class="psc-c-num">% Min.</span>
+        <span class="psc-c-num">Capacity</span>
         <span class="psc-c-status">Status</span>
     </div>
 
@@ -85,6 +86,7 @@
                 <span class="psc-c-num psc-mono">@row.ShadbalaRupas.ToString("0.00", CultureInfo.InvariantCulture)</span>
                 <span class="psc-c-num psc-mono">@(row.MinimumRequiredRupas is { } m ? m.ToString("0.0", CultureInfo.InvariantCulture) : "—")</span>
                 <span class="psc-c-num psc-mono">@(row.PercentOfMinimum is { } pm ? $"{pm:0}%" : "—")</span>
+                <span class="psc-c-num psc-mono" title="@(row.PercentOfMinimum is { } cb ? CapacityBand(cb) : "—")">@(row.PercentOfMinimum is { } cp ? $"{CapacityScore(cp):0}" : "—")</span>
                 <span class="psc-c-status"><span class="psc-pill @css">@label</span></span>
             </button>
 
@@ -202,6 +204,23 @@
     /// minimum (e.g. 250%) still fits the track instead of overflowing it.</summary>
     private static double BarWidthPercent(decimal? percent) =>
         (double)Math.Min(Math.Max(percent ?? 0, 0), 200) / 2.0;
+
+    /// <summary>"Capacity" — Shadbala %-of-minimum capped at 150% (docs/research/domain/
+    /// stat_strength.md §1.1 S*), so a planet already far past its requirement doesn't visually
+    /// dominate. Distinct from the Strong/Moderate/Weak Status column (this table's own Parasari
+    /// 100%/80% thresholds) — the coarser 5-band CapacityBand below is the statistics doc's scale,
+    /// kept for future cross-measure (Shadbala/Amsabala/Bhavabala) comparison, not a replacement
+    /// for Status.</summary>
+    private static decimal CapacityScore(decimal percentOfMinimum) => Math.Min(percentOfMinimum, 150);
+
+    private static string CapacityBand(decimal percentOfMinimum) => percentOfMinimum switch
+    {
+        < 75 => "Very weak",
+        < 90 => "Weak",
+        < 110 => "Adequate",
+        < 130 => "Strong",
+        _ => "Very strong",
+    };
 
     private static IReadOnlyList<(string Token, string Label, decimal Rupas)> GroupShares(ShadbalaSummaryRow row)
     {

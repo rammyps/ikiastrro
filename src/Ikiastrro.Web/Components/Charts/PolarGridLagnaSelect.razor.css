@@ -1,1 +1,52 @@
-.pgls{color:var(--brand-midnight);--ref-lagna:#9f2f3f;--ref-arudha:#126b87;--ref-hora:#9a5b05;--ref-sree:#5c3fa3;--ref-ghati:#2d7a4a}.pgls-lagnas{display:flex;justify-content:center;gap:.85rem 1.75rem;margin:1rem auto 1.5rem;flex-wrap:wrap}.pgls-check{display:inline-flex;align-items:center;gap:.5rem;color:var(--brand-muted);cursor:pointer;font:800 var(--font-size-control)/1 var(--font-interface);letter-spacing:.04em}.pgls-check input{width:1rem;height:1rem;margin:0;accent-color:currentColor}.pgls-check.is-active.ref-lagna,.pgls-house .ref-lagna,.pgls-core-name .ref-lagna{color:var(--ref-lagna);fill:var(--ref-lagna)}.pgls-check.is-active.ref-arudha,.pgls-house .ref-arudha,.pgls-core-name .ref-arudha{color:var(--ref-arudha);fill:var(--ref-arudha)}.pgls-check.is-active.ref-hora,.pgls-house .ref-hora,.pgls-core-name .ref-hora{color:var(--ref-hora);fill:var(--ref-hora)}.pgls-check.is-active.ref-sree,.pgls-house .ref-sree,.pgls-core-name .ref-sree{color:var(--ref-sree);fill:var(--ref-sree)}.pgls-check.is-active.ref-ghati,.pgls-house .ref-ghati,.pgls-core-name .ref-ghati{color:var(--ref-ghati);fill:var(--ref-ghati)}.pgls-check:not(.is-active){color:var(--brand-muted)}.pgls-canvas{display:grid;place-items:center}.pgls-polar{width:min(100%,720px);height:auto;overflow:visible;font-family:var(--font-interface)}.pgls-back{fill:#f8f3ea;stroke:var(--brand-midnight);stroke-width:3}.pgls-sector path{fill:#fffaf2;stroke:var(--brand-midnight);stroke-width:1.25}.pgls-sector:nth-of-type(even) path{fill:#f3ede3}.pgls-sign,.pgls-planets,.pgls-house,.pgls-point,.pgls-core-chart,.pgls-core-name{text-anchor:middle;dominant-baseline:central;pointer-events:none}.pgls-sign{fill:var(--brand-midnight);font-size:14px;font-weight:800;letter-spacing:.08em}.pgls-planets{fill:var(--brand-midnight);font-size:12px;font-weight:800}.pgls-house{font-size:11px;font-weight:800}.pgls-point{fill:var(--brand-sunset);font-size:11px;font-weight:800}.pgls-core{fill:var(--brand-midnight);stroke:var(--brand-sunset);stroke-width:4}.pgls-core-chart{fill:var(--brand-sunset);font-size:28px;font-weight:800}.pgls-core-name{font-size:13px;font-weight:800}.pgls-core-name .ref-arudha,.pgls-core-name .ref-hora,.pgls-core-name .ref-sree,.pgls-core-name .ref-ghati{filter:brightness(1.65)}.pgls-empty{margin:2rem 0;color:var(--brand-muted);font-weight:700}.pgls-south-grids{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:1.5rem;width:100%}.pgls-south-grid{width:100%;max-width:680px;margin-inline:auto;border-top:4px solid transparent;padding-top:.5rem}.pgls-south-grid.ref-lagna{border-color:var(--ref-lagna)}.pgls-south-grid.ref-arudha{border-color:var(--ref-arudha)}.pgls-south-grid.ref-hora{border-color:var(--ref-hora)}.pgls-south-grid.ref-sree{border-color:var(--ref-sree)}.pgls-south-grid.ref-ghati{border-color:var(--ref-ghati)}@media(max-width:720px){.pgls-lagnas{justify-content:flex-start}}
+.pgls{color:var(--brand-midnight);--ref-lagna:#9f2f3f;--ref-arudha:#126b87;--ref-hora:#9a5b05;--ref-sree:#5c3fa3;--ref-ghati:#2d7a4a}
+.pgls-lagnas{display:flex;justify-content:center;gap:.85rem 1.75rem;margin:1rem auto 1.5rem;flex-wrap:wrap}
+.pgls-check{display:inline-flex;align-items:center;gap:.5rem;color:var(--brand-muted);cursor:pointer;font:800 var(--font-size-control)/1 var(--font-interface);letter-spacing:.04em}
+.pgls-check input{width:1rem;height:1rem;margin:0;accent-color:currentColor}
+.pgls-check.is-active.ref-lagna{color:var(--ref-lagna)}
+.pgls-check.is-active.ref-arudha{color:var(--ref-arudha)}
+.pgls-check.is-active.ref-hora{color:var(--ref-hora)}
+.pgls-check.is-active.ref-sree{color:var(--ref-sree)}
+.pgls-check.is-active.ref-ghati{color:var(--ref-ghati)}
+.pgls-check:not(.is-active){color:var(--brand-muted)}
+.pgls-canvas{display:grid;place-items:center}
+.pgls-polar{width:min(100%,720px);height:auto;overflow:visible;font-family:var(--font-interface)}
+.pgls-back{fill:var(--brand-sunset);stroke:var(--brand-midnight);stroke-width:3}
+.pgls-sector path{fill:#fffaf2;stroke:var(--brand-midnight);stroke-width:1.25}
+.pgls-sector:nth-of-type(even) path{fill:#f3ede3}
+
+/* One lagna ring per reference (Sign/Arudha/Hora/Sree/Ghati) — the sector matching that
+   reference's own placement (house 1, "self") gets a solid ticker band in its accent colour;
+   every other cell in that ring stays the plain alternating background above, with just the
+   house-number text tinted to the same accent (2026-09-16 evening, rammyps's 5-ring redesign). */
+.pgls-sector.ref-lagna .pgls-selfband{fill:var(--ref-lagna)}
+.pgls-sector.ref-arudha .pgls-selfband{fill:var(--ref-arudha)}
+.pgls-sector.ref-hora .pgls-selfband{fill:var(--ref-hora)}
+.pgls-sector.ref-sree .pgls-selfband{fill:var(--ref-sree)}
+.pgls-sector.ref-ghati .pgls-selfband{fill:var(--ref-ghati)}
+.ref-lagna .pgls-house{fill:var(--ref-lagna)}
+.ref-arudha .pgls-house{fill:var(--ref-arudha)}
+.ref-hora .pgls-house{fill:var(--ref-hora)}
+.ref-sree .pgls-house{fill:var(--ref-sree)}
+.ref-ghati .pgls-house{fill:var(--ref-ghati)}
+/* On the coloured self-band the house number switches to light text for contrast (all 5 accent
+   colours are dark/mid-saturated) — the general-sibling combinator only matches when the band
+   (drawn first) actually precedes the text in that cell's markup. */
+.pgls-selfband ~ g .pgls-house{fill:var(--brand-canvas)}
+
+.pgls-sign,.pgls-planets,.pgls-house,.pgls-core-chart{text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.pgls-sign{fill:var(--brand-midnight);font-size:14px;font-weight:800;letter-spacing:.08em}
+/* Planets: one uniform dark-blue glyph colour, no per-planet dignity tinting on this wheel
+   (rammyps's call, 2026-09-16 evening — dignity colouring stays on the South Indian grid view). */
+.pgls-planets{fill:var(--brand-midnight);font-size:17px;font-weight:800}
+.pgls-house{font-size:12px;font-weight:800}
+.pgls-core{fill:var(--brand-sunset);stroke:var(--brand-midnight);stroke-width:4}
+.pgls-core-chart{fill:var(--brand-midnight);font-size:22px;font-weight:800}
+.pgls-empty{margin:2rem 0;color:var(--brand-muted);font-weight:700}
+.pgls-south-grids{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:1.5rem;width:100%}
+.pgls-south-grid{width:100%;max-width:680px;margin-inline:auto;border-top:4px solid transparent;padding-top:.5rem}
+.pgls-south-grid.ref-lagna{border-color:var(--ref-lagna)}
+.pgls-south-grid.ref-arudha{border-color:var(--ref-arudha)}
+.pgls-south-grid.ref-hora{border-color:var(--ref-hora)}
+.pgls-south-grid.ref-sree{border-color:var(--ref-sree)}
+.pgls-south-grid.ref-ghati{border-color:var(--ref-ghati)}
+@media(max-width:720px){.pgls-lagnas{justify-content:flex-start}}

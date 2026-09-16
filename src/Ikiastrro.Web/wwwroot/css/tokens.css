@@ -57,6 +57,13 @@
 
     --dignity-exalted: #2f7a42;
     --dignity-good: #4c8a52;
+    /* Vargas step (Key Inference 6) splits --dignity-good's 3 merged tiers back out for its
+       7-way breakdown — a green ramp between --dignity-exalted and --dignity-friend, own-sign
+       keeping --dignity-good's exact former hex since it was that token's biggest contributor.
+       Placeholder ramp — rammyps tunes these live via claude-in-chrome once the page renders. */
+    --dignity-moolatrikona: #3d8a4a;
+    --dignity-own: #4c8a52;
+    --dignity-great-friend: #5f9457;
     --dignity-friend: #6b8f5e;
     --dignity-neutral: #8a7f5e;
     --dignity-enemy: #a5652f;

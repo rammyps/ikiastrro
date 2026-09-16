@@ -20,45 +20,64 @@
   {
    <svg class="pgls-polar" viewBox="0 0 720 720" role="img" aria-label="@ChartCode polar wheel comparing @SelectedReferenceNames">
     <circle cx="360" cy="360" r="344" class="pgls-back" />
+
+    @* Sign ring — outermost band *@
     @foreach (var sector in Sectors.OrderBy(s => s.HouseNumber))
     {
-     var angle=(sector.HouseNumber-1)*30d;
-     var (sx,sy)=Xy(angle,292); var (hx,hy)=Xy(angle,224); var labels=SpecialLabels(sector.Sign);
+     var angle = (sector.HouseNumber - 1) * 30d;
+     var (sx, sy) = Xy(angle, SignRingMid);
      <g class="pgls-sector">
-      <path d="@AnnularSector(angle-15,angle+15,145,338)" />
+      <path d="@AnnularSector(angle - 15, angle + 15, SignRingInner, SignRingOuter)" />
       <text x="@F(sx)" y="@F(sy)" class="pgls-sign">@SignCode(sector.Sign)</text>
-      @if(PlanetsBySign.TryGetValue(sector.Sign,out var planets)&&planets.Count>0)
+     </g>
+    }
+
+    @* Planet ring — its own dedicated band, uniform dark-blue glyphs (no dignity colouring here) *@
+    @foreach (var sector in Sectors.OrderBy(s => s.HouseNumber))
+    {
+     var angle = (sector.HouseNumber - 1) * 30d;
+     <g class="pgls-sector">
+      <path d="@AnnularSector(angle - 15, angle + 15, PlanetRingInner, PlanetRingOuter)" />
+      @if (PlanetsBySign.TryGetValue(sector.Sign, out var planets) && planets.Count > 0)
       {
-       var (ppx,ppy)=Xy(angle,260);
+       var (ppx, ppy) = Xy(angle, PlanetRingMid);
        <g><text x="@F(ppx)" y="@F(ppy)" class="pgls-planets">
         @foreach (var p in planets)
         {
-         var fill = p.DignityToken is null ? null : $"fill:var(--dignity-{p.DignityToken})";
-         <tspan style="@fill">@PlanetGlyph(p.PlanetName) </tspan>
+         <tspan>@PlanetGlyph(p.PlanetName) </tspan>
         }
        </text></g>
       }
-      <text x="@F(hx)" y="@F(hy)" class="pgls-house">
-       @foreach (var comparison in HouseComparisons(sector.Sign))
-       {
-        <tspan x="@F(hx)" dy="@(comparison.IsFirst ? HouseStartDy : HouseLineDy)" class="@ReferenceClass(comparison.Reference.Code)">@comparison.Label</tspan>
-       }
-      </text>
-      @if(labels.Count>0)
-      {
-       var (lx,ly)=Xy(angle,178);
-       <g><text x="@F(lx)" y="@F(ly)" class="pgls-point">@(string.Join(" · ",labels))</text></g>
-      }
      </g>
     }
-    <circle cx="360" cy="360" r="105" class="pgls-core" />
-    <text x="360" y="330" class="pgls-core-chart">@ChartCode</text>
-    <text x="360" y="355" class="pgls-core-name">
-     @foreach (var comparison in CenterComparisons)
+
+    @* One ring per special lagna (Sign/Arudha/Hora/Sree/Ghati) — each shows its own house number
+       per sign, with the sign matching that lagna's own placement (house 1, "self") picked out
+       as a solid ticker band in that lagna's accent colour. *@
+    @for (var ringIndex = 0; ringIndex < OrderedReferences.Count; ringIndex++)
+    {
+     var reference = OrderedReferences[ringIndex];
+     var refClass = ReferenceClass(reference.Code);
+     var (ringOuter, ringInner) = LagnaRingRadii(ringIndex);
+     var ringMid = (ringOuter + ringInner) / 2;
+     var isSelected = _selectedReferenceCodes.Contains(reference.Code);
+     @foreach (var sector in Sectors.OrderBy(s => s.HouseNumber))
      {
-      <tspan x="360" dy="@(comparison.IsFirst ? "0" : "18")" class="@ReferenceClass(comparison.Reference.Code)">@comparison.Label</tspan>
+      var angle = (sector.HouseNumber - 1) * 30d;
+      var isSelf = SameSign(sector.Sign, reference.Sign);
+      var (tx, ty) = Xy(angle, ringMid);
+      <g class="pgls-sector @refClass">
+       <path d="@AnnularSector(angle - 15, angle + 15, ringInner, ringOuter)" class="@(isSelf ? "pgls-selfband" : null)" />
+       @if (isSelected)
+       {
+        <g><text x="@F(tx)" y="@F(ty)" class="pgls-house">@HouseFromReference(sector.Sign, reference)</text></g>
+       }
+      </g>
      }
-    </text>
+    }
+
+    <circle cx="360" cy="360" r="90" class="pgls-core" />
+    <text x="360" y="360" class="pgls-core-chart">@ChartCode</text>
    </svg>
   }
   else
@@ -81,7 +100,6 @@
  public sealed record Sector(int HouseNumber,string Sign);
  public sealed record PlanetPlacement(string Planet,string Sign,string? DignityStatus);
  public sealed record ReferencePoint(string Code,string Name,string Sign);
- private sealed record ComparisonLine(ReferencePoint Reference,string Label,bool IsFirst);
  [Parameter,EditorRequired]public IReadOnlyList<Sector>Sectors{get;set;}=Array.Empty<Sector>();
  [Parameter]public IReadOnlyList<PlanetPlacement>PlanetPlacements{get;set;}=Array.Empty<PlanetPlacement>();
  [Parameter]public IReadOnlyList<ReferencePoint>ReferencePoints{get;set;}=Array.Empty<ReferencePoint>();
@@ -89,26 +107,44 @@
  [Parameter]public string AscendantSign{get;set;}="Aries";
  [Parameter]public string View{get;set;}="polar";
  private static readonly string[] ReferenceOrder=["LAGNA","ARUDHA_LAGNA","HORA_LAGNA","SREE_LAGNA","GHATI_LAGNA"];
- private readonly HashSet<string> _selectedReferenceCodes = new(StringComparer.OrdinalIgnoreCase) { "LAGNA" }; private string? _lastChartCode;
+
+ // Sign ring outer boundary (720x720 viewBox, centre 360,360) and the sign/planet band split —
+ // fixed regardless of how many lagna rings follow, so those two bands never resize.
+ private const double SignRingOuter=338, SignRingInner=304, SignRingMid=(SignRingOuter+SignRingInner)/2;
+ private const double PlanetRingOuter=SignRingInner, PlanetRingInner=272, PlanetRingMid=(PlanetRingOuter+PlanetRingInner)/2;
+ private const double LagnaRingsOuter=PlanetRingInner, LagnaRingsInner=104, CoreRadius=90;
+
+ // 5 lagna rings share the remaining radial space evenly (default: all 5 selected/available); a
+ // chart where fewer references apply (e.g. only Sign+Arudha for a non-D1/D9 varga) still divides
+ // the same space evenly among however many rings actually exist, so the wheel never leaves a gap.
+ private (double Outer,double Inner) LagnaRingRadii(int index)
+ {
+  var n=Math.Max(1,OrderedReferences.Count);
+  var band=(LagnaRingsOuter-LagnaRingsInner)/n;
+  var outer=LagnaRingsOuter-index*band;
+  return (outer,outer-band);
+ }
+
+ private readonly HashSet<string> _selectedReferenceCodes = new(StringComparer.OrdinalIgnoreCase) { "LAGNA", "ARUDHA_LAGNA", "HORA_LAGNA", "SREE_LAGNA", "GHATI_LAGNA" };
+ private string? _lastChartCode;
  private IReadOnlyList<ReferencePoint> OrderedReferences=>ReferenceOrder.Select(code=>ReferencePoints.FirstOrDefault(r=>r.Code==code)).Where(r=>r is not null).Cast<ReferencePoint>().ToList();
  private IReadOnlyList<ReferencePoint> SelectedReferences=>OrderedReferences.Where(r=>_selectedReferenceCodes.Contains(r.Code)).ToList();
  private string SelectedReferenceNames=>string.Join(" · ",SelectedReferences.Select(r=>ShortName(r.Code)));
- private IReadOnlyList<ComparisonLine> CenterComparisons=>SelectedReferences.Select((r,i)=>new ComparisonLine(r,$"{ShortName(r.Code)} · {DisplaySign(r.Sign)}",i==0)).ToList();
  private IReadOnlyDictionary<string,IReadOnlyList<GridPlanetGlyph>> PlanetsBySign=>PlanetPlacements.GroupBy(p=>p.Sign).ToDictionary(g=>g.Key,g=>(IReadOnlyList<GridPlanetGlyph>)g.Select(p=>new GridPlanetGlyph(p.Planet,ChartViewModel.DignityToken(p.DignityStatus),false,false)).ToList());
  private IReadOnlyDictionary<string,IReadOnlyList<string>> SpecialPointLabels=>ReferencePoints.Where(r=>r.Code!="LAGNA").GroupBy(r=>r.Sign).ToDictionary(g=>g.Key,g=>(IReadOnlyList<string>)g.Select(r=>ShortName(r.Code)).Distinct().ToList());
- protected override void OnParametersSet(){if(string.Equals(_lastChartCode,ChartCode,StringComparison.OrdinalIgnoreCase))return;_lastChartCode=ChartCode;_selectedReferenceCodes.Clear();var initial=OrderedReferences.FirstOrDefault()?.Code;if(initial is not null)_selectedReferenceCodes.Add(initial);}
+
+ // Default is every reference this chart supports selected (rammyps's call, 2026-09-16 evening —
+ // was just Sign Lagna before, back when all 5 were overlaid on one shared ring of text; now each
+ // gets its own ring, so showing all of them by default is the natural start state).
+ protected override void OnParametersSet(){if(string.Equals(_lastChartCode,ChartCode,StringComparison.OrdinalIgnoreCase))return;_lastChartCode=ChartCode;_selectedReferenceCodes.Clear();foreach(var r in OrderedReferences)_selectedReferenceCodes.Add(r.Code);}
  private void ToggleReference(string code,ChangeEventArgs e){if(e.Value is true)_selectedReferenceCodes.Add(code);else _selectedReferenceCodes.Remove(code);}
- private IReadOnlyList<string> SpecialLabels(string sign)=>SpecialPointLabels.TryGetValue(sign,out var labels)?labels:Array.Empty<string>();
- private IReadOnlyList<ComparisonLine> HouseComparisons(string sign)=>SelectedReferences.Select((r,i)=>new ComparisonLine(r,$"{ShortName(r.Code)} H{HouseFromReference(sign,r)}",i==0)).ToList();
- private string HouseStartDy=>$"-{(SelectedReferences.Count-1)*15/2}";
- private const string HouseLineDy="15";
  private static int HouseFromReference(string sign,ReferencePoint reference){string[] signs=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];var from=Array.FindIndex(signs,s=>SameSign(s,reference.Sign));var to=Array.FindIndex(signs,s=>SameSign(s,sign));return from<0||to<0?1:(to-from+12)%12+1;}
  private static(double X,double Y)Xy(double angle,double radius){var x=(angle-90)*Math.PI/180d;return(360+radius*Math.Cos(x),360+radius*Math.Sin(x));}
  private static string AnnularSector(double s,double z,double i,double o){var(a,b)=Xy(s,o);var(c,d)=Xy(z,o);var(e,f)=Xy(z,i);var(g,h)=Xy(s,i);return $"M {F(a)} {F(b)} A {F(o)} {F(o)} 0 0 1 {F(c)} {F(d)} L {F(e)} {F(f)} A {F(i)} {F(i)} 0 0 0 {F(g)} {F(h)} Z";}
  private static string F(double v)=>v.ToString("0.##",CultureInfo.InvariantCulture);
  private static string DisplaySign(string s)=>s=="Capricornus"?"Capricorn":s;
  private static bool SameSign(string a,string b)=>string.Equals(DisplaySign(a),DisplaySign(b),StringComparison.OrdinalIgnoreCase);
- private static string ShortName(string code)=>code switch{"ARUDHA_LAGNA"=>"AL","HORA_LAGNA"=>"HL","SREE_LAGNA"=>"SL","GHATI_LAGNA"=>"GL",_=>code};
+ private static string ShortName(string code)=>code switch{"LAGNA"=>"SI","ARUDHA_LAGNA"=>"AR","HORA_LAGNA"=>"HO","SREE_LAGNA"=>"SR","GHATI_LAGNA"=>"GH",_=>code};
  private static string ReferenceClass(string code)=>code switch{"ARUDHA_LAGNA"=>"ref-arudha","HORA_LAGNA"=>"ref-hora","SREE_LAGNA"=>"ref-sree","GHATI_LAGNA"=>"ref-ghati",_=>"ref-lagna"};
  private static string SignCode(string s)=>DisplaySign(s) switch{"Aries"=>"ARI","Taurus"=>"TAU","Gemini"=>"GEM","Cancer"=>"CAN","Leo"=>"LEO","Virgo"=>"VIR","Libra"=>"LIB","Scorpio"=>"SCO","Sagittarius"=>"SAG","Capricorn"=>"CAP","Aquarius"=>"AQU","Pisces"=>"PIS",_=>s[..Math.Min(3,s.Length)].ToUpperInvariant()};
  private static string PlanetGlyph(string planet)=>ChartViewModel.PlanetGlyph(planet);

@@ -287,6 +287,31 @@ public static class ChartViewModel
         _ => ""
     };
 
+    /// <summary>0..1 normalization of <see cref="DignityScore"/>'s -4..+4 scale
+    /// (docs/research/domain/stat_strength.md), for statistical use across varga comparisons —
+    /// 1.0 = Exalted, 0.0 = Debilitated, 0.5 = Friend (the scale's midpoint).</summary>
+    public static double DignityScoreNormalized(string? dignityStatus) => (DignityScore(dignityStatus) + 4) / 8.0;
+
+    /// <summary>Maps a classical DignityStatus label to one of 7 distinct dignity CSS tokens for
+    /// the Vargas step's per-varga breakdown (Key Inference step 6) — unlike <see cref="DignityToken"/>,
+    /// which collapses Moolatrikona/Own Sign/Great Friend into one "good" token for compact dot
+    /// coloring elsewhere in the app, this keeps all 7 named tiers rammyps asked to distinguish
+    /// (Exalted, Moolatrikona, Own, Great Friend, Friend, Enemy, Great Enemy) separately colored.
+    /// Neutral and Debilitated are intentionally not in that list — null here means "render as an
+    /// unlabelled empty slot," the same convention the Vargas/Amsabala bar already used for
+    /// "not notable."</summary>
+    public static string? DignityTierToken(string? dignityStatus) => dignityStatus switch
+    {
+        "Exalted" => "exalted",
+        "Moolatrikona" => "moolatrikona",
+        "Own Sign" => "own",
+        "Great Friend" => "great-friend",
+        "Friend" => "friend",
+        "Enemy" => "enemy",
+        "Great Enemy" => "great-enemy",
+        _ => null
+    };
+
     /// <summary>Short glyph for the South Indian grid cells (2 letters, Sanskrit-flavored for Jupiter/Rahu/Ketu per this project's convention).</summary>
     public static string PlanetGlyph(string planet) => planet switch
     {

@@ -40,22 +40,49 @@
             <div class="am-bars">
                 @foreach (var r in SchemeRows)
                 {
-                    <div class="am-bar-row">
-                        <span class="am-bar-planet">@DisplayPlanet(r.PlanetCode)</span>
-                        <span class="am-stack">
-                            @foreach (var seg in Segments(r.PlanetCode))
-                            {
-                                @if (seg.Token is "exalted" or "good")
+                    var isOpen = _expanded.Contains(r.PlanetCode);
+                    <div class="am-row @(isOpen ? "is-open" : "")">
+                        <button type="button" class="am-summary" @onclick="@(() => Toggle(r.PlanetCode))">
+                            <span class="am-bar-planet">@DisplayPlanet(r.PlanetCode)</span>
+                            <span class="am-stack">
+                                @foreach (var seg in Segments(r.PlanetCode))
                                 {
-                                    <span class="am-seg" style="background:var(--dignity-@seg.Token)" title="@seg.ChartType — @seg.DignityStatus">@seg.ChartType</span>
+                                    @if (seg.Token is { } tok)
+                                    {
+                                        <span class="am-seg" style="background:var(--dignity-@tok)" title="@seg.ChartType — @seg.DignityStatus">@seg.ChartType</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="am-seg am-seg-empty" title="@seg.ChartType — @seg.DignityStatus"></span>
+                                    }
                                 }
-                                else
-                                {
-                                    <span class="am-seg am-seg-empty" title="@seg.ChartType — @seg.DignityStatus"></span>
-                                }
-                            }
-                        </span>
-                        <b class="am-bar-value @(r.GoodCount == 0 ? "am-zero" : r.GoodCount * 2 >= r.GroupSize ? "am-high" : "")">@r.GoodCount<span>/@r.GroupSize</span></b>
+                            </span>
+                            <b class="am-bar-value @(r.GoodCount == 0 ? "am-zero" : r.GoodCount * 2 >= r.GroupSize ? "am-high" : "")">
+                                @r.GoodCount<span>/@r.GroupSize &middot; @PercentOf(r.GoodCount, r.GroupSize)%</span>
+                            </b>
+                            <span class="am-chevron">@(isOpen ? "▾" : "▸")</span>
+                        </button>
+
+                        @if (isOpen)
+                        {
+                            <div class="am-detail">
+                                <table class="am-detail-table">
+                                    <thead><tr><th>Varga</th><th>Sign</th><th>Lord</th><th>Dignity</th><th>Score</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var lordRow in VargaLords(r.PlanetCode))
+                                        {
+                                            <tr>
+                                                <th>@lordRow.ChartType</th>
+                                                <td>@Disp(lordRow.Sign)</td>
+                                                <td>@(lordRow.Lord ?? "—")</td>
+                                                <td>@(lordRow.DignityStatus ?? "—")</td>
+                                                <td class="mono">@lordRow.ScoreDisplay</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -78,7 +105,20 @@
     private static readonly string[] PlanetOrder = { "SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN" };
     private static readonly string[] SchemeOrder = { "VARGOTTAMA", "SHADVARGA", "SAPTAVARGA", "DASAVARGA", "SHODASAVARGA" };
 
+    private static readonly Dictionary<string, string> ShortSignNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Aries"] = "Ari", ["Taurus"] = "Tau", ["Gemini"] = "Gem", ["Cancer"] = "Can", ["Leo"] = "Leo",
+        ["Virgo"] = "Vir", ["Libra"] = "Lib", ["Scorpio"] = "Sco", ["Sagittarius"] = "Sag",
+        ["Capricornus"] = "Cap", ["Capricorn"] = "Cap", ["Aquarius"] = "Aqu", ["Pisces"] = "Pis",
+    };
+
     private string _scheme = "VARGOTTAMA";
+    private readonly HashSet<string> _expanded = new(StringComparer.OrdinalIgnoreCase);
+
+    private void Toggle(string planetCode)
+    {
+        if (!_expanded.Add(planetCode)) _expanded.Remove(planetCode);
+    }
 
     private IReadOnlyList<AmsabalaRow> SchemeRows =>
         PlanetOrder
@@ -94,6 +134,8 @@
             .Where(r => r is not null)
             .Select(r => r!)
             .ToList();
+
+    private static int PercentOf(int good, int groupSize) => groupSize == 0 ? 0 : (int)Math.Round(100.0 * good / groupSize);
 
     // "N charts compared (Rasi chart with D-x,D-y,...)" — built off the actual seeded group
     // membership (tbl_Rule_AmsabalaGroup, db/101), not a hardcoded copy of it.
@@ -129,11 +171,10 @@
     private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
 
     // One slot per varga in the current scheme (so the row still reads as "N out of GroupSize"),
-    // but only the ones that actually count toward GoodCount — Exalted or Own/Moolatrikona/Great
-    // Friend (AmsabalaCalculator's "isGood") — get coloured and named; the rest render as plain
-    // empty slots. Colour reuses the same --dignity-* tokens every other chart view in the app
-    // already colours planets with, read live off Charts (already loaded by WorkspaceData).
-    private IEnumerable<(string ChartType, string DignityStatus, string Token)> Segments(string planetCode) =>
+    // coloured/named by the planet's actual 7-tier dignity in that specific chart
+    // (ChartViewModel.DignityTierToken, read live off Charts, same as VargaLordsTable.Cell()) —
+    // Neutral/Debilitated (not in rammyps's 7-tier list) render as a plain empty slot.
+    private IEnumerable<(string ChartType, string DignityStatus, string? Token)> Segments(string planetCode) =>
         Groups.Where(g => g.SchemeCode.Equals(_scheme, StringComparison.OrdinalIgnoreCase))
             .Select(g =>
             {
@@ -141,12 +182,35 @@
                     ? chart.Grahas.FirstOrDefault(k => k.Planet.Equals(planetCode, StringComparison.OrdinalIgnoreCase))?.DignityStatus
                     : null;
                 return (g.ChartType, DignityStatus: status ?? "Unknown",
-                    Token: Ikiastrro.Core.Presentation.ChartViewModel.DignityToken(status));
+                    Token: Ikiastrro.Core.Presentation.ChartViewModel.DignityTierToken(status));
+            });
+
+    // Varga-lords detail table under the expanded bar — same per-chart sign+lord lookup
+    // VargaLordsTable.Cell() used, scoped to just this scheme's chart-type membership, plus the
+    // 0..1 normalized dignity score (ChartViewModel.DignityScoreNormalized) for later statistics.
+    private IEnumerable<(string ChartType, string Sign, string? Lord, string? DignityStatus, string ScoreDisplay)> VargaLords(string planetCode) =>
+        Groups.Where(g => g.SchemeCode.Equals(_scheme, StringComparison.OrdinalIgnoreCase))
+            .Select(g =>
+            {
+                if (!Charts.TryGetValue(g.ChartType, out var chart))
+                    return (g.ChartType, "—", (string?)null, (string?)null, "—");
+                var graha = chart.Grahas.FirstOrDefault(k => k.Planet.Equals(planetCode, StringComparison.OrdinalIgnoreCase));
+                if (graha is null)
+                    return (g.ChartType, "—", (string?)null, (string?)null, "—");
+                var lord = chart.HouseLords
+                    .FirstOrDefault(h => h.HouseSign.Equals(graha.Sign, StringComparison.OrdinalIgnoreCase))?.LordPlanet;
+                var score = Ikiastrro.Core.Presentation.ChartViewModel.DignityScoreNormalized(graha.DignityStatus);
+                return (g.ChartType, graha.Sign, lord, graha.DignityStatus, score.ToString("0.00", CultureInfo.InvariantCulture));
             });
 
     private static readonly (string Token, string Label)[] DignityKey =
     {
         ("exalted", "Exalted"),
-        ("good", "Own / Moolatrikona / Great Friend"),
+        ("moolatrikona", "Moolatrikona"),
+        ("own", "Own Sign"),
+        ("great-friend", "Great Friend"),
+        ("friend", "Friend"),
+        ("enemy", "Enemy"),
+        ("great-enemy", "Great Enemy"),
     };
 }

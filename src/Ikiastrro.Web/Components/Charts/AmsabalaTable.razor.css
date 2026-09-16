@@ -23,18 +23,30 @@
 .am-high { background: var(--status-strong-bg); font-weight: 800; }
 .am-zero { color: var(--status-weak); }
 
-/* Shadvarga/Saptavarga/Dasavarga/Shodasavarga — one stacked bar per graha, one equal-width
-   segment per varga in that scheme (e.g. D1/D2/D3/D9/D12/D30 for Shadvarga), each segment
-   coloured by that planet's actual dignity in that specific chart — same --dignity-* palette
-   SouthIndianGrid_Detailed already colours planet dots with, not a new 2/3-colour scale. */
-.am-bars { display: grid; gap: 8px; padding: 16px 16px 4px; }
-.am-bar-row { display: grid; grid-template-columns: 72px minmax(120px,1fr) 44px; gap: 10px; align-items: center; }
+/* Shadvarga/Saptavarga/Dasavarga/Shodasavarga — one row per graha. The stacked bar is always
+   visible in the row itself (rammyps's call, 2026-09-16: "give the D1/D9 bar at the 1st row
+   itself so it's easier to visualize") — one equal-width segment per varga in that scheme (e.g.
+   D1/D2/D3/D9/D12/D30 for Shadvarga), each coloured by that planet's actual 7-tier dignity in
+   that specific chart (--dignity-exalted/moolatrikona/own/great-friend/friend/enemy/great-enemy).
+   Clicking the row expands ONLY the varga-lords detail table underneath (Varga/Sign/Lord/
+   Dignity/Score) — the bar is not repeated there. */
+.am-bars { display: grid; padding: 4px 0; }
+.am-row { border-bottom: 1px solid var(--brand-line); }
+.am-row:last-child { border-bottom: 0; }
+.am-summary { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 96px minmax(140px,1fr) auto 16px; gap: 10px; align-items: center; width: 100%; padding: 10px 16px; cursor: pointer; }
+.am-summary:hover { background: var(--brand-peach); }
 .am-bar-planet { font-weight: 700; }
 .am-stack { display: flex; gap: 2px; height: 26px; border-radius: 6px; overflow: hidden; }
 .am-seg { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .62rem; font-weight: 700; white-space: nowrap; overflow: hidden; }
 .am-seg-empty { background: var(--brand-line); }
-.am-bar-value { text-align: right; font-variant-numeric: tabular-nums; border-radius: 6px; padding: 2px 4px; }
+.am-bar-value { text-align: right; font-variant-numeric: tabular-nums; border-radius: 6px; padding: 2px 4px; white-space: nowrap; }
 .am-bar-value span { color: var(--brand-muted); font-weight: 500; }
+.am-chevron { justify-self: end; color: var(--brand-muted); font-size: .7rem; }
+.am-detail { display: grid; gap: 10px; padding: 0 16px 14px; }
+.am-detail-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.am-detail-table th, .am-detail-table td { padding: 6px 8px; border-bottom: 1px solid var(--brand-line); text-align: left; }
+.am-detail-table thead th { color: var(--brand-muted); font-size: .66rem; text-transform: uppercase; letter-spacing: .03em; }
+.am-detail-table td.mono { font-variant-numeric: tabular-nums; }
 .am-key { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: 0; padding: 10px 16px 16px; color: var(--brand-muted); font-size: .72rem; }
 .am-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
-@media (max-width: 620px) { .am-bars { padding: 12px 10px 4px; } .am-bar-row { grid-template-columns: 60px minmax(90px,1fr) 40px; gap: 7px; } }
+@media (max-width: 620px) { .am-summary { grid-template-columns: 76px 1fr; grid-template-areas: "planet value" "stack stack"; gap: 6px 7px; padding: 9px 10px; } .am-bar-planet { grid-area: planet; } .am-stack { grid-area: stack; } .am-bar-value { grid-area: value; } .am-chevron { display: none; } .am-detail { padding: 0 10px 12px; } }

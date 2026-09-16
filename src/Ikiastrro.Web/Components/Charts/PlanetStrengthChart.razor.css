@@ -82,7 +82,7 @@
 .psc-colheads,
 .psc-row {
     display: grid;
-    grid-template-columns: 44px 100px 1fr 64px 56px 56px 84px;
+    grid-template-columns: 44px 100px 1fr 64px 56px 56px 56px 84px;
     align-items: center;
     gap: 10px;
     width: 100%;
@@ -301,7 +301,7 @@
 @media (max-width: 900px) {
     .psc { overflow-x: auto; }
     .psc-colheads,
-    .psc-row { min-width: 640px; }
+    .psc-row { min-width: 696px; }
     .psc-detail-body { grid-template-columns: 1fr; }
     .psc-scale { display: none; }
 }

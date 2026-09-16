@@ -85,6 +85,9 @@
                         Total Rūpas: @row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)
                         (@string.Join(" + ", DetailComponents.Select(m => comps.GetValueOrDefault(m.Code, 0).ToString("0.00", CultureInfo.InvariantCulture))))
                     </p>
+                    <p class="hsc-detail-sum" title="Bhava Dig + Bhava Drik only, excluding Bhavadhipati Bala (the lord's own Shadbala) — avoids double-counting the lord's strength when combining this house's support with any planet's Shadbala elsewhere (docs/research/domain/stat_strength.md §1.3).">
+                        Independent support: @IndependentBhavabala(comps).ToString("0.00", CultureInfo.InvariantCulture) Rūpas
+                    </p>
                 </div>
             }
         </div>
@@ -160,4 +163,11 @@
 
     private static string LordPlacedDisplay(BhavaBalaSummaryRow row) =>
         row.LordPlacedInHouseFromLagna is { } h ? $"H{h} · {row.LordPlacedInSign ?? "—"}" : "—";
+
+    /// <summary>Bhava Dig + Bhava Drik only (docs/research/domain/stat_strength.md §1.3's
+    /// B^independent) — excludes Bhavadhipati Bala, which is just the house lord's own Shadbala
+    /// restated, so it isn't double-counted when this house's support is later combined with a
+    /// planet's Shadbala elsewhere.</summary>
+    private static decimal IndependentBhavabala(IReadOnlyDictionary<string, decimal> comps) =>
+        comps.GetValueOrDefault("BHAVA_DIG_BALA", 0) + comps.GetValueOrDefault("BHAVA_DRIK_BALA", 0);
 }

@@ -38,12 +38,12 @@ public sealed class PolarGridLagnaSelectTests : BunitContext
         polar.FindAll(".pgls-check input")[1].Change(true);
         Assert.Equal(2, polar.FindAll(".pgls-check.is-active").Count);
         Assert.Equal(2, polar.FindAll(".pgls-check input[checked]").Count);
-        Assert.Contains("LAGNA H1", polar.Markup);
-        Assert.Contains("AL H2", polar.Markup);
+        Assert.Contains("SI-1", polar.Markup);
+        Assert.Contains("AR-2", polar.Markup);
         Assert.Equal(24, polar.FindAll(".pgls-house tspan").Count);
         Assert.Contains("ref-lagna", polar.FindAll(".pgls-check")[0].ClassList);
         Assert.Contains("ref-arudha", polar.FindAll(".pgls-check")[1].ClassList);
-        Assert.Contains("Pisces", polar.Markup);
+        Assert.Contains("AR-1", polar.Markup); // Arudha Lagna (sign Pisces) at its own sector reads "AR-1", same self-reference pattern as "SI-1" for Sign Lagna
 
         var south = Render<PolarGridLagnaSelect>(p => p
             .Add(x => x.Sectors, Sectors)

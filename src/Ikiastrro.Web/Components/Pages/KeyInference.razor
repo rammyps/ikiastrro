@@ -48,7 +48,7 @@
    has sub-views, its own inner MudTabs:
    D1-TRANSIT's is 1.1 D1 - BIRTH CHART/1.2 TRANSIT CHART (_activeTab); About's is
    2.1 ABOUT HOUSES/2.2 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
-   3.3 ASTAVARGA/3.4 AMSABALA (all unbound). Every tab text at every level is ALL CAPS.
+   3.3 ASTAVARGA (all unbound). Every tab text at every level is ALL CAPS.
    All three levels share `.ki-tabs` styling, unified 2026-09-14 (rammyps's directive) onto the
    same quiet-cream/strong-sunset pill the master step rail (`.ki-master-button`) already used —
    inactive = quiet cream pill + midnight text, active = sunset pill + midnight text
@@ -61,15 +61,27 @@
    `.razor.css`) read PlanetaryStrengthRepository/BhavaStrengthRepository's new
    GetSummaryByBirthDetailId/GetComponentsByBirthDetailId over vw_ChartShadbala/
    vw_ChartBhavaBala + the two component fact tables — same "outside WorkspaceData" pattern,
-   loaded alongside Moon context/Gochara/Dasha in OnParametersSet. 3.4 (`AmsabalaTable`) reads
-   AmsabalaRepository over vw_ChartAmsabala (db/101), same pattern as 3.3's AshtakavargaRepository.
+   loaded alongside Moon context/Gochara/Dasha in OnParametersSet.
    5 (`YogaEvaluationTable`) reads YogaEvaluationRepository over vw_ChartYogaEvaluations
    (db/053+079) — the typed read model built for this step, evaluation itself already runs in
-   ChartGenerationService.PersistAnalytics. 6 (`VargaLordsTable`) needs no new repository: it
-   reads straight off `_data.Charts` (every persisted varga's Grahas + HouseLords, already
-   loaded by WorkspaceData.Load for every chart type, same as AllCharts.razor's grid) to show
-   each graha's sign + that sign's lord per divisional chart, highlighting Vargottama (D9 sign
-   = D1 sign) and same-sign-as-D1 elsewhere. *@
+   ChartGenerationService.PersistAnalytics.
+
+   6 (`AmsabalaTable`, 2026-09-16 redesign, superseding both the original flat `VargaLordsTable`
+   and the standalone "3.4 Amsabala" Strength sub-tab): one scheme-tabbed view —
+   Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga — instead of two different depths of
+   the same varga breakdown living in two different steps. Vargottama is unchanged (D1/D9/Match).
+   Each scheme's graha row is collapsed to just its numeric split (GoodCount/GroupSize + %) by
+   default; expanding it reveals the stacked dignity bar (now full 7-tier —
+   Exalted/Moolatrikona/Own/Great Friend/Friend/Enemy/Great Enemy via
+   `ChartViewModel.DignityTierToken`, not the old binary good/not-good) and a varga-lords detail
+   table underneath (Varga/Sign/Lord/Dignity/0-1 score via `ChartViewModel
+   .DignityScoreNormalized` — for later statistical use, docs/research/domain/stat_strength.md).
+   Still needs no new repository beyond what 3.4 already injected
+   (`AmsabalaRepo`/`AmsabalaSchemeRepo`/`VargottamaRepo`) — the lords/dignity data reads straight
+   off `_data.Charts` (every persisted varga's Grahas + HouseLords, already loaded by
+   WorkspaceData.Load for every chart type), same as the old `VargaLordsTable`/AllCharts.razor's
+   grid. A "3.4"/"amsabala" deep link now routes to step 6 (`_masterTab = 5`) instead of a Strength
+   sub-tab that no longer exists. *@
 
 <PageTitle>Key Inference — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
 
@@ -311,19 +323,6 @@ else
                         <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" />
                     }
                 </MudTabPanel>
-
-                <MudTabPanel Text="3.4 AMSABALA">
-                    @if (_amsabala.Count == 0)
-                    {
-                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                            Amsabala has not been computed for this chart yet.
-                        </MudAlert>
-                    }
-                    else
-                    {
-                        <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" />
-                    }
-                </MudTabPanel>
             </MudTabs>
             </div>
             </div>
@@ -356,11 +355,16 @@ else
 
         <MudTabPanel Text="6. VARGAS">
             <div class="ki-panelbody">
-            <div class="ki-stephead">
-                <h1 class="ki-heading">VARGAS</h1>
-            </div>
-
-            <VargaLordsTable Charts="_data.Charts" ChartTypes="_data.ChartTypes" />
+            @if (_amsabala.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                    Vargas have not been computed for this chart yet.
+                </MudAlert>
+            }
+            else
+            {
+                <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" />
+            }
             </div>
         </MudTabPanel>
     </MudTabs>
@@ -408,11 +412,7 @@ else
             _masterTab = 2;
             _strengthTab = 2;
         }
-        if (Step is "3.4" or "amsabala")
-        {
-            _masterTab = 2;
-            _strengthTab = 3;
-        }
+        if (Step is "3.4" or "amsabala") _masterTab = 5; // Amsabala/Vargottama moved into step 6 (Vargas)
 
         _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
             ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,

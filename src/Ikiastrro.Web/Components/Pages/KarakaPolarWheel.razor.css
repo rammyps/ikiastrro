@@ -1,4 +1,4 @@
-.karaka-head{display:flex;align-items:center;justify-content:center;gap:1.1rem;margin:0 0 1rem;color:var(--brand-midnight)}.karaka-unavailable h1{margin:0;font-size:clamp(1.45rem,3vw,2.35rem);font-weight:700;letter-spacing:.04em}
+.karaka-head{display:flex;align-items:center;justify-content:center;gap:2rem;margin:0 0 1rem;color:var(--brand-midnight)}.karaka-unavailable h1{margin:0;font-size:clamp(1.45rem,3vw,2.35rem);font-weight:700;letter-spacing:.04em}
 /* Chart-control convention (2026-09-17, rammyps's call): a dark-navy segmented pill marks a
    control as belonging to the chart (not app navigation, which stays the quiet-cream/
    strong-sunset MudTabs pill) — same treatment as every inline chart's own toggle
