@@ -45,6 +45,12 @@ public static class PvrDignityEvaluator
             [PlanetName.Saturn] = (new[] { PlanetName.Mercury, PlanetName.Venus }, new[] { PlanetName.Sun, PlanetName.Moon, PlanetName.Mars })
         };
 
+    /// <summary>True if <paramref name="b"/> is a natural friend of <paramref name="a"/>
+    /// (the fixed Parashari friendship table above — no temporary/compound relationship).
+    /// False, not an error, for a planet outside this table (Rahu, Ketu).</summary>
+    public static bool IsNaturalFriend(PlanetName a, PlanetName b) =>
+        Natural.TryGetValue(a, out var natural) && natural.Friends.Contains(b);
+
     public static PvrDignityResult Evaluate(PlanetName planet, ZodiacName sign, double degreeInSign,
         IReadOnlyDictionary<string, ZodiacName>? chartSigns = null)
     {

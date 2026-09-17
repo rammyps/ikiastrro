@@ -36,7 +36,7 @@ unverified against the book · **diverges** = built but deliberately differs (se
 | 8 | Karakas (79) — chara, sthira, naisargika | `CharaKarakaCalculator` (Ashta) ✓; `tbl_Rule_Karaka` **reserved / empty**; **naisargika seeded** — migration 086: `tbl_Rule_Naisargika_Karakatwas` (34, full grid) + `tbl_Rule_Naisargika_Karakas` (12, primary per-house reduction), dedicated tables (not `tbl_Rule_Karaka`); Sthira still hard-coded in `LifeAreaMap` (different source, B.V. Raman, unreconciled) | partial | populate `tbl_Rule_Karaka` (chara/sthira) or fold sthira into its own dedicated table on the naisargika pattern; build a Naisargika karaka read engine (Plan 2) |
 | 9 | Arudha Padas (85) — AL, bhava arudhas, graha arudhas | `ArudhaCalculator` — AL + 12 bhava arudhas ✓ | partial | reconcile vs §9 (exception rules for the 1st/7th, same-sign/opposite); check whether graha arudhas are wanted |
 | 10 | Aspects & Argalas (100) — graha drishti, rasi drishti, argala | `tbl_Rule_AspectOffset` (graha drishti) ✓; **rasi drishti + argala not built** | partial | build rasi-drishti (movable→fixed etc.) + argala + virodha-argala per §10 |
-| 11 | Yogas (p.112) — §11.2–11.10, ~98 named yogas + 58 unnamed numbered combinations (Raja/Raja-Sambandha/Dhana/Daridra) | `tbl_Rule_Yoga` (146 of 223 tracked `YogaCode`s have a real coded predicate — `db/079_add_yoga_type_and_rule.sql`); `SourceAttributedYogaEngine` / `VerifiedSourceYogaEngine` / `RamanYogaBatch*Evaluator` / `RamanNabhasa*BatchEvaluator` (`src/Ikiastrro.Core/Engines/Yoga/`) | partial — **~87/98 (~89%) of PVR's named yogas covered** (shared with `SRC_RAMAN_300_COMBINATIONS`, the primary source); the 4 unnamed numbered sections (58 combinations) have no per-rule coverage, only 2 generic catch-alls | confirmed gap list + action plan: `../yoga-corpus.md` (P0/P1 tables + "Next implementation slice") |
+| 11 | Yogas (p.112) — §11.2–11.10, ~98 named yogas + 59 unnamed numbered combinations (Raja-Advanced/Raja-Sambandha/Dhana/Daridra) | `tbl_Rule_Yoga` (146 of 223 tracked `YogaCode`s have a real coded predicate — `db/079_add_yoga_type_and_rule.sql`, predates the P0 closure below); `SourceAttributedYogaEngine` / `VerifiedSourceYogaEngine` / `RamanYogaBatch*Evaluator` / `RamanNabhasa*BatchEvaluator` / **`PvrChapter11YogaEvaluator`** (2026-09-17, the 9 P0 gap yogas) / **`PvrChapter11NumberedYogaEvaluator`** (2026-09-17, all 59 numbered combinations) (`src/Ikiastrro.Core/Engines/Yoga/`) | near-complete — **~96/98 (~98%) of PVR's named yogas covered**, **59/59 numbered combinations transcribed** (58 coded, 1 `NOT_EVALUATED` — §11.10 item 10's Ashtakavarga forward-reference) | remaining gap list + action plan: `../yoga-corpus.md` (only the 4 P1 identity/alias cases remain) |
 | 12 | Ashtakavarga (145) | **not built**; `_research/jyotishganit` supplies the algorithm | not built | build BAV/SAV + reductions per §12 |
 | 13 | Interpreting Charts (166) — synthesis method | `../../cli/reading/method.md` (partial) | partial | reconcile the reading method against §13 |
 | 14 | Longevity (180) — pindayu / nisargayu / amsayu, maraka | `tvf_Chart_SadeSatiPeriods` (unrelated); **ayur methods not built** | not built | build per §14 (+ Part 2 ch 22–23 shoola dasas) |
@@ -56,6 +56,26 @@ unverified against the book · **diverges** = built but deliberately differs (se
 
 _(append one line per chapter as it is reconciled: date · chapter · what changed · commit)_
 
+- 2026-09-17 — Ch 11 (Yogas), same day as the P0 closure below: transcribed all 59 unnamed
+  numbered combinations (§11.7.3 "More Raja Yogas" ×18, §11.8 Raaja Sambandha ×15, §11.9 Dhana
+  ×13, §11.10 Daridra ×13) in new `PvrChapter11NumberedYogaEvaluator.cs`, wired into
+  `ProductionYogaEngine.cs`, 60 tests in `PvrChapter11NumberedYogaEvaluatorTests.cs`. New
+  umbrella codes `YOGA_RAJA_ADVANCED` / `YOGA_RAJA_SAMBANDHA`; Dhana/Daridra items ride as extra
+  `SourceVariantCode` rows on the existing `YOGA_DHANA` / `YOGA_DARIDRA` codes. Discovered while
+  building this that Ghati/Sree/Bhaava Lagna (which `pvr-coverage.md`'s Ch.5 row had marked "not
+  built") were actually completed 2026-09-13 — this doc's Ch.5 row was stale, not the code; not
+  yet corrected here pending a dedicated Ch.5 reconciliation pass. Also fixed a real
+  null-reference bug in a shared `Dispositor()` helper (see `../yoga-corpus.md` for detail).
+  Full suite: 402/404 (2 pre-existing unrelated `PolarGridLagnaSelectTests` failures only).
+- 2026-09-17 — Ch 11 (Yogas): implemented all 9 P0 gap yogas confirmed by the 2026-09-13 pass
+  — `YOGA_MAALA`, `YOGA_SUBHA`, `YOGA_ASUBHA`, `YOGA_GURU_MANGALA`, `YOGA_CHAMARA`,
+  `YOGA_KHADGA`, `YOGA_LAGNAADHI`, `YOGA_SAARADA`, `YOGA_DHARMA_KARMADHIPATI` — in new
+  `PvrChapter11YogaEvaluator.cs`, wired into `ProductionYogaEngine.cs`, 10 tests in
+  `PvrChapter11YogaEvaluatorTests.cs`. Raises PVR named-yoga coverage to ~96/98 (~98%). See
+  `../yoga-corpus.md` "P0 closure notes" for the two predicates needing a specific reading
+  choice (`YOGA_LAGNAADHI`'s Lagna-vs-Moon reckoning, `YOGA_DHARMA_KARMADHIPATI`'s reusable
+  3-way association helper). Full suite: 342/344 (2 pre-existing unrelated
+  `PolarGridLagnaSelectTests` failures only).
 - 2026-09-13 — Ch 11 (Yogas): row corrected — `tbl_Rule_Yoga` was **not** empty (stale note
   from before migrations 47–51/079). Counted the chapter directly against the raw extract:
   ~98 named yogas across §11.2–11.7.1 + 58 unnamed numbered combinations across §11.7.3/11.8/

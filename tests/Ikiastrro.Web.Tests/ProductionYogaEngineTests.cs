@@ -18,14 +18,17 @@ public sealed class ProductionYogaEngineTests
     }
 
     [Fact]
-    public void FinalHundredRemainExplicitlyUnevaluated()
+    public void FinalHundredIsFullyTranscribed()
     {
+        // 201-219, 220-244, 245-263 and 264-300 were all transcribed 2026-09-17 —
+        // RamanFamilyYogaEvaluator / RamanProgenyYogaEvaluator / RamanRajaYogaEvaluator /
+        // RamanAfflictionYogaEvaluator. RamanFinalHundredCatalog.cs is now an empty stub;
+        // every one of the 100 numbers in 201-300 has a real predicate.
         var rows = new ProductionYogaEngine().DetectDetailed(Bundle())
             .Where(x => x.Result.SourceVariantCode.StartsWith("RAMAN_300_")
                 && Entry(x.Result.SourceVariantCode) >= 201).ToList();
         Assert.Equal(100, rows.Count);
-        Assert.All(rows, x => { Assert.Equal("NOT_EVALUATED", x.Result.EvaluationStatus);
-            Assert.Contains("PREDICATE_NOT_IMPLEMENTED", x.MissingRequirementCodes); });
+        Assert.All(rows, x => Assert.Equal("EVALUATED", x.Result.EvaluationStatus));
     }
 
     private static ChartBundle Bundle()
