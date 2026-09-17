@@ -66,10 +66,11 @@ Two-page structure once a karaka is selected and resolved to a planet:
 ## 4. Chakras
 
 - Each chara karaka has an associated "chakra" (wheel) and its signs.
-- Naming convention given: `<KarakaAbbrev>_ChakraLord`, e.g. `AM_ChakraLord` for the
-  Amatyakaraka chakra's lord.
-- Apply the same pattern to all 8: `AK_ChakraLord`, `AmK_ChakraLord`, `BK_ChakraLord`,
-  `MK_ChakraLord`, `PiK_ChakraLord`, `PK_ChakraLord`, `GK_ChakraLord`, `DK_ChakraLord`.
+- Naming convention: `<KarakaAbbrev>_ChakraLord`, using the codebase's standard `CharaKaraka`
+  enum abbreviations (`AK, AmK, BK, MK, PiK, PK, GK, DK` — `src/Ikiastrro.Core/Engines/Karakas/CharaKaraka.cs`),
+  not the shorter `AM` form used in the original dictation. So: `AK_ChakraLord`,
+  `AmK_ChakraLord`, `BK_ChakraLord`, `MK_ChakraLord`, `PiK_ChakraLord`, `PK_ChakraLord`,
+  `GK_ChakraLord`, `DK_ChakraLord`.
 
 ## Open questions (blockers before this becomes buildable)
 
@@ -86,8 +87,33 @@ Two-page structure once a karaka is selected and resolved to a planet:
     different KP convention (significators per house).
   L1–L7 reads more like the second (7 houses), but confirm — the existing sublord-chain
   table may not extend to 7 levels as modeled.
-- **`AM_ChakraLord` naming vs. the codebase's `AmK` enum.** `CharaKaraka.cs` uses `AmK` for
-  Amatyakaraka (`AK, AmK, BK, MK, PiK, PK, GK, DK`). `AM` in the dictated naming is
-  inconsistent with that — confirm before it lands in schema/UI: either the chakra-lord
-  naming adopts `AmK_ChakraLord` for consistency, or there's a deliberate reason for the
-  shorter `AM` form.
+- ~~`AM_ChakraLord` naming vs. the codebase's `AmK` enum~~ — resolved 2026-09-17: use the
+  standard `CharaKaraka` enum abbreviations everywhere (`AmK_ChakraLord`, not `AM_ChakraLord`).
+
+## 5. Detailed behavior table — planning
+
+Naisargika karakas already have a "detail" table one level below the primary-per-house
+reduction: `tbl_Rule_Naisargika_Karakatwas` (34 rows — "Detailed graha–matter–house
+mappings," see `karakafix.md`). Chara karakas have no equivalent yet — Table 13 (person
+shown) and the two DK/PK `tbl_Rule_LifeMatterReference` rows are the only chara-karaka
+content in the DB today (see §"Chara karaka" in `chara-karaka-life-area-pvr.md`).
+
+Plan: a `tbl_Rule_Chara_Karakatwas`-shaped table (naming to mirror the naisargika
+precedent), one row family per chara karaka, carrying the detailed-behavior content this
+file's §1–§4 are scoping reading for:
+
+- Behavioral effects of the karaka itself (temperament/role — §1).
+- Life-matter/house association, feeding the existing "Life Matters" drill-down (§2).
+- Varga + varga-lord + sub-lord resolution inputs (§3 Page 1).
+- Rasi/Nakshatra/Pada/Pada-lord/SubLord-chain resolution inputs (§3 Page 2).
+- Chakra + `<Abbrev>_ChakraLord` resolution inputs (§4).
+
+This should join into the karaka-role model already built in migration 103
+(`tbl_Dim_KarakaRole` has 8 `CHARA`-typed rows, one per karaka, driven from
+`tbl_Rule_Karaka WHERE KarakaScheme='Chara'`) rather than re-deriving the 8 roles again —
+same reuse precedent `karakafix.md` set for naisargika. No migration written yet; this is
+scope notes for whoever picks up the database-workstream migration.
+
+Where the *interpretation content* (not the resolution mechanics above) comes from, and how
+it gets validated before being trusted, is out of scope for this table and is instead the
+subject of [chara-karaka-interpretation-statistics.md](chara-karaka-interpretation-statistics.md).
