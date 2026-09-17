@@ -10,7 +10,7 @@ public static class RamanYogaBatchEightEvaluator
 {
  private static readonly PlanetName[] B=[PlanetName.Moon,PlanetName.Mercury,PlanetName.Jupiter,PlanetName.Venus];
  private static readonly PlanetName[] M=[PlanetName.Sun,PlanetName.Mars,PlanetName.Saturn];
- private static readonly HashSet<int> Unsupported=[155,156,167,170,171,175,176,177,178,179,182,183,185,196,197];
+ private static readonly HashSet<int> Unsupported=[178,179,183,185];
  private static readonly Dictionary<int,string> Codes=new()
  {
   [151]="YOGA_DARIDRA",[152]="YOGA_DARIDRA",[153]="YOGA_DARIDRA",[154]="YOGA_YUKTHI_SAMANWITHAVAGMI",[155]="YOGA_YUKTHI_SAMANWITHAVAGMI",
@@ -28,27 +28,31 @@ public static class RamanYogaBatchEightEvaluator
  {
   var c=bundle.Charts.FirstOrDefault(x=>x.ChartType.Equals("D1",StringComparison.OrdinalIgnoreCase));if(c is null)return[];
   var d9=bundle.Charts.FirstOrDefault(x=>x.ChartType.Equals("D9",StringComparison.OrdinalIgnoreCase));
-  return Enumerable.Range(151,50).Select(n=>Unsupported.Contains(n)?Missing(n,Gap(n)):EvaluateOne(n,c,d9)).ToList();
+  return Enumerable.Range(151,50).Select(n=>Unsupported.Contains(n)?Missing(n,Gap(n)):EvaluateOne(n,c,d9,bundle.Charts)).ToList();
  }
- private static ContextualYogaResult EvaluateOne(int n,ChartAnalysisInput c,ChartAnalysisInput? d9)
+ private static ContextualYogaResult EvaluateOne(int n,ChartAnalysisInput c,ChartAnalysisInput? d9,IReadOnlyList<ChartAnalysisInput> charts)
  {
   bool? v=n switch
   {
    151=>Find(c,Lord(c,5))?.HouseNumber is 6 or 10&&new[]{2,6,7,8,12}.Any(h=>Influenced(c,Lord(c,5),Lord(c,h))),
    152=>M.Where(p=>!new[]{Lord(c,9),Lord(c,10)}.Contains(p)).Any(p=>Find(c,p)?.HouseNumber==1&&(Influenced(c,p,Lord(c,2))||Influenced(c,p,Lord(c,7)))),
    153=>d9 is null?null:new[]{Find(c,Lord(c,1))?.HouseNumber,Find(c,Enum.Parse<PlanetName>(HouseEngine.GetSignLord(d9.AscendantSign)))?.HouseNumber}.All(h=>h is 6 or 8 or 12)&&(Influenced(c,Lord(c,1),Lord(c,2))||Influenced(c,Lord(c,1),Lord(c,7))),
-   154=>Y154(c),157=>Y157(c),158=>Y158(c),159=>Rel(c,PlanetName.Sun,PlanetName.Mercury,2)&&Rel(c,PlanetName.Mercury,PlanetName.Moon,11)&&(Rel(c,PlanetName.Moon,PlanetName.Jupiter,5)||Rel(c,PlanetName.Moon,PlanetName.Jupiter,9)),
+   154=>Y154(c),155=>Y155(c,charts),156=>Y156(d9,c,charts),157=>Y157(c),158=>Y158(c),159=>Rel(c,PlanetName.Sun,PlanetName.Mercury,2)&&Rel(c,PlanetName.Mercury,PlanetName.Moon,11)&&(Rel(c,PlanetName.Moon,PlanetName.Jupiter,5)||Rel(c,PlanetName.Moon,PlanetName.Jupiter,9)),
    160=>(Rel(c,PlanetName.Venus,PlanetName.Jupiter,5)||Rel(c,PlanetName.Venus,PlanetName.Jupiter,9))&&Rel(c,PlanetName.Jupiter,PlanetName.Moon,5)&&new[]{1,4,7,10}.Contains(Distance(Find(c,PlanetName.Moon)?.Sign,Find(c,PlanetName.Sun)?.Sign)),
    161=>Y161(c),162=>Y162(c),163=>Find(c,Lord(c,2))?.HouseNumber==8&&Same(c,Lord(c,2),PlanetName.Jupiter),
    164=>Same3(c,Lord(c,10),Lord(c,6),Lord(c,2))&&Find(c,Lord(c,10))?.HouseNumber==1,
    165=>(Same(c,PlanetName.Mercury,PlanetName.Moon)&&Find(c,PlanetName.Mercury)?.HouseNumber==2)||(Same3(c,Lord(c,1),Lord(c,2),PlanetName.Sun)&&Find(c,Lord(c,1))?.HouseNumber==2),
    166=>Kendra(c,Lord(c,2))&&B.Any(p=>Influenced(c,Lord(c,2),p))||B.Any(p=>Find(c,p)?.HouseNumber==2),
+   167=>Y167(c,charts),
    168=>M.Any(p=>Find(c,p)?.HouseNumber==2)&&(M.Any(p=>Same(c,Lord(c,2),p))||Dignity(c,Lord(c,2))=="DEBILITATED"),
    169=>d9 is null?null:Same(c,Lord(c,2),"Gulika")||M.Any(p=>Same(c,Lord(c,2),p))&&Dignity(d9,Lord(c,2))=="DEBILITATED",
    172=>d9 is null?null:Dignity(c,Lord(c,2))=="DEBILITATED"&&M.Any(p=>Influenced(c,Lord(c,2),p)&&Dignity(c,p)=="DEBILITATED"),
    173=>Lord(c,2)==PlanetName.Saturn||Same(c,PlanetName.Saturn,Lord(c,2))||(Find(c,PlanetName.Saturn) is{}s&&Dignity(c,PlanetName.Saturn)=="DEBILITATED"&&Aspects(PlanetName.Saturn,s.Sign,HouseSign(c,2))),
    174=>Find(c,PlanetName.Rahu)?.HouseNumber==2&&Find(c,"Gulika")?.HouseNumber==2,
+   175=>Y175(d9,c),176=>Y176(d9,c),177=>Y177(c),
+   170=>Y170(c,charts),171=>Y171(c,charts),
    180=>Y180(c),181=>Same(c,Lord(c,12),PlanetName.Mars)&&Find(c,PlanetName.Moon)?.HouseNumber==3&&Same(c,PlanetName.Moon,PlanetName.Jupiter)&&!Influenced(c,PlanetName.Moon,PlanetName.Venus),
+   182=>Y182(d9,c),
    184=>d9 is null?null:Dignity(c,Lord(c,3))=="EXALTED"&&M.Any(p=>Same(c,Lord(c,3),p))&&(Movable(Find(c,Lord(c,3))?.Sign)||Movable(Find(d9,Lord(c,3))?.Sign)),
    186=>d9 is null?null:B.Contains(Enum.Parse<PlanetName>(HouseEngine.GetSignLord(HouseEngine.GetHouseSign(c.AscendantSign,3))))&&B.Any(p=>InfluencesSign(c,p,HouseSign(c,3)))&&B.Contains(Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(Find(d9,Lord(c,3))?.Sign??"Aries")))),
    187=>new[]{1,4,5,7,9,10}.Contains(Find(c,Lord(c,4))?.HouseNumber??0)&&B.Any(p=>Same(c,Lord(c,4),p)),
@@ -60,6 +64,7 @@ public static class RamanYogaBatchEightEvaluator
    193=>B.Contains(Lord(c,4))&&B.Any(p=>p!=Lord(c,4)&&Influenced(c,Lord(c,4),p))&&Find(c,PlanetName.Mercury)?.HouseNumber==1,
    194=>Find(c,PlanetName.Jupiter) is{}j&&(j.HouseNumber==4||InfluencesSign(c,PlanetName.Jupiter,HouseSign(c,4))||Same(c,Lord(c,4),PlanetName.Jupiter)),
    195=>M.Any(p=>Same(c,Lord(c,4),p))||new[]{"ENEMY","ADHISATRU","DEBILITATED"}.Contains(Dignity(c,Lord(c,4))),
+   196=>Y196(c),197=>Y197(d9,c),
    198=>Y198(c),199=>d9 is null?null:Y199(c,d9),200=>Y200(c),_=>null
   };
   return v is null?Missing(n,"Required divisional or qualification evidence is unavailable."):Row(n,v.Value);
@@ -73,7 +78,85 @@ public static class RamanYogaBatchEightEvaluator
  private static bool Y198(ChartAnalysisInput c){var moon=Find(c,PlanetName.Moon);if(moon is null)return false;var prev=((moon.HouseNumber+10)%12)+1;var next=(moon.HouseNumber%12)+1;return M.Any(p=>Same(c,PlanetName.Moon,p)||Influenced(c,PlanetName.Moon,p))||M.Any(p=>Find(c,p)?.HouseNumber==prev)&&M.Any(p=>Find(c,p)?.HouseNumber==next);}
  private static bool Y199(ChartAnalysisInput c,ChartAnalysisInput d9){var p4=Find(d9,Lord(c,4));if(p4 is null)return false;var a=Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(p4.Sign)));var pa=Find(d9,a);if(pa is null)return false;var b=Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(pa.Sign)));return Find(c,b)?.HouseNumber is 6 or 8 or 12;}
  private static bool Y200(ChartAnalysisInput c)=>new[]{PlanetName.Moon,PlanetName.Venus}.Any(p=>Kendra(c,p)&&M.Any(m=>Influenced(c,p,m)))&&M.Any(p=>Find(c,p)?.HouseNumber==4);
- private static string Gap(int n)=>n switch{155=>"Paramochha, Parvatamsa and Simhasanamsa grades are not implemented.",156 or 167 or 170 or 171=>"Vaiseshikamsa/amsa-grade output is not implemented.",175 or 176 or 182 or 185=>"Source-defined benefic/cruel Navamsa or Shashtiamsa classification is required.",177 or 196 or 197=>"An authoritative source-strength threshold is required.",178 or 179=>"The OCR clause requires visual source adjudication before activation.",183=>"Nested Navamsa and own-varga qualification requires a dedicated verified evaluator.",_=>"Required qualification is unavailable."};
+ private static bool? Y175(ChartAnalysisInput? d9,ChartAnalysisInput c){if(d9 is null)return null;var l2=Lord(c,2);var nl=NavamsaLord(d9,l2);if(nl is null)return null;return M.Contains(l2)&&M.Contains(nl.Value)&&!B.Any(p=>Find(c,p)?.HouseNumber==2)&&!B.Any(p=>InfluencesSign(c,p,HouseSign(c,2)));}
+ private static bool? Y176(ChartAnalysisInput? d9,ChartAnalysisInput c){if(d9 is null)return null;var l2=Lord(c,2);var nl=NavamsaLord(d9,l2);if(nl is null)return null;return M.Any(p=>Find(c,p)?.HouseNumber==2)&&M.Any(p=>InfluencesSign(c,p,HouseSign(c,2)))&&M.Contains(nl.Value)&&M.Any(p=>p!=l2&&Influenced(c,l2,p));}
+ private static bool Y177(ChartAnalysisInput c){var l3=Lord(c,3);var strong=Strong(c,l3)||Strong(c,PlanetName.Mars);var blessed=B.Any(p=>p!=l3&&Influenced(c,l3,p))||B.Any(p=>p!=PlanetName.Mars&&Influenced(c,PlanetName.Mars,p))||B.Any(p=>InfluencesSign(c,p,HouseSign(c,3)));return strong&&blessed;}
+ private static bool? Y182(ChartAnalysisInput? d9,ChartAnalysisInput c){if(d9 is null)return null;var l3=Lord(c,3);var nl=NavamsaLord(d9,l3);if(nl is null)return null;var mars=Find(c,PlanetName.Mars);if(mars is null)return false;var marsSignLord=Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(mars.Sign)));return B.Contains(nl.Value)&&B.Any(p=>p!=l3&&Influenced(c,l3,p))&&B.Contains(marsSignLord);}
+ private static bool Y196(ChartAnalysisInput c)=>B.Any(p=>Find(c,p)?.HouseNumber==4)&&Dignity(c,Lord(c,4))=="EXALTED"&&Strong(c,PlanetName.Moon);
+ private static bool? Y197(ChartAnalysisInput? d9,ChartAnalysisInput c){if(d9 is null)return null;var nl=NavamsaLord(d9,Lord(c,4));if(nl is null)return null;var pos=Find(c,nl.Value);var moon=Find(c,PlanetName.Moon);if(pos is null||moon is null)return false;var kendraLagna=pos.HouseNumber is 1 or 4 or 7 or 10;var kendraMoon=((pos.HouseNumber-moon.HouseNumber+12)%12+1) is 1 or 4 or 7 or 10;return Strong(c,nl.Value)&&kendraLagna&&kendraMoon;}
+ private static PlanetName? NavamsaLord(ChartAnalysisInput d9,PlanetName p){var x=Find(d9,p);return x is null?null:Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(x.Sign)));}
+ private static bool Strong(ChartAnalysisInput c,PlanetName p)=>Dignity(c,p) is "OWN" or "MOOLATRIKONA" or "EXALTED";
+
+ // Combination 155 (Parihasaka Yoga, 1st form): the lord of speech (2nd lord) occupies a kendra
+ // at his exact ("parama") exaltation point and has attained Parvatamsa (6 of 16 Shodasa Varga
+ // own-sign charts), while Jupiter or Venus has attained Simhasanamsa (5 of 16). Raman: "the
+ // lord of speech should occupy a kendra, attain paramochha and gain Parvatamsa, while Jupiter
+ // or Venus should be in Simhasanamsa."
+ private static bool Y155(ChartAnalysisInput c,IReadOnlyList<ChartAnalysisInput> charts)
+ {
+  var l2=Lord(c,2);
+  if(!Kendra(c,l2)||!DeeplyExalted(c,l2))return false;
+  if(!VaiseshikamsaCalculator.HasAttained(charts,l2,6))return false;
+  return VaiseshikamsaCalculator.HasAttained(charts,PlanetName.Jupiter,5)||VaiseshikamsaCalculator.HasAttained(charts,PlanetName.Venus,5);
+ }
+
+ // Combination 156 (Parihasaka Yoga, 2nd form): the dispositor of the Navamsa occupied by the
+ // Sun must have attained Vaiseshikamsa (13 of 16) and be posited in the 2nd house. Raman: "the
+ // lord of the Navamsa occupied by the Sun should attain Vaiseshikamsa and join the 2nd house."
+ private static bool? Y156(ChartAnalysisInput? d9,ChartAnalysisInput c,IReadOnlyList<ChartAnalysisInput> charts)
+ {
+  if(d9 is null)return null;
+  var nl=NavamsaLord(d9,PlanetName.Sun);if(nl is null)return null;
+  if(Find(c,nl.Value)?.HouseNumber!=2)return false;
+  return VaiseshikamsaCalculator.HasVaiseshikamsa(charts,nl.Value);
+ }
+
+ // Combination 167 (Sumukha Yoga, 2nd form): the 2nd lord occupies a kendra that is his own,
+ // exaltation or (natural/temporal) friendly sign, and the lord of that kendra sign has attained
+ // Gopuramsa (4 of 16). Raman: "the lord of the 2nd should be posited in a kendra which should
+ // be his exaltation, own or friendly sign and the lord of the kendra should attain Gopuramsa."
+ private static bool Y167(ChartAnalysisInput c,IReadOnlyList<ChartAnalysisInput> charts)
+ {
+  var l2=Lord(c,2);var pos=Find(c,l2);
+  if(pos is null||pos.HouseNumber is not(1 or 4 or 7 or 10)||!Favoured(c,l2))return false;
+  var kendraLord=Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(pos.Sign)));
+  return VaiseshikamsaCalculator.HasAttained(charts,kendraLord,4);
+ }
+
+ // Combination 170 (Bhojana Soukhya Yoga): the powerful 2nd lord has attained Vaiseshikamsa (13
+ // of 16) and has the aspect of Jupiter or Venus. Raman: "the powerful lord of the 2nd should
+ // occupy Vaiseshikamsa and have the aspect of Jupiter or Venus."
+ private static bool Y170(ChartAnalysisInput c,IReadOnlyList<ChartAnalysisInput> charts)
+ {
+  var l2=Lord(c,2);
+  if(!Strong(c,l2)||!VaiseshikamsaCalculator.HasVaiseshikamsa(charts,l2))return false;
+  return Influenced(c,l2,PlanetName.Jupiter)||Influenced(c,l2,PlanetName.Venus);
+ }
+
+ // Combination 171 (Annadana Yoga): the 2nd lord has attained Vaiseshikamsa (13 of 16) and is
+ // conjoined with or aspected by both Jupiter and Mercury. Raman: "the lord of the 2nd should
+ // join Vaiseshikamsa and be in conjunction with or aspected by Jupiter and Mercury."
+ private static bool Y171(ChartAnalysisInput c,IReadOnlyList<ChartAnalysisInput> charts)
+ {
+  var l2=Lord(c,2);
+  if(!VaiseshikamsaCalculator.HasVaiseshikamsa(charts,l2))return false;
+  return Influenced(c,l2,PlanetName.Jupiter)&&Influenced(c,l2,PlanetName.Mercury);
+ }
+
+ private static bool DeeplyExalted(ChartAnalysisInput c,PlanetName p)
+ {
+  var(sign,degree)=AstroMath.DeepExaltationPoints[p];var exact=(int)sign*30+degree;
+  var x=Find(c,p);return x?.NirayanaLongitudeDegrees is double lon&&Math.Abs(lon-exact)<.000001;
+ }
+ private static bool Favoured(ChartAnalysisInput c,PlanetName p){var d=FullDignity(c,p);return d.DignityTypeCode is "OWN" or "MOOLATRIKONA" or "EXALTED"||d.RelationshipScore>0;}
+ private static PvrDignityResult FullDignity(ChartAnalysisInput c,PlanetName p)
+ {
+  var x=Find(c,p);if(x is null)return new("MISSING",0,"",null,null,0);
+  var lon=x.VargaLongitudeDegrees??x.NirayanaLongitudeDegrees??15;
+  var signs=c.Planets.Where(v=>Enum.TryParse<PlanetName>(v.Planet,out _)).ToDictionary(v=>v.Planet,v=>Enum.Parse<ZodiacName>(v.Sign),StringComparer.OrdinalIgnoreCase);
+  return PvrDignityEvaluator.Evaluate(p,Enum.Parse<ZodiacName>(x.Sign),((lon%30)+30)%30,signs);
+ }
+ private static string Gap(int n)=>n switch{183=>"Requires a majority-of-own-Shadvarga (varga-grade) check on a three-hop navamsa dispositor chain; not yet implemented.",185=>"Requires a sourced benefic/cruel nature table for the 60 Shashtiamsa (D60) divisions; not yet implemented.",178 or 179=>"The OCR clause requires visual source adjudication before activation.",_=>"Required qualification is unavailable."};
  private static bool Same(ChartAnalysisInput c,PlanetName a,PlanetName b)=>a!=b&&Find(c,a)?.Sign is{}s&&Find(c,b)?.Sign==s;
  private static bool Same(ChartAnalysisInput c,PlanetName a,string b)=>Find(c,a)?.Sign is{}s&&Find(c,b)?.Sign==s;
  private static bool Same3(ChartAnalysisInput c,PlanetName a,PlanetName b,PlanetName d)=>Same(c,a,b)&&Same(c,a,d);
