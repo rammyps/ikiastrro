@@ -19,6 +19,11 @@ public static class VaiseshikamsaCalculator
     private static readonly string[] ShodasaVarga =
         ["D1", "D2", "D3", "D4", "D7", "D9", "D10", "D12", "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"];
 
+    /// <summary>The 6 Shadvarga chart types — confirmed from ShadbalaCalculator.cs's
+    /// registered Saptavarga-7 list ({"D1","D2","D3","D7","D9","D12","D30"}) minus D7, the
+    /// one chart Saptavarga adds on top of Shadvarga.</summary>
+    public static readonly string[] Shadvarga = ["D1", "D2", "D3", "D9", "D12", "D30"];
+
     private static readonly (int Count, string Name)[] Grades =
     {
         (2, "Parijatamsa"), (3, "Uttamamsa"), (4, "Gopuramsa"), (5, "Simhasanamsa"),
@@ -30,6 +35,11 @@ public static class VaiseshikamsaCalculator
     /// a sign it owns in.</summary>
     public static int SwavargaCount(IReadOnlyList<ChartAnalysisInput> charts, PlanetName planet) =>
         ShodasaVarga.Count(t => OwnsSign(charts, t, planet));
+
+    /// <summary>How many of an arbitrary set of charts (e.g. <see cref="Shadvarga"/>)
+    /// <paramref name="planet"/> occupies a sign it owns in.</summary>
+    public static int SwavargaCount(IReadOnlyList<ChartAnalysisInput> charts, PlanetName planet, IReadOnlyList<string> chartTypes) =>
+        chartTypes.Count(t => OwnsSign(charts, t, planet));
 
     /// <summary>Raman's named grade for a given Swavarga count, or null below the first
     /// named grade (fewer than 2 own-sign charts).</summary>

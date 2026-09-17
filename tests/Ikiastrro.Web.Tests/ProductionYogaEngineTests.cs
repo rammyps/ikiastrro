@@ -18,13 +18,20 @@ public sealed class ProductionYogaEngineTests
     }
 
     [Fact]
-    public void FinalHundredRemainExplicitlyUnevaluated()
+    public void FinalHundredMinusRajaClusterRemainExplicitlyUnevaluated()
     {
+        // 245-263 (the Raja Yoga cluster) was transcribed 2026-09-17 — RamanRajaYogaEvaluator.
+        // The other 81 of the 201-300 catalog are still pure NOT_EVALUATED ledger rows.
         var rows = new ProductionYogaEngine().DetectDetailed(Bundle())
             .Where(x => x.Result.SourceVariantCode.StartsWith("RAMAN_300_")
                 && Entry(x.Result.SourceVariantCode) >= 201).ToList();
         Assert.Equal(100, rows.Count);
-        Assert.All(rows, x => { Assert.Equal("NOT_EVALUATED", x.Result.EvaluationStatus);
+        var raja = rows.Where(x => Entry(x.Result.SourceVariantCode) is >= 245 and <= 263).ToList();
+        Assert.Equal(19, raja.Count);
+        Assert.All(raja, x => Assert.Equal("EVALUATED", x.Result.EvaluationStatus));
+        var stillCatalogued = rows.Except(raja).ToList();
+        Assert.Equal(81, stillCatalogued.Count);
+        Assert.All(stillCatalogued, x => { Assert.Equal("NOT_EVALUATED", x.Result.EvaluationStatus);
             Assert.Contains("PREDICATE_NOT_IMPLEMENTED", x.MissingRequirementCodes); });
     }
 

@@ -25,7 +25,8 @@ public static class RamanFinalHundredCatalog
         new(238,238,"YOGA_BAHU_STREE",240),new(239,239,"YOGA_SATKALATRA",242),
         new(240,240,"YOGA_BHAGA_CHUMBANA",244),new(241,241,"YOGA_BHAGYA",244),
         new(242,242,"YOGA_JANANAT_PURVAM_PITRU_MARANA",245),new(243,243,"YOGA_DHATRUTWA",246),
-        new(244,244,"YOGA_APAKEERTI",248),new(245,263,"YOGA_RAJA",249),
+        new(244,244,"YOGA_APAKEERTI",248),
+        // 245–263 (Raja Yogas) transcribed 2026-09-17 — see RamanRajaYogaEvaluator.cs.
         new(264,264,"YOGA_GALAKARNA",272),new(265,265,"YOGA_VRANA",272),
         new(266,266,"YOGA_SISNAVYADHI",275),new(267,267,"YOGA_KALATRASHANDA",277),
         new(268,269,"YOGA_KUSHTAROGA",277),new(270,270,"YOGA_KSHAYAROGA",279),

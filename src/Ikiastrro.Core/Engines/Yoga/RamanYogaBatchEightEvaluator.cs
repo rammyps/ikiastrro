@@ -10,7 +10,7 @@ public static class RamanYogaBatchEightEvaluator
 {
  private static readonly PlanetName[] B=[PlanetName.Moon,PlanetName.Mercury,PlanetName.Jupiter,PlanetName.Venus];
  private static readonly PlanetName[] M=[PlanetName.Sun,PlanetName.Mars,PlanetName.Saturn];
- private static readonly HashSet<int> Unsupported=[178,179,183,185];
+ private static readonly HashSet<int> Unsupported=[178,179];
  private static readonly Dictionary<int,string> Codes=new()
  {
   [151]="YOGA_DARIDRA",[152]="YOGA_DARIDRA",[153]="YOGA_DARIDRA",[154]="YOGA_YUKTHI_SAMANWITHAVAGMI",[155]="YOGA_YUKTHI_SAMANWITHAVAGMI",
@@ -52,8 +52,9 @@ public static class RamanYogaBatchEightEvaluator
    175=>Y175(d9,c),176=>Y176(d9,c),177=>Y177(c),
    170=>Y170(c,charts),171=>Y171(c,charts),
    180=>Y180(c),181=>Same(c,Lord(c,12),PlanetName.Mars)&&Find(c,PlanetName.Moon)?.HouseNumber==3&&Same(c,PlanetName.Moon,PlanetName.Jupiter)&&!Influenced(c,PlanetName.Moon,PlanetName.Venus),
-   182=>Y182(d9,c),
+   182=>Y182(d9,c),183=>Y183(d9,charts,c),
    184=>d9 is null?null:Dignity(c,Lord(c,3))=="EXALTED"&&M.Any(p=>Same(c,Lord(c,3),p))&&(Movable(Find(c,Lord(c,3))?.Sign)||Movable(Find(d9,Lord(c,3))?.Sign)),
+   185=>Y185(c,d9),
    186=>d9 is null?null:B.Contains(Enum.Parse<PlanetName>(HouseEngine.GetSignLord(HouseEngine.GetHouseSign(c.AscendantSign,3))))&&B.Any(p=>InfluencesSign(c,p,HouseSign(c,3)))&&B.Contains(Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(Find(d9,Lord(c,3))?.Sign??"Aries")))),
    187=>new[]{1,4,5,7,9,10}.Contains(Find(c,Lord(c,4))?.HouseNumber??0)&&B.Any(p=>Same(c,Lord(c,4),p)),
    188=>Same3(c,Lord(c,4),Lord(c,10),PlanetName.Saturn)&&Same(c,Lord(c,4),PlanetName.Mars),
@@ -143,6 +144,38 @@ public static class RamanYogaBatchEightEvaluator
   return Influenced(c,l2,PlanetName.Jupiter)&&Influenced(c,l2,PlanetName.Mercury);
  }
 
+ // Combination 183 (Yuddha Praveena Yoga): a three-hop navamsa-dispositor chain off the 3rd
+ // lord — the lord of the navamsa occupied by [the lord of the navamsa occupied by the 3rd
+ // lord] — must hold a majority (4 of 6) of its own Shadvarga. Raman: "if the lord of the
+ // navamsa joined by the planet who owns the navamsa in which the 3rd lord is placed, joins
+ // his own vargas"; remarks: "the lord of this... has obtained the majority of his own
+ // shadvargas."
+ private static bool? Y183(ChartAnalysisInput? d9,IReadOnlyList<ChartAnalysisInput> charts,ChartAnalysisInput c)
+ {
+  if(d9 is null)return null;
+  var nl1=NavamsaLord(d9,Lord(c,3));if(nl1 is null)return null;
+  var nl2=NavamsaLord(d9,nl1.Value);if(nl2 is null)return null;
+  return VaiseshikamsaCalculator.SwavargaCount(charts,nl2.Value,VaiseshikamsaCalculator.Shadvarga)>=4;
+ }
+
+ // Combination 185 (Yuddhatpaschaddrudha Yoga): the 3rd lord occupies a fixed Rasi, a fixed
+ // Navamsa and a malefic ("cruel") Shashtiamsa, and the lord of the Rasi he occupies is
+ // debilitated. Raman: "the lord of the 3rd should occupy a fixed Rasi, a fixed Navamsa and a
+ // cruel Shashtiamsa and the lord of the Rasi so occupied should be in debility."
+ private static bool? Y185(ChartAnalysisInput c,ChartAnalysisInput? d9)
+ {
+  var l3=Lord(c,3);var pos=Find(c,l3);
+  if(pos is null||!Fixed(pos.Sign))return false;
+  if(d9 is null)return null;
+  if(Find(d9,l3) is not{}navPos||!Fixed(navPos.Sign))return false;
+  if(pos.NirayanaLongitudeDegrees is not double lon)return null;
+  var deity=ShashtiamsaDeityTable.Lookup(Enum.Parse<ZodiacName>(pos.Sign),((lon%30)+30)%30);
+  if(!deity.IsMalefic)return false;
+  var rasiLord=Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(pos.Sign)));
+  return Dignity(c,rasiLord)=="DEBILITATED";
+ }
+ private static bool Fixed(string? s)=>s is not null&&Enum.Parse<ZodiacName>(s) is ZodiacName.Taurus or ZodiacName.Leo or ZodiacName.Scorpio or ZodiacName.Aquarius;
+
  private static bool DeeplyExalted(ChartAnalysisInput c,PlanetName p)
  {
   var(sign,degree)=AstroMath.DeepExaltationPoints[p];var exact=(int)sign*30+degree;
@@ -156,7 +189,7 @@ public static class RamanYogaBatchEightEvaluator
   var signs=c.Planets.Where(v=>Enum.TryParse<PlanetName>(v.Planet,out _)).ToDictionary(v=>v.Planet,v=>Enum.Parse<ZodiacName>(v.Sign),StringComparer.OrdinalIgnoreCase);
   return PvrDignityEvaluator.Evaluate(p,Enum.Parse<ZodiacName>(x.Sign),((lon%30)+30)%30,signs);
  }
- private static string Gap(int n)=>n switch{183=>"Requires a majority-of-own-Shadvarga (varga-grade) check on a three-hop navamsa dispositor chain; not yet implemented.",185=>"Requires a sourced benefic/cruel nature table for the 60 Shashtiamsa (D60) divisions; not yet implemented.",178 or 179=>"The OCR clause requires visual source adjudication before activation.",_=>"Required qualification is unavailable."};
+ private static string Gap(int n)=>n switch{178 or 179=>"The OCR clause requires visual source adjudication before activation.",_=>"Required qualification is unavailable."};
  private static bool Same(ChartAnalysisInput c,PlanetName a,PlanetName b)=>a!=b&&Find(c,a)?.Sign is{}s&&Find(c,b)?.Sign==s;
  private static bool Same(ChartAnalysisInput c,PlanetName a,string b)=>Find(c,a)?.Sign is{}s&&Find(c,b)?.Sign==s;
  private static bool Same3(ChartAnalysisInput c,PlanetName a,PlanetName b,PlanetName d)=>Same(c,a,b)&&Same(c,a,d);
