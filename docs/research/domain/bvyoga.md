@@ -25,9 +25,16 @@ chapter-11 additions and the still-untranscribed PVR §11.7.3/11.8/11.9/11.10 un
 | 118–143 (Dhana) | 26 | 26/26 | `RamanDhanaYogaEvaluator.cs` | closed 2026-09-17 (Vaiseshikamsa work) |
 | 144–150 (Daridra) | 7 | 7/7 | `RamanDaridraYogaEvaluator.cs` | closed |
 | 151–200 (Batch Eight) | 50 | 48/50 | `RamanYogaBatchEightEvaluator.cs` | 2 open, see §3 |
-| 201–244, 264–300 (Final Hundred, remaining) | 81 | 0/81 | `RamanFinalHundredCatalog.cs` | pure catalog, no predicates — see §4 |
-| 245–263 (Raja Yoga cluster) | 19 | 19/19 | `RamanRajaYogaEvaluator.cs` | closed 2026-09-17 — see §4 |
-| **Total** | **300** | **217/300 (~72%)** | | |
+| 201–219 (siblings/curses/vehicles cluster) | 19 | 19/19 | `RamanFamilyYogaEvaluator.cs` | closed 2026-09-17 — see §4c |
+| 220–244 (progeny/intelligence/fortune cluster) | 25 | 25/25 | `RamanProgenyYogaEvaluator.cs` | closed 2026-09-17 — see §4b |
+| 245–263 (Raja Yoga cluster) | 19 | 19/19 | `RamanRajaYogaEvaluator.cs` | closed 2026-09-17 — see §4a |
+| 264–300 (affliction/disease/death cluster) | 37 | 37/37 | `RamanAfflictionYogaEvaluator.cs` | closed 2026-09-17 — see §4d |
+| **Total** | **300** | **298/300 (~99%)** | | |
+
+**The 201–300 catalog is fully transcribed as of 2026-09-17** — `RamanFinalHundredCatalog.cs`
+is now an empty stub. The only 2 combos in this entire 300-item corpus without any predicate
+are 178 and 179 (§3, genuinely OCR-ambiguous); combo 111 (§1) has one of its two alternatives
+implemented and one source-blocked.
 
 Two very different reasons a combo can show `NOT_EVALUATED` for a given chart, and this
 doc tracks only the first:
@@ -104,32 +111,28 @@ calculator existed to extend:
 | 178 | OCR clause contradicts itself: the Definition's "(3rd, 5th or 7th)" parenthetical doesn't match the Remarks paragraph's "3rd, 4th and 7th" | genuinely blocked — needs visual adjudication of the original scan page (188–189), not OCR-fixable |
 | 179 | Grammar doesn't cleanly map "Mercury, the lord of the 3rd and Mars" (3 subjects) onto "the 3rd house, the Moon and Saturn" (3 objects) — ambiguous which subject pairs with which object | genuinely blocked — same, scan page 184 |
 
-## §4. Combos 201–300 — consolidated plan
+## §4. Combos 201–300 — build record (complete)
 
-### Current state
+### Final state
 
 `RamanFinalHundredCatalog.cs` was a pure catalog of 61 `(Start, End, YogaCode, ScanPage)`
-groups with zero predicates; **Cluster C (245–263, Raja Yoga) has been transcribed out of
-it** into `RamanRajaYogaEvaluator.cs` (§4a below), leaving 81 combos across 60 groups still
-in the catalog, each with the identical generic note — *"Source entry catalogued; predicate,
-qualifications and chart requirements await visual verification."* Scan-page numbers are
-recorded per remaining group, so each one can be located in the OCR draft without
-re-deriving page numbers from scratch.
+groups with zero predicates. **All four clusters have now been transcribed out of it**, into
+`RamanFamilyYogaEvaluator.cs` (§4c), `RamanProgenyYogaEvaluator.cs` (§4b),
+`RamanRajaYogaEvaluator.cs` (§4a) and `RamanAfflictionYogaEvaluator.cs` (§4d). The catalog
+class itself is kept as an empty stub (`Groups = []`) rather than deleted, so
+`ProductionYogaEngine.cs`'s call site and this doc's history stay intact.
 
 ### Thematic clusters
 
-The original 61 groups fell into four contiguous, thematically coherent blocks:
+The original 61 groups fell into four contiguous, thematically coherent blocks, all closed
+the same session:
 
 | Cluster | Range | Combos | Groups | Theme | Scan pages | Status |
 |---|---|---|---|---|---|---|
-| A | 201–219 | 19 | 13 | Siblings, deceit/curses on parents & children, vehicles, childlessness | 204–222 | open |
-| B | 220–244 | 25 | 19 | Progeny count/quality, intelligence, spouses, fortune, father's early death | 222–248 | open |
+| A | 201–219 | 19 | 12 | Siblings, deceit/curses on parents & children, vehicles, childlessness | 204–220 | **done** 2026-09-17 |
+| B | 220–244 | 25 | 21 | Progeny count/quality, intelligence, spouses, fortune, father's early death | 222–248 | **done** 2026-09-17 |
 | C | 245–263 | 19 | 1 (`YOGA_RAJA`) | Raja Yoga (royal/power) | 249–270 | **done** 2026-09-17 |
-| D | 264–300 | 37 | 26 | Affliction, disease, deformity, manner of death, loss of status | 272–316 | open |
-
-Full group-by-group scan-page breakdown for the three still-open clusters is in the code
-comments of `RamanFinalHundredCatalog.cs`'s `Groups` table — use that directly rather than
-duplicating it here (it would drift out of sync otherwise).
+| D | 264–300 | 37 | 26 | Affliction, disease, deformity, manner of death, loss of status | 272–316 | **done** 2026-09-17 |
 
 ### §4a. Cluster C (245–263, Raja Yoga) — closed 2026-09-17
 
@@ -153,7 +156,84 @@ exposes the project's existing (previously private) Parashari natural-friendship
 needed for combo 263's "aspected by or associated with **friendly** planets" (a technical
 term distinct from "benefic").
 
-### Requirements (apply to every cluster)
+### §4b. Cluster B (220–244, progeny/intelligence/fortune) — closed 2026-09-17
+
+All 25 transcribed into `RamanProgenyYogaEvaluator.cs`, keeping each combo's own named
+`YogaCode` from the catalog (`YOGA_BAHUPUTRA`, `YOGA_DATTAPUTRA`, `YOGA_APUTRA`, …) rather
+than one umbrella code, since — unlike the Raja cluster — this block is 21 distinct named
+yogas, not one grouped formation. One combo needed a source judgement call:
+
+- **231 (Buddhimaturya Yoga)** — the literal Definition ("the 5th lord, being a benefic...")
+  only works for 7 of 12 Lagnas, which Raman himself calls out as "preposterous" in his own
+  Remarks, since it would imply people born in the other 5 Lagnas can never be intelligent.
+  Implemented his own stated practical alternative instead: "the 5th house... is occupied by
+  benefics and 5th lord is in association with Jupiter, Mercury and Venus" — irrespective of
+  the 5th lord's natural classification.
+
+Combo 234 (Thrikalagnana Yoga) doubled as an unplanned cross-check on `ShashtiamsaDeityTable`:
+Raman spells out Mrudwamsa's shashtiamsha part number explicitly ("the 19th part... in an odd
+sign or the 42nd... in an even sign"), and 19 ↔ 42 is exactly what the table's odd/even
+reversal rule (`61 - number`) produces for the "Mridu" entry — confirming that rule against
+an independent source statement, not just the D60 reading guide.
+
+### §4c. Cluster A (201–219, siblings/curses/vehicles) — closed 2026-09-17
+
+All 19 transcribed into `RamanFamilyYogaEvaluator.cs`, again keeping each combo's own named
+`YogaCode` (`YOGA_SAHODAREE_SANGAMA`, `YOGA_KAPATA`, `YOGA_SARPASAPA`, …). Two notes:
+
+- **204** cites "Mandi" in Raman's text, which is this engine's **"Maandi"** upagraha — a
+  distinct point from Gulika (`UpagrahaCalculator.cs` computes both; JHora/PVR naming calls
+  the start-of-arc point Gulika and the midpoint Maandi). Worth double-checking on any future
+  combo that says "Mandi" — it is not a synonym for Gulika in this codebase.
+- **216 (Pitrusapa Sutakshaya Yoga)** is the single most complex predicate transcribed so far
+  in this corpus: Raman gives **six** alternative dispositions (three in the main Definition,
+  three more introduced as "the following dispositions... also constitute Yoga No. 216").
+  All six are unambiguous once separated out — implemented as an OR of all six, no source
+  gaps. Raman's Remarks include a page of manual degree-arc arithmetic for locating one
+  sub-condition's Navamsa boundary by hand; that arithmetic is irrelevant to the engine,
+  which already carries the computed D9 chart and can just read the navamsa sign directly.
+
+Cluster A used two more already-existing-but-newly-surfaced primitives: `TemporalFriendDistance`
+(Tatkalika/temporary friendship — sign-distance 2/3/4/10/11/12 between two planets' current
+placements, distinct from natural friendship) and a `CruelShashtiamsa` / `HemmedByMalefics`
+(Papakartari) pair, both small local helpers rather than new shared infrastructure, since nothing
+else has needed them yet.
+
+### §4d. Cluster D (264–300, affliction/disease/death/status-loss) — closed 2026-09-17
+
+All 37 transcribed into `RamanAfflictionYogaEvaluator.cs`, the largest and most sensitive
+cluster, again keeping each combo's own named `YogaCode`. Per the project's sensitive-content
+policy every predicate's code comment quotes Raman's own Definition wording rather than
+editorializing. Notable points:
+
+- **297 (Rajabhrashta Yoga)** needs the lords of "Aroodha Lagna" and "Aroodha Dwadasa" — these
+  turned out to already exist as the `"AL"` and `"A12"` special points (gap-and-coverage.md's
+  delivered "AL + 12 Arudhas"), so the predicate just reads their signs and finds the lords —
+  no Arudha math needed in this file at all.
+- **273 (Sirachcheda Yoga)** repeats the same kind of self-resolved ambiguity seen in Cluster
+  C's combo 250: Raman quotes a debated Sanskrit line about whether "cruel shashtiamsa"
+  applies to Rahu or to the planet conjoining Rahu, then settles it himself in the very next
+  sentence ("the Sun or Saturn being in conjunction with Rahu should occupy a cruel
+  shashtiamsa") — implemented exactly as he resolves it.
+- **275 (Yuddhe Marana Yoga)** needed a new per-call chart lookup (D3, the Drekkana chart) for
+  its stated alternate reading ("the lord of the drekkana occupied by Saturn..."); fetched
+  directly from `bundle.Charts` inside the predicate rather than threading a new parameter
+  through the evaluator's signature.
+- **281 (Putrakalatraheena Yoga)** and **293 (Matibhramana, 3rd form)** both needed "waning
+  Moon" — computed locally from Sun/Moon longitude elongation (`IsWaning`) rather than reusing
+  any Moon-phase data from the pipeline, since this evaluator only receives the D1/D9 charts,
+  not the full `ChartBundle`'s phase helpers.
+- **264 (Galakarna Yoga)** cites a shashtiamsha division by name ("Preta Puriha") that isn't in
+  the registered 60-name table — Raman's own Remarks give a generalized practical reading
+  ("Rahu's disposition in the 3rd in a cruel shashtiamsa") used instead of guessing a name
+  match.
+
+With this, the entire Raman 201–300 catalog — all 100 numbers — has a real coded predicate.
+Combined with §1–§3, **298 of the 300 combinations in this whole corpus now have a real
+predicate**; only 178 and 179 (§3) remain with none at all, both genuinely OCR-ambiguous
+rather than unattempted.
+
+### Methodology notes (for reference — this cluster work is now complete)
 
 1. **OCR retrieval per group.** Pull the exact Raman definition text for each group from
    `300-important-combinations_p1-352_draft.md` using the scan-page locator already
@@ -194,28 +274,29 @@ term distinct from "benefic").
    `SourceVariantCode = RAMAN_300_NNN`, `SourceLocator = "combination NNN; printed p.X; scan
    p.Y"` — matching the convention already used throughout this corpus.
 
-### Recommended phasing
+### Phasing (as executed)
 
 1. ~~Cluster C (245–263, Raja Yoga, 19 items, single group)~~ — **done** 2026-09-17, see §4a.
-2. **Cluster B (220–244, progeny/intelligence/fortune, 25 items)** — largest remaining item
-   count; expect mostly simple lord-placement/aspect predicates in the Dhana/Daridra
-   pattern. Next target.
-3. **Cluster A (201–219, family/relationship, 19 items)** — moderate size; some groups
-   (curses, deceit) may need careful neutral framing per requirement 3 above.
-4. **Cluster D (264–300, affliction/disease/death-manner/status-loss, 37 items)** — largest
-   and most sensitive remaining cluster; save for last so the neutral-framing discipline is
-   applied with the most established precedent behind it.
+2. ~~Cluster B (220–244, progeny/intelligence/fortune, 25 items)~~ — **done** 2026-09-17, see
+   §4b.
+3. ~~Cluster A (201–219, family/relationship, 19 items)~~ — **done** 2026-09-17, see §4c.
+4. ~~Cluster D (264–300, affliction/disease/death-manner/status-loss, 37 items)~~ — **done**
+   2026-09-17, see §4d.
 
-This ordering is a recommendation, not a commitment — re-prioritize once OCR review of a
-cluster reveals its actual complexity or blockers.
+All four clusters closed in one session, in the order originally recommended.
 
-## §5. Cross-bucket requirements summary
+## §5. Cross-bucket requirements summary — what's left in this corpus
+
+Everything below is now genuinely blocked on outside source work, not on more engineering —
+there is no more untranscribed material in Raman's 300 combinations.
 
 | Need | Blocks | State |
 |---|---|---|
-| Shadvarga-6 `VaiseshikamsaCalculator` overload | combo 183 | **done** 2026-09-17 |
-| D60 shashtiamsha nature lookup (`ShashtiamsaDeityTable.cs`) | combo 185 | **done** 2026-09-17 |
 | OCR of `SRC_RAMAN_GRAHA_BHAVA_BALAS` (DJVU) or an alternate source for a weak-ascendant-lord Shadbala threshold | combo 111 (2nd alternative) | source-blocked, no text extract exists |
 | Visual scan adjudication (not OCR-fixable) | combos 178, 179 | genuinely blocked |
-| Full OCR pass + dependency triage across the remaining 60 groups | clusters A, B, D (81 combos) | cluster C (19 combos) **done** 2026-09-17; A/B/D not started |
 | Register `300-important-combinations_p1-352_draft.md` as a citation source for `SRC_RAMAN_300_COMBINATIONS` in `docs/research/sources.md` | documentation hygiene, not a code blocker | only the DJVU is listed there today |
+
+Everything else this doc originally listed as a requirement (Shadvarga-6, D60 shashtiamsha
+nature, natural-friendship exposure, Digbala table, combustion, reverse-exaltation lookup,
+waning-Moon check, D3 lookup, Arudha points) is now built and used somewhere in this corpus —
+see §2–§4d for where each one landed.

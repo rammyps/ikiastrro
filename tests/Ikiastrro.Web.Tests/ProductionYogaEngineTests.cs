@@ -18,21 +18,17 @@ public sealed class ProductionYogaEngineTests
     }
 
     [Fact]
-    public void FinalHundredMinusRajaClusterRemainExplicitlyUnevaluated()
+    public void FinalHundredIsFullyTranscribed()
     {
-        // 245-263 (the Raja Yoga cluster) was transcribed 2026-09-17 — RamanRajaYogaEvaluator.
-        // The other 81 of the 201-300 catalog are still pure NOT_EVALUATED ledger rows.
+        // 201-219, 220-244, 245-263 and 264-300 were all transcribed 2026-09-17 —
+        // RamanFamilyYogaEvaluator / RamanProgenyYogaEvaluator / RamanRajaYogaEvaluator /
+        // RamanAfflictionYogaEvaluator. RamanFinalHundredCatalog.cs is now an empty stub;
+        // every one of the 100 numbers in 201-300 has a real predicate.
         var rows = new ProductionYogaEngine().DetectDetailed(Bundle())
             .Where(x => x.Result.SourceVariantCode.StartsWith("RAMAN_300_")
                 && Entry(x.Result.SourceVariantCode) >= 201).ToList();
         Assert.Equal(100, rows.Count);
-        var raja = rows.Where(x => Entry(x.Result.SourceVariantCode) is >= 245 and <= 263).ToList();
-        Assert.Equal(19, raja.Count);
-        Assert.All(raja, x => Assert.Equal("EVALUATED", x.Result.EvaluationStatus));
-        var stillCatalogued = rows.Except(raja).ToList();
-        Assert.Equal(81, stillCatalogued.Count);
-        Assert.All(stillCatalogued, x => { Assert.Equal("NOT_EVALUATED", x.Result.EvaluationStatus);
-            Assert.Contains("PREDICATE_NOT_IMPLEMENTED", x.MissingRequirementCodes); });
+        Assert.All(rows, x => Assert.Equal("EVALUATED", x.Result.EvaluationStatus));
     }
 
     private static ChartBundle Bundle()
