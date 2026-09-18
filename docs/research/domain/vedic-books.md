@@ -49,6 +49,12 @@ The local folder includes *How to Study Divisional Charts*. A publisher copy des
 
 Source: [How to Study Divisional Charts](https://storage.yandexcloud.net/j108/library/su8aqi22/V.K._Choudhry_-_How_To_Study_Divisional_Charts.pdf).
 
+**2026-09-18 note:** a chat-side artifact (not this repo) briefly mislabeled "Systems' Approach"
+as P.V.R. Narasimha Rao's own method while drafting [[vedic_reading_layers]], the 12-stage
+reading/research architecture note. Caught and corrected there against this file, which already
+had the attribution right — flagging here too so a future skim of either file finds the same
+answer.
+
 ## Recommended source hierarchy for ikiastrro
 
 1. **P.V.R. Narasimha Rao** — primary implementation baseline.

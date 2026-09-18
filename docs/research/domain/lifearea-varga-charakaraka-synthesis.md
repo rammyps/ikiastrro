@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-17
+last_updated: 2026-09-18
 status: research-baseline
 ---
 
@@ -149,6 +149,40 @@ yet filed as GitHub Milestones — draft for triage):
   `chara-karaka-life-area-pvr.md` §"Sthira karaka"), not chara karaka. Sequence them, don't
   merge them; `FEAT-HOUSE-05` should land first since sthira karaka's own doc already flags
   it needs a cited edition before any table work, whereas Leg A/B/D are all already PVR-cited.
+
+### FEAT-VARGA-02 detail — divisional-chart dignity summary chart
+
+New requirement from rammyps (2026-09-18), scoped inside `FEAT-VARGA-02`: alongside rendering
+D2–D60 in the Web workspace, add a **higher-level stats** view per varga-group scheme — a
+hand-rolled stacked-bar-chart component (`project_standards.md` §3 "Chart modules": inline
+SVG/CSS grid, never a charting library) that summarizes how many (graha × varga) placements
+land in each classical dignity tier, across that scheme's member vargas.
+
+- **Scope — which "varga tabs":** the existing `AmsabalaTable` scheme tabs
+  (`key-inference.md` §"6 Vargas") — Vargottama / Shadvarga / Saptavarga / Dasavarga /
+  Shodasavarga. Applies to **every scheme except Vargottama** — that tab is a 2-chart (D1 vs
+  D9) Match/no-Match comparison, not an N-varga membership group, so it has no per-tier
+  "which vargas" breakdown to stack.
+- **Categories:** the same 7-tier vocabulary `ChartViewModel.DignityTierToken` already
+  introduced for the existing per-graha stacked bar (`key-inference.md` §"6 Vargas redesign,"
+  point 1) — Exalted, Moolatrikona, Own, Great Friend, Friend, Enemy, Great Enemy.
+  Neutral/Debilitated stay excluded from the count, same convention that bar already uses.
+- **Shape:** one stacked bar per scheme tab, one segment per dignity tier present in that
+  scheme, each segment labelled `<Tier> — <count> (<varga codes>)` — e.g. `Exalted — 2
+  (D1, D24)`, `Own — 3 (D9, D2, D10)`. `count` = number of (graha, varga) pairs at that tier
+  within the scheme; the varga-code list names which member vargas contributed.
+- **Placement:** sits above the existing per-graha rows in each non-Vargottama scheme tab, as
+  the at-a-glance summary before drilling into individual grahas.
+- **Open sub-questions (not resolved here, need a call before this is built):**
+  - De-duplicate the varga-code list per tier to unique codes (draft assumption, matching the
+    worked example above), or list a code once per contributing graha even if that repeats a
+    code?
+  - One stacked bar per scheme tab (draft assumption — matches the tab it renders inside), or
+    one combined bar spanning every rendered D-chart the person has, across all schemes?
+  - Segment order: fixed Exalted→Great Enemy (matches `DignityScore`'s -4..+4 ranking), or
+    count-descending?
+  - Component name + spec doc, once designed, per `chart-catalog.md`'s naming convention
+    (e.g. `VargaDignitySummaryChart` + `spec_VargaDignitySummaryChart.md`) — not filed yet.
 
 ## Open questions
 
