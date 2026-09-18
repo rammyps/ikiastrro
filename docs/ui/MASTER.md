@@ -30,7 +30,7 @@ recomputes.
 | [`components/saved-people.md`](components/saved-people.md) | `/charts` — the people-management surface: list, Edit / Delete, planned Import / Export + bulk generation ([`decision 002`](../../decisions/002-import-export-and-bulk-chart-generation.md)) |
 | [`testing.md`](testing.md) | The two test layers — bUnit component tests and the Playwright browser E2E suite (`tests/Ikiastrro.Web.E2E`) |
 | [`components/key-inference.md`](components/key-inference.md) | `/key-inference/{id}` — as-built 6-step flow (D1/Transit · About · Strength incl. Astavarga+Amsabala · Spl Lagnas · Yogas · Vargas), plus step 7 All Charts on its own route |
-| [`components/yoga.md`](components/yoga.md) | Key Inference step 5 · Yogas — single deduplicated Type/Yoga/Rule/Source table |
+| [`components/yoga.md`](components/yoga.md) | Key Inference step 5 · Yogas — single deduplicated Type/Yoga/Rule/Interpretation/Source table, editable interpretation |
 | [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers (unchanged by the round-2 flow) |
 | [`components/chart-catalog.md`](components/chart-catalog.md) | **Chart-module catalogue** — every visual chart component (incl. `SouthIndianGrid_Detailed`, `Natal_Transit_Comp_WheelChart`), dasha module, UI table + helper, as `chart name / spec doc / linked files`; golden-snapshot flow + revert. Naming & versioning: [`../../project_standards.md`](../../project_standards.md) |
 

@@ -40,6 +40,7 @@ builder.Services.AddScoped<YogaInputRepository>();
 builder.Services.AddScoped<AmsabalaRepository>();
 builder.Services.AddScoped<AmsabalaSchemeRepository>();
 builder.Services.AddScoped<YogaEvaluationRepository>();
+builder.Services.AddScoped<InterpretationRepository>();
 builder.Services.AddScoped<AstrologerEvidenceRepository>();
 builder.Services.AddScoped<Natal_Transit_Comp_WheelRepository>();
 builder.Services.AddScoped<PlanetSignTransitEventsRepository>();

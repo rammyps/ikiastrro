@@ -1,0 +1,6 @@
+.interp-standard { display: inline; }
+.interp-short { display: none; }
+@media (max-width: 620px) {
+    .interp-standard { display: none; }
+    .interp-short { display: inline; }
+}

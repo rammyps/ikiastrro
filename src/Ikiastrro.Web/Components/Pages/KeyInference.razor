@@ -21,6 +21,7 @@
 @inject Ikiastrro.Data.AmsabalaSchemeRepository AmsabalaSchemeRepo
 @inject Ikiastrro.Data.VargottamaRepository VargottamaRepo
 @inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
+@inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
 @inject ActivePerson Active
 
 @* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
@@ -348,7 +349,8 @@ else
             }
             else
             {
-                <YogaEvaluationTable Rows="_yogaEvaluations" />
+                <YogaEvaluationTable Rows="_yogaEvaluations" LagnaLordPlanet="@LagnaLord" Interpretations="_interpretations"
+                                     OnSaveInterpretation="SaveInterpretation" />
             }
             </div>
         </MudTabPanel>
@@ -396,6 +398,13 @@ else
     private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaGroupMember> _amsabalaGroups = Array.Empty<Ikiastrro.Core.Models.AmsabalaGroupMember>();
     private IReadOnlyList<Ikiastrro.Data.VargottamaRow> _vargottama = Array.Empty<Ikiastrro.Data.VargottamaRow>();
     private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
+    private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
+
+    private string? LagnaLord =>
+        _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
+
+    private void SaveInterpretation(YogaEvaluationTable.InterpretationEditRequest request) =>
+        InterpretationRepo.Upsert(1, "YOGA", request.SubjectCode, request.SourceRefCode, request.StandardText, request.ShortText);
 
     private static readonly string[] SignById =
         { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
@@ -447,6 +456,7 @@ else
         _amsabalaGroups = AmsabalaSchemeRepo.GetGroups(1);
         _vargottama = VargottamaRepo.GetByBirthDetailId(Id);
         _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
+        _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
             ? parsedOffset
