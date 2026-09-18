@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-16
+last_updated: 2026-09-17
 workstream: database
 togaf: C — Data Architecture
 ---
@@ -32,8 +32,9 @@ work. One repository per table/view in `src/Ikiastrro.Data/`.
 | Panchanga (D1 `ChartResultId` only — birth-moment, not per-varga) | `tbl_Chart_Panchanga` (Tithi/Karana/Nitya Yoga/Vedic Weekday/Hora Lord + Sunrise/Sunset/Janma Ghatis; migration 081) | calculator pending (`FEAT-DATA-06`) |
 | Reference / master | `tbl_Planets` (9), `tbl_SignAttributes` (12), `tbl_Nakshatras` (27), `tbl_NakshatraPadas` (108), `tbl_NakshatraSubLords` (243, KP L1–L2), `tbl_PlanetSignTransitEvents` (Sa/Ju/Ra sign-crossing log 1930–2060), `tbl_TransitPositionReference` (currently stores current `MotionDirection` only — **UI needs two new columns: `InSignMotion`, `NextChangeMotion`**; see [`../ui/components/spec_Natal_Transit_Comp_Wheel.md`](../ui/components/spec_Natal_Transit_Comp_Wheel.md)), `tbl_Dim_Tithi` (30) / `tbl_Dim_Karana` (11) / `tbl_Dim_NityaYoga` (27) / `tbl_Dim_VedicWeekday` (7) / `tbl_Dim_HoraSequence` (7) (migration 081) | seed / CLI backfill |
 | Rules engine (versioned; every row carries `RuleSetId`) | see [`rules-engine.md`](rules-engine.md) | seed |
-| Dimensions | `tbl_Dim_LifeCalendar`, `tbl_Dim_PlanetaryState`, `tbl_Dim_ChartType`, `tbl_Dim_Source`, `tbl_Dim_LifeArea` / `House` / `HouseCategory` / `HouseReference` / `SubPlanets` / `SpecialLagnas` / `DivisionalSubject` / `InterpretationDimension` / `GrahaAttribute`, `tbl_Dim_AyanamsaBenchmark*`, `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden Ṣaḍbala totals), `tbl_Dim_DashaSystems` / `DashaBenchmarkPeriods` | seed / CTE |
-| Facts (per chart, star-schema) | `tbl_Fact_PlanetaryState`, `tbl_Fact_PlanetaryStrength` / `…Component`, `tbl_Fact_BhavaStrength` / `…Component`, `tbl_Fact_Vargottama`, `tbl_Fact_YogaInputEvaluations`, `tbl_Fact_HouseFromReference`, `tbl_Fact_Ayanamsa*` / `Dasha*Comparisons`, `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda` (written by `AshtakavargaCalculator`) | computers via `ChartGenerationService` |
+| Dimensions | `tbl_Dim_LifeCalendar`, `tbl_Dim_PlanetaryState`, `tbl_Dim_ChartType`, `tbl_Dim_Source`, `tbl_Dim_LifeArea` / `House` / `HouseCategory` / `HouseReference` / `SubPlanets` / `SpecialLagnas` / `DivisionalSubject` / `InterpretationDimension` / `GrahaAttribute` / `InterpretiveFactor` (4 rows: House/Planet/Sign-Lagna/Varga, migration 109) / `DashaLevel` (3 rows: L1_MAHA/L2_ANTAR/L3_PRAT, migration 110), `tbl_Dim_AyanamsaBenchmark*`, `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden Ṣaḍbala totals), `tbl_Dim_DashaSystems` / `DashaBenchmarkPeriods` | seed / CTE |
+| Facts (per chart, star-schema) | `tbl_Fact_PlanetaryState`, `tbl_Fact_PlanetaryStrength` / `…Component`, `tbl_Fact_BhavaStrength` / `…Component`, `tbl_Fact_Vargottama`, `tbl_Fact_YogaInputEvaluations`, `tbl_Fact_HouseFromReference`, `tbl_Fact_Ayanamsa*` / `Dasha*Comparisons`, `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda` (written by `AshtakavargaCalculator`), `tbl_Fact_KpSubLordChain` (D1 KP sub-lord levels 2-7; now written by `workstream/cli`'s composition root, see [`rules-engine.md`](rules-engine.md) Facts section) | computers via `ChartGenerationService` |
+| Facts — statistical rollups (on-demand snapshot, not per-chart) | `tbl_Fact_NakshatraLordDistribution`, `tbl_Fact_KpSubLordChainDistribution` (per KP level; migration 117) | `dbo.usp_RefreshNakshatraKpStatDistributions` |
 
 ## Chart-generic analytics — the design
 
@@ -74,12 +75,17 @@ every chart type.
   082), `vw_ChartYogaEvaluations`, `vw_YogaChartApplicability`, `vw_YogaContextRequirements`,
   `vw_Dignity_Legend`, `vw_Rule_PrimaryNaisargikaKaraka` / `vw_Rule_NaisargikaKarakatwa`
   (compatibility views over `tbl_Rule_KarakaMatter`, replacing the dropped
-  `tbl_Rule_Naisargika_Karakas` / `Karakatwas`; migration 103).
+  `tbl_Rule_Naisargika_Karakas` / `Karakatwas`; migration 103), `vw_ChartPlanetInHouseInterpretation`
+  (each placed graha's `tbl_Rule_PlanetInHouse` interpretation, cross-referenced with its own
+  dispositor — sign lord — and that dispositor's house/sign/dignity; migrations 115/116).
 - Functions: `fn_GetNakshatraRulingPlanetId` (scalar); `tvf_Chart_LifeWeeks(@BirthDetailId)`,
   `tvf_Chart_SadeSatiPeriods(@BirthDetailId)`, `tvf_PlanetSignAtDate(@PlanetId, @AsOfUtc)`,
   `tvf_Chart_SignNakshatraRasiRelationship(@ChartResultId)` (full 5-tier Pañcadhā Maitrī between
   every `tbl_Rule_SignNakshatra` row and all 12 Rasis, using this chart's actual placements;
-  migration 105) (inline TVFs).
+  migration 105), `tvf_Chart_DashaLordRelationship(@BirthDetailId)` (each dasha period's Lord —
+  all 3 levels — cross-referenced against its own D1 Rasi lord, Nakshatra lord and KP level-1
+  sub-lord; resolves the Dasha vs. D1 `ChartResultId` split via the same `OUTER APPLY` pattern
+  as `tvf_Chart_LifeWeeks`; migration 110) (inline TVFs).
 
 ## Reference / master data
 

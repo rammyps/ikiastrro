@@ -46,7 +46,12 @@ Scoped, not started. Ordering set at the next ICE pass.
 
 - **Bhāva significations + Sthira Kāraka mapping** — Designed; migration 030 drafted · `FEAT-HOUSE-03`
 - **Sthira Kāraka / Naisargika Kāraka** — resolve Sapta vs Aṣṭa; needs a cited edition · `FEAT-KARAKA-03/04`
-- **Dispositor chains / final dispositor / mutual reception** · `FEAT-DISPOSITOR-01`
+- **Dispositor chains / final dispositor / mutual reception** · `FEAT-DISPOSITOR-01` — a
+  single-level building block landed 2026-09-18 (migration 116:
+  `vw_ChartPlanetInHouseInterpretation` now cross-references each placed graha's own
+  dispositor — sign lord — and that dispositor's house/sign/dignity), but chains (dispositor
+  of the dispositor, n-deep), final-dispositor resolution, and mutual reception detection are
+  still not built
 - **Compound Maitrī, argala, sambandha** · `FEAT-RELATIONSHIP-04`
 
 ## Later

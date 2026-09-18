@@ -61,7 +61,8 @@ Two-page structure once a karaka is selected and resolved to a planet:
 - How the varga lord interacts with Rasi (D-1 sign) and Nakshatra.
 - Nakshatra Pada of the karaka planet.
 - The Pada lord.
-- SubLords L1–L7 (chain — **open question below**, need to pin down which scheme).
+- SubLords L1–L7 (the KP sub-lord chain — `tbl_Fact_KpSubLordChain`, now populated; see
+  "open questions" below).
 
 ## 4. Chakras
 
@@ -79,14 +80,21 @@ Two-page structure once a karaka is selected and resolved to a planet:
   (name it) or a project-original construct being designed now? Needs a definition of what
   a per-karaka "chakra" *is* (a chart variant? a subset of signs? something else) before it
   can be researched or scoped for the DB/UI.
-- **SubLords L1–L7 — which scheme?** Two candidates already exist in the codebase and they
-  are not the same thing:
-  - The KP 5-level sign/star/sub/sub-sub chain, partially modeled in
-    `db/095_create_kp_sublord_chain_fact.sql` and `KpSubLordChainRepository.cs`.
-  - House-cusp sub-lords numbered by house (1st cusp sub-lord … 7th cusp sub-lord), a
-    different KP convention (significators per house).
-  L1–L7 reads more like the second (7 houses), but confirm — the existing sublord-chain
-  table may not extend to 7 levels as modeled.
+- ~~**SubLords L1–L7 — which scheme?**~~ — resolved 2026-09-17: it's the KP sub-lord *chain*
+  (sign/star/sub/sub-sub/…), not house-cusp sub-lords. `tbl_Fact_KpSubLordChain`
+  (`db/095_create_kp_sublord_chain_fact.sql`) stores levels 2-7 per (chart, planet); level 1
+  is `tbl_Chart_KeyDetails.NakshatraSubLordPlanetId`. **Now populated** (2026-09-18,
+  `db/117_create_nakshatra_kp_stat_distributions.sql`): `KpSubLordChainRepository` was a
+  never-registered optional constructor param in `Ikiastrro.Cli`'s `ChartGenerationService`
+  composition root — fixed, and `backfill-analytics` now writes it (162 rows across the 3
+  dev-DB charts as of this pass). `workstream/ui`'s `Ikiastrro.Web/Program.cs` composition
+  root still needs the matching DI registration — see `rules-engine.md`'s Facts section.
+  Migration 117 also adds two on-demand statistical rollups —
+  `tbl_Fact_NakshatraLordDistribution` and `tbl_Fact_KpSubLordChainDistribution` (per KP
+  level) — for the stacked-bar-chart lord-frequency view this was originally requested for.
+  Migration 110's `tvf_Chart_DashaLordRelationship` still surfaces only the level-1 sub-lord;
+  extending it to L2–7 now that the population gap is closed is a small follow-up, not
+  attempted in this pass.
 - ~~`AM_ChakraLord` naming vs. the codebase's `AmK` enum~~ — resolved 2026-09-17: use the
   standard `CharaKaraka` enum abbreviations everywhere (`AmK_ChakraLord`, not `AM_ChakraLord`).
 
@@ -117,3 +125,13 @@ scope notes for whoever picks up the database-workstream migration.
 Where the *interpretation content* (not the resolution mechanics above) comes from, and how
 it gets validated before being trusted, is out of scope for this table and is instead the
 subject of [chara-karaka-interpretation-statistics.md](chara-karaka-interpretation-statistics.md).
+
+**Implemented 2026-09-17 (migrations 109-110), adjacent infrastructure this section can now
+build on**: `tbl_Rule_InterpretiveFactorDetail` (109) already has a `KarakaRoleId` FK ready to
+take House/Planet/Sign/Varga detail rows for the 8 `CHARA` roles once §1's background reading
+is done (not seeded yet — deliberately, per that migration's own "don't fabricate rows
+without a citation" rule). `tvf_Chart_DashaLordRelationship` (110) is a separate but
+structurally identical precedent — a per-chart cross-reference TVF joining a resolved
+role/period to its own Rasi lord, Nakshatra lord and KP sub-lord — worth reusing as the
+template for whatever resolves a chara-karaka role the same way, rather than re-deriving the
+`BirthDetailId`-vs-`ChartResultId` resolution pattern from scratch.

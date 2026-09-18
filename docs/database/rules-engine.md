@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-16
+last_updated: 2026-09-17
 workstream: database
 togaf: C — Data Architecture
 safe: Solution Intent (fixed)
@@ -75,8 +75,12 @@ Part A:
 | `tbl_Rule_DashaApplicability` | reserved | source-attributed applicability conditions for conditional dasha systems | unseeded — table created by migration 46, zero rows, no source cited |
 | `tbl_Rule_PanchangaFormula` | 4 | Tithi / Karana / Nitya Yoga / Hora Lord derivation formulas (PVR §1.3.8–1.3.11); cross-checked against the JHora Ramakrishnan export | mirror — CLI `verify-panchanga` reproduces the JHora export exactly; `PanchangaCalculator` is 100% hardcoded, zero DB reads |
 | `tbl_Rule_SourceReferenceAshtakavargaMethod` / `…Contributor` / `…Reduction` | — | `research.*` schema: per-source Ashtakavarga method identity + contributor/reduction rule rows, pending verification against a cited edition before promotion to the production `tbl_Rule_Ashtakavarga*` tables above | orphaned by design — research staging area, not read by any calculator |
-| `tbl_Dim_DivisionalSubject` | 12 | Which subject (career, marriage, …) each varga primarily confirms, and what D1 already establishes vs. what the varga adds | seeded (migration 38); not read by any calculator yet — reference data for a future synthesis-layer UI |
+| `tbl_Dim_DivisionalSubject` | 11 | Which subject (career, marriage, …) each varga primarily confirms, and what D1 already establishes vs. what the varga adds | seeded (migration 38); its House/Planet/Varga facts are now normalized by `tbl_Rule_InterpretiveFactorDetail` (migration 109) — see below |
 | `tbl_Dim_InterpretationDimension` | — | The taxonomy of interpretation axes (strength, timing, …) a synthesis layer would classify findings under | seeded (migration 38); not read by any calculator yet — same synthesis-layer backlog as `DivisionalSubject` |
+| `tbl_Dim_InterpretiveFactor` | 4 | Catalogue of factor types (`HOUSE`/`PLANET`/`SIGN_LAGNA`/`VARGA`) that `tbl_Rule_InterpretiveFactorDetail` rows are typed against | seeded (migration 109), no `RuleSetId` (pure catalogue, same as `DivisionalSubject`/`InterpretationDimension`) |
+| `tbl_Rule_InterpretiveFactorDetail` | 41 | Normalizes House/Planet/Varga facts for `tbl_Dim_LifeArea`, `tbl_Dim_DivisionalSubject` and `CHARA`-typed `tbl_Dim_KarakaRole` rows into queryable rows instead of free text (e.g. `DivisionalSubject.D1Foundation`'s prose) — three nullable typed FKs (`LifeAreaId`/`DivisionalSubjectCode`/`KarakaRoleId`), exactly one populated, same discriminated-by-null shape `tbl_Dim_KarakaRole` uses for `FixedGrahaId`/`CharaKarakaCode` | seeded for all 11 `DivisionalSubject` rows (migration 109); LifeArea and Chara-karaka-role details are a follow-up migration — CLI `verify-interpretive-factors` |
+| `tbl_Dim_DashaLevel` | 3 | Labels `tbl_Chart_DashaPeriods.LevelNumber` (1/2/3) as `L1_MAHA`/`L2_ANTAR`/`L3_PRAT` | seeded (migration 110), no `RuleSetId` |
+| `tbl_Rule_PlanetInHouse` | 108 (9 grahas × 12 houses, whole-sign) | Source-attributed planet-in-house interpretations, B.V. Raman *How to Judge a Horoscope* (`SRC_RAMAN_HTJH`) — distinct from house-lord placement (`tbl_Rule_HouseLordPlacement`, migration 093) and correcting the wrongly-cited `SRC_BVRAMAN_PLANET_IN_HOUSE` placeholder rows from migrations 064/065 | promoted from `research.*PlanetInHouseClaim` (migration 113 schema, 114 seed, 115 promotion); read by `PlanetInHouseRepository` via `vw_ChartPlanetInHouseInterpretation`, which also cross-references each placed graha's dispositor (sign lord) and that dispositor's own house/sign/dignity (migration 116) — CLI `verify-planet-in-house` |
 | `tbl_Rule_YogaValidationDefinition` | 1,002 | An imported external yoga-expression corpus (`ExpressionLanguage`/`ExpressionText`, `ValidationSystemId`) for cross-checking `ProductionYogaEngine`'s own evaluators | **reproducibility gap, not a Live? question** — `dbo.SchemaMigrations` records `054_add_yoga_validation_tables.sql` as applied, but no file by that name exists under `db/` (only `054_set_lahiri_ayanamsa_default.sql` does — the pre-existing duplicate-054 numbering). A from-scratch `db/ikiastrro.sql` build cannot currently reproduce this table's 1,002 rows. Needs either recovering/recreating that script or removing the stale `SchemaMigrations` row if the table is to be re-seeded fresh. **Not addressed by migration 085** — deliberately out of scope (see that migration's header). |
 | `tbl_Rule_VimshottariPeriod` | 9 | Vimshottari Dasha's core 9-planet order + 120-year split, SRC_PVR_INTEGRATED §16.2 Table 38, verified against the raw extract | mirror — added + seeded by migration 085; CLI `verify-dasha` cross-checks `SequenceOrder`/`YearsInCycle` against `AstroMath.NakshatraLordOrder`/`VimshottariYearsByLord` (also the KP-2 sub-lord division's source); `VimshottariDashaCalculator` itself stays 100% hardcoded, zero DB reads |
 | `tbl_Rule_ArudhaFormula` | 1 | Arudha pada counting rule (house → lord's sign → pada, 1st/7th → 10th exception), SRC_PVR_INTEGRATED §9.2, verified against the raw extract | mirror — added + seeded by migration 085; CLI `verify-jaimini` asserts the row exists and cites the right source (a narrative row, same shape as `tbl_Rule_PostureStateFormula`/`PanchangaFormula` — nothing to numerically round-trip); `ArudhaCalculator` itself stays 100% hardcoded, zero DB reads |
@@ -164,18 +168,26 @@ to the exact rule version. Written by the `*Computer` classes inside
 `ChartGenerationService.PersistAnalytics`.
 
 `tbl_Fact_KpSubLordChain` (migration 095) — levels 2-7 of `AstroMath.GetKpSubLordChain`
-(level 1 stays on `tbl_Chart_KeyDetails.NakshatraSubLordPlanetId`), D1 only. Now has a repository
-(`KpSubLordChainRepository`) and is wired into `PersistAnalytics`'s D1 block, but as an
-**optional** constructor dependency (default `null`) — `ChartGenerationService`'s other two
-composition roots (`Ikiastrro.Web/Program.cs`, `Ikiastrro.Cli/Program.cs`) haven't registered it
-yet (out of the database workstream's owned paths), so no rows are written by either app today.
+(level 1 stays on `tbl_Chart_KeyDetails.NakshatraSubLordPlanetId`), D1 only. Has a repository
+(`KpSubLordChainRepository`), wired into `PersistAnalytics`'s D1 block as an **optional**
+constructor dependency (default `null`). **`workstream/cli`'s gap is closed** (2026-09-18,
+alongside migration 117): `Ikiastrro.Cli/Program.cs`'s `ChartGenerationService` composition
+root now passes a real `KpSubLordChainRepository` instance, so `backfill-analytics` populates
+the table (162 rows across the 3 dev-DB charts as of this pass). **Still open for
+`workstream/ui`**: `Ikiastrro.Web/Program.cs` hasn't registered it yet — one
+`builder.Services.AddScoped<KpSubLordChainRepository>();` line, plus passing it into that
+composition root's `ChartGenerationService`/`BirthDetailDeletionService` construction.
 Verified correct end-to-end via a throwaway harness (9 planets × 6 levels, byte-for-byte match
-against `AstroMath` computed independently) before this doc was written. **Follow-up for
-`workstream/ui`**: one `builder.Services.AddScoped<KpSubLordChainRepository>();` line in
-`Program.cs`. **Follow-up for `workstream/cli`**: one
-`new KpSubLordChainRepository(connectionFactory)` argument to the manual
-`new ChartGenerationService(...)` call, plus the matching argument in
-`BirthDetailDeletionService`'s construction.
+against `AstroMath` computed independently) before the repository was wired in.
+
+`tbl_Fact_NakshatraLordDistribution` / `tbl_Fact_KpSubLordChainDistribution` (migration 117) —
+on-demand statistical rollups (TRUNCATE + reinsert snapshot, not per-chart facts): how many D1
+graha placements across every currently-generated chart resolve to each planet as Nakshatra
+Lord, and the same breakdown per KP sub-lord-chain level (L1 from `tbl_Chart_KeyDetails`, L2-7
+from `tbl_Fact_KpSubLordChain`). Zero-count
+planet/level combinations are included, not omitted, so a stacked-bar-chart consumer never
+silently drops a category. Refreshed via `dbo.usp_RefreshNakshatraKpStatDistributions`; 9 and
+63 rows respectively as of this pass (9 planets, 9 planets × 7 levels).
 
 `tbl_Fact_HouseFromReference` (migration 32) remains schema-only — out of scope this round (the
 "4. KARAKAS" UI page's house numbers are a live house-from-Lagna calculation in

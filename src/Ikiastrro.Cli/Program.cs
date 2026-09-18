@@ -1185,6 +1185,191 @@ if (args.Length > 0 && args[0] == "verify-dasha")
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
+if (args.Length > 0 && args[0] == "verify-interpretive-factors")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    using var conn = connectionFactory.CreateOpenConnection();
+
+    var factorCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM dbo.tbl_Dim_InterpretiveFactor WHERE IsActive = 1");
+    Check("tbl_Dim_InterpretiveFactor has 4 active rows", factorCount, 4);
+
+    var badReference = conn.ExecuteScalar<int>("""
+        SELECT COUNT(*) FROM dbo.tbl_Rule_InterpretiveFactorDetail
+        WHERE (CASE WHEN LifeAreaId IS NOT NULL THEN 1 ELSE 0 END
+             + CASE WHEN DivisionalSubjectCode IS NOT NULL THEN 1 ELSE 0 END
+             + CASE WHEN KarakaRoleId IS NOT NULL THEN 1 ELSE 0 END) <> 1
+        """);
+    Check("every detail row has exactly one of LifeAreaId/DivisionalSubjectCode/KarakaRoleId", badReference, 0);
+
+    var badValue = conn.ExecuteScalar<int>("""
+        SELECT COUNT(*) FROM dbo.tbl_Rule_InterpretiveFactorDetail
+        WHERE (CASE WHEN HouseNumber IS NOT NULL THEN 1 ELSE 0 END
+             + CASE WHEN GrahaId IS NOT NULL THEN 1 ELSE 0 END
+             + CASE WHEN SignId IS NOT NULL THEN 1 ELSE 0 END
+             + CASE WHEN ChartTypeId IS NOT NULL THEN 1 ELSE 0 END) <> 1
+        """);
+    Check("every detail row has exactly one of House/Graha/Sign/ChartType", badValue, 0);
+
+    var nonCharaKarakaRoles = conn.ExecuteScalar<int>("""
+        SELECT COUNT(*) FROM dbo.tbl_Rule_InterpretiveFactorDetail d
+        JOIN dbo.tbl_Dim_KarakaRole kr ON kr.Id = d.KarakaRoleId
+        WHERE kr.KarakaTypeCode <> 'CHARA'
+        """);
+    Check("every KarakaRoleId used is a CHARA-typed role", nonCharaKarakaRoles, 0);
+
+    var detailCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM dbo.tbl_Rule_InterpretiveFactorDetail");
+    Console.WriteLine($"  [INFO] tbl_Rule_InterpretiveFactorDetail row count: {detailCount} (sanity ceiling 160)");
+    Check("detail row count within sanity ceiling", detailCount <= 160, true);
+
+    Console.WriteLine(failures == 0 ? "\nverify-interpretive-factors: ALL PASS" : $"\nverify-interpretive-factors: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+if (args.Length > 0 && args[0] == "verify-dasha-lord-relationship")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var repo = new DashaLordRelationshipRepository(connectionFactory);
+    var rows = repo.GetByBirthDetailId(ram.Id);
+
+    Check("row count > 0", rows.Count > 0, true);
+
+    var levelCodes = rows.Select(r => r.LevelCode).Distinct().OrderBy(c => c).ToList();
+    Check("exactly 3 distinct LevelCode values", string.Join(",", levelCodes), "L1_MAHA,L2_ANTAR,L3_PRAT");
+
+    var missingRasiLord = rows.Count(r => r.RasiLordName is null);
+    Check("every row has a non-null RasiLordName (D1 join didn't drop rows)", missingRasiLord, 0);
+    var missingNakLord = rows.Count(r => r.NakshatraLordName is null);
+    Check("every row has a non-null NakshatraLordName", missingNakLord, 0);
+
+    // Spot-check the first Mahadasha period's lord against tbl_Chart_KeyDetails directly.
+    var firstMaha = rows.First(r => r.LevelCode == "L1_MAHA");
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var direct = conn.QuerySingle<(string SignLordName, string NakshatraLordName)>("""
+            SELECT rlp.PlanetName AS SignLordName, nlp.PlanetName AS NakshatraLordName
+            FROM dbo.tbl_ChartResults cr
+            JOIN dbo.tbl_Chart_KeyDetails kd ON kd.ChartResultId = cr.Id AND kd.PointKind = 'Graha' AND kd.PlanetId = @LordId
+            JOIN dbo.tbl_Planets rlp ON rlp.Id = kd.SignLordPlanetId
+            JOIN dbo.tbl_Planets nlp ON nlp.Id = kd.NakshatraLordPlanetId
+            WHERE cr.BirthDetailId = @BirthDetailId AND cr.CalculationKind = 'PositionChart'
+              AND cr.ChartTypeId = (SELECT Id FROM dbo.tbl_Dim_ChartType WHERE Code = 'D1')
+            """, new { LordId = firstMaha.DashaLordPlanetId, BirthDetailId = ram.Id });
+        Check("spot-check: first Mahadasha RasiLordName matches direct KeyDetails query", firstMaha.RasiLordName, direct.SignLordName);
+        Check("spot-check: first Mahadasha NakshatraLordName matches direct KeyDetails query", firstMaha.NakshatraLordName, direct.NakshatraLordName);
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-dasha-lord-relationship: ALL PASS" : $"\nverify-dasha-lord-relationship: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+if (args.Length > 0 && args[0] == "verify-punya-saham")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    // Hand-computed, independent of the DB (same pattern as verify-jaimini's CharaKarakaCalculator
+    // check) — PVR's own two worked Saham examples (sec 28.8.1), relabeled as Sun/Moon/Lagna to
+    // exercise Punya Saham's day/night formula and its +30 deg arc correction. The arc-check math
+    // is identical regardless of which named bodies A/B/C represent, so PVR's own real degree
+    // values prove the calculator, not synthetic ones.
+
+    // Samartha-saham numbers (day-birth relabeling): B=Sun=354 58', A=Moon=19 10', C=Lagna=280 50'.
+    // PVR: raw A-B+C = 305 02', Lagna not encountered going Sun->Moon, so +30 -> final 335 02'.
+    var day = PunyaSahamCalculator.Compute(
+        sunLongitude: 354 + 58.0 / 60, moonLongitude: 19 + 10.0 / 60, natalLagnaLongitude: 280 + 50.0 / 60, isNightBirth: false);
+    Check("day formula (Samartha-saham numbers), raw 305 02' + 30 deg arc correction",
+        Math.Round(day.NirayanaLongitudeDegrees, 4), Math.Round(335 + 2.0 / 60, 4));
+
+    // Vanik-saham numbers (night-birth relabeling): B=Moon=345 14', A=Mercury/here Sun=311 28',
+    // C=Lagna=280 50'. PVR: Lagna IS encountered going Moon->Mercury, so no +30 -> 247 04'.
+    var night = PunyaSahamCalculator.Compute(
+        sunLongitude: 311 + 28.0 / 60, moonLongitude: 345 + 14.0 / 60, natalLagnaLongitude: 280 + 50.0 / 60, isNightBirth: true);
+    Check("night formula (Vanik-saham numbers), arc found, no +30 deg correction",
+        Math.Round(night.NirayanaLongitudeDegrees, 4), Math.Round(247 + 4.0 / 60, 4));
+
+    Check("PointKind is SpecialLagna", day.PointKind, "SpecialLagna");
+    Check("Code is PS", day.Code, "PS");
+
+    Console.WriteLine(failures == 0 ? "\nverify-punya-saham: ALL PASS" : $"\nverify-punya-saham: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+if (args.Length > 0 && args[0] == "verify-planet-in-house")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    using var conn = connectionFactory.CreateOpenConnection();
+
+    var rowCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM dbo.tbl_Rule_PlanetInHouse");
+    Check("tbl_Rule_PlanetInHouse row count", rowCount, 108);
+
+    var badSource = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM dbo.tbl_Rule_PlanetInHouse WHERE SourceRefCode <> 'SRC_RAMAN_HTJH'");
+    Check("every row cites SRC_RAMAN_HTJH", badSource, 0);
+
+    var promotedCount = conn.ExecuteScalar<int>(
+        "SELECT COUNT(*) FROM research.tbl_Dim_SourceReferencePlanetInHouseCrosswalk WHERE ProductionTargetCode = 'dbo.tbl_Rule_PlanetInHouse' AND PromotionStatus = 'Promoted'");
+    Check("crosswalk shows 108 Promoted", promotedCount, 108);
+
+    // Spot-check against the source paragraphs quoted during transcription.
+    var marsHouse1 = conn.ExecuteScalar<string>(
+        "SELECT r.ResultText FROM dbo.tbl_Rule_PlanetInHouse r JOIN dbo.tbl_Planets p ON p.Id = r.PlanetId WHERE p.PlanetName = 'Mars' AND r.HouseNumber = 1");
+    Check("Mars/1st starts with the Raman paraphrase", marsHouse1?.StartsWith("Gives a hot, courageous constitution"), true);
+    var sunHouse10 = conn.ExecuteScalar<string>(
+        "SELECT r.ResultText FROM dbo.tbl_Rule_PlanetInHouse r JOIN dbo.tbl_Planets p ON p.Id = r.PlanetId WHERE p.PlanetName = 'Sun' AND r.HouseNumber = 10");
+    Check("Sun/10th starts with the Raman paraphrase", sunHouse10?.StartsWith("Successful in all undertakings"), true);
+
+    // End-to-end: the view resolves for a real chart via the repository.
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var d1ChartResultId = conn.ExecuteScalar<int>(
+        "SELECT cr.Id FROM dbo.tbl_ChartResults cr WHERE cr.BirthDetailId = @Id AND cr.ChartType = 'D1'", new { ram.Id });
+    var repo = new PlanetInHouseRepository(connectionFactory);
+    var rows = repo.GetForChart(d1ChartResultId);
+    Check("Ramakrishnan D1 resolves 9 planet-in-house rows via the view/repository", rows.Count, 9);
+
+    // Dispositor cross-reference (migration 116): every graha has a sign lord, so every row
+    // should resolve a dispositor, and under WHOLE_SIGN houses that dispositor must match the
+    // house's own lord from tbl_Chart_HouseLords -- an independent cross-check, not a re-derivation.
+    Check("every row has a resolved dispositor", rows.Count(r => r.DispositorPlanetId is null), 0);
+    var mismatches = 0;
+    foreach (var r in rows)
+    {
+        var houseLord = conn.ExecuteScalar<string>(
+            "SELECT LordPlanet FROM dbo.tbl_Chart_HouseLords WHERE ChartResultId = @Id AND HouseNumber = @House",
+            new { Id = d1ChartResultId, House = r.HouseNumber });
+        if (houseLord != r.DispositorPlanetName) mismatches++;
+    }
+    Check("dispositor matches tbl_Chart_HouseLords' own lord for every row (whole-sign)", mismatches, 0);
+
+    Console.WriteLine(failures == 0 ? "\nverify-planet-in-house: ALL PASS" : $"\nverify-planet-in-house: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
 // --- One-off check: `dotnet run -- verify-pipeline` ---
 // The DB-free ChartPipeline.Run façade must reproduce, for person 1 (Ramakrishnan), the same D1
 // KeyDetails the stored rows hold — proving the compute half of ChartGenerationService is faithfully
