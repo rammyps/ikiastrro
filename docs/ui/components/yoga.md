@@ -11,19 +11,22 @@ togaf: C — component spec
 **Step 5 · Yogas** of the [Key Inference](key-inference.md) flow — built 2026-09-16/17 as a
 single `YogaEvaluationTable` component, a materially smaller shape than the round-2 plan below
 (§ As-built): no coverage donut, no visible per-source-variant row list, no Source-as-column-1
-layout. Read-only: it renders persisted yoga-evaluation rows and adds no new evaluation path
-([`../../architecture/domain-contracts.md`](../../architecture/domain-contracts.md)).
+layout. Mostly read-only: it renders persisted yoga-evaluation rows and adds no new *evaluation*
+path ([`../../architecture/domain-contracts.md`](../../architecture/domain-contracts.md)) — the
+one exception is the Interpretation column (2026-09-18), which is editorial content, not a
+calculation, and is genuinely editable in the UI (see below).
 
-## As-built (2026-09-16/17)
+## As-built (2026-09-18)
 
 One table, "Yogas Present": every `YogaCode` that matched, deduplicated (see below), Type +
-Yoga + Rule + Source columns, sorted Type-first.
+Yoga + Rule + Interpretation + Source columns, sorted Type-first.
 
-| Column | From `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) |
+| Column | Source |
 |---|---|
-| Type | `YogaTypeCode` (`tbl_Rule_Yoga.FormationFamilyCode`) — **column 1**, not Yoga. Default sort order is Lagna → Sun → Moon → Combination (rammyps's directive), any other `YogaTypeCode` that shows up follows alphabetically after those four. |
+| Type | `YogaTypeCode` (`tbl_Rule_Yoga.FormationFamilyCode`, via `vw_ChartYogaEvaluations`) — **column 1**, not Yoga. Default sort order is Lagna → Sun → Moon → Combination (rammyps's directive), any other `YogaTypeCode` that shows up follows alphabetically after those four. |
 | Yoga | `YogaCode`, title-cased and `YOGA_` stripped for display |
-| Rule | `YogaRule` (`tbl_Rule_Yoga.ShortFormationRule`) — a one-line classical rule |
+| Rule | `YogaRule` (`tbl_Rule_Yoga.ShortFormationRule`) — a one-line classical rule, now source-specific where a `YogaCode`'s sources genuinely disagree (`db/119`, e.g. `YOGA_BUDHA_ADITYA`: Raman needs Sun–Mercury >10°, PVR only needs same-sign). Two secondary lines under Rule when applicable: the chart's Lagna lord (`Lagna lord: <planet>`, only for `YogaTypeCode = LAGNA`, from `WorkspaceData.Charts["D1"].HouseLords`, no new query) and `Notes` (`vw_ChartYogaEvaluations.Notes` — the engine's per-chart "what matched" text, e.g. Budha Aditya's combustion caveat; only populated by `SourceAttributedYogaEngine`/`VerifiedSourceYogaEngine`/`PvrChapter11YogaEvaluator`/`PvrChapter11NumberedYogaEvaluator` today, blank for the other evaluators). |
+| Interpretation | `tbl_Content_Interpretation` (`db/080`, source-override support `db/121`) via `InterpretationRepository`, resolved source-specific-with-generic-fallback. **Editable by any user** — an `EditIconButton` opens an inline Standard/Short text editor; Save is gated by the shared `ConfirmDialog` ("This will be visible to everyone using this tool."), then round-trips through `KeyInference.razor`'s `OnSaveInterpretation` callback to `InterpretationRepository.Upsert` (the table component itself injects no repository, keeping it presentational like every other chart component — the page owns the write, same as `SavedCharts.razor`'s edit flow). A local override dictionary shows the save immediately without waiting for the page to re-fetch. |
 | Source | `SourceRefCode`, title-cased and `SRC_` stripped for display |
 
 A header line above the table reads "*N* formed of *M* evaluated (*K* not yet evaluated)".
@@ -34,14 +37,25 @@ separately, each its own row in `vw_ChartYogaEvaluations` sharing the same Name/
 are grouped by `YogaCode` (`YogaEvaluationTable.ByYoga`); a yoga counts as **present** if *any*
 of its source-citation rows is `Present`, and **evaluated** if *any* of them has
 `EvaluationStatus = EVALUATED` — a non-matching citation can never hide one that did match, and
-a not-yet-evaluated citation can never hide one that was already ruled present/absent.
+a not-yet-evaluated citation can never hide one that was already ruled present/absent. The
+Rule/Notes/Interpretation shown are whichever source-citation row is picked as the group's
+single representative (existing behaviour, unchanged by 2026-09-18's additions).
 
 `SourceVariantCode`, `EvaluationStatus` detail, `SourceLocator`, `MissingRequirementCodesJson`,
 `RuleSetId`, `ComputedAtUtc` stay in the underlying data but are not shown — the table only ever
 displays one representative row per `YogaCode`.
 
-Read by `YogaEvaluationRepository.GetByBirthDetailId` (typed, added alongside this build — the
-generic `AstrologerEvidenceRepository` dynamic-row query was the only prior reader of this view).
+Read by `YogaEvaluationRepository.GetByBirthDetailId` (typed — the generic
+`AstrologerEvidenceRepository` dynamic-row query was the only prior reader of this view) and
+`InterpretationRepository.GetBySubjectType`.
+
+**Coverage:** `tbl_Rule_Yoga` (Type/Rule) is now populated for 230 of 223+ evaluated `YogaCode`s
+— see `tbl_Rule_Catalog.Purpose` for the live count, not a number here (079 originally shipped
+with a coverage claim that went stale within a day; `db/120`'s header comment has the history).
+Only `YOGA_VIDYA`/`YOGA_ARISHTA` (`NOT_EVALUATED`, no predicate exists) still read `NULL` by
+design. `tbl_Content_Interpretation` (Interpretation column) has no seed content beyond a
+`YOGA_BUDHA_ADITYA` pilot pair (`db/122`, explicitly placeholder pending review) — every other
+cell reads blank until an astrologer fills it in through the UI.
 
 ## Round-2 plan (2026-09-11, superseded by the above)
 
@@ -52,27 +66,26 @@ summary table (Present/Absent/Not-evaluated counts, Raman/PVR variant counts) pl
 per-`SourceVariantCode` row list with Source as column 1 and Variant dropped from view. Kept for
 history; not what got built — see § As-built.
 
-Originally seeded (079) for 146 of 223 evaluated `YogaCode`s, with a header comment claiming the
-other 77 lacked a coded predicate (61 as an "uncoded Raman 201–300 tail", 14 as
-`RamanYogaBatchEightEvaluator`'s "unsupported set"). Both counts went stale the same day: the
-Raman 201–300 tail was fully transcribed into new evaluators on 2026-09-17, and
-`RamanYogaBatchEightEvaluator`'s real unsupported set was always just 2 codes
-(`YOGA_SODARANASA`, `YOGA_EKABHAGINI`), not 14 — 079 was written without knowing that. Migration
-120 backfilled the resulting 84-code gap (see `tbl_Rule_Catalog.Purpose` for the current live
-count rather than a number here, so this paragraph can't go stale the same way again). Only
-`YOGA_VIDYA`/`YOGA_ARISHTA` (`NOT_EVALUATED`, no predicate exists) and the genuinely uncoded tail
-still read `NULL` for Type/Rule by design. A handful of `YogaCode`s cover more than one classical
-form (`YOGA_DARIDRA`, `YOGA_DHANA`, `YOGA_CHAPA`, `YOGA_DEHASTHOULYA`, …); their Rule text is a
-short summary of the family, not an exhaustive enumeration of every form — this is also why they
-need the deduplication described above.
+Originally seeded (079) for 146 of 223 evaluated `YogaCode`s; see § As-built above for the
+current, corrected coverage (079's own "146/223, 61-tail, 14-unsupported" claim went stale
+within a day — history in `db/120`'s header comment). A handful of `YogaCode`s cover more than
+one classical form (`YOGA_DARIDRA`, `YOGA_DHANA`, `YOGA_CHAPA`, `YOGA_DEHASTHOULYA`, …); their
+Rule text is a short summary of the family, not an exhaustive enumeration of every form — this
+is also why they need the deduplication described above.
 
 ## Rendering
 
 Plain HTML table (`YogaEvaluationTable.razor.css`'s `.yg-*` classes), shared brand tokens,
-`.yg-card-head` matching every other inline chart's card-head bar. No horizontal scroll — four
-columns, `Rule` wraps.
+`.yg-card-head` matching every other inline chart's card-head bar. No horizontal scroll — five
+columns, `Rule`/`Interpretation` wrap. The interpretation editor and its `ConfirmDialog` reuse
+the shared `EditIconButton`/`ConfirmDialog` components (`Components/Shared`), same pattern as
+`SavedCharts.razor`'s edit/delete flows, styled with their own `.yg-edit-*` classes.
 
 ## Verification
 
-`tests/Ikiastrro.Web.Tests` bUnit snapshot against a seeded person; no regression in `verify-*`
-(UI is read-only). Counts reconciled against the yoga engine's own CLI output.
+`tests/Ikiastrro.Web.Tests` — `YogaEvaluationTableTests` (bUnit): Notes/Lagna-lord render only
+when present, Interpretation resolves source-specific-then-generic, and the edit → confirm →
+save flow round-trips through `OnSaveInterpretation` without touching a repository (the
+component takes no DB dependency, so this is a pure presentational test). No regression in
+`verify-*` (evaluation itself is still read-only). Counts reconciled against the yoga engine's
+own CLI output.

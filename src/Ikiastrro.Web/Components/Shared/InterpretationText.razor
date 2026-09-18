@@ -1,0 +1,12 @@
+@* Reader-facing interpretation copy (db/080 tbl_Content_Interpretation via InterpretationRepository).
+   StandardText for desktop, ShortText for tablet/mobile — CSS-only breakpoint switch, no JS. *@
+@if (!string.IsNullOrWhiteSpace(StandardText) || !string.IsNullOrWhiteSpace(ShortText))
+{
+    <span class="interp-standard">@StandardText</span>
+    <span class="interp-short">@ShortText</span>
+}
+
+@code {
+    [Parameter] public string? StandardText { get; set; }
+    [Parameter] public string? ShortText { get; set; }
+}
