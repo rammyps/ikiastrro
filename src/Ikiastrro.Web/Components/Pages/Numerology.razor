@@ -1,0 +1,62 @@
+@page "/numerology/{Id:int}"
+@using Ikiastrro.Core.Numerology
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject ActivePerson Active
+
+@* Numerology tab — full spec docs/ui/components/numerology.md. Cheiro's name-number method
+   (Ikiastrro.Core.Numerology.CheiroNumerology), ported from the ikinumero prototype
+   (D:\@ChatGPT\ikinumero) into ikiastrro's own stack — no EF Core/SQLite brought in. Computed
+   live from the active person's saved Name; nothing persisted, since the result is fully
+   determined by Name every time. *@
+
+<PageTitle>@(_person?.Name ?? "Numerology") &middot; Numerology</PageTitle>
+
+@if (_person is null)
+{
+    <section class="num-unavailable" role="status">
+        <h1 class="num-heading">NUMEROLOGY</h1>
+        <p>No saved person found.</p>
+        <a href="/">Choose a saved person</a>
+    </section>
+}
+else
+{
+    <h1 class="num-heading">NUMEROLOGY</h1>
+
+    <MudPaper Class="num-card" Elevation="0">
+        <p class="num-name">@_result!.Name</p>
+        <div class="num-numbers">
+            <div class="num-total"><strong>@_result.CompoundTotal</strong><span>compound</span></div>
+            <MudIcon Icon="@Icons.Material.Filled.ArrowForward" />
+            <div class="num-root"><strong>@_result.RootNumber</strong><span>root number</span></div>
+        </div>
+        <div class="num-letters">
+            @foreach (var letter in _result.Letters)
+            {
+                <div class="num-letter-tile"><span>@letter.Letter</span><strong>@letter.Value</strong></div>
+            }
+        </div>
+        <p class="num-method">Cheiro's Chaldean method &middot; 9 unassigned</p>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private BirthDetails? _person;
+    private NumerologyResult? _result;
+
+    protected override void OnParametersSet()
+    {
+        _person = BirthDetailsRepo.GetById(Id);
+        if (_person is null)
+        {
+            Active.Clear();
+            return;
+        }
+
+        _result = CheiroNumerology.Calculate(_person.Name);
+        Active.Set(Id, _person.Name,
+            $"{_person.DateOfBirth:dd MMM yyyy} \u00b7 {_person.TimeOfBirth:HH\\:mm} \u00b7 {_person.PlaceCity}, {_person.PlaceCountry}");
+    }
+}

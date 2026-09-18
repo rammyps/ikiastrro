@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-14
+last_updated: 2026-09-19
 workstream: ui
 togaf: C — Application Architecture (UI)
 safe: Solution Intent — UX
@@ -33,6 +33,7 @@ recomputes.
 | [`components/yoga.md`](components/yoga.md) | Key Inference step 5 · Yogas — single deduplicated Type/Yoga/Rule/Interpretation/Source table, editable interpretation |
 | [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers (unchanged by the round-2 flow) |
 | [`components/chart-catalog.md`](components/chart-catalog.md) | **Chart-module catalogue** — every visual chart component (incl. `SouthIndianGrid_Detailed`, `Natal_Transit_Comp_WheelChart`), dasha module, UI table + helper, as `chart name / spec doc / linked files`; golden-snapshot flow + revert. Naming & versioning: [`../../project_standards.md`](../../project_standards.md) |
+| [`components/numerology.md`](components/numerology.md) | `/numerology/{id}` — Cheiro's name-number method, ported from the `ikinumero` prototype into ikiastrro's own stack (no EF Core/SQLite); computed live from the person's saved Name, nothing persisted |
 
 ## Screen inventory (live routes)
 
@@ -48,6 +49,7 @@ recomputes.
 | `/charts/{id}/evidence` | `AstrologerEvidence` | read-only evidence tables in reading order, chart selector | verified |
 | `/charts/{id}/life-weeks` | `LifeWeeks` | 4000-week grid coloured by Mahādaśā | verified — **retired in v2** |
 | `/transit-wheel/{id}` | `Natal_Transit_Comp_Wheel` | band heading `TRANSIT - D1 BIRTH CHART`, natal-transit wheel, two-tab **D1 Birth** / **Current Transit** table | See the [living specification](components/spec_Natal_Transit_Comp_Wheel.md) and `FEAT-UI-13` |
+| `/numerology/{id}` | `Numerology` | Cheiro's compound total + root number for the person's saved Name, per-letter value tiles | **v2 built** — [`components/numerology.md`](components/numerology.md) |
 
 **v2 route targets** (`/key-inference/{id}` built, see [`components/key-inference.md`](components/key-inference.md)
 for the as-built step order — D1/Transit · About · Strength · Spl Lagnas · Yogas · Vargas, plus
@@ -59,11 +61,13 @@ Retired in v2: `/add`, `/charts/{id}/evidence`, `/charts/{id}/varga/{code}`, the
 ## Navigation
 
 Shared MudBlazor header (`MudAppBar`) spans the viewport in three zones. **`HOME`** and the
-per-person **`ALL / CHARTS` · `KEY / INFERENCE`** pills sit left; those person tabs are hidden
-until a person is open. The compact **Iki-Astrro | Where Passion, Purpose & Planets Align.**
-lockup stays centred. **`SAVED / CHARTS`** is always pinned at the extreme right. All header
-tabs use the shared filled-pill grammar; the active header tab uses midnight fill for contrast
-on the sunset bar. Person name in the band opens the saved-person switcher.
+per-person **`ALL / CHARTS`** · **`KEY / INFERENCE`** · **`NUMEROLOGY`** pills sit left; those
+person tabs are hidden until a person is open. `NUMEROLOGY` is a single word, so — like `HOME`
+— it renders as plain text rather than the two-word stacked-span pill the other two use. The
+compact **Iki-Astrro | Where Passion, Purpose & Planets Align.** lockup stays centred.
+**`SAVED / CHARTS`** is always pinned at the extreme right. All header tabs use the shared
+filled-pill grammar; the active header tab uses midnight fill for contrast on the sunset bar.
+Person name in the band opens the saved-person switcher.
 
 ## Non-functional requirements (UI)
 

@@ -23,9 +23,13 @@
             {
                 <nav class="ik-tabs" aria-label="Person sections">
                     @* ALL CHARTS is the divisional-chart gallery. Karakas and special Lagna
-                       interpretation now live together as Step 4 inside KEY INFERENCE. *@
+                       interpretation now live together as Step 4 inside KEY INFERENCE. NUMEROLOGY
+                       (docs/ui/components/numerology.md) is Cheiro's name-number method, computed
+                       live from the person's saved Name — no sub-steps, so it's plain text like
+                       HOME rather than the two-word stacked-span pill. *@
                     <a href="@($"/charts/{personId}")" class="ik-headtab @TabClass("charts")"><span>ALL</span> <span>CHARTS</span></a>
                     <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinf")"><span>KEY</span> <span>INFERENCE</span></a>
+                    <a href="@($"/numerology/{personId}")" class="ik-headtab @TabClass("numerology")">NUMEROLOGY</a>
                 </nav>
             }
         </div>
@@ -155,6 +159,7 @@
             "charts"  => p.StartsWith("/charts", StringComparison.Ordinal)
                          && !p.Contains("/timing", StringComparison.Ordinal)
                          && !p.Contains("/key-inference", StringComparison.Ordinal),
+            "numerology" => p.StartsWith("/numerology", StringComparison.Ordinal),
             _ => false
         };
         return here ? "is-here" : "";
