@@ -4,4 +4,5 @@ namespace Ikiastrro.Core.Models;
 /// nakshatra with their rasi and navamsa sign. 27 nakshatras x 4 = 108 rows. Read-only.</summary>
 public record NakshatraPadaReference(
     int Id, byte NakshatraId, byte PadaNumber, decimal StartDegree, decimal EndDegree,
-    byte RasiId, byte NavamsaSignId, byte? RulingPlanetId);
+    byte RasiId, byte NavamsaSignId, byte? RulingPlanetId,
+    byte? NakPadaLord, byte? NakPadaSubLord);
