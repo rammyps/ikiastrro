@@ -316,6 +316,13 @@ source risked exactly the kind of subtle, silently-wrong data this project has c
 schemes it works through) — still needs its own named source. Structure is ready for all four;
 populate via an `UPDATE` once a specific source is picked and cross-checked.
 
+**Added 2026-09-18 (migration 118), deliberately un-sourced:** `tbl_Nakshatras.TamilName`, populated
+for the 15 of 27 nakshatras whose Tamil panchangam name differs materially from the Sanskrit name
+already in `NakshatraName` (the other 12 use the Sanskrit name as-is in Tamil). Unlike Gana/Yoni/Nadi
+above, rammyps supplied this list directly with no cited book/source, so — unlike the rest of this
+table — it's tracked as informal display data, not a sourced classical attribute pinned to
+`tbl_Dim_Source`.
+
 > **Sourcing status (reviewed 2026-08-30, `../../cli/gap-and-coverage.md`):** the vendored computation
 > libraries under `_research/` do **not** close this gap — these are *descriptive /
 > compatibility* attributes (Gana, Nadi, Yoni, Varna, RisingType…), not computed quantities,
