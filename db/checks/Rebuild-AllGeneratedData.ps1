@@ -43,7 +43,7 @@ if ($Confirm) {
 
 & dotnet run --project $cliProject -- rebuild-all
 if ($LASTEXITCODE -ne 0) {
-    throw "rebuild-all exited with code $LASTEXITCODE — one or more people failed to rebuild."
+    throw "rebuild-all exited with code $LASTEXITCODE - one or more people failed to rebuild."
 }
 
 Write-Host "Rebuild complete." -ForegroundColor Green
