@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-17
+last_updated: 2026-09-18
 workstream: ui
 component: YogaEvaluationTable
 route: /key-inference/{id} — step 5 · Yogas
@@ -52,13 +52,19 @@ summary table (Present/Absent/Not-evaluated counts, Raman/PVR variant counts) pl
 per-`SourceVariantCode` row list with Source as column 1 and Variant dropped from view. Kept for
 history; not what got built — see § As-built.
 
-Seeded for **146 of the 223** evaluated `YogaCode`s — every Type/Rule value transcribed from the
-actual coded predicate, never freehand recall. The other 77 read `NULL` for Type/Rule by design:
-61 are the uncoded Raman 201–300 tail, 14 are `RamanYogaBatchEightEvaluator`'s explicit
-unsupported set, and `YOGA_VIDYA`/`YOGA_ARISHTA` are `NOT_EVALUATED`. A handful of `YogaCode`s
-cover more than one classical form (`YOGA_DARIDRA`, `YOGA_DHANA`, `YOGA_CHAPA`,
-`YOGA_DEHASTHOULYA`, …); their Rule text is a short summary of the family, not an exhaustive
-enumeration of every form — this is also why they need the deduplication described above.
+Originally seeded (079) for 146 of 223 evaluated `YogaCode`s, with a header comment claiming the
+other 77 lacked a coded predicate (61 as an "uncoded Raman 201–300 tail", 14 as
+`RamanYogaBatchEightEvaluator`'s "unsupported set"). Both counts went stale the same day: the
+Raman 201–300 tail was fully transcribed into new evaluators on 2026-09-17, and
+`RamanYogaBatchEightEvaluator`'s real unsupported set was always just 2 codes
+(`YOGA_SODARANASA`, `YOGA_EKABHAGINI`), not 14 — 079 was written without knowing that. Migration
+120 backfilled the resulting 84-code gap (see `tbl_Rule_Catalog.Purpose` for the current live
+count rather than a number here, so this paragraph can't go stale the same way again). Only
+`YOGA_VIDYA`/`YOGA_ARISHTA` (`NOT_EVALUATED`, no predicate exists) and the genuinely uncoded tail
+still read `NULL` for Type/Rule by design. A handful of `YogaCode`s cover more than one classical
+form (`YOGA_DARIDRA`, `YOGA_DHANA`, `YOGA_CHAPA`, `YOGA_DEHASTHOULYA`, …); their Rule text is a
+short summary of the family, not an exhaustive enumeration of every form — this is also why they
+need the deduplication described above.
 
 ## Rendering
 
