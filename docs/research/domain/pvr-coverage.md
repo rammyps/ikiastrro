@@ -47,7 +47,7 @@ unverified against the book · **diverges** = built but deliberately differs (se
 | Part | Chapters | Project state | Note |
 |---|---|---|---|
 | 2 — Dasa Analysis | 16 Vimsottari ✓ · 17 Ashtottari · 18 Narayana · 19 Lagna Kendradi Rasi · 20 Sudasa · 21 Drigdasa · 22 Niryaana Shoola · 23 Shoola · 24 Kalachakra | only **Vimsottari** built (`VimshottariDashaCalculator`, 3-level) | ch 17–24 not built; Narayana = "most versatile rasi dasa" per PVR |
-| 3 — Transit Analysis | 25 Transits & natal references · 26 miscellaneous | `tbl_PlanetSignTransitEvents` + Gochara panel (Sa/Ju/Ra sign-ingress log) — **partial** | §25 techniques (vedha, murti, argala on transits) not built |
+| 3 — Transit Analysis | 25 Transits & natal references · 26 miscellaneous | `tbl_PlanetSignTransitEvents` + Gochara panel (Sa/Ju/Ra sign-ingress log) — **partial**. Ch. 26.3 Table 63 (Rasi Gochara Vedha) transcribed for reference: [`gochara-vedha-pvr.md`](gochara-vedha-pvr.md) (2026-09-18) | §25 techniques (murti, argala on transits) still not built; Table 63 is reference-only, no `tbl_Rule_GocharaVedha`/engine yet |
 | 4 — Tajaka Analysis | 27–31 (varshaphala, muntha, tajaka yogas, patyayini/mudda dasa, sudarsana chakra) | **not built** | whole part |
 | 5 — Special Topics | 32 Impact of Birthtime Error · 33 Rational Thinking · 34 Remedial Measures · 35 Mundane · 36 Muhurta · 37 Ethics | **not built** | §32 (birthtime rectification) is the one with engine implications |
 | 6 — Real-life Examples | worked charts | — | use as an additional `verify-*` corpus alongside the JHora Ramakrishnan export |
@@ -174,3 +174,11 @@ _(append one line per chapter as it is reconciled: date · chapter · what chang
   B.V.-Raman-sourced list already in `LifeAreaMap.cs`. No migration written; decisions on
   table shape (new purpose-built table vs. more 087 rows) and the D-40/D-45 sourcing
   question are open.
+
+- 2026-09-18 — Ch 26.3 (Transit Analysis, Part 3), reference capture only, no migration:
+  a pasted Vedha (transit-obstruction) table was checked against Naisargika Karaka — confirmed
+  unrelated (static significator assignment vs. dynamic transit technique) and confirmed the
+  pasted numbers were not PVR's own (a different, OCR-garbled, unidentified source). Transcribed
+  PVR's real Table 63 (Vedha Sthaanas, pg 347–348) instead, into
+  [`gochara-vedha-pvr.md`](gochara-vedha-pvr.md). No Sun or Rahu/Ketu row exists in the extract
+  for this table — flagged as a gap, not filled by guess.
