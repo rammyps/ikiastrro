@@ -29,7 +29,7 @@ public class DatabaseMaintenanceService
             UseShellExecute = false,
             CreateNoWindow = true,
         };
-        foreach (var arg in new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath, "-Confirm:$false" })
+        foreach (var arg in new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath, "-Force" })
             psi.ArgumentList.Add(arg);
 
         using var process = Process.Start(psi)

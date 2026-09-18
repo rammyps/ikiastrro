@@ -11,18 +11,21 @@
 .PARAMETER Database
     Database name. Defaults to ikiastrro.
 
-.PARAMETER Confirm
-    Pass -Confirm:$false to skip the interactive y/n prompt (e.g. for CI/automation).
+.PARAMETER Force
+    Pass -Force to skip the interactive y/n prompt (e.g. for CI/automation). A plain [bool]
+    parameter can't be used here because arguments passed via `powershell.exe -File` are never
+    evaluated as PowerShell expressions, so a literal "$false" arrives as the string "$false"
+    rather than the boolean $false.
 
 .EXAMPLE
     .\Reset-AllTransactionalData.ps1
-    .\Reset-AllTransactionalData.ps1 -Confirm:$false
+    .\Reset-AllTransactionalData.ps1 -Force
 #>
 [CmdletBinding(SupportsShouldProcess = $false)]
 param(
     [string]$Server = 'localhost\SQLSERVER2025',
     [string]$Database = 'ikiastrro',
-    [bool]$Confirm = $true
+    [switch]$Force
 )
 
 $ErrorActionPreference = 'Stop'
@@ -39,7 +42,7 @@ if (-not (Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
 Write-Host "About to clear ALL people, chart results, chart analytics, and fact data in [$Database] on [$Server]." -ForegroundColor Yellow
 Write-Host "Reference/rule/dimension seed tables are NOT touched." -ForegroundColor Yellow
 
-if ($Confirm) {
+if (-not $Force) {
     $answer = Read-Host "Type YES to proceed"
     if ($answer -ne 'YES') {
         Write-Host "Aborted. No changes made." -ForegroundColor Cyan

@@ -10,17 +10,19 @@
     `dotnet run --project src/Ikiastrro.Cli -- rebuild-all` command. This script does not touch
     SQL directly and does not duplicate any calculation logic.
 
-.PARAMETER Confirm
-    Pass -Confirm:$false to skip the interactive y/n prompt (e.g. for CI/automation, or when
-    called from DatabaseMaintenanceService).
+.PARAMETER Force
+    Pass -Force to skip the interactive y/n prompt (e.g. for CI/automation, or when called from
+    DatabaseMaintenanceService). A plain [bool] parameter can't be used here because arguments
+    passed via `powershell.exe -File` are never evaluated as PowerShell expressions, so a literal
+    "$false" arrives as the string "$false" rather than the boolean $false.
 
 .EXAMPLE
     .\Rebuild-AllGeneratedData.ps1
-    .\Rebuild-AllGeneratedData.ps1 -Confirm:$false
+    .\Rebuild-AllGeneratedData.ps1 -Force
 #>
 [CmdletBinding(SupportsShouldProcess = $false)]
 param(
-    [bool]$Confirm = $true
+    [switch]$Force
 )
 
 $ErrorActionPreference = 'Stop'
@@ -33,7 +35,7 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
 
 Write-Host "About to force-recalculate ALL saved people's charts and Dasha (existing results are overwritten)." -ForegroundColor Yellow
 
-if ($Confirm) {
+if (-not $Force) {
     $answer = Read-Host "Type YES to proceed"
     if ($answer -ne 'YES') {
         Write-Host "Aborted. No changes made." -ForegroundColor Cyan
