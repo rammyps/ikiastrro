@@ -51,12 +51,54 @@ public static class ArgalaCalculator
     private static readonly (int Offset, bool IsPrimary)[] VirodhargalaOffsets =
         { (12, true), (10, true), (3, true), (9, false) };
 
-    /// <summary>Natural (naisargika) malefics — Sun, Mars, Saturn, Rahu, Ketu — used for the
-    /// subhaargala/paapaargala read and the 3rd-house exception. Moon and Mercury are always
-    /// treated as benefic here, the same simplification LagnaFunctionalNature.NaturalBenefics
-    /// already makes (waxing/waning Moon and conjunction-dependent Mercury are not modelled).</summary>
-    public static readonly IReadOnlySet<PlanetName> NaturalMalefics = new HashSet<PlanetName>
-        { PlanetName.Sun, PlanetName.Mars, PlanetName.Saturn, PlanetName.Rahu, PlanetName.Ketu };
+    /// <summary>
+    /// Natural (naisargika) benefic/malefic status, matching tbl_Planets.NaturalNature: Sun,
+    /// Mars, Saturn, Rahu, Ketu are always Malefic; Jupiter, Venus always Benefic; Moon and
+    /// Mercury are Conditional (tbl_Planets.ConditionalRule) and are resolved here from the
+    /// chart itself, at the same whole-sign granularity the rest of this calculator uses:
+    ///   - Moon: malefic when waning (Krishna Paksha) — more than 6 signs ahead of the Sun
+    ///     (past the Full Moon point). A whole-sign approximation of a longitude-based rule,
+    ///     since this calculator never sees exact degrees.
+    ///   - Mercury: malefic when conjunct (same sign as) a fixed natural malefic — a
+    ///     conjunction-only reading of "afflicted" (tbl_Planets' own text also covers aspects,
+    ///     which this calculator has no input for).
+    /// If the Sun or Moon isn't present in <paramref name="occupancy"/> (an incomplete/synthetic
+    /// chart), Moon falls back to benefic — the prior simplification's default.
+    /// </summary>
+    public static bool IsNaturalMalefic(
+        PlanetName planet, IReadOnlyDictionary<ZodiacName, IReadOnlyList<PlanetName>> occupancy) =>
+        planet switch
+        {
+            PlanetName.Sun or PlanetName.Mars or PlanetName.Saturn or PlanetName.Rahu or PlanetName.Ketu => true,
+            PlanetName.Jupiter or PlanetName.Venus => false,
+            PlanetName.Moon => IsWaningMoon(occupancy),
+            PlanetName.Mercury => IsMercuryAfflicted(occupancy),
+            _ => throw new ArgumentOutOfRangeException(nameof(planet))
+        };
+
+    private static bool IsWaningMoon(IReadOnlyDictionary<ZodiacName, IReadOnlyList<PlanetName>> occupancy)
+    {
+        var sunSign = FindSign(PlanetName.Sun, occupancy);
+        var moonSign = FindSign(PlanetName.Moon, occupancy);
+        if (sunSign is null || moonSign is null) return false;
+        return AstroMath.CountFromSignToSign(sunSign.Value, moonSign.Value) > 6;
+    }
+
+    private static bool IsMercuryAfflicted(IReadOnlyDictionary<ZodiacName, IReadOnlyList<PlanetName>> occupancy)
+    {
+        var mercurySign = FindSign(PlanetName.Mercury, occupancy);
+        if (mercurySign is null) return false;
+        return occupancy[mercurySign.Value].Any(p =>
+            p is PlanetName.Sun or PlanetName.Mars or PlanetName.Saturn or PlanetName.Rahu or PlanetName.Ketu);
+    }
+
+    private static ZodiacName? FindSign(
+        PlanetName planet, IReadOnlyDictionary<ZodiacName, IReadOnlyList<PlanetName>> occupancy)
+    {
+        foreach (var (sign, occupants) in occupancy)
+            if (occupants.Contains(planet)) return sign;
+        return null;
+    }
 
     /// <summary>Convenience overload for a house-number target (the common case; PVR's karaka-sign
     /// usage calls <see cref="Evaluate(ZodiacName,IReadOnlyDictionary{ZodiacName,IReadOnlyList{PlanetName}})"/> directly).</summary>
@@ -80,7 +122,7 @@ public static class ArgalaCalculator
             .ToList();
 
         var thirdPosition = virodhargala.Single(p => p.Position.HouseOffset == 3);
-        var maleficCount = thirdPosition.Occupants.Count(NaturalMalefics.Contains);
+        var maleficCount = thirdPosition.Occupants.Count(p => IsNaturalMalefic(p, occupancy));
         var exceptionApplies = maleficCount >= 2;
         if (exceptionApplies)
         {

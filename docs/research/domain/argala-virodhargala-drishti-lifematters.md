@@ -203,13 +203,29 @@ against the chart's actual positions — all 6 rows correct. 4–6 exception row
 `ArgalaFactBuilderTests` (4 tests, `tests/Ikiastrro.Web.Tests/`) cover the flattening logic,
 including that targeting by a planet and by the house it occupies produce identical results.
 
-**Noted in passing, not acted on:** `tbl_Planets.NaturalNature` already carries a sourced
-Benefic/Malefic/Conditional classification (Moon and Mercury are `Conditional`, not flatly
-Benefic) — more precise than `ArgalaCalculator.NaturalMalefics`' simplification (Moon/Mercury
-always benefic, matching `LagnaFunctionalNature`'s same simplification). Resolving "Conditional"
-needs paksha (Moon) and conjunction data (Mercury) that `ArgalaCalculator` doesn't take as input
-today — a real follow-up if better precision is wanted, not done here to keep this build's scope
-to what was asked.
+**Moon/Mercury Conditional nature resolved, same day (follow-up closed):**
+`ArgalaCalculator.NaturalMalefics` (the static 5-planet set) was replaced with
+`IsNaturalMalefic(planet, occupancy)`, matching `tbl_Planets.NaturalNature`'s
+Benefic/Malefic/**Conditional** classification instead of the old always-benefic Moon/Mercury
+simplification:
+- **Moon** — malefic when waning (Krishna Paksha), approximated at whole-sign granularity as
+  more than 6 signs ahead of the Sun (past the Full Moon point) — this calculator only ever sees
+  sign-level occupancy, not exact longitudes. Falls back to benefic if the Sun isn't in the
+  occupancy map (an incomplete/synthetic chart).
+- **Mercury** — malefic when conjunct (same sign as) a fixed natural malefic — a conjunction-only
+  reading of `tbl_Planets.ConditionalRule`'s "unafflicted / conjunct benefics" (its own text also
+  covers aspects, which this calculator has no input for). Falls back to benefic if Mercury isn't
+  placed.
+
+9 new tests (`ArgalaNaturalMaleficTests.cs`) cover the fixed planets, both Moon phases, the
+same-sign boundary case, Mercury conjunct a malefic vs. alone vs. conjunct only benefics, both
+missing-input fallbacks, and an end-to-end case showing the sec.10.6 exception can now fire via
+a waning Moon (previously impossible under the always-benefic simplification). Re-ran
+`backfill-argala` against the 3 real dev charts — same row/exception counts as before (no 3rd
+position in those particular charts happened to flip), but spot-checking confirmed Mercury's
+Conditional status is applied consistently within a chart: malefic at every appearance in chart
+197, benefic at every appearance in chart 241 (its conjunct/alone status is chart-wide, not
+per-position, as expected). Full Argala test set now 28/28.
 
 1. ~~Pin an exact PVR page/section~~ **Resolved 2026-09-19** — §10.5–10.6, pp.104–107.
 2. ~~Decide the occupant-strength scoring approach~~ **Resolved 2026-09-19** — count-first
