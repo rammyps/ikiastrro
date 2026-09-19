@@ -35,7 +35,7 @@ unverified against the book · **diverges** = built but deliberately differs (se
 | 7 | Houses (67) — §7.2 significations, §7.3 references, §7.4 special categories | **migration 31:** `tbl_Dim_House` (12-bhava master — Sanskrit name, purushartha §7.4.1, visible/invisible half §7.4.5, Kala Purusha limb §7.2, the 7 §7.4 category bits + `IsMaraka`); `tbl_Dim_HouseCategory` (8 — kendra/trikona/panaphara/apoklima/upachaya/dusthana/chaturasra + maraka, §7.4.6 effect + deity); `tbl_Rule_HouseSignification` **populated** (121 rows from §7.2, RuleSetId 1, `SRC_PVR_INTEGRATED`; + `SignificationText`/`SignificationCategory`/`DisplayOrder`, `RuleSetId` INT→TINYINT+FK); `tbl_Dim_HouseAttribute`(3)/`tbl_Rule_HouseAttribute`(24 — `GENERAL_CHARACTER` + `CATEGORY_EFFECT`) mirror the graha attribute pair (migr. 26); taxonomy `Category 'HouseCategory'` + 8 `HCAT_*` + 4 `PURUSHARTHA_*` + 2 `ZHALF_*` concepts (sa/en, addendum). **migration 32:** `tbl_Dim_HouseReference` (17 — Lagna, Chandra/Ravi/Paaka/Arudha/Karakamsa lagnas, Ghati/Hora/Bhaava/Sree lagnas, 7 graha lagnas; each with its §7.3 "perspective" + basis + Saturn-transit note); `tbl_Rule_HouseReferenceMatter` (§7.3.9 Table 12, RuleSetId 1); **empty `tbl_Fact_HouseFromReference`** (narrow star-schema — new reference = a dim row, no schema change; `tbl_Chart_KeyDetails.HouseNumberFrom{Lagna,Sun,Moon}` unchanged); `tbl_Rule_HouseAttribute` += 14 `NATURAL_SIGNIFICATOR` rows (house→Table 12 karaka); taxonomy `Category 'HouseReference'` + 6 `HREF_*` + `HREF_GRAHA_LAGNA` (sa/en). `reference-house-lagna-significations.md` (Raman) kept as a cross-check | §7.2/§7.3/§7.4 modelled (migr. 31–32) | fold the migr. 29–32 taxonomy addenda into `TerminologySeed.cs`; build the C# engine that fills `tbl_Fact_HouseFromReference` (house-of-subject-from-reference); reconcile `LifeAreaMap.cs` house lists against `tbl_Dim_House` / `WorkspaceGroupCode` when the UI piece starts; §7.5 whole-sign controversy needs no DB |
 | 8 | Karakas (79) — chara, sthira, naisargika | `CharaKarakaCalculator` (Ashta) ✓; `tbl_Rule_Karaka` **reserved / empty**; **naisargika seeded** — migration 086: `tbl_Rule_Naisargika_Karakatwas` (34, full grid) + `tbl_Rule_Naisargika_Karakas` (12, primary per-house reduction), dedicated tables (not `tbl_Rule_Karaka`); Sthira still hard-coded in `LifeAreaMap` (different source, B.V. Raman, unreconciled) | partial | populate `tbl_Rule_Karaka` (chara/sthira) or fold sthira into its own dedicated table on the naisargika pattern; build a Naisargika karaka read engine (Plan 2) |
 | 9 | Arudha Padas (85) — AL, bhava arudhas, graha arudhas | `ArudhaCalculator` — AL + 12 bhava arudhas ✓ | partial | reconcile vs §9 (exception rules for the 1st/7th, same-sign/opposite); check whether graha arudhas are wanted |
-| 10 | Aspects & Argalas (100) — graha drishti, rasi drishti, argala | `tbl_Rule_AspectOffset` (graha drishti) ✓; `RasiDrishtiCalculator` + `tbl_Rule_RasiDrishti` (migration 107, 2026-09-17) ✓; **argala + virodha-argala not built** | partial | build argala + virodha-argala per §10 — design sketch in [`argala-virodhargala-drishti-lifematters.md`](argala-virodhargala-drishti-lifematters.md) |
+| 10 | Aspects & Argalas (100) — graha drishti, rasi drishti, argala | `tbl_Rule_AspectOffset` (graha drishti) ✓; `RasiDrishtiCalculator` + `tbl_Rule_RasiDrishti` (migration 107, 2026-09-17) ✓; **argala + virodhargala built 2026-09-19** — `ArgalaCalculator` + `tbl_Rule_Argala` (migration 127) + `tbl_Fact_Argala` (migration 128) + `ArgalaFactBuilder`/`ArgalaFactRepository` + `backfill-argala` CLI mode, verified against Exercise 16/Chart 5 (`ArgalaCalculatorTests`/`ArgalaFactBuilderTests`, 12/12 pass) and hand-checked against real saved-chart data | aligned (engine + DB, rule + fact layers, backfillable); **not yet wired into `ChartGenerationService`** (the live chart-generation/recompute pipeline) or the UI | see [`argala-virodhargala-drishti-lifematters.md`](argala-virodhargala-drishti-lifematters.md) §4 + Status section; next step is a `ChartGenerationService`/UI consumer, not the engine or fact layer |
 | 11 | Yogas (p.112) — §11.2–11.10, ~98 named yogas + 59 unnamed numbered combinations (Raja-Advanced/Raja-Sambandha/Dhana/Daridra) | `tbl_Rule_Yoga` (146 of 223 tracked `YogaCode`s have a real coded predicate — `db/079_add_yoga_type_and_rule.sql`, predates the P0 closure below); `SourceAttributedYogaEngine` / `VerifiedSourceYogaEngine` / `RamanYogaBatch*Evaluator` / `RamanNabhasa*BatchEvaluator` / **`PvrChapter11YogaEvaluator`** (2026-09-17, the 9 P0 gap yogas) / **`PvrChapter11NumberedYogaEvaluator`** (2026-09-17, all 59 numbered combinations) (`src/Ikiastrro.Core/Engines/Yoga/`) | near-complete — **~96/98 (~98%) of PVR's named yogas covered**, **59/59 numbered combinations transcribed** (58 coded, 1 `NOT_EVALUATED` — §11.10 item 10's Ashtakavarga forward-reference) | remaining gap list + action plan: `../yoga-corpus.md` (only the 4 P1 identity/alias cases remain) |
 | 12 | Ashtakavarga (145) | **not built**; `_research/jyotishganit` supplies the algorithm | not built | build BAV/SAV + reductions per §12 |
 | 13 | Interpreting Charts (166) — synthesis method | `../../cli/reading/method.md` (partial) | partial | reconcile the reading method against §13 |
@@ -182,3 +182,32 @@ _(append one line per chapter as it is reconciled: date · chapter · what chang
   PVR's real Table 63 (Vedha Sthaanas, pg 347–348) instead, into
   [`gochara-vedha-pvr.md`](gochara-vedha-pvr.md). No Sun or Rahu/Ketu row exists in the extract
   for this table — flagged as a gap, not filled by guess.
+
+- 2026-09-19 — Ch 10 (Argalas): built end to end. Pinned the citation (§10.5–10.6, pp.104–107)
+  and transcribed the position rule table + Exercise 16's worked answer for Chart 5 (pp.110–111)
+  into `argala-virodhargala-drishti-lifematters.md` §4 — the book's own OCR'd answer-key grid was
+  too scrambled to transcribe verbatim, so Chart 5's positions were reconstructed instead from
+  Exercise 14's (graha-dṛṣṭi) answer table plus the explicit "Ketu is in Aq" note, then
+  cross-checked against the still-legible OCR rows for houses 1, 4, 10, 11, 12 (exact match,
+  including the 3rd-house malefic exception on house 11). Resolved the two remaining open design
+  questions (occupant-strength comparator, target shape) and built `ArgalaCalculator.cs`
+  (`src/Ikiastrro.Core/Engines/Houses/`) + `db/127_create_rule_argala.sql` (`tbl_Rule_Argala`, 8
+  rows) + `ArgalaCalculatorTests.cs` (8/8 pass, Exercise 16/Chart 5 fixture). `verify-rules`
+  clean (no new failures); full `Ikiastrro.Web.Tests` suite 414/416 (the 2 failures are the
+  pre-existing unrelated `PolarGridLagnaSelectTests`). Not yet wired into the chart-analysis
+  pipeline or UI — the calculator is a standalone, tested primitive with no caller yet.
+
+- 2026-09-19 — Ch 10 (Argalas), same day, fact layer: added `tbl_Fact_Argala` (migration 128,
+  not cataloged in `tbl_Rule_Catalog` — that's `tbl_Rule_*`-only, `tbl_Fact_HouseFromReference`
+  migration 32 sets the precedent), `ArgalaFactBuilder.cs` (flattens `ArgalaCalculator` into fact
+  rows for all 12 houses + all 9 grahas' own signs), `ArgalaFactRepository.cs` (Dapper
+  delete-then-reinsert, `BhavaStrengthRepository` pattern), and a `backfill-argala` CLI mode
+  (reads `tbl_Chart_KeyDetails` Graha rows per D1 chart — standalone, not yet threaded through
+  `ChartGenerationService`). Ran against the 3 real D1 charts in dev: 120/104/124 rows written
+  (72 house rows each, an exact-match sanity invariant: 9 placed grahas × 8 positions). Chart
+  197's house-1 rows (Lagna Cancer) hand-verified against its actual positions, all 6 correct;
+  4–6 sec.10.6 exception rows fired per chart on real data. `ArgalaFactBuilderTests.cs` (4 tests)
+  added, full Argala test set 12/12. In passing, found `tbl_Planets.NaturalNature` already
+  carries a more precise sourced Benefic/Malefic/**Conditional** classification (Moon, Mercury)
+  than `ArgalaCalculator`'s always-benefic simplification for those two — noted as a real
+  follow-up, not acted on (needs paksha/conjunction inputs the calculator doesn't take today).

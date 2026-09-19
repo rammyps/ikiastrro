@@ -2292,6 +2292,45 @@ if (args.Length > 0 && args[0] == "backfill-charts")
     return;
 }
 
+// --- One-off backfill mode: `dotnet run -- backfill-argala` ---
+// Computes ArgalaCalculator's Argala/Virodhargala results (PVR sec.10.5-10.6) for every saved
+// D1 chart's 12 houses (Exercise 16's own scope) plus the 9 grahas' own occupied signs (PVR's
+// other worked-example usage, sec.10.7), and persists them to tbl_Fact_Argala (migration 128).
+// Standalone, delete-then-reinsert per chart — like recompute-keydetails/backfill-charts above,
+// but NOT yet threaded through ChartGenerationService, so it has to be re-run by hand after new
+// charts are added; see argala-virodhargala-drishti-lifematters.md's "not yet wired into the
+// pipeline" note for that still-open follow-up.
+if (args.Length > 0 && args[0] == "backfill-argala")
+{
+    var argalaFactRepo = new ArgalaFactRepository(connectionFactory);
+    var activeRuleSetId = new RuleSetRepository(connectionFactory).GetActive().Id;
+    using var argalaConn = connectionFactory.CreateOpenConnection();
+
+    var d1Charts = argalaConn.Query<(int ChartResultId, int? ChartTypeId)>(
+        "SELECT Id, ChartTypeId FROM dbo.tbl_ChartResults WHERE ChartType = 'D1'").ToList();
+
+    Console.WriteLine($"backfill-argala: {d1Charts.Count} D1 chart(s) found.");
+    foreach (var (chartResultId, chartTypeId) in d1Charts)
+    {
+        var positions = argalaConn.Query<(string Planet, string Sign)>(
+            "SELECT Planet, Sign FROM dbo.tbl_Chart_KeyDetails WHERE ChartResultId = @ChartResultId AND PointKind = 'Graha'",
+            new { ChartResultId = chartResultId }).ToList();
+
+        var ascendantSign = Enum.Parse<ZodiacName>(positions.Single(p => p.Planet == "Ascendant").Sign);
+        var occupancy = positions.Where(p => p.Planet != "Ascendant")
+            .GroupBy(p => Enum.Parse<ZodiacName>(p.Sign))
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<PlanetName>)g.Select(p => Enum.Parse<PlanetName>(p.Planet)).ToList());
+
+        var facts = ArgalaFactBuilder.BuildForHouses(ascendantSign, occupancy);
+        facts.AddRange(ArgalaFactBuilder.BuildForPlanets(ascendantSign, occupancy));
+
+        argalaFactRepo.DeleteForChart(chartResultId, chartTypeId);
+        argalaFactRepo.InsertAll(chartResultId, activeRuleSetId, chartTypeId, facts);
+        Console.WriteLine($"  ChartResultId {chartResultId}: {facts.Count} fact rows written.");
+    }
+    return;
+}
+
 // --- One-off mode: `dotnet run -- rebuild-all` ---
 // Force-regenerates every registered chart type + Vimshottari Dasha for every saved person,
 // even ones already built (unlike backfill-charts, which only fills gaps). Backs the "RECALCULATE"

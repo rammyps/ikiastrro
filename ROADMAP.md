@@ -52,7 +52,13 @@ Scoped, not started. Ordering set at the next ICE pass.
   dispositor — sign lord — and that dispositor's house/sign/dignity), but chains (dispositor
   of the dispositor, n-deep), final-dispositor resolution, and mutual reception detection are
   still not built
-- **Compound Maitrī, argala, sambandha** · `FEAT-RELATIONSHIP-04`
+- **Compound Maitrī, sambandha** · `FEAT-RELATIONSHIP-04` — argala/virodhargala split out and
+  built 2026-09-19: rule layer (`ArgalaCalculator` + `tbl_Rule_Argala`, migration 127) and fact
+  layer (`tbl_Fact_Argala` migration 128 + `ArgalaFactBuilder`/`ArgalaFactRepository` +
+  `backfill-argala` CLI mode, backfilled against the 3 real dev D1 charts) both done; still not
+  wired into `ChartGenerationService` (the live pipeline) or the UI. Compound Maitrī data exists
+  (`tbl_Rule_CompoundRelationship`, migration 24) but `DignityEngine.CombineToPanchadha` still
+  doesn't read it (see dignity-pvr.md); sambandha not started
 
 ## Later
 
