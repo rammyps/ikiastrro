@@ -227,6 +227,27 @@ Conditional status is applied consistently within a chart: malefic at every appe
 197, benefic at every appearance in chart 241 (its conjunct/alone status is chart-wide, not
 per-position, as expected). Full Argala test set now 28/28.
 
+**`SignificanceNote` column added, same day:** `tbl_Rule_Argala` (migration 129) gains a
+`SignificanceNote NVARCHAR(500)` column — PVR's own gloss on what each argala position signifies
+(§10.7 "Use of Argala," pp.106–107), distinct from `CalculationNarrative` (which elsewhere in
+this schema documents *how* a value is derived, not its classical interpretive meaning).
+Populated for the 4 `ARGALA` rows only — PVR gives no parallel per-house-of-origin meaning for
+the 4 `VIRODHARGALA` rows in this section, so those stay `NULL` rather than inventing text:
+
+| HouseOffset | SignificanceNote |
+|---|---|
+| 2 | Shows the basic ingredient for the sustenance of a matter. E.g. the 2nd house shows food, a basic ingredient for the sustenance of self (1st); the 5th house shows intelligence, a basic ingredient for the sustenance of learning (4th). |
+| 4 | Shows the basic factor that drives the mood, state and progress of a matter. E.g. the 4th house shows comfort and drives the mood and state of self (1st); the 7th house shows interaction and drives one's learning (4th). |
+| 11 | Shows the catalyst that can result in gains for a matter. E.g. the 2nd house shows character, grooming and samskara, a catalyst in the process of learning (4th). |
+| 5 | Secondary argala - shows additional contributing factors. E.g. the 5th house shows emotional situation, contributing to the state of self (1st); the 8th house shows hard work, contributing to one's learning (4th). |
+
+Column was briefly named `MeaningText` before the rename to `SignificanceNote` — since the
+migration had never been committed, the dev DB was fixed up with `sp_rename` and the file itself
+rewritten rather than layering a second migration. Data-only addition — `ArgalaCalculator` still
+doesn't read from `tbl_Rule_Argala` at all (mirrors it, same as `RasiDrishtiCalculator`), so this
+doesn't change engine behavior; it's reference data for a future interpretation/narrative
+surface.
+
 1. ~~Pin an exact PVR page/section~~ **Resolved 2026-09-19** — §10.5–10.6, pp.104–107.
 2. ~~Decide the occupant-strength scoring approach~~ **Resolved 2026-09-19** — count-first
    comparator (sourced to §10.7's own text) with an injected `DignityScore` sum as the tie-break
