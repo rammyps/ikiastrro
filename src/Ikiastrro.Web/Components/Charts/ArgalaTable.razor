@@ -1,0 +1,158 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Houses
+@using Ikiastrro.Core.Presentation
+@using static Ikiastrro.Core.Engines.Houses.ArgalaCalculator
+@* Argala / Virodhargala — PVR sec.10.5-10.6 (SRC_PVR_INTEGRATED), pp.104-107. One row per house
+   (Exercise 16's own scope), same 8-position shape as the book's own worked table for Chart 5
+   (docs/research/domain/argala-virodhargala-drishti-lifematters.md §4): 2nd/4th/11th/5th cause
+   argala, 12th/10th/3rd/9th obstruct it (virodhargala). Computed live from this chart's own
+   occupancy (ArgalaCalculator/ArgalaFactBuilder.BuildOccupancy) — not read from tbl_Fact_Argala,
+   so it works for every chart, not just the 3 dev charts backfill-argala has populated so far
+   (that table isn't wired into ChartGenerationService yet). Same "live calculator over a fact
+   table" choice 2.2's exaltation table already made. SignificanceNotes (tbl_Rule_Argala,
+   migration 129) surface as header tooltips on the 4 argala columns; the 4 virodhargala columns
+   have no PVR gloss to show. Cell/badge markup is written as literal Razor elements (not
+   MarkupString) so Blazor's CSS-isolation scope attribute actually lands on them — a MarkupString
+   is raw injected HTML and never gets the scope, so `.at-net`/`.at-exception` silently failed to
+   style anything the first time this was built. "at" = ArgalaTable. *@
+@if (Grahas.Count == 0)
+{
+    <EmptyState Message="No Argala/Virodhargala data — D1 positions not available." />
+}
+else
+{
+    <div class="at-scroll">
+        <table class="at">
+            <thead>
+                <tr>
+                    <th rowspan="2">House</th>
+                    <th rowspan="2">Sign</th>
+                    <th colspan="4">Argala</th>
+                    <th colspan="4">Virodhargala</th>
+                    <th rowspan="2">Net</th>
+                </tr>
+                <tr>
+                    @foreach (var offset in ArgalaOffsetOrder)
+                    {
+                        <th class="at-offset" title="@SignificanceNotes.GetValueOrDefault(offset)">@Ordinal(offset)</th>
+                    }
+                    @foreach (var offset in VirodhargalaOffsetOrder)
+                    {
+                        <th class="at-offset">@Ordinal(offset)</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Rows)
+                {
+                    <tr>
+                        <td class="mono">@row.HouseNumber@(row.CountedAntiZodiacally ? "*" : "")</td>
+                        <td>@Disp(row.Sign)</td>
+                        @foreach (var offset in ArgalaOffsetOrder)
+                        {
+                            var occupants = Occupants(row.Evaluation, offset);
+                            <td>
+                                @if (occupants.Count == 0)
+                                {
+                                    <text>—</text>
+                                }
+                                else
+                                {
+                                    @string.Join(", ", occupants)
+                                }
+                            </td>
+                        }
+                        @foreach (var offset in VirodhargalaOffsetOrder)
+                        {
+                            var occupants = Occupants(row.Evaluation, offset);
+                            <td>
+                                @if (occupants.Count == 0)
+                                {
+                                    <text>—</text>
+                                }
+                                else
+                                {
+                                    @string.Join(", ", occupants)
+                                    @if (offset == 3 && row.Evaluation.ThirdHouseExceptionApplied)
+                                    {
+                                        <span class="at-exception" title="2+ malefics here act as argala, not virodhargala (sec.10.6 exception)">&rarr;arg</span>
+                                    }
+                                }
+                            </td>
+                        }
+                        <td>
+                            <span class="at-net @NetCss(row.Compare)">@NetLabel(row.Compare) @row.Compare.ArgalaCount&ndash;@row.Compare.VirodhargalaCount</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Rows.Any(r => r.CountedAntiZodiacally))
+    {
+        <p class="at-footnote">* Ketu occupies this house's sign — argala/virodhargala counted anti-zodiacally (sec.10.6 note).</p>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> Grahas { get; set; } = Array.Empty<ChartKeyDetail>();
+    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
+    [Parameter] public IReadOnlyDictionary<int, string> SignificanceNotes { get; set; } = new Dictionary<int, string>();
+
+    private static readonly int[] ArgalaOffsetOrder = { 2, 4, 11, 5 };
+    private static readonly int[] VirodhargalaOffsetOrder = { 12, 10, 3, 9 };
+
+    private sealed record HouseRow(int HouseNumber, ZodiacName Sign, ArgalaEvaluation Evaluation,
+        ComparisonResult Compare, bool CountedAntiZodiacally);
+
+    private IReadOnlyList<HouseRow> Rows => BuildRows();
+
+    private List<HouseRow> BuildRows()
+    {
+        var ascendant = Enum.Parse<ZodiacName>(AscendantSign);
+        var occupancy = ArgalaFactBuilder.BuildOccupancy(Grahas);
+        var dignityByPlanet = Grahas
+            .Where(k => k.Planet != "Ascendant" && Enum.TryParse<PlanetName>(k.Planet, out _))
+            .ToDictionary(k => Enum.Parse<PlanetName>(k.Planet), k => k.DignityStatus);
+
+        var rows = new List<HouseRow>();
+        for (var house = 1; house <= 12; house++)
+        {
+            var evaluation = Evaluate(ascendant, house, occupancy);
+            var compare = Compare(evaluation, p => ChartViewModel.DignityScore(dignityByPlanet.GetValueOrDefault(p)));
+            rows.Add(new HouseRow(house, evaluation.Target, evaluation, compare, evaluation.CountedAntiZodiacally));
+        }
+        return rows;
+    }
+
+    /// <summary>Looks a position up by offset regardless of which side it currently sits on —
+    /// the sec.10.6 exception moves the 3rd-from position from Virodhargala into Argala, so a
+    /// fixed "3rd" column has to check both lists.</summary>
+    private static IReadOnlyList<PlanetName> Occupants(ArgalaEvaluation evaluation, int offset) =>
+        evaluation.Argala.Concat(evaluation.Virodhargala)
+            .FirstOrDefault(p => p.Position.HouseOffset == offset)?.Occupants ?? Array.Empty<PlanetName>();
+
+    private static string NetLabel(ComparisonResult compare) => compare.Dominant switch
+    {
+        RelationType.Argala => "Argala",
+        RelationType.Virodhargala => "Virodhargala",
+        _ => "Tie"
+    };
+
+    private static string NetCss(ComparisonResult compare) => compare.Dominant switch
+    {
+        RelationType.Argala => "at-net-argala",
+        RelationType.Virodhargala => "at-net-virodh",
+        _ => "at-net-tie"
+    };
+
+    private static string Ordinal(int offset) => offset switch
+    {
+        2 => "2nd", 3 => "3rd", 4 => "4th", 5 => "5th",
+        9 => "9th", 10 => "10th", 11 => "11th", 12 => "12th",
+        _ => offset.ToString()
+    };
+
+    private static string Disp(ZodiacName sign) => sign == ZodiacName.Capricornus ? "Capricorn" : sign.ToString();
+}

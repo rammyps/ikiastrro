@@ -39,7 +39,7 @@ below); the rest stay inline here until split out the same way in later work.
 | Step | Chart | Table | Source |
 |---|---|---|---|
 | **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table (House · Planet · Sign · Degree · **Nakṣatra · Pāda** — moved here from Planet Dignity) + D1 Birth / Current Transit toggle | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
-| **2.1 · About Houses** | — (occupancy bar dropped; see note below) | Aspects (left) + multi-graha Conjunctions (right), side by side; House Lord Placement (lords + occupants); House Lord Key Findings — three tables, not one | `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` |
+| **2.1 · About Houses** | — (occupancy bar dropped; see note below) | Aspects (left) + multi-graha Conjunctions (right), side by side; House Lord Placement (lords + occupants); House Lord Key Findings; Argala &amp; Virodhargala — four tables, not one | `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` + live `ArgalaCalculator` over `lc.Grahas` (+ `tbl_Rule_Argala.SignificanceNote` via `ArgalaRuleRepository`) |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
 | **2.2 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
 | **3 · Strength** | 3.1 `PlanetStrengthChart` — %-of-minimum bar (Performance) or a component-composition stacked bar (Composition toggle), plus a per-graha expandable Bala breakdown. 3.2 `HouseStrengthChart` — Rūpas bar (scale is dynamic — see 2026-09-17 note below, not the fixed 0–9 this spec originally called for), House order/Strength rank toggle, per-house expandable breakdown. 3.3 `AshtakavargaChart` — Sarvāṣṭakavarga bar (House order/Strength rank toggle) + Bhinnāṣṭakavarga grid (7×12) + Piṇḍa table | Bar and table are one component each (not chart+table separately — the bar sits inline in the row) | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (both via `PlanetaryStrengthRepository`/`BhavaStrengthRepository`'s `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`) · `vw_ChartAshtakavarga` + `tbl_Fact_AshtakavargaPinda` (`AshtakavargaRepository`) |
@@ -93,6 +93,20 @@ flow above instead of sitting in a side panel:
   `vw_ChartHouseLordInterpretation` (db/094) — the classical claims-per-house-lord-placement view
   that had no UI consumer yet. The Arudha/Upagraha/Special-Lagna supporting cards and the
   occupancy bar chart from the mockup are not built.
+- **Built (2026-09-19) — 2.1 gains a 4th table, "Argala & Virodhargala"** (new `ArgalaTable`,
+  `src/Ikiastrro.Web/Components/Charts/`): one row per house, the same 8-position shape as the
+  book's own Exercise 16 worked table (2nd/4th/11th/5th argala, 12th/10th/3rd/9th virodhargala —
+  see `argala-virodhargala-drishti-lifematters.md` §4), plus a Net column (`ArgalaCalculator
+  .Compare`'s count-then-dignity-sum verdict). Computed LIVE off `lc.Grahas` via
+  `ArgalaCalculator`/new `ArgalaFactBuilder.BuildOccupancy` (Core) — not read from
+  `tbl_Fact_Argala`, since that fact table isn't wired into `ChartGenerationService` yet and only
+  covers the 3 backfilled dev charts; live computation works for every chart, the same
+  "compute at render time, don't require a backfill" choice 2.2's exaltation table already made.
+  New `ArgalaRuleRepository.GetArgalaSignificanceNotes` (`tbl_Rule_Argala.SignificanceNote`,
+  migration 129) feeds the 4 argala column headers' hover tooltips; the 4 virodhargala columns
+  have none (PVR gives no parallel gloss for them in sec.10.7). The 3rd-from column shows a small
+  "→arg" badge when the sec.10.6 "2+ malefics in 3rd" exception fires for that house; a row whose
+  target sign holds Ketu gets a `*` (anti-zodiacal counting, sec.10.6 note).
 - **Built (2026-09-14):** 2.2 About Planets — Moon-context fact chips (new
   `ChartMoonContextRepository` over `vw_ChartMoonContext`, loaded outside `WorkspaceData` like
   the Current Transit tab's Gochara/Dasha, since only this page needs it) above the "Planets —

@@ -22,6 +22,7 @@
 @inject Ikiastrro.Data.VargottamaRepository VargottamaRepo
 @inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
 @inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
+@inject Ikiastrro.Data.ArgalaRuleRepository ArgalaRuleRepo
 @inject ActivePerson Active
 
 @* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
@@ -252,6 +253,9 @@ else
 
                     <h3 class="ki-sectionhead">House lord key findings</h3>
                     <HouseLordFindingsTable Rows="lc.HouseLordInterpretations" />
+
+                    <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
+                    <ArgalaTable Grahas="lc.Grahas" AscendantSign="@lc.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
                 </MudTabPanel>
 
                 <MudTabPanel Text="2.2 ABOUT PLANETS">
@@ -399,6 +403,7 @@ else
     private IReadOnlyList<Ikiastrro.Data.VargottamaRow> _vargottama = Array.Empty<Ikiastrro.Data.VargottamaRow>();
     private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
     private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
+    private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
 
     private string? LagnaLord =>
         _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
@@ -457,6 +462,7 @@ else
         _vargottama = VargottamaRepo.GetByBirthDetailId(Id);
         _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
         _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
+        _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
             ? parsedOffset

@@ -267,7 +267,21 @@ surface.
 5. ~~Confirm target shape~~ **Resolved 2026-09-19** — sign-based (`ZodiacName`) primary API,
    house-number convenience overload; see the design-questions block above.
 
-**Not yet done** (separate follow-up work, not part of this build): wiring `ArgalaCalculator`
-into the actual chart-analysis pipeline/UI (today it's a standalone, tested primitive with no
-caller); the career worked-example `CalculationNarrative`; item 4 above if it turns out to be
-needed.
+**UI wiring added 2026-09-19:** Key Inference step 2.1 "About Houses" gained a 4th table,
+"Argala & Virodhargala" (new `ArgalaTable`, `src/Ikiastrro.Web/Components/Charts/`) — one row
+per house, the same 2nd/4th/11th/5th-argala + 12th/10th/3rd/9th-virodhargala shape as the
+Exercise 16 worked table above, plus a Net column (`Compare`'s verdict). It computes LIVE off
+the chart's own `ChartKeyDetail` rows via `ArgalaCalculator` and a new
+`ArgalaFactBuilder.BuildOccupancy` helper — deliberately NOT read from `tbl_Fact_Argala`, since
+that fact table isn't wired into `ChartGenerationService` yet and only covers the 3 backfilled
+dev charts; computing live works for every chart, the same choice 2.2's exaltation table already
+made. New `ArgalaRuleRepository.GetArgalaSignificanceNotes` feeds the argala columns' header
+tooltips from the `SignificanceNote` data above. See `key-inference.md`'s 2026-09-19 entry for
+full detail (exception badge, anti-zodiacal footnote, etc.). `tbl_Fact_Argala` itself, and the
+career worked-example `CalculationNarrative`, remain not wired in — see below.
+
+**Not yet done** (separate follow-up work, not part of this build): wiring `ArgalaFactBuilder`'s
+output into `ChartGenerationService` so `tbl_Fact_Argala` fills automatically for every chart
+(today it needs `backfill-argala` re-run by hand — the live UI table above sidesteps this for
+display, but the fact table itself still lags); the career worked-example `CalculationNarrative`;
+item 4 above if it turns out to be needed.

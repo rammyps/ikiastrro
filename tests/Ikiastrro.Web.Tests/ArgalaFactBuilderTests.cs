@@ -83,4 +83,33 @@ public sealed class ArgalaFactBuilderTests
             Enum.GetValues<PlanetName>().Select(p => p.ToString()).OrderBy(k => k),
             targets);
     }
+
+    /// <summary>BuildOccupancy (added for the Key Inference 2.1 ArgalaTable, which only has
+    /// ChartKeyDetail rows in hand, not an already-built occupancy map) must reproduce Chart 5's
+    /// dictionary exactly — Ascendant excluded, everything else grouped by sign.</summary>
+    [Fact]
+    public void BuildOccupancy_Reproduces_Chart5_From_KeyDetail_Rows()
+    {
+        var keyDetails = new List<ChartKeyDetail>
+        {
+            new() { Planet = "Ascendant", Sign = "Scorpio" },
+            new() { Planet = "Mars", Sign = "Scorpio" },
+            new() { Planet = "Saturn", Sign = "Scorpio" },
+            new() { Planet = "Mercury", Sign = "Sagittarius" },
+            new() { Planet = "Venus", Sign = "Capricornus" },
+            new() { Planet = "Ketu", Sign = "Aquarius" },
+            new() { Planet = "Moon", Sign = "Aries" },
+            new() { Planet = "Sun", Sign = "Taurus" },
+            new() { Planet = "Rahu", Sign = "Leo" },
+            new() { Planet = "Jupiter", Sign = "Virgo" },
+        };
+
+        var occupancy = ArgalaFactBuilder.BuildOccupancy(keyDetails);
+
+        // Ascendant excluded — Scorpio holds only Mars + Saturn, not a 3rd "Ascendant" entry.
+        Assert.Equal(2, occupancy[ZodiacName.Scorpio].Count);
+        Assert.Equal(Chart5.Count, occupancy.Count);
+        foreach (var (sign, planets) in Chart5)
+            Assert.Equal(planets.OrderBy(p => p), occupancy[sign].OrderBy(p => p));
+    }
 }
