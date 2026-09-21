@@ -101,6 +101,10 @@ Split into three questions, since a planet can be powerful but harmful, or weak 
 **Capacity:** bhavadhipati bala, ṣaḍbala (all six components), bhāva bala, viṁśopaka bala,
 ashtakavarga (Sarva + Bhinna), iṣṭa/kaṣṭa phala, digbala, pakṣa bala, vargottama, vaiśeṣikāṁśa.
 Ashtakavarga is [[pvr-coverage]] Ch.12, currently "not built" — the single largest strength gap.
+Two extensions scoped in [[ashtakavarga-varga-extension]] once Ch.12 lands: applying the single
+natal bindu table to every varga chart's placements (read-side, not a per-varga recompute — that
+alternative is flagged unconfirmed pending a citation), and a new `AshtakavargaVargaCompareChart`
+stacked-bar view (By House / By Sign, % bindu share per varga).
 
 **Condition:** exaltation/debilitation distance from peak degree, nīcabhaṅga (and whether it
 cancels, improves, or produces an actual rāja yoga), combustion/retrogression/planetary war as
@@ -287,3 +291,7 @@ not infallible" framing, not one silently merged authority.
    note, not a triaged feature.
 2. Add a row to [`v5-notes-index.md`](../v5-notes-index.md) for this file.
 3. The "suggested additions" above are unconfirmed — flag for rammyps rather than assuming scope.
+4. Stage 03's Ashtakavarga item now has its own extension note,
+   [[ashtakavarga-varga-extension]] (cross-varga bindu lookup + a By House/By Sign comparison
+   chart) — also unconfirmed on the cross-reference-vs-recompute question it raises, and also
+   still without a `FEAT-*` slot.
