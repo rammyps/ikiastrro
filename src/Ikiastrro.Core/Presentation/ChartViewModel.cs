@@ -1,3 +1,4 @@
+using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Models;
 
 namespace Ikiastrro.Core.Presentation;
@@ -22,6 +23,7 @@ public record PlanetRow(
     string? AspectedBy,
     string? CharaKaraka,
     string? NakshatraSubLordPlanet,
+    string? SubLordChainL2ToL7,
     double? SpeedLongitudeDegPerDay,
     double? EclipticLatitudeDegrees,
     double VargaLongitudeDegrees,
@@ -129,6 +131,15 @@ public static class ChartViewModel
                 .Select(a => $"{a.AspectedTarget} ({a.AspectType})")
                 .ToList();
 
+            // Live-computed, not read from tbl_Fact_KpSubLordChain — same "calculator over fact
+            // table" choice ArgalaTable/BuildExaltationRows already made, so this renders for
+            // every chart regardless of whether the fact table has been populated for it yet.
+            var subLordChain = k.PointKind == "Graha"
+                ? string.Join(" · ", AstroMath.GetKpSubLordChain(k.NirayanaLongitudeDegrees, 7)
+                    .Skip(1) // L1 is already NakshatraSubLordPlanet above; this is L2-L7 only
+                    .Select(p => p.ToString()[..2]))
+                : null;
+
             return new PlanetRow(
                 k.Planet,
                 k.Sign,
@@ -148,6 +159,7 @@ public static class ChartViewModel
                 k.AspectingPlanets,
                 k.CharaKaraka,
                 k.NakshatraSubLordPlanet,
+                subLordChain,
                 k.SpeedLongitudeDegPerDay,
                 k.EclipticLatitudeDegrees,
                 k.VargaLongitudeDegrees,

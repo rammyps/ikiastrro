@@ -13,11 +13,11 @@ public sealed class KpSubLordChainRepository
     /// graha, keyed by the D1 ChartResultId. Level 1 stays exclusively on
     /// tbl_Chart_KeyDetails.NakshatraSubLordPlanetId (migration 095's own design) — not duplicated here.
     /// </summary>
-    public void InsertAll(int chartResultId, IEnumerable<(int PlanetId, double NirayanaLongitudeDegrees)> grahas)
+    public void InsertAll(int chartResultId, int ruleSetId, IEnumerable<(int PlanetId, double NirayanaLongitudeDegrees)> grahas)
     {
         const string sql = """
-            INSERT dbo.tbl_Fact_KpSubLordChain (ChartResultId, PlanetId, Level, LordPlanetId)
-            VALUES (@ChartResultId, @PlanetId, @Level, @LordPlanetId)
+            INSERT dbo.tbl_Fact_KpSubLordChain (ChartResultId, PlanetId, Level, LordPlanetId, RuleSetId)
+            VALUES (@ChartResultId, @PlanetId, @Level, @LordPlanetId, @RuleSetId)
             """;
         var rows = grahas.SelectMany(g =>
         {
@@ -27,7 +27,8 @@ public sealed class KpSubLordChainRepository
                 ChartResultId = chartResultId,
                 g.PlanetId,
                 Level = level,
-                LordPlanetId = AstroIds.PlanetId(chain[level - 1])
+                LordPlanetId = AstroIds.PlanetId(chain[level - 1]),
+                RuleSetId = ruleSetId
             });
         });
         using var connection = _connectionFactory.CreateOpenConnection();

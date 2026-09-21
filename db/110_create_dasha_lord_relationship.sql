@@ -44,6 +44,11 @@
 -- docs/research/domain/res_charakarakas.md — it's the KP chain, not
 -- house-cusp sub-lords.
 --
+-- Follow-up landed 2026-09-22 (migration 131): the function now joins
+-- tbl_Fact_KpSubLordChain for levels 2-7, per this comment's own framing.
+-- The CREATE OR ALTER body below is what migration 110 originally shipped
+-- (L1 only) — kept as the historical record; 131 is the current definition.
+--
 -- Scale: DashaPeriodsRepository.InsertTree persists the full recursive
 -- tree with no truncation — a full Vimshottari tree is up to 819 rows
 -- (9 Maha x 9 Antar x 9 Pratyantar) per person, not just current periods.

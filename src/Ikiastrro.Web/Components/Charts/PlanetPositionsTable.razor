@@ -9,7 +9,7 @@
                 <th>Graha</th><th>Rasi</th><th>Degree</th>
                 @if (Variant == "d1")
                 {
-                    <th>Nakshatra</th><th>Pada</th><th>Nak&nbsp;Lord</th><th>Sub&nbsp;Lord</th>
+                    <th>Nakshatra</th><th>Pada</th><th>Nak&nbsp;Lord</th><th>Sub&nbsp;Lord</th><th>Sub-Lord&nbsp;Chain&nbsp;(L2–L7)</th>
                 }
                 <th>Dir</th><th>House</th><th>House&nbsp;(Ch)</th>
                 @if (ShowDignity)
@@ -37,6 +37,7 @@
                         <td class="mono">@(row.NakshatraPada?.ToString() ?? "—")</td>
                         <td>@(row.NakshatraLordPlanet ?? "—")</td>
                         <td>@(row.NakshatraSubLordPlanet ?? "—")</td>
+                        <td class="mono">@(row.SubLordChainL2ToL7 ?? "—")</td>
                     }
                     <td>@ChartViewModel.DirectionLabel(row.IsRetrograde)</td>
                     <td class="mono">@row.HouseFromLagna</td>

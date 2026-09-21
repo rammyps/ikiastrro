@@ -118,8 +118,10 @@ not an engine gap.
 
 **Known follow-up already flagged** (migration 110's own comment + [[res_charakarakas]]):
 extending the TVF's join to `tbl_Fact_KpSubLordChain` for L2–L7, deliberately deferred when
-written because that table was still unpopulated. It's now populated (§1) — the extension is
-unblocked but still not attempted.
+written because that table was still unpopulated. **Done 2026-09-22** (migration 131) —
+`tvf_Chart_DashaLordRelationship` now returns `SubLordL2PlanetId`…`SubLordL7PlanetId` alongside
+the original `SubLordL1PlanetId`. Still no Web consumer of this TVF — that stays a separate,
+un-slotted UI-placement decision.
 
 ## 5. Correcting a premise: the chain is *not* just "nakshatra lord → fixed outcome"
 
@@ -194,7 +196,7 @@ stored on `tbl_Chart_KeyDetails`), could/should this be a derived table instead 
   in this codebase). This matches the repo's established pattern: non-trivial procedural
   computation → persisted `tbl_Fact_*` written once by a `*Computer`/repository at
   chart-generation time; TVFs stay reserved for joining across already-persisted facts.
-- **Real gap found:** the repo's own stated Facts convention is "`tbl_Fact_*` rows record
+- **Real gap found — closed 2026-09-22 (migration 130).** The repo's own stated Facts convention is "`tbl_Fact_*` rows record
   which `RuleSetId` produced them, so a chart's evidence is traceable to the exact rule
   version" (`rules-engine.md`). Checked the siblings — `tbl_Fact_PlanetaryStrength`,
   `tbl_Fact_PlanetaryStrengthComponent`, and `tbl_Fact_Vargottama` **all** carry a `RuleSetId`
@@ -219,8 +221,8 @@ stored on `tbl_Chart_KeyDetails`), could/should this be a derived table instead 
 
 | Thread | Available | Pending |
 |---|---|---|
-| Nakshatra lord → L1–L7 | Algorithm inherently connects them (nakshatra lord seeds the cycle *order*; exact longitude still decides the outcome, §5); L1 stored + shown; L2–L7 stored (2026-09-18) | Surface L2–L7 in Web UI / a KP panel; add `RuleSetId` to `tbl_Fact_KpSubLordChain` (§7) |
+| Nakshatra lord → L1–L7 | **Done 2026-09-22.** Algorithm inherently connects them (nakshatra lord seeds the cycle *order*; exact longitude still decides the outcome, §5); L1 stored + shown; L2–L7 stored (2026-09-18); `RuleSetId` added (migration 130, §7); L2–L7 now shown live in `PlanetPositionsTable` (d1 variant, "Sub-Lord Chain (L2–L7)" column); Web-generation gap closed (`Ikiastrro.Web/Program.cs` now registers `KpSubLordChainRepository`) | A dedicated KP panel beyond the compact table column, if wanted later |
 | Pada lord → L1–L7 | **Out of scope, resolved 2026-09-22 (rammyps) — "not usually done."** Migrations 125–126 built the connection anyway (2026-09-19, before this was raised) and stay committed/unconsumed; no `FEAT-*` work planned. | — |
 | Nakshatra color scheme | Nothing | Everything — needs a source or an explicit cosmetic-data call (TamilName precedent) before any migration |
-| Dasha (Maha/Antar/Pratyantar) ↔ Rasi/Nakshatra | Fully built for L1 sub-lord via `tvf_Chart_DashaLordRelationship` (migration 110) | Web UI consumer; extend join to L2–L7 now that the chain is populated |
+| Dasha (Maha/Antar/Pratyantar) ↔ Rasi/Nakshatra | Fully built for L1–L7 sub-lord via `tvf_Chart_DashaLordRelationship` (migration 110, extended to L2–L7 by migration 131, 2026-09-22) | Web UI consumer — no page surfaces this TVF at all yet, own UI-placement decision |
 | Scope check | Confirmed: computed for **every** planet, not Moon-only; Moon is uniquely load-bearing only for Vimshottari dasha sequencing (§6) | — |

@@ -131,8 +131,11 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   vargottama facts before `tbl_ChartResults`). Both saved people regenerated; 11/11
   `verify-*` green. Remaining 20%: re-seed the `BENCH_RAMAKRISHNAN_P_JHORA_1981` case row
   and add a dedicated `verify-ayanamsa` (deferred).
-- **FEAT-DATA-07 · `tbl_Fact_KpSubLordChain.RuleSetId`** — Planned · 0% (new 2026-09-22, small)
-  DB [ ] · Core [—] · Verify [ ] · Web [—] · Docs [x] · Research: complete
+- **FEAT-DATA-07 · `tbl_Fact_KpSubLordChain.RuleSetId`** — Verified · 80% (new + implemented + verified 2026-09-22)
+  DB [x] (migration 130, applied — 162 existing rows backfilled to `RuleSetId=1`) · Core [x]
+  (`KpSubLordChainRepository.InsertAll` + `ChartGenerationService` wired) · Verify [x]
+  (`backfill-analytics` re-run confirms correct persistence; 350/350 + 435/437 tests, 2
+  pre-existing unrelated failures) · Web [—] · Docs [x] · Research: complete
   Only `tbl_Fact_*` table without a `RuleSetId` FK (migration 095) — every sibling Fact table
   (`tbl_Fact_PlanetaryStrength`, `…Component`, `tbl_Fact_Vargottama`) has one. Blocks tracing a
   future KP cycle-order-convention revision. Design: `nakshatra-lord-sublord-dasha-crossref.md` §7.
@@ -196,13 +199,26 @@ recomputed against them; treat the table above as stale until that pass runs.)*
 
 - **FEAT-NAKSHATRA-01 · Nakshatra / pāda / Vimśottari lord / KP sub-lord + reference linkage** — Done · 100% · Verify `verify-schema`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
-- **FEAT-NAKSHATRA-02 · Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination** — Designed · 40% (new 2026-09-22, narrowed 2026-09-22)
+- **FEAT-NAKSHATRA-02 · Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination** — Verified · 80% (new + narrowed + implemented + verified 2026-09-22)
   DB [x] (`tbl_Fact_KpSubLordChain` L2–L7 populated since 2026-09-18, computed from exact
-  longitude via `AstroMath.GetKpSubLordChain`; `tbl_Rule_RasiNakshatraCombination` 36 rows,
-  migration 124) · Core [x] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
-  All data computed/persisted, zero Web/CLI consumer. Extend `tvf_Chart_DashaLordRelationship`'s
-  join to L2–L7 (deferred at migration 110 pending population, now unblocked). Design:
-  `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
+  longitude via `AstroMath.GetKpSubLordChain`; `RuleSetId` added migration 130;
+  `tvf_Chart_DashaLordRelationship` extended migration 131; `tbl_Rule_RasiNakshatraCombination`
+  36 rows, migration 124) · Core [x] · Verify [x] (migrations 130/131 applied to dev DB, TVF
+  queried directly against a real chart — L2–L7 populate correctly; browser-verified against a
+  live D1 Key Inference page) · Web [x] (chain only — `tbl_Rule_RasiNakshatraCombination` still
+  unsurfaced) · Docs [x] · Research: complete
+  **Chain-surfacing slice done:** `PlanetPositionsTable`'s d1 variant now shows a live-computed
+  "Sub-Lord Chain (L2–L7)" column (`ChartViewModel.BuildPlanetRows`, matching the
+  `ArgalaTable`/`BuildExaltationRows` "live calculator, not fact-table read" precedent) —
+  browser-verified rendering correctly for Ramakrishnan's D1 chart, `VargaView`'s varga variant
+  confirmed unaffected; the Web DI gap that left charts generated via the Web UI never
+  populating `tbl_Fact_KpSubLordChain` is closed (`Ikiastrro.Web/Program.cs` now registers
+  `KpSubLordChainRepository`); `tvf_Chart_DashaLordRelationship`'s join extended L1→L1–L7
+  (migration 131, no Web consumer of that TVF exists yet). While verifying this via the Web
+  RECALCULATE button, found and fixed an unrelated pre-existing bug — see `FEAT-RELATIONSHIP-04`.
+  **Still open:** migration 124's Rāśi×Nakṣatra-36-combination table has
+  no Web/CLI surfacing yet — needs its own UI-placement decision, deliberately left for a
+  separate pass. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
   **Out of scope (rammyps, 2026-09-22):** the Nakshatra Pada Lord chain
   (`vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination`, migrations
   125–126) — not a standard technique. Left committed, unconsumed, no further work planned.
@@ -229,9 +245,14 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   Argala/virodhargala built 2026-09-19: `tbl_Rule_Argala` (migration 127, `SRC_PVR_INTEGRATED`
   §10.5–10.6) + `ArgalaCalculator` + `tbl_Fact_Argala` (migration 128) +
   `ArgalaFactBuilder`/`ArgalaFactRepository` + `backfill-argala` CLI + live Key Inference 2.1
-  "Argala & Virodhargala" table (`ArgalaTable`). 28/28 tests. Remaining: wire
-  `ArgalaFactBuilder` into `ChartGenerationService` (fact table still needs manual
-  `backfill-argala`); career worked-example `CalculationNarrative`; Compound Maitrī —
+  "Argala & Virodhargala" table (`ArgalaTable`). 28/28 tests. **Bug found + fixed 2026-09-22:**
+  `tbl_Fact_Argala` had no delete-wiring at all in `ChartGenerationService`/
+  `BirthDetailDeletionService` — once `backfill-argala` had run, every RECALCULATE and
+  person-delete threw `FK_Fact_Argala_ChartResult`. Fixed (`ArgalaFactRepository.DeleteByBirthDetailId`,
+  wired as an optional dep in both services + both composition roots, matching
+  `KpSubLordChainRepository`'s pattern). Remaining: wire `ArgalaFactBuilder`'s *insert* side into
+  `ChartGenerationService` (fact table still needs manual `backfill-argala` after a rebuild);
+  career worked-example `CalculationNarrative`; Compound Maitrī —
   `tbl_Rule_CompoundRelationship` (migration 24) exists but `DignityEngine.CombineToPanchadha`
   doesn't read it; sambandha types not started. Detail: `argala-virodhargala-drishti-lifematters.md`.
 

@@ -170,16 +170,16 @@ full 360°.
 to the exact rule version. Written by the `*Computer` classes inside
 `ChartGenerationService.PersistAnalytics`.
 
-`tbl_Fact_KpSubLordChain` (migration 095) — levels 2-7 of `AstroMath.GetKpSubLordChain`
-(level 1 stays on `tbl_Chart_KeyDetails.NakshatraSubLordPlanetId`), D1 only. Has a repository
-(`KpSubLordChainRepository`), wired into `PersistAnalytics`'s D1 block as an **optional**
-constructor dependency (default `null`). **`workstream/cli`'s gap is closed** (2026-09-18,
-alongside migration 117): `Ikiastrro.Cli/Program.cs`'s `ChartGenerationService` composition
-root now passes a real `KpSubLordChainRepository` instance, so `backfill-analytics` populates
-the table (162 rows across the 3 dev-DB charts as of this pass). **Still open for
-`workstream/ui`**: `Ikiastrro.Web/Program.cs` hasn't registered it yet — one
-`builder.Services.AddScoped<KpSubLordChainRepository>();` line, plus passing it into that
-composition root's `ChartGenerationService`/`BirthDetailDeletionService` construction.
+`tbl_Fact_KpSubLordChain` (migration 095, `RuleSetId` added migration 130) — levels 2-7 of
+`AstroMath.GetKpSubLordChain` (level 1 stays on `tbl_Chart_KeyDetails.NakshatraSubLordPlanetId`),
+D1 only. Has a repository (`KpSubLordChainRepository`), wired into `PersistAnalytics`'s D1 block
+as an **optional** constructor dependency (default `null`). **Both workstream gaps now closed**:
+`Ikiastrro.Cli/Program.cs`'s composition root has passed a real `KpSubLordChainRepository`
+instance since 2026-09-18; **`Ikiastrro.Web/Program.cs` registered it 2026-09-22**
+(`builder.Services.AddScoped<KpSubLordChainRepository>();`) — .NET DI resolves the same optional
+constructor parameter on both `ChartGenerationService` and `BirthDetailDeletionService`
+automatically once the type is registered, no call-site change needed. Charts generated through
+the Web UI now populate this table too, not just CLI-driven generation.
 Verified correct end-to-end via a throwaway harness (9 planets × 6 levels, byte-for-byte match
 against `AstroMath` computed independently) before the repository was wired in.
 

@@ -55,22 +55,26 @@ Close the gap between verified engine logic and what the web app actually shows 
   — the note's working assumption is cross-reference; flag if a source for the other reading
   exists.
 - **Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination** ·
-  `FEAT-NAKSHATRA-02` (new 2026-09-22, **narrowed 2026-09-22**) — `tbl_Fact_KpSubLordChain`
-  L2–L7 populated since 2026-09-18 (computed straight from exact longitude via
-  `AstroMath.GetKpSubLordChain`, no Pada Lord involved) but has zero Web/CLI consumer; same for
-  the 2026-09-19 `tbl_Rule_RasiNakshatraCombination` (migration 124, 36 rows, sign-lord vs.
-  nakshatra-lord relations only). Extend `tvf_Chart_DashaLordRelationship`'s join to L2–L7
-  (deferred at migration 110 pending population, now unblocked). Design:
-  `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
+  `FEAT-NAKSHATRA-02` (new 2026-09-22, **narrowed + implemented + verified 2026-09-22**)
+  — `PlanetPositionsTable` (d1 variant) now shows a live-computed "Sub-Lord Chain (L2–L7)"
+  column, browser-verified against Ramakrishnan's D1 chart; the Web-generation gap
+  (`tbl_Fact_KpSubLordChain` never populated for Web-created charts) is closed
+  (`Ikiastrro.Web/Program.cs` registers `KpSubLordChainRepository`);
+  `tvf_Chart_DashaLordRelationship`'s join extended to L2–L7 (migration 131, applied + queried
+  directly against a real chart). **Still open:**
+  `tbl_Rule_RasiNakshatraCombination` (migration 124, 36 rows) has no Web/CLI surfacing yet —
+  separate UI-placement decision, not bundled into this slice. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
   **Scope decision 2026-09-22 (rammyps):** the Nakshatra *Pada* Lord chain
   (`vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination`, migrations
   125–126) is explicitly **out of scope** — not a standard/classical technique, "not usually
   done." Those two objects stay committed (harmless, unconsumed) but get no Web/CLI work under
   this feature or any other planned one.
-- **`tbl_Fact_KpSubLordChain.RuleSetId`** · `FEAT-DATA-07` (new 2026-09-22, small) — the one
-  real schema gap found in the KP crossref note: every sibling `tbl_Fact_*` records
-  `RuleSetId`; this table (migration 095) doesn't, so a future revision to the KP cycle-order
-  convention couldn't be traced. Add the column.
+- **`tbl_Fact_KpSubLordChain.RuleSetId`** · `FEAT-DATA-07` (new 2026-09-22, **implemented +
+  verified 2026-09-22**) — the one real schema gap found in the KP crossref note: every sibling
+  `tbl_Fact_*` records `RuleSetId`; this table (migration 095) didn't. Migration 130 applied
+  (backfilled the 162 existing dev rows to `RuleSetId=1`) and
+  `KpSubLordChainRepository`/`ChartGenerationService` now pass it through — confirmed via a
+  fresh `backfill-analytics` run.
 
 ## Next
 
@@ -88,9 +92,13 @@ Scoped, not started. Ordering set at the next ICE pass.
   built 2026-09-19: rule layer (`ArgalaCalculator` + `tbl_Rule_Argala`, migration 127), fact
   layer (`tbl_Fact_Argala` migration 128 + `ArgalaFactBuilder`/`ArgalaFactRepository` +
   `backfill-argala` CLI mode), and a live Key Inference 2.1 "Argala & Virodhargala" table
-  (`ArgalaTable`, computed off `ChartKeyDetail`) all done, 28/28 tests. Still open:
-  `ArgalaFactBuilder` not wired into `ChartGenerationService` (the live recompute pipeline), so
-  `tbl_Fact_Argala` needs `backfill-argala` re-run by hand; the career worked-example
+  (`ArgalaTable`, computed off `ChartKeyDetail`) all done, 28/28 tests. **Bug found + fixed
+  2026-09-22:** `tbl_Fact_Argala` had no delete-wiring at all, so once `backfill-argala` had run,
+  every RECALCULATE and person-delete threw `FK_Fact_Argala_ChartResult` — fixed, matching
+  `KpSubLordChainRepository`'s optional-dependency pattern in both `ChartGenerationService` and
+  `BirthDetailDeletionService`. Still open: `ArgalaFactBuilder`'s *insert* side not wired into
+  `ChartGenerationService` (the live recompute pipeline), so `tbl_Fact_Argala` still needs
+  `backfill-argala` re-run by hand after a rebuild; the career worked-example
   `CalculationNarrative` not authored. Compound Maitrī data exists
   (`tbl_Rule_CompoundRelationship`, migration 24) but `DignityEngine.CombineToPanchadha` still
   doesn't read it (see dignity-pvr.md); sambandha not started

@@ -21,6 +21,19 @@ public sealed class ArgalaFactRepository
             new { ChartResultId = chartResultId, ChartTypeId = chartTypeId });
     }
 
+    /// <summary>Clears every stored chart's Argala fact rows for one person — the delete-first step of
+    /// ChartGenerationService.GenerateAll/BirthDetailDeletionService.DeleteBirthDetail (this FK to
+    /// tbl_ChartResults does not cascade; matches KpSubLordChainRepository's own method of the same name).</summary>
+    public void DeleteByBirthDetailId(int birthDetailId)
+    {
+        const string sql = """
+            DELETE FROM dbo.tbl_Fact_Argala
+            WHERE ChartResultId IN (SELECT Id FROM dbo.tbl_ChartResults WHERE BirthDetailId = @BirthDetailId)
+            """;
+        using var connection = _connectionFactory.CreateOpenConnection();
+        connection.Execute(sql, new { BirthDetailId = birthDetailId });
+    }
+
     public void InsertAll(int chartResultId, int ruleSetId, int? chartTypeId, IEnumerable<ChartArgalaFact> facts)
     {
         var rows = facts.ToList();

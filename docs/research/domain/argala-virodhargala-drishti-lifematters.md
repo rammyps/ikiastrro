@@ -280,8 +280,18 @@ tooltips from the `SignificanceNote` data above. See `key-inference.md`'s 2026-0
 full detail (exception badge, anti-zodiacal footnote, etc.). `tbl_Fact_Argala` itself, and the
 career worked-example `CalculationNarrative`, remain not wired in — see below.
 
-**Not yet done** (separate follow-up work, not part of this build): wiring `ArgalaFactBuilder`'s
-output into `ChartGenerationService` so `tbl_Fact_Argala` fills automatically for every chart
-(today it needs `backfill-argala` re-run by hand — the live UI table above sidesteps this for
-display, but the fact table itself still lags); the career worked-example `CalculationNarrative`;
-item 4 above if it turns out to be needed.
+**Bug found and fixed 2026-09-22:** this gap wasn't just "the fact table lags" — `tbl_Fact_Argala`
+having no delete-wiring at all in `ChartGenerationService`/`BirthDetailDeletionService` meant that
+once `backfill-argala` had populated real rows, the Web app's RECALCULATE button and person-delete
+both started throwing `FK_Fact_Argala_ChartResult` conflicts for **every** person, discovered while
+verifying an unrelated change. Fixed by adding `ArgalaFactRepository.DeleteByBirthDetailId` and
+wiring it into both services' delete-first sequences as an optional dependency, the exact same
+pattern `KpSubLordChainRepository` already used — registered in both `Ikiastrro.Cli/Program.cs`
+and `Ikiastrro.Web/Program.cs`.
+
+**Still not done** (separate follow-up work, not part of this build): wiring `ArgalaFactBuilder`'s
+*output* into `ChartGenerationService` so `tbl_Fact_Argala` fills automatically for every chart —
+only the delete side is wired now, not the insert side, so `backfill-argala` still needs a manual
+re-run after any rebuild (the live UI table above sidesteps this for display, but the fact table
+itself still lags); the career worked-example `CalculationNarrative`; item 4 above if it turns out
+to be needed.

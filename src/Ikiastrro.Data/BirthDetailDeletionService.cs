@@ -22,11 +22,14 @@ namespace Ikiastrro.Data;
 /// tbl_Fact_PlanetAvastha are still schema-only — no calculator populates them yet, so there is
 /// nothing for any person to leave behind; wiring one up must add its delete here too, the same
 /// mistake this class's own history warns about.
-/// tbl_Fact_KpSubLordChain now has a repository (KpSubLordChainRepository) but it's an OPTIONAL
-/// constructor dependency here — see its own doc comment — because ChartGenerationService's other
-/// composition roots (Web/Program.cs, Cli/Program.cs) haven't been updated to register/pass it yet;
-/// the delete below is a no-op until they do, which is the correct behaviour since nothing writes
-/// rows there yet either.
+/// tbl_Fact_KpSubLordChain and tbl_Fact_Argala both have repositories (KpSubLordChainRepository,
+/// ArgalaFactRepository) as OPTIONAL constructor dependencies here — see their own doc comments —
+/// resolved automatically once a composition root registers the type (Web/Program.cs does for
+/// both as of 2026-09-22; Cli/Program.cs never constructs this service, so it doesn't apply
+/// there). tbl_Fact_Argala repeated this class's own warning above almost verbatim: it shipped
+/// 2026-09-19 without this wiring, and once `backfill-argala` populated real rows, both
+/// GenerateAll and this delete path started throwing FK_Fact_Argala_ChartResult conflicts —
+/// fixed 2026-09-22.
 /// tbl_Dim_AyanamsaBenchmarkCases.BirthDetailId is the one other NO_ACTION reference to
 /// tbl_BirthDetails itself (not tbl_ChartResults) — nullable and unlinked via
 /// BirthDetailsRepository.UnlinkAyanamsaBenchmarkCases rather than deleted, same as the full-reset
@@ -49,6 +52,7 @@ public class BirthDetailDeletionService
     private readonly ChartResultsRepository _chartResultsRepo;
     private readonly BirthDetailsRepository _birthDetailsRepo;
     private readonly KpSubLordChainRepository? _kpSubLordChainRepo;
+    private readonly ArgalaFactRepository? _argalaFactRepo;
 
     public BirthDetailDeletionService(
         ChartConjunctionsRepository conjunctionsRepo,
@@ -65,7 +69,8 @@ public class BirthDetailDeletionService
         DashaPeriodsRepository dashaPeriodsRepo,
         ChartResultsRepository chartResultsRepo,
         BirthDetailsRepository birthDetailsRepo,
-        KpSubLordChainRepository? kpSubLordChainRepo = null)
+        KpSubLordChainRepository? kpSubLordChainRepo = null,
+        ArgalaFactRepository? argalaFactRepo = null)
     {
         _conjunctionsRepo = conjunctionsRepo;
         _multiGrahaConjunctionsRepo = multiGrahaConjunctionsRepo;
@@ -82,6 +87,7 @@ public class BirthDetailDeletionService
         _chartResultsRepo = chartResultsRepo;
         _birthDetailsRepo = birthDetailsRepo;
         _kpSubLordChainRepo = kpSubLordChainRepo;
+        _argalaFactRepo = argalaFactRepo;
     }
 
     public void DeleteBirthDetail(int birthDetailId)
@@ -98,6 +104,7 @@ public class BirthDetailDeletionService
         _ashtakavargaRepo.DeleteByBirthDetailId(birthDetailId);        // FK_Fact_*Ashtakavarga*_ChartResult (no cascade)
         _amsabalaRepo.DeleteByBirthDetailId(birthDetailId);            // FK_Fact_Amsabala_ChartResult (no cascade)
         _kpSubLordChainRepo?.DeleteByBirthDetailId(birthDetailId);     // FK_Fact_KpSubLordChain_ChartResult (no cascade); optional, see class doc comment
+        _argalaFactRepo?.DeleteByBirthDetailId(birthDetailId);         // FK_Fact_Argala_ChartResult (no cascade); optional, see class doc comment
         _dashaPeriodsRepo.DeleteByBirthDetailId(birthDetailId);
         _chartResultsRepo.DeleteByBirthDetailId(birthDetailId);
         _birthDetailsRepo.UnlinkAyanamsaBenchmarkCases(birthDetailId);  // release the FK, don't delete the benchmark case
