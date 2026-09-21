@@ -1,17 +1,21 @@
 # Ashtakavarga — cross-varga application + a summary comparison chart
 
+**Correction, 2026-09-22:** this note's premise below is stale. `FEAT-ASHTAKAVARGA-01` had
+already shipped before 2026-09-16 (migrations 074–078, `AshtakavargaCalculator`,
+`verify-ashtakavarga` green) — `pvr-coverage.md` Ch.12 just hadn't been updated to say so until
+today. Both items below are **not** blocked on an unbuilt engine; they're pure read-side/UI work
+on top of an already-verified one. Triaged to `FEAT-ASHTAKAVARGA-02`, `ROADMAP.md` Now.
+
 Research/design note (2026-09-19, chat session) extending [[vedic_reading_layers]] Stage 03
-("Capacity" — Ashtakavarga is [[pvr-coverage]] Ch.12, currently **not built**, "the single
-largest strength gap"). Two additions proposed here, both unbuilt, neither yet in `ROADMAP.md`:
+("Capacity"). Two additions proposed here, both unbuilt:
 
 1. Apply the natal Ashtakavarga bindu table to every varga (Dn) chart, not just D1.
 2. A new stacked-bar chart summarizing that cross-varga bindu picture as a %, toggled By House /
    By Sign.
 
-Both ride on top of the Ashtakavarga engine itself, which doesn't exist yet — this note scopes
-what to build *once* Ch.12 lands, so the extension and the chart aren't an afterthought bolted on
-later. `SRC_IKIASTRRO_SYNTHESIS` pattern (no PVR/JHora citation confirmed for item 1 yet — flagged
-below, not assumed).
+This note scopes what to build against the now-shipped Ch.12 engine, so the extension and the
+chart aren't an afterthought bolted on later. `SRC_IKIASTRRO_SYNTHESIS` pattern (no PVR/JHora
+citation confirmed for item 1 yet — flagged below, not assumed).
 
 ## 1. Extending Ashtakavarga to all varga charts — a scope decision, not a default
 
@@ -43,8 +47,8 @@ second calculation engine:
   Ashtakavarga table, and surface the bindu count inline (e.g. alongside `PlanetPositionsTable` /
   `HouseLordshipTable` rows, the same tables `chart-catalog.md` already lists per-varga on
   `VargaView`).
-- This can't ship before Ch.12's engine does; record it as a dependent sub-item when Ashtakavarga
-  gets its own `FEAT-*` slot rather than a separate one.
+- Ch.12's engine already shipped (2026-09-22 correction above) — this is buildable now, tracked
+  as `FEAT-ASHTAKAVARGA-02`.
 
 ## 2. Cross-varga bindu comparison chart — By House / By Sign, % stacked bar
 
@@ -100,17 +104,14 @@ mainly as a sanity check on whichever recompute-vs-lookup decision (a)/(b) lands
 
 ## Open items before either half is buildable
 
-1. **Confirm reading (a) vs (b)** above with a citation, before Ch.12's Ashtakavarga engine design
-   locks in whether it's one table or N.
-2. Neither item has a `FEAT-*` slot in `ROADMAP.md` — both are sub-scope of Ashtakavarga itself,
-   which also has no slot yet (only referenced generically under "Strength engine," `FEAT-STRENGTH-
-   01/02`, in Later, and that item doesn't name Ashtakavarga explicitly). Slot Ashtakavarga (with
-   this note's two extensions as sub-bullets) at the next ICE triage rather than inventing a code
-   here.
+1. **Confirm reading (a) vs (b)** above with a citation — still open, needs rammyps. Working
+   assumption (a) stands as the design baseline for `FEAT-ASHTAKAVARGA-02`.
+2. ~~Neither item has a `FEAT-*` slot~~ **Resolved 2026-09-22** — `FEAT-ASHTAKAVARGA-02`,
+   `ROADMAP.md` Now (Ch.12/`FEAT-ASHTAKAVARGA-01` was already shipped, not actually blocking).
 3. Add a row to [`v5-notes-index.md`](../v5-notes-index.md) for this file (done alongside this
    note, not left as a follow-up).
 4. `dataviz.md`'s existing "Ashtakavarga heatmaps" mention (under the deferred-Syncfusion section)
-   predates this note — when Ch.12 gets designed, reconcile that mention against the stacked-bar
-   approach here (a heatmap and a stacked bar answer different questions; decide whether the
-   project wants one, the other, or both rather than letting the old mention imply a heatmap is
-   still the plan).
+   predates this note — reconcile that mention against the stacked-bar approach here when
+   `FEAT-ASHTAKAVARGA-02` gets designed (a heatmap and a stacked bar answer different questions;
+   decide whether the project wants one, the other, or both rather than letting the old mention
+   imply a heatmap is still the plan).

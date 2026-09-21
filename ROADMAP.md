@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-10
+last_updated: 2026-09-22
 ---
 
 # ikiastrro — Roadmap
@@ -35,10 +35,36 @@ gh pr list --state merged --search "merged:>=$(date -d '-28 days' +%F)" --json n
 Close the gap between verified engine logic and what the web app actually shows — the
 "Missing Web" column in the `masterproduct.md` rollup.
 
-- **Divisional charts in the UI** — render D2–D60 (21 varga types), not just D1/D9 · `FEAT-VARGA-01`
-- **Jaimini chara karakas panel** — surface the 8-fold Aṣṭa already computed · `FEAT-KARAKA-01`
+- **Divisional charts in the UI** — render D2–D60 (21 varga types), not just D1/D9, plus a
+  per-scheme dignity-tier stacked-bar summary · `FEAT-VARGA-01`/`FEAT-VARGA-02` (new
+  2026-09-22). Depends on `FEAT-HOUSE-05`'s bridge for interpretation content. **Open, needs
+  rammyps** (design: `lifearea-varga-charakaraka-synthesis.md`): stacked-bar dedup policy,
+  one-bar-per-scheme vs. one combined bar, segment ordering.
+- **Jaimini chara karakas panel** — surface the 8-fold Aṣṭa already computed, the "Life
+  Matters" panel from `res_charakarakas.md` §2 · `FEAT-KARAKA-01`/`FEAT-KARAKA-06` (new
+  2026-09-22). Depends on `FEAT-HOUSE-05`.
 - **Planetary-state (avastha) display** — `AgeState`, `WakefulnessState` · `FEAT-AVASTHA-01/02`
 - **Slow-planet transit history view** — 1930–2060 sign-transit timeline · `FEAT-TRANSIT-01`
+- **Ashtakavarga cross-varga extension + comparison chart** · `FEAT-ASHTAKAVARGA-02` (new
+  2026-09-22) — now unblocked, `FEAT-ASHTAKAVARGA-01`'s engine shipped (migrations 074–078;
+  `pvr-coverage.md` Ch.12 corrected 2026-09-22, was stale). Look up the existing natal
+  SAV/BAV bindu table against every rendered Dn chart's placements (read-side, no second
+  engine) plus a new `AshtakavargaVargaCompareChart` stacked bar, By House / By Sign toggle.
+  Design: `docs/research/domain/ashtakavarga-varga-extension.md`. **Open, needs rammyps:**
+  citation for the cross-reference (recommended) vs. independent-recompute-per-varga reading
+  — the note's working assumption is cross-reference; flag if a source for the other reading
+  exists.
+- **KP sub-lord chain (L2–L7) + Rāśi/Nakṣatra combination surfacing** · `FEAT-NAKSHATRA-02`
+  (new 2026-09-22) — `tbl_Fact_KpSubLordChain` L2–L7 populated since 2026-09-18 but has zero
+  Web/CLI consumer; same for the 2026-09-19 `tbl_Rule_RasiNakshatraCombination` (36 rows) /
+  `vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination` (108 rows each,
+  migrations 124–126). Extend `tvf_Chart_DashaLordRelationship`'s join to L2–L7 (deferred at
+  migration 110 pending population, now unblocked). Design:
+  `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
+- **`tbl_Fact_KpSubLordChain.RuleSetId`** · `FEAT-DATA-07` (new 2026-09-22, small) — the one
+  real schema gap found in the KP crossref note: every sibling `tbl_Fact_*` records
+  `RuleSetId`; this table (migration 095) doesn't, so a future revision to the KP cycle-order
+  convention couldn't be traced. Add the column.
 
 ## Next
 
@@ -53,12 +79,23 @@ Scoped, not started. Ordering set at the next ICE pass.
   of the dispositor, n-deep), final-dispositor resolution, and mutual reception detection are
   still not built
 - **Compound Maitrī, sambandha** · `FEAT-RELATIONSHIP-04` — argala/virodhargala split out and
-  built 2026-09-19: rule layer (`ArgalaCalculator` + `tbl_Rule_Argala`, migration 127) and fact
+  built 2026-09-19: rule layer (`ArgalaCalculator` + `tbl_Rule_Argala`, migration 127), fact
   layer (`tbl_Fact_Argala` migration 128 + `ArgalaFactBuilder`/`ArgalaFactRepository` +
-  `backfill-argala` CLI mode, backfilled against the 3 real dev D1 charts) both done; still not
-  wired into `ChartGenerationService` (the live pipeline) or the UI. Compound Maitrī data exists
+  `backfill-argala` CLI mode), and a live Key Inference 2.1 "Argala & Virodhargala" table
+  (`ArgalaTable`, computed off `ChartKeyDetail`) all done, 28/28 tests. Still open:
+  `ArgalaFactBuilder` not wired into `ChartGenerationService` (the live recompute pipeline), so
+  `tbl_Fact_Argala` needs `backfill-argala` re-run by hand; the career worked-example
+  `CalculationNarrative` not authored. Compound Maitrī data exists
   (`tbl_Rule_CompoundRelationship`, migration 24) but `DignityEngine.CombineToPanchadha` still
   doesn't read it (see dignity-pvr.md); sambandha not started
+- **LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** · `FEAT-HOUSE-05` (new 2026-09-22) —
+  reconcile the two never-cross-checked PVR-sourced tables (`tbl_Dim_LifeArea` migration 30,
+  `tbl_Dim_DivisionalSubject` migration 38) and normalize `DivisionalSubject.D1Foundation`'s
+  prose into queryable `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail` rows,
+  giving chara-karaka roles (`tbl_Dim_KarakaRole`) the same shape. Feeds `FEAT-VARGA-02` and
+  `FEAT-KARAKA-06` below. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
+  Sequence before `FEAT-HOUSE-03` (Sthira Kāraka needs a cited edition first; this doesn't).
+  **Open, needs rammyps:** Leg A/B reconciliation policy when the two tables disagree.
 
 ## Later
 
@@ -68,8 +105,10 @@ Acknowledged, deliberately deferred.
   cited reference edition · `FEAT-STRENGTH-01/02`
 - **Yoga detection** — Pañcha Mahāpuruṣa + Rāja/Dhana first slice. Needs its own design pass to turn
   case-study prose into enumerable rule rows · `FEAT-YOGA-01`
-- **Remaining avasthas** — `RadianceState`, `ShameState`, `PostureState`; each needs a cited edition
-  and janma-ghaṭi inputs · `FEAT-AVASTHA-03/04/05`
+- **Remaining avasthas** — `RadianceState`, `ShameState`; each needs a cited edition and
+  janma-ghaṭi inputs · `FEAT-AVASTHA-03/04`. `PostureState` (`FEAT-AVASTHA-05`) shipped
+  2026-09-22 correction — migration 083, `PostureStateCalculator.cs`, cited
+  `SRC_PVR_INTEGRATED` §15.4.4; `masterproduct.md` was stale, moved off this line
 - **Selectable house system** — beyond whole-sign
 - **KP system** — sub-lords, significators as a layered sub-system
 - **North-Indian & West-Indian varga chart styles** — renderers beside the default South-Indian
@@ -78,6 +117,24 @@ Acknowledged, deliberately deferred.
   A Language selector in Preferences. Broad i18n scope — see `docs/ui/MASTER.md` NFRs
 - **Runtime-reorderable tabs** — drag-to-reposition the header tabs / Key-Inference sub-tabs,
   order remembered per user. Deferred NFR — effort + rationale in `docs/ui/MASTER.md`
+- **Sign/house-level benefic-malefic synthesis** · `FEAT-HOUSE-06` (new 2026-09-22) — no
+  engine derives this today (`LagnaFunctionalNature` stops at the planet); a proposed method
+  exists (sign-lord functional nature + occupants + aspects + lord's condition) but needs a
+  source pass before any schema work, per the note's own caution. Design:
+  `docs/research/domain/sign-benefic-malefic.md`.
+- **Data & Calculation Integrity surfacing** (new 2026-09-22) — birth-time sensitivity
+  (±1/±2/±5/±10 min placement drift), rectification-status flag, ayanāṁśa/settings
+  declaration shown per-reading. Genuinely new ground, no existing engine gap to close; no
+  urgency signal yet. From Stage 01 of `docs/research/domain/vedic_reading_layers.md`.
+- **Nakshatra color scheme** — undecided, not just unbuilt: needs either a citation or an
+  explicit "treat as cosmetic like `TamilName`" call before any migration. Three candidate
+  bases (Tatva/5-color, ruling planet/9-color, an independent 27-color classical scheme) —
+  none sourced. **Open, needs rammyps.**
+- **Reading-layers "suggested additions"** — 5 ideas flagged unconfirmed by their own author,
+  not triaged: rule-lifecycle log, cross-chart/synastry module, base-rate comparison in
+  Validation, surfacing confidence/source-stratum to the end reader, the reverse muhūrta
+  query. Parking lot only — see `vedic_reading_layers.md`'s "Suggested additions" section.
+  **Open, needs rammyps** before any of these become real `FEAT-*` candidates.
 
 ## Cadence
 

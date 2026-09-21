@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-10
+last_updated: 2026-09-22
 togaf: Requirements Management
 safe: Feature / Capability register
 ---
@@ -104,7 +104,9 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 | UI | ui | 12 | 70% | — | — | 4 | 2 | 9 |
 | DOCS | cross-cutting | 1 | 100% | 0 | 0 | 0 | 0 | 0 |
 
-*(The rollup is a manual mirror — recompute from the feature rows whenever a box changes.)*
+*(The rollup is a manual mirror — recompute from the feature rows whenever a box changes.
+2026-09-22: 7 rows added/corrected below as part of v5-batch triage — rollup not yet
+recomputed against them; treat the table above as stale until that pass runs.)*
 
 ---
 
@@ -129,6 +131,11 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
   vargottama facts before `tbl_ChartResults`). Both saved people regenerated; 11/11
   `verify-*` green. Remaining 20%: re-seed the `BENCH_RAMAKRISHNAN_P_JHORA_1981` case row
   and add a dedicated `verify-ayanamsa` (deferred).
+- **FEAT-DATA-07 · `tbl_Fact_KpSubLordChain.RuleSetId`** — Planned · 0% (new 2026-09-22, small)
+  DB [ ] · Core [—] · Verify [ ] · Web [—] · Docs [x] · Research: complete
+  Only `tbl_Fact_*` table without a `RuleSetId` FK (migration 095) — every sibling Fact table
+  (`tbl_Fact_PlanetaryStrength`, `…Component`, `tbl_Fact_Vargottama`) has one. Blocks tracing a
+  future KP cycle-order-convention revision. Design: `nakshatra-lord-sublord-dasha-crossref.md` §7.
 - **FEAT-DATA-05 · Source-attributed yoga corpus schema (migrations 47–49)** — Designed · 20%
   DB [ ] (migrations prepared, applied locally; apply to other envs after corpus completion) · Core [—] · Verify [x] · Web [—] · Docs [x] · Research: active
   Normalised D1/D9 requirement tracking + formation/outcome/source axes for `tbl_Rule_Yoga`.
@@ -150,6 +157,12 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 - **FEAT-VARGA-01 · Divisional charts D1–D60 (21 types)** — Verified · 80% · Verify `verify-vargas`
   DB [x] · Core [x] · Verify [x] · Web [ ] (only D1/D9 rendered) · Docs [x] · Research: complete
   `verify-vargas` green across all 21 charts for both saved people (after FEAT-DATA-04).
+- **FEAT-VARGA-02 · D2–D60 rendered in Web + per-scheme dignity-tier stacked bar** — Planned · 0% (new 2026-09-22)
+  DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
+  Closes `FEAT-VARGA-01`'s `Web [ ]` gap (calculators already verified, no new DB/Core work).
+  Depends on `FEAT-HOUSE-05`'s bridge table for interpretation content. **Open, needs
+  rammyps:** stacked-bar dedup policy, one-bar-per-scheme vs. combined bar, segment order.
+  Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md` §"FEAT-VARGA-02 detail".
 
 ## HOUSE — workstream: cli
 
@@ -162,11 +175,34 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 - **FEAT-HOUSE-04 · Baadhaka sthaana / baadhaka by rasi (PVR §13.3)** — Verified · 60% · Verify `verify-baadhaka`
   DB [ ] (computed, no rule table) · Core [x] · Verify [x] · Web [ ] · Docs [x] · Research: complete
   (`SRC_PVR_INTEGRATED` Table 31; Rahu/Ketu co-baadhaka rows deliberately diverge, see `pvr-coverage.md` Ch. 3)
+- **FEAT-HOUSE-05 · LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** — Planned · 0% (new 2026-09-22)
+  DB [ ] · Core [—] · Verify [ ] · Web [—] · Docs [x] · Research: complete
+  Reconciles `tbl_Dim_LifeArea` (migration 30) and `tbl_Dim_DivisionalSubject` (migration 38) —
+  same PVR ground, never cross-checked — and normalizes `DivisionalSubject.D1Foundation`'s
+  prose into `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail` rows, giving
+  chara-karaka roles the same shape. Feeds `FEAT-VARGA-02` and `FEAT-KARAKA-06`. Sequence
+  before `FEAT-HOUSE-03` (that one's blocked on a citation; this isn't). **Open, needs
+  rammyps:** Leg A/B reconciliation policy when they disagree. Design:
+  `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
+- **FEAT-HOUSE-06 · Sign/house-level benefic-malefic synthesis** — Planned · 0% (new 2026-09-22)
+  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial (no `SRC_*` citation,
+  synthesis note only)
+  No engine derives this today — `LagnaFunctionalNature` stops at the planet. Proposed method:
+  sign-lord functional nature (dominant) + occupants + graha dṛṣṭi + lord's dignity/condition
+  as a modifier. Needs a source pass before any schema work. Design:
+  `docs/research/domain/sign-benefic-malefic.md`.
 
 ## NAKSHATRA — workstream: cli
 
 - **FEAT-NAKSHATRA-01 · Nakshatra / pāda / Vimśottari lord / KP sub-lord + reference linkage** — Done · 100% · Verify `verify-schema`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
+- **FEAT-NAKSHATRA-02 · KP sub-lord chain (L2–L7) + Rāśi/Nakṣatra combination surfacing** — Designed · 40% (new 2026-09-22)
+  DB [x] (`tbl_Fact_KpSubLordChain` L2–L7 populated since 2026-09-18; `tbl_Rule_RasiNakshatraCombination`
+  36 rows, `vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination` 108 rows each,
+  migrations 124–126) · Core [x] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
+  All data computed/persisted, zero Web/CLI consumer. Extend `tvf_Chart_DashaLordRelationship`'s
+  join to L2–L7 (deferred at migration 110 pending population, now unblocked). Design:
+  `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
 
 ## DIGNITY — workstream: cli
 
@@ -185,8 +221,16 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
 - **FEAT-RELATIONSHIP-03 · Combustion (Asta)** — Done · 100% · Verify `verify-schema`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
-- **FEAT-RELATIONSHIP-04 · Compound Maitrī / argala / sambandha** — Planned · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: not started
+- **FEAT-RELATIONSHIP-04 · Compound Maitrī / argala / sambandha** — In progress · 70% (2026-09-22 correction — was stale at Planned·0%) · Verify `verify-rules`
+  DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete (argala/virodhargala only)
+  Argala/virodhargala built 2026-09-19: `tbl_Rule_Argala` (migration 127, `SRC_PVR_INTEGRATED`
+  §10.5–10.6) + `ArgalaCalculator` + `tbl_Fact_Argala` (migration 128) +
+  `ArgalaFactBuilder`/`ArgalaFactRepository` + `backfill-argala` CLI + live Key Inference 2.1
+  "Argala & Virodhargala" table (`ArgalaTable`). 28/28 tests. Remaining: wire
+  `ArgalaFactBuilder` into `ChartGenerationService` (fact table still needs manual
+  `backfill-argala`); career worked-example `CalculationNarrative`; Compound Maitrī —
+  `tbl_Rule_CompoundRelationship` (migration 24) exists but `DignityEngine.CombineToPanchadha`
+  doesn't read it; sambandha types not started. Detail: `argala-virodhargala-drishti-lifematters.md`.
 
 ## KARAKA — workstream: cli
 
@@ -200,6 +244,11 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial (`SRC_RAMAN_HTJH`)
 - **FEAT-KARAKA-04 · Naisargika Kāraka (Sapta vs Aṣṭa — undecided)** — Planned · 0%
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial
+- **FEAT-KARAKA-06 · Chara-karaka "Life Matters" panel** — Planned · 0% (new 2026-09-22)
+  DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
+  Closes `FEAT-KARAKA-01`'s `Web [ ]` gap — the panel from `res_charakarakas.md` §2. Depends
+  on `FEAT-HOUSE-05`'s Leg D detail rows for interpretation content, not just the
+  already-computed role→planet resolution. Design: `lifearea-varga-charakaraka-synthesis.md`.
 - **FEAT-KARAKA-05 · Special Lagnas (Bhaava / Ghati / Sree)** — Done · 100% · Verify `verify-jaimini`
   DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [x] · Research: complete
   Completes tbl_Dim_SpecialLagnas (db/28) — Hora Lagna shipped first (FEAT-KARAKA-02); Bhaava/
@@ -217,8 +266,11 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial (bands need a cited edition)
 - **FEAT-AVASTHA-04 · `ShameState` (Lajjitādi)** — Planned · 0%
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial
-- **FEAT-AVASTHA-05 · `PostureState` (Śayanādi)** — Planned · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: not started (needs janma-ghaṭis + a cited edition)
+- **FEAT-AVASTHA-05 · `PostureState` (Śayanādi)** — Verified · 80% (2026-09-22 correction — was stale at Planned·0%)
+  DB [x] (migration 083) · Core [x] (`PostureStateCalculator.cs`) · Verify [x] · Web [ ] · Docs [x] · Research: complete
+  `SRC_PVR_INTEGRATED` §15.4.4, `(C×P×A + M + G + L) mod 12`; 12-state `tbl_Dim_PlanetaryState`
+  seed (`AvasthaSystem = 'Sayanadi'`), `tbl_Rule_PostureStateFormula`,
+  `tbl_Fact_PlanetaryState.PostureStateId`, `vw_ChartPlanetEvidence` extended.
 
 ## DISPOSITOR — workstream: cli
 
@@ -246,6 +298,13 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 
 ## ASHTAKAVARGA — workstream: cli
 
+- **FEAT-ASHTAKAVARGA-02 · Cross-varga bindu lookup + `AshtakavargaVargaCompareChart`** — Planned · 0% (new 2026-09-22)
+  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial
+  Read-side extension of `FEAT-ASHTAKAVARGA-01`, no second engine: look up the single natal
+  SAV/BAV bindu table against every rendered Dn chart's placements, plus a new stacked-bar
+  chart (By House / By Sign, % bindu share per varga, same shape as Key Inference 3.4
+  Amsabala's per-graha bar). **Open:** citation for cross-reference (working assumption) vs.
+  independent-recompute-per-varga. Design: `docs/research/domain/ashtakavarga-varga-extension.md`.
 - **FEAT-ASHTAKAVARGA-01 · Bhinna / Sarva Ashtakavarga + Sodhya Piṇḍa** — Verified · 80% · Verify `verify-ashtakavarga`
   DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [x]
   Production `dbo` schema (migrations 074–078): `tbl_Rule_AshtakavargaContribution` (56-row

@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-18
+last_updated: 2026-09-22
 status: research-baseline
 ---
 
@@ -12,7 +12,11 @@ charts verified but not rendered) and `FEAT-KARAKA-01` (chara karakas verified b
 rendered) both have `Web [ ]`. No "v5" tag exists in this repo's own versioning (it ships
 by pure Now/Next/Later flow, `git tag` + GitHub Release per `ROADMAP.md`, not numbered
 releases) — treating "v5" here as this next flow-driven ship, closing the Web gap on those
-two plus the connective layer this file researches. Flag if a different scope was meant.
+two plus the connective layer this file researches.
+
+**Scope confirmed 2026-09-22:** rammyps's direction was the full v5-notes-index.md batch, not
+just this file's slice — see that index's 2026-09-22 update. This file's own proposals landed
+as `FEAT-VARGA-02` / `FEAT-KARAKA-06` / `FEAT-HOUSE-05` in `ROADMAP.md`.
 
 ## 1. What already exists — three legs, none of them connected
 
@@ -196,6 +200,5 @@ land in each classical dignity tier, across that scheme's member vargas.
   Leg D ×4 ≤ 32 — all small; a single polymorphic table is likely fine at this scale, but
   flagging the trade-off since `karakafix.md` deliberately avoided a similar shortcut for
   `KarakaRole`).
-- Confirm "v5" scope against whatever rammyps actually meant — this file assumed it maps to
-  ROADMAP's existing `FEAT-VARGA-01`/`FEAT-KARAKA-01` Web gap plus the new connective layer;
-  no versioned-release convention exists elsewhere in the repo to check this against.
+- ~~Confirm "v5" scope~~ **Resolved 2026-09-22** — see the top-of-file note; the full
+  v5-notes-index.md batch, not just this file's slice.

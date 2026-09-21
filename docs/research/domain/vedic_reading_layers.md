@@ -287,11 +287,21 @@ not infallible" framing, not one silently merged authority.
 
 ## Open items before any of this becomes buildable
 
-1. None of Stages 01, 05, 09, 11, 12 have a `FEAT-*` slot in `ROADMAP.md` yet — this is a design
-   note, not a triaged feature.
-2. Add a row to [`v5-notes-index.md`](../v5-notes-index.md) for this file.
-3. The "suggested additions" above are unconfirmed — flag for rammyps rather than assuming scope.
+1. ~~None of Stages 01, 05, 09, 11, 12 have a `FEAT-*` slot~~ **Triaged 2026-09-22.** Stage 01
+   → `ROADMAP.md` Later, "Data & Calculation Integrity surfacing" (new ground, no urgency
+   signal yet). Stage 05 rides on `FEAT-HOUSE-05`'s significator matrix rather than needing its
+   own engine feature. Stage 09 is mostly non-computable (age, culture, personal history) — a
+   low-priority UI-input feature at best, not slotted. Stage 11 stays a research *discipline*
+   (how the project validates rules), not a product feature — deliberately not given a
+   `FEAT-*` row. Stage 12 is judged already satisfied by the project's existing `SRC_*`
+   citation codes, `RuleSetId` versioning, and `pvr-coverage.md`'s own reconciliation log — no
+   new slot needed, this note's contribution was naming the discipline, not creating a gap.
+2. ~~Add a row to `v5-notes-index.md`~~ **Done 2026-09-22** — see that file.
+3. The "suggested additions" above remain unconfirmed — parked as their own list in
+   `ROADMAP.md` Later ("Reading-layers 'suggested additions'"), not promoted to `FEAT-*`
+   candidates. Still needs rammyps.
 4. Stage 03's Ashtakavarga item now has its own extension note,
    [[ashtakavarga-varga-extension]] (cross-varga bindu lookup + a By House/By Sign comparison
-   chart) — also unconfirmed on the cross-reference-vs-recompute question it raises, and also
-   still without a `FEAT-*` slot.
+   chart) — triaged 2026-09-22 to `FEAT-ASHTAKAVARGA-02` (`ROADMAP.md` Now), now that
+   `pvr-coverage.md` Ch.12 is corrected (Ashtakavarga shipped, wasn't actually blocking this).
+   The cross-reference-vs-recompute citation question is still open — flagged in `masterproduct.md`.
