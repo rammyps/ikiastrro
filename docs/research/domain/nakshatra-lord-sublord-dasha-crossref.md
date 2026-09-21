@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-18
+last_updated: 2026-09-22
 aliases: [nakshatra_sublords]
 ---
 
@@ -34,7 +34,16 @@ that's an aggregate view, not the per-planet chain itself. A `PlanetPositionsTab
 (columns Sub², Sub³, … or an expandable chain cell) or a dedicated KP panel is the missing
 piece, not new computation.
 
-## 2. Nakshatra pada lord → L1–L7 sub-lords — partially built, and the *pada-lord* half is missing entirely
+## 2. Nakshatra pada lord → L1–L7 sub-lords — resolved 2026-09-22: out of scope, not built further
+
+**Decision (rammyps, 2026-09-22):** rejected — "not usually done." `FEAT-NAKSHATRA-02` covers
+only the plain Nakshatra Lord → Sub-Lord (L1–L7) chain below (§1), which is definitionally the
+same mechanism and already computed straight from exact longitude via Swiss Ephemeris
+(`AstroMath.GetKpSubLordChain`). The Pada Lord chain discussed in this section stays exactly
+where migrations 125–126 left it — committed, unconsumed, no further work planned. Kept below
+for the record of what was considered and why it was turned down.
+
+### (superseded) partially built, and the *pada-lord* half is missing entirely
 
 Two different things are being connected here, and only one of them currently exists as data:
 
@@ -211,7 +220,7 @@ stored on `tbl_Chart_KeyDetails`), could/should this be a derived table instead 
 | Thread | Available | Pending |
 |---|---|---|
 | Nakshatra lord → L1–L7 | Algorithm inherently connects them (nakshatra lord seeds the cycle *order*; exact longitude still decides the outcome, §5); L1 stored + shown; L2–L7 stored (2026-09-18) | Surface L2–L7 in Web UI / a KP panel; add `RuleSetId` to `tbl_Fact_KpSubLordChain` (§7) |
-| Pada lord → L1–L7 | Pada *number* stored/shown; sub-lord chain L1–L7 stored; Pada Lord is mechanically trivial to compute+persist the same way (§7) | Pada lord itself is not computed/stored/shown anywhere; a *chain* rooted in the pada (vs. a plain cross-reference table) is an undefined construct needing its own citation (§2) |
+| Pada lord → L1–L7 | **Out of scope, resolved 2026-09-22 (rammyps) — "not usually done."** Migrations 125–126 built the connection anyway (2026-09-19, before this was raised) and stay committed/unconsumed; no `FEAT-*` work planned. | — |
 | Nakshatra color scheme | Nothing | Everything — needs a source or an explicit cosmetic-data call (TamilName precedent) before any migration |
 | Dasha (Maha/Antar/Pratyantar) ↔ Rasi/Nakshatra | Fully built for L1 sub-lord via `tvf_Chart_DashaLordRelationship` (migration 110) | Web UI consumer; extend join to L2–L7 now that the chain is populated |
 | Scope check | Confirmed: computed for **every** planet, not Moon-only; Moon is uniquely load-bearing only for Vimshottari dasha sequencing (§6) | — |

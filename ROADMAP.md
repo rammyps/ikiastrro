@@ -54,13 +54,19 @@ Close the gap between verified engine logic and what the web app actually shows 
   citation for the cross-reference (recommended) vs. independent-recompute-per-varga reading
   — the note's working assumption is cross-reference; flag if a source for the other reading
   exists.
-- **KP sub-lord chain (L2–L7) + Rāśi/Nakṣatra combination surfacing** · `FEAT-NAKSHATRA-02`
-  (new 2026-09-22) — `tbl_Fact_KpSubLordChain` L2–L7 populated since 2026-09-18 but has zero
-  Web/CLI consumer; same for the 2026-09-19 `tbl_Rule_RasiNakshatraCombination` (36 rows) /
-  `vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination` (108 rows each,
-  migrations 124–126). Extend `tvf_Chart_DashaLordRelationship`'s join to L2–L7 (deferred at
-  migration 110 pending population, now unblocked). Design:
+- **Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination** ·
+  `FEAT-NAKSHATRA-02` (new 2026-09-22, **narrowed 2026-09-22**) — `tbl_Fact_KpSubLordChain`
+  L2–L7 populated since 2026-09-18 (computed straight from exact longitude via
+  `AstroMath.GetKpSubLordChain`, no Pada Lord involved) but has zero Web/CLI consumer; same for
+  the 2026-09-19 `tbl_Rule_RasiNakshatraCombination` (migration 124, 36 rows, sign-lord vs.
+  nakshatra-lord relations only). Extend `tvf_Chart_DashaLordRelationship`'s join to L2–L7
+  (deferred at migration 110 pending population, now unblocked). Design:
   `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
+  **Scope decision 2026-09-22 (rammyps):** the Nakshatra *Pada* Lord chain
+  (`vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination`, migrations
+  125–126) is explicitly **out of scope** — not a standard/classical technique, "not usually
+  done." Those two objects stay committed (harmless, unconsumed) but get no Web/CLI work under
+  this feature or any other planned one.
 - **`tbl_Fact_KpSubLordChain.RuleSetId`** · `FEAT-DATA-07` (new 2026-09-22, small) — the one
   real schema gap found in the KP crossref note: every sibling `tbl_Fact_*` records
   `RuleSetId`; this table (migration 095) doesn't, so a future revision to the KP cycle-order

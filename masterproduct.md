@@ -196,13 +196,16 @@ recomputed against them; treat the table above as stale until that pass runs.)*
 
 - **FEAT-NAKSHATRA-01 · Nakshatra / pāda / Vimśottari lord / KP sub-lord + reference linkage** — Done · 100% · Verify `verify-schema`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
-- **FEAT-NAKSHATRA-02 · KP sub-lord chain (L2–L7) + Rāśi/Nakṣatra combination surfacing** — Designed · 40% (new 2026-09-22)
-  DB [x] (`tbl_Fact_KpSubLordChain` L2–L7 populated since 2026-09-18; `tbl_Rule_RasiNakshatraCombination`
-  36 rows, `vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination` 108 rows each,
-  migrations 124–126) · Core [x] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
+- **FEAT-NAKSHATRA-02 · Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination** — Designed · 40% (new 2026-09-22, narrowed 2026-09-22)
+  DB [x] (`tbl_Fact_KpSubLordChain` L2–L7 populated since 2026-09-18, computed from exact
+  longitude via `AstroMath.GetKpSubLordChain`; `tbl_Rule_RasiNakshatraCombination` 36 rows,
+  migration 124) · Core [x] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
   All data computed/persisted, zero Web/CLI consumer. Extend `tvf_Chart_DashaLordRelationship`'s
   join to L2–L7 (deferred at migration 110 pending population, now unblocked). Design:
   `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
+  **Out of scope (rammyps, 2026-09-22):** the Nakshatra Pada Lord chain
+  (`vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination`, migrations
+  125–126) — not a standard technique. Left committed, unconsumed, no further work planned.
 
 ## DIGNITY — workstream: cli
 
