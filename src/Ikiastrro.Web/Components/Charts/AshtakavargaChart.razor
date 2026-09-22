@@ -1,10 +1,12 @@
 @using System.Globalization
+@using Ikiastrro.Web.Components.Workspace
 
 <section class="av" aria-labelledby="av-title">
     <article class="av-card">
         <header class="av-card-head">
-            <h2 id="av-title">Sarvāṣṭakavarga</h2>
+            <div><h2 id="av-title">Sarvāṣṭakavarga</h2><p class="av-context">Natal bindus · houses mapped to @_selectedChart</p></div>
             <div class="av-head-right">
+                <label class="av-chart-select"><span>Varga</span><select value="@_selectedChart" @onchange="OnChartChanged">@foreach (var chart in ChartOptions) { <option value="@chart.ChartType">@chart.Label</option> }</select></label>
                 <div class="av-toggle" role="group" aria-label="Row order">
                     <button type="button" class="@(_sort == SortMode.HouseOrder ? "av-toggle-on" : "")" @onclick="() => _sort = SortMode.HouseOrder">House order</button>
                     <button type="button" class="@(_sort == SortMode.StrengthRank ? "av-toggle-on" : "")" @onclick="() => _sort = SortMode.StrengthRank">Strength rank</button>
@@ -54,6 +56,7 @@
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<AshtakavargaRow> Rows { get; set; } = Array.Empty<AshtakavargaRow>();
     [Parameter] public IReadOnlyList<AshtakavargaPindaRow> PindaRows { get; set; } = Array.Empty<AshtakavargaPindaRow>();
+    [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
 
     private static readonly int[] Signs = Enumerable.Range(1, 12).ToArray();
     private static readonly string[] SignNames = { "", "Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis" };
@@ -62,6 +65,9 @@
 
     private enum SortMode { HouseOrder, StrengthRank }
     private SortMode _sort = SortMode.HouseOrder;
+    private string _selectedChart = "D1";
+    private IReadOnlyList<LoadedChart> ChartOptions => Charts.Values.OrderBy(c => ChartDivisor(c.ChartType)).ToList();
+    private void OnChartChanged(ChangeEventArgs args) => _selectedChart = args.Value?.ToString() ?? "D1";
 
     private IReadOnlyList<(int SignNumber, int TotalBindus)> SavRowsBySign =>
         Signs.Select(s => (s, Rows.Where(r => r.SignNumber == s).Select(r => (int?)r.SarvaBindus).FirstOrDefault(v => v is not null) ?? Rows.Where(r => r.SignNumber == s).Sum(r => (int)r.BinduCount))).ToList();
@@ -73,14 +79,14 @@
 
     private int GrandTotal => SavRowsBySign.Sum(r => r.TotalBindus);
 
-    /// <summary>Persisted whole-sign house number (db/106) keyed by absolute sign — one lookup
-    /// per sign, built once from <see cref="Rows"/> instead of re-deriving it from an
-    /// AscendantSign display string on every render (see db/106's header for the bug that fixed).</summary>
-    private IReadOnlyDictionary<int, int> HouseBySign =>
-        Rows.Where(r => r.HouseNumber.HasValue)
-            .GroupBy(r => (int)r.SignNumber)
-            .ToDictionary(g => g.Key, g => (int)g.First().HouseNumber!.Value);
-    private int HouseNumber(int signNumber) => HouseBySign.TryGetValue(signNumber, out var h) ? h : signNumber;
+    private int HouseNumber(int signNumber)
+    {
+        if (!Charts.TryGetValue(_selectedChart, out var chart)) return signNumber;
+        var ascendant = SignNumber(chart.AscendantSign);
+        return ((signNumber - ascendant + 12) % 12) + 1;
+    }
+    private static int SignNumber(string sign) => sign switch { "Aries" => 1, "Taurus" => 2, "Gemini" => 3, "Cancer" => 4, "Leo" => 5, "Virgo" => 6, "Libra" => 7, "Scorpio" => 8, "Sagittarius" => 9, "Capricorn" or "Capricornus" => 10, "Aquarius" => 11, "Pisces" => 12, _ => 1 };
+    private static int ChartDivisor(string code) => int.TryParse(code.TrimStart('D', 'd'), out var divisor) ? divisor : int.MaxValue;
     private static string ShortSign(int signNumber) => SignNames[signNumber];
     private static string DisplayRecipient(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(code.ToLowerInvariant());
     private static string Value(short? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "—";

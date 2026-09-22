@@ -51,7 +51,7 @@
    has sub-views, its own inner MudTabs:
    D1-TRANSIT's is 1.1 D1 - BIRTH CHART/1.2 TRANSIT CHART (_activeTab); About's is
    2.1 ABOUT HOUSES/2.2 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
-   3.3 ASTAVARGA (all unbound). Every tab text at every level is ALL CAPS.
+   3.3 ASTHAVARGA (all unbound). Every tab text at every level is ALL CAPS.
    All three levels share `.ki-tabs` styling, unified 2026-09-14 (rammyps's directive) onto the
    same quiet-cream/strong-sunset pill the master step rail (`.ki-master-button`) already used —
    inactive = quiet cream pill + midnight text, active = sunset pill + midnight text
@@ -322,7 +322,7 @@ else
                     }
                 </MudTabPanel>
 
-                <MudTabPanel Text="3.3 ASTAVARGA">
+                <MudTabPanel Text="3.3 ASTHAVARGA">
                     @if (_ashtakavarga.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -331,7 +331,7 @@ else
                     }
                     else
                     {
-                        <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" />
+                        <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" Charts="_data.Charts" />
                     }
                 </MudTabPanel>
             </MudTabs>
@@ -376,12 +376,6 @@ else
             else
             {
                 <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" />
-                @if (_ashtakavarga.Count > 0)
-                {
-                    <div class="ki-varga-ashtakavarga">
-                        <AshtakavargaVargaCompareChart Rows="_ashtakavarga" Groups="_amsabalaGroups" Charts="_data.Charts" />
-                    </div>
-                }
             }
             </div>
         </MudTabPanel>

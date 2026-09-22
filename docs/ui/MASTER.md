@@ -129,13 +129,12 @@ number and date formatting, and right-to-left is not needed but glyph coverage i
 
 ## Current v5 delivery — FEAT-ASHTAKAVARGA-02
 
-- `AshtakavargaVargaCompareChart` is built in Key Inference step 6. It cross-references the
-  single persisted natal SAV matrix across each selected varga's own ascendant-relative houses,
-  defaults to By House, offers By Sign as a sanity-check frame, and reuses the seeded
-  Shadvarga/Saptavarga/Dasavarga/Shodasavarga memberships.
-- Verification: solution build passed with 0 warnings/errors. Web tests: 435 passed; two
-  unrelated existing `PolarGridLagnaSelectTests` count assertions failed (expected 12/2,
-  actual 84/5). Browser/golden verification remains for integration.
+- Key Inference **3.3 ASTHAVARGA** now keeps the existing `AshtakavargaChart` and adds a
+  Varga dropdown over every generated divisional chart. The single persisted natal SAV/BAV
+  matrix remains unchanged; selecting a varga remaps house labels from that varga's ascendant.
+  The separate step-6 comparison chart was removed to keep one Ashtavarga experience.
+- Verification status is recorded with the implementing commit; browser review remains for
+  integration.
 
 ## Planned
 
