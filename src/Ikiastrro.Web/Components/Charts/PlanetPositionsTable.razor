@@ -1,7 +1,4 @@
-@using Ikiastrro.Core.Engines.Astronomy
-@* Planetary positions for one chart. Variant "d1" = full columns; "varga" drops the nakshatra
-   family (discrete buckets). Malefic/Benefic = computed Parashari functional nature for the natal
-   Lagna (kept by decision 2026-09-03, overriding spec §9). Special-point rows are excluded. *@
+@* Planetary positions for one chart. Variant "d1" includes nakshatra detail; "varga" omits it. Key Inference 1.1 sets ShowAnalysis=false so this component owns position only there; the canonical planetary role and condition presentation is 2.2 About Planets. Other consumers retain analytical context by default. Special-point rows are excluded. *@
 <div class="ppt-scroll">
     <table class="ppt">
         <thead>
@@ -12,11 +9,14 @@
                     <th>Nakshatra</th><th>Pada</th><th>Nak&nbsp;Lord</th><th>Sub&nbsp;Lord</th><th>Sub-Lord&nbsp;Chain&nbsp;(L2–L7)</th>
                 }
                 <th>Dir</th><th>House</th><th>House&nbsp;(Ch)</th>
-                @if (ShowDignity)
+                @if (ShowAnalysis && ShowDignity)
                 {
                     <th>Dignity</th>
                 }
-                <th>Rules</th><th>Malefic&nbsp;/&nbsp;Benefic</th><th>Karaka</th><th>Aspected&nbsp;by</th>
+                @if (ShowAnalysis)
+                {
+                    <th>Rules</th><th>Karaka</th><th>Aspected&nbsp;by</th>
+                }
                 @if (ShowTechnical)
                 {
                     <th>Speed&nbsp;°/day</th><th>Ecl&nbsp;lat&nbsp;°</th><th>Varga&nbsp;long&nbsp;°</th>
@@ -26,7 +26,6 @@
         <tbody>
             @foreach (var row in Rows.Where(r => r.PointKind == "Graha"))
             {
-                var fn = Functional(row.Planet);
                 <tr class="@(row.Planet == "Ascendant" ? "asc" : "")">
                     <td>@(row.Planet == "Ascendant" ? "Lagna" : row.Planet)</td>
                     <td>@DisplaySign(row.Sign)</td>
@@ -42,21 +41,19 @@
                     <td>@ChartViewModel.DirectionLabel(row.IsRetrograde)</td>
                     <td class="mono">@row.HouseFromLagna</td>
                     <td class="mono">@row.HouseFromMoon</td>
-                    @if (ShowDignity)
+                    @if (ShowAnalysis && ShowDignity)
                     {
                         <td>
                             @if (row.DignityStatus is null) { <span class="muted">—</span> }
                             else { <span class="pill"><span class="dot" style="background:var(--dignity-@ChartViewModel.DignityToken(row.DignityStatus))"></span>@row.DignityStatus</span> }
                         </td>
                     }
-                    <td>@(row.RulesHouseNumbers ?? "—")</td>
-                    <td>
-                        @if (fn is null) { <span class="muted">—</span> }
-                        else { <span class="pill"><span class="dot" style="background:@fn.Value.Color"></span>@fn.Value.Code</span> }
-                    </td>
-                    <td>@(row.CharaKaraka ?? "—")</td>
-                    <td class="mono asp">@(row.AspectedBy ?? "—")</td>
-                    @if (ShowTechnical)
+                    @if (ShowAnalysis)
+                    {
+                        <td>@(row.RulesHouseNumbers ?? "—")</td>
+                        <td>@(row.CharaKaraka ?? "—")</td>
+                        <td class="mono asp">@(row.AspectedBy ?? "—")</td>
+                    }                    @if (ShowTechnical)
                     {
                         <td class="mono">@(row.SpeedLongitudeDegPerDay?.ToString("0.0000") ?? "—")</td>
                         <td class="mono">@(row.EclipticLatitudeDegrees?.ToString("0.0000") ?? "—")</td>
@@ -74,20 +71,8 @@
     [Parameter] public string Variant { get; set; } = "d1";
     [Parameter] public bool ShowTechnical { get; set; }
     [Parameter] public bool ShowDignity { get; set; } = true;
+    [Parameter] public bool ShowAnalysis { get; set; } = true;
 
     private static string DisplaySign(string sign) => sign == "Capricornus" ? "Capricorn" : sign;
 
-    private (string Code, string Color)? Functional(string planet)
-    {
-        if (!Enum.TryParse<PlanetName>(planet, out var p) || p is PlanetName.Rahu or PlanetName.Ketu)
-            return null;
-        if (!Enum.TryParse<ZodiacName>(LagnaSign, out var lagna))
-            return null;
-        var r = LagnaFunctionalNature.For(lagna, p);
-        var isBenefic = r.Nature is FunctionalNature.Benefic or FunctionalNature.Yogakaraka;
-        var prefix = isBenefic ? "B" : r.Nature == FunctionalNature.Malefic ? "M" : "N";
-        var color = isBenefic ? "var(--dignity-good)"
-            : r.Nature == FunctionalNature.Malefic ? "var(--dignity-enemy)" : "var(--dignity-neutral)";
-        return ($"{prefix}-[{string.Join("&", r.RuledHouses)}]", color);
-    }
 }
