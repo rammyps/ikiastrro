@@ -46,6 +46,7 @@ public class ChartGenerationService
     private readonly AmsabalaSchemeRepository _amsabalaSchemeRepo;
     private readonly KpSubLordChainRepository? _kpSubLordChainRepo;
     private readonly ArgalaFactRepository? _argalaFactRepo;
+    private readonly GrahaDrishtiStrengthRepository? _grahaDrishtiStrengthRepo;
 
     // Amsabala's scheme groups/names (tbl_Rule_AmsabalaGroup/Name) are the same for the whole
     // GenerateAll/Recompute call — load once per ruleSetId, like PlanetaryStateRules above.
@@ -80,7 +81,8 @@ public class ChartGenerationService
         AshtakavargaRepository ashtakavargaRepo, PanchangaRepository panchangaRepo,
         AmsabalaRepository amsabalaRepo, AmsabalaSchemeRepository amsabalaSchemeRepo,
         KpSubLordChainRepository? kpSubLordChainRepo = null,
-        ArgalaFactRepository? argalaFactRepo = null)
+        ArgalaFactRepository? argalaFactRepo = null,
+        GrahaDrishtiStrengthRepository? grahaDrishtiStrengthRepo = null)
     {
         _orchestrator = orchestrator;
         _dashaService = dashaService;
@@ -105,6 +107,7 @@ public class ChartGenerationService
         _amsabalaSchemeRepo = amsabalaSchemeRepo;
         _kpSubLordChainRepo = kpSubLordChainRepo;
         _argalaFactRepo = argalaFactRepo;
+        _grahaDrishtiStrengthRepo = grahaDrishtiStrengthRepo;
     }
 
     private AyanamsaDefinition ResolveAyanamsa(AyanamsaDefinition? requested) =>
@@ -134,6 +137,7 @@ public class ChartGenerationService
         _panchangaRepo.DeleteByBirthDetailId(birthDetails.Id);
         _kpSubLordChainRepo?.DeleteByBirthDetailId(birthDetails.Id); // FK_Fact_KpSubLordChain_ChartResult (no cascade); optional until Web/Cli composition roots register it
         _argalaFactRepo?.DeleteByBirthDetailId(birthDetails.Id);     // FK_Fact_Argala_ChartResult (no cascade); optional, same reason — was missing entirely, broke rebuild-all once backfill-argala had populated rows
+        _grahaDrishtiStrengthRepo?.DeleteByBirthDetailId(birthDetails.Id);
         foreach (var calc in _orchestrator.Calculators)
             _chartResultsRepo.DeleteByBirthDetailIdAndChartType(birthDetails.Id, calc.ChartType);
 
@@ -294,6 +298,8 @@ public class ChartGenerationService
             _multiGrahaConjunctionsRepo.LinkPairRows(chartResultId);
         }
         if (aspects.Count > 0) _aspectsRepo.InsertAll(aspects);
+        if (input.ChartType is "D1" or "D9" or "D10")
+            _grahaDrishtiStrengthRepo?.Replace(chartResultId, ruleSetId, input);
         if (planetaryStates.Count > 0) _planetaryStateRepo.InsertAll(planetaryStates);
 
         // Ashtakavarga is materialised independently for every divisional chart so the UI's
