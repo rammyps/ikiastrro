@@ -16,7 +16,8 @@ public static class LagnaFunctionalNature
 
     private static readonly int[] Kendras  = { 4, 7, 10 };   // the 1st is a kendra too but never on its own confers yogakaraka
     private static readonly int[] Trikonas = { 5, 9 };       // the 1st is a trikona too, same caveat
-    private static readonly int[] Dusthanas3611 = { 3, 6, 11 };
+    private static readonly int[] Dusthanas = { 6, 8, 12 };
+    private static readonly int[] Trishadayas = { 3, 6, 11 };
 
     public static FunctionalNatureResult For(ZodiacName lagnaSign, PlanetName planet)
     {
@@ -34,10 +35,14 @@ public static class LagnaFunctionalNature
             throw new InvalidOperationException(
                 $"No sign rulership found for {planet} — HouseEngine.GetSignLord contract drift?");
 
-        var isMaraka = ruledHouses.Contains(2) || ruledHouses.Contains(7);
+        var marakaHouses = ruledHouses.Intersect(new[] { 2, 7 }).ToArray();
+        var dusthanaHouses = ruledHouses.Intersect(Dusthanas).ToArray();
+        var trishadayaHouses = ruledHouses.Intersect(Trishadayas).ToArray();
+        var baadhaka = BaadhakaCalculator.For(lagnaSign);
+        var isBaadhakaLord = baadhaka.Baadhaka.Equals(planet.ToString(), StringComparison.Ordinal);
         var hasKendra  = ruledHouses.Intersect(Kendras).Any();
         var hasTrikona = ruledHouses.Intersect(Trikonas).Any();
-        var hasBad     = ruledHouses.Intersect(Dusthanas3611).Any();
+        var hasTrishadaya = trishadayaHouses.Length > 0;
         var isNaturalBenefic = NaturalBenefics.Contains(planet);
 
         FunctionalNature nature;
@@ -49,27 +54,27 @@ public static class LagnaFunctionalNature
             nature = FunctionalNature.Yogakaraka;
             why = $"Rules a kendra and a trikona ({string.Join(" & ", ruledHouses)}) — Yogakaraka";
         }
-        else if (ruledHouses.Contains(1) && !hasBad)
+        else if (ruledHouses.Contains(1) && !hasTrishadaya)
         {
             nature = planet == PlanetName.Moon ? FunctionalNature.Neutral : FunctionalNature.Benefic;
             why = planet == PlanetName.Moon ? "Lagna lord and the Moon — Neutral" : "Lagna lord — Benefic";
         }
-        else if ((ruledHouses.Contains(5) || ruledHouses.Contains(9)) && !hasBad)
+        else if ((ruledHouses.Contains(5) || ruledHouses.Contains(9)) && !hasTrishadaya)
         {
             nature = FunctionalNature.Benefic;
             why = $"Trikona lord ({string.Join(" & ", ruledHouses)}) — Benefic";
         }
-        else if (!hasBad && ruledHouses.All(h => Kendras.Contains(h)) && ruledHouses.Length > 0)
+        else if (!hasTrishadaya && ruledHouses.All(h => Kendras.Contains(h)) && ruledHouses.Length > 0)
         {
             if (isNaturalBenefic) { nature = FunctionalNature.Malefic; kendradhipatiDosha = true;
                 why = $"Natural benefic owning only a kendra ({string.Join(" & ", ruledHouses)}) — kendradhipati dosha"; }
             else { nature = FunctionalNature.Benefic;
                 why = $"Natural malefic owning a kendra ({string.Join(" & ", ruledHouses)}) — Benefic"; }
         }
-        else if (hasBad)
+        else if (hasTrishadaya)
         {
             nature = FunctionalNature.Malefic;
-            why = $"Lord of {string.Join(" & ", ruledHouses.Intersect(Dusthanas3611))} — malefic house lordship";
+            why = $"Lord of {string.Join(" & ", trishadayaHouses)} — triṣaḍāya lordship";
         }
         else if (ruledHouses.Length > 0 && ruledHouses.All(h => h is 2 or 8 or 12))
         {
@@ -82,7 +87,22 @@ public static class LagnaFunctionalNature
             why = $"Mixed lordship ({string.Join(" & ", ruledHouses)}) — Malefic (heuristic default)";
         }
 
-        return new FunctionalNatureResult(nature, ruledHouses, isMaraka, kendradhipatiDosha, why);
+        var modifiers = new List<string>();
+        if (marakaHouses.Length > 0)
+            modifiers.Add($"māraka lord ({string.Join(" & ", marakaHouses)})");
+        if (dusthanaHouses.Length > 0)
+            modifiers.Add($"dusthāna lord ({string.Join(" & ", dusthanaHouses)})");
+        if (trishadayaHouses.Length > 0)
+            modifiers.Add($"triṣaḍāya lord ({string.Join(" & ", trishadayaHouses)})");
+        if (isBaadhakaLord)
+            modifiers.Add($"bādhaka lord ({baadhaka.SthaanaOffset})");
+
+        if (modifiers.Count > 0)
+            why += $"; additionally {string.Join(", ", modifiers)}";
+
+        return new FunctionalNatureResult(
+            nature, ruledHouses, marakaHouses, dusthanaHouses, trishadayaHouses,
+            isBaadhakaLord, baadhaka.SthaanaOffset, kendradhipatiDosha, why);
     }
 }
 
@@ -90,7 +110,22 @@ public static class LagnaFunctionalNature
 public enum FunctionalNature { Benefic, Malefic, Neutral, Yogakaraka }
 
 /// <param name="RuledHouses">1-based house numbers this planet rules from the given Lagna (1 or 2 entries).</param>
-/// <param name="IsMaraka">Additionally lord of the 2nd or 7th (independent of Nature).</param>
+/// <param name="MarakaHouses">Owned māraka houses (2 and/or 7), independent of Nature.</param>
+/// <param name="DusthanaHouses">Owned dusthāna houses (6, 8 and/or 12).</param>
+/// <param name="TrishadayaHouses">Owned triṣaḍāya houses (3, 6 and/or 11).</param>
+/// <param name="IsBaadhakaLord">Whether this planet rules the Lagna's modality-derived bādhaka house.</param>
+/// <param name="BaadhakaHouse">The bādhaka house: 11 movable, 9 fixed, 7 dual.</param>
 /// <param name="KendradhipatiDosha">Natural benefic degraded by owning only an angle.</param>
 public record FunctionalNatureResult(
-    FunctionalNature Nature, int[] RuledHouses, bool IsMaraka, bool KendradhipatiDosha, string Rationale);
+    FunctionalNature Nature,
+    int[] RuledHouses,
+    int[] MarakaHouses,
+    int[] DusthanaHouses,
+    int[] TrishadayaHouses,
+    bool IsBaadhakaLord,
+    int BaadhakaHouse,
+    bool KendradhipatiDosha,
+    string Rationale)
+{
+    public bool IsMaraka => MarakaHouses.Length > 0;
+}

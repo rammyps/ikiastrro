@@ -496,6 +496,24 @@ if (args.Length > 0 && args[0] == "verify-functional-nature")
 
     var arVe = LagnaFunctionalNature.For(ZodiacName.Aries, PlanetName.Venus);
     Check("Aries/Venus maraka", arVe.IsMaraka, true);                       // rules 2nd (Taurus) + 7th (Libra)
+    Check("Aries/Venus maraka houses", string.Join(",", arVe.MarakaHouses), "2,7");
+
+    var arMeOwnership = LagnaFunctionalNature.For(ZodiacName.Aries, PlanetName.Mercury);
+    Check("Aries/Mercury dusthana", string.Join(",", arMeOwnership.DusthanaHouses), "6");
+    Check("Aries/Mercury trishadaya", string.Join(",", arMeOwnership.TrishadayaHouses), "3,6");
+    Check("Aries/Mars eighth lord", string.Join(",", LagnaFunctionalNature.For(ZodiacName.Aries, PlanetName.Mars).DusthanaHouses), "8");
+    Check("Aries/Jupiter twelfth lord", string.Join(",", arJu.DusthanaHouses), "12");
+
+    var arSa = LagnaFunctionalNature.For(ZodiacName.Aries, PlanetName.Saturn);
+    Check("Aries/Saturn baadhaka", arSa.IsBaadhakaLord, true);
+    Check("Aries baadhaka house", arSa.BaadhakaHouse, 11);
+    var taSaOwnership = LagnaFunctionalNature.For(ZodiacName.Taurus, PlanetName.Saturn);
+    Check("Taurus/Saturn baadhaka", taSaOwnership.IsBaadhakaLord, true);
+    Check("Taurus baadhaka house", taSaOwnership.BaadhakaHouse, 9);
+    var geJu = LagnaFunctionalNature.For(ZodiacName.Gemini, PlanetName.Jupiter);
+    Check("Gemini/Jupiter baadhaka", geJu.IsBaadhakaLord, true);
+    Check("Gemini baadhaka house", geJu.BaadhakaHouse, 7);
+    Check("Gemini/Jupiter maraka overlap", string.Join(",", geJu.MarakaHouses), "7");
     Check("Aries/Venus nature", arVe.Nature, FunctionalNature.Malefic);     // falls through to the catch-all
 
     Console.WriteLine(failures == 0 ? "\nverify-functional-nature: ALL PASS" : $"\nverify-functional-nature: {failures} FAILURE(S)");
