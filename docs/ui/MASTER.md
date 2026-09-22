@@ -127,6 +127,12 @@ number and date formatting, and right-to-left is not needed but glyph coverage i
   default; North / West Indian listed, renderers deferred — NFR-UI-02) · **Language** (Tamil
   planned — NFR-UI-04). `localStorage` for now; DB-backed default is a `database` follow-up.
 
+## Current lunar delivery
+
+- Key Inference 2.2 now shows `LunarPhaseCard`: Śukla/Kṛṣṇa Pakṣa, waxing/waning,
+  eight-phase label, illumination percentage, and the persisted Moon `PAKSHA_BALA` value on
+  a 0–60 virūpa meter. Focused component tests cover waxing-gibbous and waning-crescent states.
+
 ## Current v5 delivery — FEAT-ASHTAKAVARGA-02
 
 - Key Inference **3.3 ASTHAVARGA** now keeps the existing `AshtakavargaChart` and adds a

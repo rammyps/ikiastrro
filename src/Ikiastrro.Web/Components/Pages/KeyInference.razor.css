@@ -267,3 +267,5 @@
     .ki-tabs ::deep .ki-table table { font-size: 0.72em; }
     .ki-twocol { grid-template-columns: 1fr; }
 }
+
+.ki-moon-support { margin-top: 12px; }

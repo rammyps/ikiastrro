@@ -270,7 +270,8 @@ else
                     else
                     {
                         var moonGraha = lc.Grahas.FirstOrDefault(k => k.Planet == "Moon");
-                        <dl class="ki-facts">
+                        <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
+                        <dl class="ki-facts ki-moon-support">
                             <div class="ki-fact"><dt>Tithi</dt><dd>@ChartViewModel.TithiDisplay(_moon.TithiNumber, _moon.PakshaCode)</dd></div>
                             <div class="ki-fact"><dt>Pakṣa</dt><dd>@ChartViewModel.PakshaDisplay(_moon.PakshaCode) (@(_moon.IsWaxingMoon == true ? "waxing" : "waning"))</dd></div>
                             <div class="ki-fact"><dt>Elongation</dt><dd>@(_moon.ElongationDegrees is { } e ? $"{e:0.00}°" : "—")</dd></div>
@@ -411,6 +412,10 @@ else
     private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
     private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
+
+    private decimal? MoonPakshaBala => _shadbalaComponents.FirstOrDefault(c =>
+        c.Planet.Equals("Moon", StringComparison.OrdinalIgnoreCase) &&
+        c.SubComponentCode.Equals("PAKSHA_BALA", StringComparison.OrdinalIgnoreCase))?.ValueVirupas;
 
     private string? LagnaLord =>
         _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;

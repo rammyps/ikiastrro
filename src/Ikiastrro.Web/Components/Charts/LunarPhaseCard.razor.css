@@ -1,0 +1,16 @@
+.lunar { display: grid; grid-template-columns: 132px minmax(0,1fr); gap: 22px; align-items: center; padding: 20px; border: 1px solid var(--brand-line); border-radius: 12px; background: var(--brand-surface); color: var(--brand-midnight); }
+.lunar-orb { position: relative; width: 112px; aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: #f7e9bd; box-shadow: inset -10px -8px 22px rgb(91 56 36 / .18), 0 8px 24px rgb(33 38 63 / .16); }
+.lunar-shadow { position: absolute; inset: 0; border-radius: 50%; background: var(--brand-midnight); }
+.lunar-shadow.is-waxing { transform: translateX(calc((100 - var(--illumination)) * -0.32%)); }
+.lunar-shadow.is-waning { transform: translateX(calc((100 - var(--illumination)) * .32%)); }
+.lunar-copy h3 { margin: 1px 0 4px; font: 800 1.22rem/1.2 var(--font-interface); }
+.lunar-copy > p { margin: 0; color: var(--brand-muted); font-size: .78rem; }
+.lunar-copy .lunar-kicker { color: var(--brand-sunset); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.lunar dl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin: 14px 0 10px; }
+.lunar dl div { padding: 8px 10px; border-radius: 8px; background: var(--brand-peach); }
+.lunar dt { color: var(--brand-muted); font: 700 .62rem/1.2 var(--font-interface); text-transform: uppercase; }
+.lunar dd { margin: 3px 0 0; font: 700 .8rem/1.2 var(--font-interface); font-variant-numeric: tabular-nums; }
+.lunar-strength { height: 8px; overflow: hidden; border-radius: 999px; background: var(--brand-line); }
+.lunar-strength span { display: block; height: 100%; border-radius: inherit; background: var(--brand-sunset); }
+.lunar small { display: block; margin-top: 5px; color: var(--brand-muted); font-size: .66rem; }
+@media (max-width: 620px) { .lunar { grid-template-columns: 78px minmax(0,1fr); gap: 14px; padding: 14px; } .lunar-orb { width: 72px; } .lunar dl { grid-template-columns: 1fr; } }

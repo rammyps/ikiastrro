@@ -1,0 +1,48 @@
+@using System.Globalization
+@using Ikiastrro.Core.Models
+
+<section class="lunar" aria-labelledby="lunar-title">
+    <div class="lunar-orb" aria-hidden="true">
+        <span class="lunar-shadow @(Moon.IsWaxingMoon == true ? "is-waxing" : "is-waning")" style="opacity:@ShadowOpacity"></span>
+    </div>
+    <div class="lunar-copy">
+        <p class="lunar-kicker">@ChartViewModel.PakshaDisplay(Moon.PakshaCode) Pakṣa</p>
+        <h3 id="lunar-title">@PhaseName</h3>
+        <p>@ChartViewModel.TithiDisplay(Moon.TithiNumber, Moon.PakshaCode) · @Direction</p>
+        <dl>
+            <div><dt>Elongation</dt><dd>@Degrees(Moon.ElongationDegrees)</dd></div>
+            <div><dt>Illumination</dt><dd>@IlluminationPercent.ToString("0", CultureInfo.InvariantCulture)%</dd></div>
+            <div><dt>Pakṣa Bala</dt><dd>@StrengthDisplay</dd></div>
+        </dl>
+        <div class="lunar-strength" role="meter" aria-label="Moon Paksha Bala" aria-valuemin="0" aria-valuemax="60" aria-valuenow="@StrengthNow">
+            <span style="width:@StrengthPercent%"></span>
+        </div>
+        <small>Moon’s lunar-phase strength · maximum 60 virūpas</small>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public MoonContext Moon { get; set; } = new();
+    [Parameter] public decimal? PakshaBalaVirupas { get; set; }
+
+    private double Angle => Moon.ElongationDegrees is { } value ? ((value % 360) + 360) % 360 : 0;
+    private double IlluminationPercent => (1 - Math.Cos(Angle * Math.PI / 180)) * 50;
+    private string ShadowOpacity => Math.Clamp(1 - IlluminationPercent / 100, 0, 1).ToString("0.###", CultureInfo.InvariantCulture);
+    private string Direction => Moon.IsWaxingMoon switch { true => "waxing", false => "waning", null => "phase unavailable" };
+    private string PhaseName => Angle switch
+    {
+        < 22.5 => "New Moon",
+        < 67.5 => "Waxing Crescent",
+        < 112.5 => "First Quarter",
+        < 157.5 => "Waxing Gibbous",
+        < 202.5 => "Full Moon",
+        < 247.5 => "Waning Gibbous",
+        < 292.5 => "Last Quarter",
+        < 337.5 => "Waning Crescent",
+        _ => "New Moon",
+    };
+    private decimal StrengthNow => Math.Clamp(PakshaBalaVirupas ?? 0, 0, 60);
+    private string StrengthPercent => (StrengthNow / 60m * 100m).ToString("0.##", CultureInfo.InvariantCulture);
+    private string StrengthDisplay => PakshaBalaVirupas is { } value ? $"{value:0.00} virūpas" : "—";
+    private static string Degrees(double? value) => value is { } degrees ? $"{degrees:0.00}°" : "—";
+}
