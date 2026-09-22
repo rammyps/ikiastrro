@@ -1,0 +1,109 @@
+@using Ikiastrro.Data
+
+<section class="gds" aria-label="Graha Drishti relationships">
+    <div class="gds-toolbar">
+        <div>
+            <span class="gds-label">Chart</span>
+            <div class="gds-switch" role="group" aria-label="Chart">
+                @foreach (var chart in ChartOrder.Where(HasChart))
+                {
+                    <button class="@(chart == SelectedChart ? "is-active" : null)" @onclick="() => SelectChart(chart)">@chart</button>
+                }
+            </div>
+        </div>
+        <div>
+            <span class="gds-label">Focus body</span>
+            <div class="gds-switch gds-bodies" role="group" aria-label="Focus body">
+                @foreach (var body in Targets)
+                {
+                    <button class="@(body == _selectedBody ? "is-active" : null)" @onclick="() => _selectedBody = body">@Short(body)</button>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (ChartRows.Count == 0)
+    {
+        <div class="gds-empty">No persisted Graha-dṛṣṭi evidence is available for @SelectedChart.</div>
+    }
+    else
+    {
+        <div class="gds-summary">
+            <div><small>Focus</small><strong>@_selectedBody</strong></div>
+            <div><small>Incoming discrete</small><strong>@Incoming.Count(r => r.IsDiscreteAspect)</strong></div>
+            <div><small>Outgoing discrete</small><strong>@Outgoing.Count(r => r.IsDiscreteAspect)</strong></div>
+            <div><small>Strongest incoming</small><strong>@IncomingStrength</strong></div>
+            <div><small>Strongest outgoing</small><strong>@OutgoingStrength</strong></div>
+        </div>
+
+        <div class="gds-scroll">
+            <table class="gds-matrix">
+                <thead><tr><th>Aspecting</th>@foreach (var target in Targets){<th class="@(target == _selectedBody ? "is-focus" : null)">@Short(target)</th>}</tr></thead>
+                <tbody>
+                @foreach (var source in Sources)
+                {
+                    <tr class="@(source == _selectedBody ? "is-focus-row" : null)">
+                        <th>@source</th>
+                        @foreach (var target in Targets)
+                        {
+                            var row = Cell(source, target);
+                            <td class="@(target == _selectedBody ? "is-focus" : null)">
+                                @if (row is not null)
+                                {
+                                    <button class="gds-cell" style="--strength:@row.StrengthPercentage%" title="@CellTitle(row)" @onclick="() => _selected = row">
+                                        <span>@(row.StrengthPercentage == 0 ? "—" : $"{row.StrengthPercentage:0.##}%")</span>
+                                        @if (row.IsDiscreteAspect)
+                                        {
+                                            <b>@Ordinal(row.DiscreteAspectHouse)</b>
+                                        }
+                                    </button>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <p class="gds-legend"><b>Ordinal badge</b> = recognized whole-sign aspect. Percentage alone = sphuṭa strength, not a discrete aspect.</p>
+
+        @if (_selected is not null)
+        {
+            <aside class="gds-evidence" aria-live="polite">
+                <div><small>Relationship</small><strong>@_selected.AspectingPlanet → @_selected.AspectedPointKey</strong></div>
+                <div><small>Separation</small><strong>@_selected.DirectedSeparationDegrees.ToString("0.000")°</strong></div>
+                <div><small>Ordinary</small><strong>@_selected.OrdinaryVirupas.ToString("0.000")</strong></div>
+                <div><small>Special</small><strong>@_selected.SpecialVirupas.ToString("0.000")</strong></div>
+                <div><small>Total</small><strong>@_selected.TotalVirupas.ToString("0.000") / 60</strong></div>
+                <div><small>Strength</small><strong>@_selected.StrengthPercentage.ToString("0.00")%</strong></div>
+                <div><small>Discrete</small><strong>@(_selected.IsDiscreteAspect ? Ordinal(_selected.DiscreteAspectHouse) : "No")</strong></div>
+                <div><small>Evidence</small><strong>Rule @_selected.RuleSetId · @_selected.SourceRefCode</strong></div>
+            </aside>
+        }
+    }
+</section>
+
+@code {
+    [Parameter] public IReadOnlyList<GrahaDrishtiStrengthRow> Rows { get; set; } = Array.Empty<GrahaDrishtiStrengthRow>();
+    [Parameter] public string SelectedChart { get; set; } = "D1";
+    [Parameter] public EventCallback<string> SelectedChartChanged { get; set; }
+
+    private static readonly string[] ChartOrder = ["D1", "D9", "D10"];
+    private static readonly string[] PlanetOrder = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
+    private string _selectedBody = "Ascendant";
+    private GrahaDrishtiStrengthRow? _selected;
+    private IReadOnlyList<GrahaDrishtiStrengthRow> ChartRows => Rows.Where(r => r.ChartType == SelectedChart).ToList();
+    private IReadOnlyList<string> Sources => PlanetOrder.Where(p => ChartRows.Any(r => r.AspectingPlanet == p)).ToList();
+    private IReadOnlyList<string> Targets => new[] { "Ascendant" }.Concat(PlanetOrder).Where(p => ChartRows.Any(r => r.AspectedPointKey == p)).ToList();
+    private IEnumerable<GrahaDrishtiStrengthRow> Incoming => ChartRows.Where(r => r.AspectedPointKey == _selectedBody);
+    private IEnumerable<GrahaDrishtiStrengthRow> Outgoing => ChartRows.Where(r => r.AspectingPlanet == _selectedBody);
+    private bool HasChart(string chart) => Rows.Any(r => r.ChartType == chart);
+    private GrahaDrishtiStrengthRow? Cell(string source, string target) => ChartRows.FirstOrDefault(r => r.AspectingPlanet == source && r.AspectedPointKey == target);
+    private static GrahaDrishtiStrengthRow? Strongest(IEnumerable<GrahaDrishtiStrengthRow> rows) => rows.OrderByDescending(r => r.StrengthPercentage).FirstOrDefault();
+    private string IncomingStrength => Strongest(Incoming) is { } row ? $"{row.AspectingPlanet} {row.StrengthPercentage:0.##}%" : "—";
+    private string OutgoingStrength => Strongest(Outgoing) is { } row ? $"{row.AspectedPointKey} {row.StrengthPercentage:0.##}%" : "—";
+    private static string Short(string body) => body == "Ascendant" ? "Lagna" : body[..Math.Min(2, body.Length)];
+    private static string Ordinal(byte? house) => house switch { 3 => "3rd", 4 => "4th", 5 => "5th", 7 => "7th", 8 => "8th", 9 => "9th", 10 => "10th", _ => "—" };
+    private static string CellTitle(GrahaDrishtiStrengthRow row) => $"{row.AspectingPlanet} to {row.AspectedPointKey}: {row.StrengthPercentage:0.00}%";
+    private async Task SelectChart(string chart) { _selected = null; await SelectedChartChanged.InvokeAsync(chart); }
+}
