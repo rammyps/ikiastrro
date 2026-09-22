@@ -1,6 +1,6 @@
 ---
 last_updated: 2026-09-22
-reflects: Core slice implemented on workstream/cli; persistence and Key Inference UI remain deferred
+reflects: Core and D1/D9/D10 persistence implemented; Key Inference UI remains deferred
 ---
 
 # Sign and planetary aspects
@@ -84,13 +84,14 @@ different varga label.
 
 ## Implementation slices
 
-1. Add a pure Core `GrahaDrishtiStrengthCalculator` returning separation, ordinary virupas,
-   special virupas, total virupas, percentage, and discrete-aspect metadata.
+1. **Implemented:** pure Core `GrahaDrishtiStrengthCalculator` returns separation, ordinary
+   virupas, special virupas, capped total, percentage, and discrete-aspect metadata.
 2. Reproduce the Ramakrishnan fixture to `+/-0.01%`, including special-aspect boundaries and
    Rahu/Ketu cases.
-3. Persist results in `tbl_Fact_GrahaDrishtiStrengths`, carrying chart/rule provenance and the
-   calculation breakdown.
-4. Expose `vw_ChartGrahaDrishtiStrengths`; retain the existing discrete `ChartAspect` facts.
+3. **Implemented:** D1/D9/D10 results persist in `tbl_Fact_GrahaDrishtiStrengths`, carrying
+   chart/rule provenance, input longitudes, and the calculation breakdown.
+4. **Implemented:** `vw_ChartGrahaDrishtiStrengths` exposes the evidence; existing discrete
+   `ChartAspect` facts remain canonical and separate.
 5. Add a relationship summary and filterable strength matrix with sticky identity columns,
    heat colouring, and an evidence drawer.
 6. Connect selected results to Rasi drishti, conjunction, combustion, and dispositor chains.

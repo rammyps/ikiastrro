@@ -76,9 +76,9 @@ public sealed class GrahaDrishtiStrengthRepository
                     AspectedPointKind = targetIsPlanet ? "Graha" : "Lagna",
                     AspectedPointKey = target.Planet,
                     AspectedPlanetId = targetIsPlanet ? AstroIds.PlanetId(targetPlanet) : (int?)null,
-                    AspectingLongitudeDegrees = sourceLongitude,
-                    AspectedLongitudeDegrees = targetLongitude,
-                    result.DirectedSeparationDegrees,
+                    AspectingLongitudeDegrees = ToStoredDegrees(sourceLongitude),
+                    AspectedLongitudeDegrees = ToStoredDegrees(targetLongitude),
+                    DirectedSeparationDegrees = ToStoredDegrees(result.DirectedSeparationDegrees),
                     result.OrdinaryVirupas,
                     result.SpecialVirupas,
                     result.TotalVirupas,
@@ -93,4 +93,10 @@ public sealed class GrahaDrishtiStrengthRepository
 
     private static double? Longitude(PlanetPosition point) =>
         point.VargaLongitudeDegrees ?? point.NirayanaLongitudeDegrees;
+
+    private static decimal ToStoredDegrees(double value)
+    {
+        var rounded = Math.Round((decimal)value, 6, MidpointRounding.AwayFromZero);
+        return rounded >= 360m ? 0m : rounded;
+    }
 }
