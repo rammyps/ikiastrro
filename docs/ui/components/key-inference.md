@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-17
+last_updated: 2026-09-23
 workstream: ui
 component: KeyInference
 route: /key-inference/{id}
@@ -38,10 +38,10 @@ below); the rest stay inline here until split out the same way in later work.
 
 | Step | Chart | Table | Source |
 |---|---|---|---|
-| **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table (House · Planet · Sign · Degree · **Nakṣatra · Pāda** — moved here from Planet Dignity) + D1 Birth / Current Transit toggle | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
+| **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table only (Planet · Sign · Degree · Nakṣatra · Pāda · Nakṣatra/Sub-lord chain · direction · house from Lagna/Moon) + D1 Birth / Current Transit toggle; analytical role/condition columns belong exclusively to 2.2 | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
 | **2.1 · About Houses** | — (occupancy bar dropped; see note below) | Aspects (left) + multi-graha Conjunctions (right), side by side; House Lord Placement (lords + occupants); House Lord Key Findings; Argala &amp; Virodhargala — four tables, not one | `tbl_Chart_Aspects` + `tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` + live `ArgalaCalculator` over `lc.Grahas` (+ `tbl_Rule_Argala.SignificanceNote` via `ArgalaRuleRepository`) |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
-| **2.2 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
+| **2.2 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | functional nature + ruled houses + independent ownership flags (māraka, bādhaka, dusthāna, triṣaḍāya, Kendrādhipati doṣa) + rationale disclosure + dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
 | **2.3 · Sign & Nakshatras** (new 2026-09-22) | — | `RasiNakshatraTable` — one row per graha (+ Lagna): Sign, Nakshatra, Lord Relation, Combined Character, expand-to-reveal Main Significations / Potential Benefits / Potential Disadvantages / Judgment Note / Aspecting Signs. Closes `FEAT-NAKSHATRA-02`'s last open item — the 36-row Rāśi×Nakṣatra combination table had zero Web/CLI consumer before this | `tbl_Rule_RasiNakshatraCombination` (migration 124) via `RasiNakshatraCombinationRepository.GetAll`, joined client-side against each graha's own `SignId`/`NakshatraId` from `tbl_Chart_KeyDetails` |
 | **3 · Strength** | 3.1 `PlanetStrengthChart` — %-of-minimum bar (Performance) or a component-composition stacked bar (Composition toggle), plus a per-graha expandable Bala breakdown. 3.2 `HouseStrengthChart` — Rūpas bar (scale is dynamic — see 2026-09-17 note below, not the fixed 0–9 this spec originally called for), House order/Strength rank toggle, per-house expandable breakdown. 3.3 `AshtakavargaChart` — Varga dropdown (all generated Dn charts; independently persisted SAV/BAV + Piṇḍa for the selected varga) + Sarvāṣṭakavarga bar (House order/Strength rank toggle) + Bhinnāṣṭakavarga grid (7×12) + Piṇḍa table | Bar and table are one component each (not chart+table separately — the bar sits inline in the row) | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (both via `PlanetaryStrengthRepository`/`BhavaStrengthRepository`'s `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`) · `vw_ChartAshtakavarga` + `tbl_Fact_AshtakavargaPinda` (`AshtakavargaRepository`) |
 | **4 · Spl Lagnas** | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) — full detail, including the proposed `SouthIndianGrid_Micro` Grid view, moved there 2026-09-17 | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) |
@@ -49,6 +49,28 @@ below); the rest stay inline here until split out the same way in later work.
 | **6 · Vargas** | `AmsabalaTable` (2026-09-16 redesign, superseding the original flat `VargaLordsTable` **and** the standalone "3.4 Amsabala" Strength sub-tab) — Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga scheme selector. Vargottama: D1 Sign/D9 Sign/Match per graha. Each of the 4 varga-group schemes: collapsed numeric split (GoodCount/GroupSize + %) per graha, expanding to a stacked equal-width bar (one segment per varga in that scheme, full 7-tier dignity colour — Exalted/Moolatrikona/Own/Great Friend/Friend/Enemy/Great Enemy — empty for Neutral/Debilitated) | Expanding a graha's bar also reveals a varga-lords detail table underneath it (Varga/Sign/Lord/Dignity/0–1 score) — the "chart doubles as summary, table is the drill-down" shape | `vw_ChartAmsabala` + `tbl_Rule_AmsabalaGroup`/`tbl_Rule_AmsabalaName` (`AmsabalaRepository`/`AmsabalaSchemeRepository`) + `tbl_Fact_Vargottama` (`VargottamaRepository.GetByBirthDetailId`) + `WorkspaceData.Charts` (Grahas/HouseLords, for the lords table and live dignity) — no new repository |
 | **7 · All Charts** | — | Every stored divisional chart as a plain South-Indian grid (unchanged from before this round) | separate `/charts/{id}` route (`AllCharts.razor`), heading reads "7. ALL CHARTS" |
 
+## Information ownership and deduplication
+
+Each fact has **one full-detail owner** in Key Inference. Other tabs may show only the minimum
+context needed to identify or explain their own result; they must not reproduce the owner's full
+columns or recompute the fact independently.
+
+| Information | Canonical owner | Context allowed elsewhere |
+|---|---|---|
+| D1 placement, longitude, nakṣatra/pāda, motion, house | 1.1 D1 Birth Chart | Planet/sign/house identifiers needed to label another result |
+| House lordship, occupants, aspects, conjunctions, findings, argala | 2.1 About Houses | A compact house/lord label in strength or yoga evidence |
+| Planetary functional role, owned houses, māraka/bādhaka/dusthāna/triṣaḍāya, Kendrādhipati doṣa, dignity, kāraka | 2.2 About Planets | A compact dignity/role cue only when it directly explains another score or finding |
+| Rāśi–nakṣatra combined interpretation | 2.3 Sign & Nakshatras | Sign/nakṣatra as row identity only |
+| Quantified planet/house strength | 3 Strength | Summary score in downstream evidence; component detail stays here |
+| Special reference lagnas | 4 Spl Lagnas | Reference label in a rule finding |
+| Yoga rule, source, result, interpretation | 5 Yogas | Yoga name/status summary only |
+| Cross-varga comparison and confirmation | 6 Vargas | Varga name/sign needed to support a finding |
+
+Implementation consequence: `PlanetPositionsTable` exposes `ShowAnalysis`; Key Inference 1.1
+sets it false and also hides dignity. `PlanetDignityTable` is the sole full-detail planetary-role
+surface and calls `LagnaFunctionalNature` once per classical planet. The old 84-row database
+mirror must not return; if persisted UI provenance is later required, persist computed chart facts
+from Core rather than duplicating the rule in SQL.
 ## New fields — sourcing status
 
 | Field | Where | Status |

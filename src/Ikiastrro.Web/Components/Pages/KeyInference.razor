@@ -117,7 +117,7 @@ else
                         </SouthIndianGrid_Detailed>
                     </div>
 
-                    <PlanetPositionsTable Rows="Rows(lc)" LagnaSign="@lc.AscendantSign" Variant="d1" ShowDignity="true" />
+                    <PlanetPositionsTable Rows="Rows(lc)" LagnaSign="@lc.AscendantSign" Variant="d1" ShowDignity="false" ShowAnalysis="false" />
                 </MudTabPanel>
 
                 <MudTabPanel Text="1.2 TRANSIT CHART">
@@ -281,7 +281,7 @@ else
                     }
 
                     <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
-                    <PlanetDignityTable Rows="ExaltationRows(lc)" />
+                    <PlanetDignityTable Rows="ExaltationRows(lc)" LagnaSign="@lc.AscendantSign" />
                 </MudTabPanel>
 
                 <MudTabPanel Text="2.3 SIGN & NAKSHATRAS">

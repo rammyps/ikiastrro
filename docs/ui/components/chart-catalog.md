@@ -52,7 +52,8 @@ Every table below reads a persisted view/TVF; the component ⇄ view binding is 
 
 | Chart / component | Spec doc | Linked files |
 |---|---|---|
-| **`PlanetPositionsTable`** — D1 reference table | [`evidence-tables.md`](evidence-tables.md) | `src/Ikiastrro.Web/Components/Charts/PlanetPositionsTable.razor` · view `vw_ChartPlanetEvidence` · consumer `Pages/VargaView.razor` |
+| **`PlanetDignityTable`** — canonical Key Inference 2.2 planetary role/condition table | [`key-inference.md`](key-inference.md) | `src/Ikiastrro.Web/Components/Charts/PlanetDignityTable.razor` · consumer `Pages/KeyInference.razor` |
+| **`PlanetPositionsTable`** — positional reference table (`ShowAnalysis=false` in Key Inference 1.1; full planetary analysis belongs to 2.2) | [`evidence-tables.md`](evidence-tables.md) | `src/Ikiastrro.Web/Components/Charts/PlanetPositionsTable.razor` · view `vw_ChartPlanetEvidence` · consumer `Pages/VargaView.razor` |
 | **`HouseLordshipTable`** — per-varga house-lord disclosure | [`evidence-tables.md`](evidence-tables.md) | `src/Ikiastrro.Web/Components/Charts/HouseLordshipTable.razor` · consumer `Pages/VargaView.razor` |
 | **`ConjunctionsTable`** — per-varga conjunctions | [`evidence-tables.md`](evidence-tables.md) | `src/Ikiastrro.Web/Components/Charts/ConjunctionsTable.razor` · consumer `Pages/VargaView.razor` |
 | Transit landing tables — **D1 Birth** / **Current Transit** (two `MudTabPanel`s on the wheel page) | [`spec_Natal_Transit_Comp_Wheel.md`](spec_Natal_Transit_Comp_Wheel.md) | `src/Ikiastrro.Web/Components/Pages/Natal_Transit_Comp_Wheel.razor` · `src/Ikiastrro.Web/Natal_Transit_Comp_WheelMath.cs` (house/motion math) · `src/Ikiastrro.Data/Natal_Transit_Comp_WheelRepository.cs` · tests `tests/Ikiastrro.Web.Tests/Natal_Transit_Comp_WheelMathTests.cs` · views `vw_ChartPlanetEvidence`, `tbl_TransitPositionReference` (via `GocharaRepository`) |
