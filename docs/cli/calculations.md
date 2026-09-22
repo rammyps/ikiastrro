@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-09-22
 workstream: cli
 togaf: C — Application Architecture (engine)
 ---
@@ -201,11 +201,18 @@ Venus **exactly**; Janma Ghaṭis within JHora's own two-decimal rounding.
 ## 10. Functional benefic / malefic
 
 `LagnaFunctionalNature` — Parāśari **functional** nature for a given Lagna from which houses a
-planet rules. `enum { Benefic, Malefic, Neutral, Yogakaraka }` + `IsMaraka` /
-`KendradhipatiDosha` / rationale. Rahu/Ketu out of scope. Heuristic from B.V. Raman *How to
-Judge a Horoscope* Vol. 1 p.14–18; the sole source of the verdict (the per-Lagna mirror table
-was removed). Computed on demand, not persisted. Check: `verify-functional-nature`.
+planet rules. The primary `enum { Benefic, Malefic, Neutral, Yogakaraka }` verdict is accompanied
+by independent ownership evidence: `MarakaHouses` (2/7), `DusthanaHouses` (6/8/12),
+`TrishadayaHouses` (3/6/11), `IsBaadhakaLord` plus the modality-derived `BaadhakaHouse`
+(movable 11, fixed 9, dual 7), `KendradhipatiDosha`, and an aggregate rationale. The evidence
+remains visible even when a stronger lordship determines the primary verdict—for example, a
+planet can be Yogakaraka and also the baadhaka lord. `IsMaraka` remains as a compatibility
+convenience derived from `MarakaHouses`.
 
+Rahu/Ketu are out of scope. Heuristic from B.V. Raman *How to Judge a Horoscope* Vol. 1
+p.14–18; baadhaka follows PVR §13.3 via `BaadhakaCalculator`. This is the sole source of the
+verdict (the per-Lagna mirror table was removed). Computed on demand, not persisted. Check:
+`verify-functional-nature`.
 ## 11. Baadhaka
 
 `BaadhakaCalculator` — PVR §13.3 (Table 31, `SRC_PVR_INTEGRATED`): for a rasi/house falling in
