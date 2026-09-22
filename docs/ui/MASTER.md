@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-19
+last_updated: 2026-09-22
 workstream: ui
 togaf: C — Application Architecture (UI)
 safe: Solution Intent — UX
@@ -126,6 +126,16 @@ number and date formatting, and right-to-left is not needed but glyph coverage i
   **Ayanāṁśa** (21 systems, *Lahiri* fixed default — NFR-UI-03) · **Chart style** (South Indian
   default; North / West Indian listed, renderers deferred — NFR-UI-02) · **Language** (Tamil
   planned — NFR-UI-04). `localStorage` for now; DB-backed default is a `database` follow-up.
+
+## Current v5 delivery — FEAT-ASHTAKAVARGA-02
+
+- `AshtakavargaVargaCompareChart` is built in Key Inference step 6. It cross-references the
+  single persisted natal SAV matrix across each selected varga's own ascendant-relative houses,
+  defaults to By House, offers By Sign as a sanity-check frame, and reuses the seeded
+  Shadvarga/Saptavarga/Dasavarga/Shodasavarga memberships.
+- Verification: solution build passed with 0 warnings/errors. Web tests: 435 passed; two
+  unrelated existing `PolarGridLagnaSelectTests` count assertions failed (expected 12/2,
+  actual 84/5). Browser/golden verification remains for integration.
 
 ## Planned
 

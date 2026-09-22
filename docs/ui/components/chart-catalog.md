@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-14
+last_updated: 2026-09-22
 workstream: ui
 togaf: C — component catalogue
 ---
@@ -32,6 +32,7 @@ Paths are repo-relative. `.razor` implies a sibling `.razor.css` isolation file 
 | **`MiniGrid`** — glyphs-only thumbnail grid, whole grid optionally a link                                                                                                   | [`spec_SouthIndianGrid_Detailed.md`](spec_SouthIndianGrid_Detailed.md) (§ derived variants) | `src/Ikiastrro.Web/Components/Charts/MiniGrid.razor` · golden `docs/artifacts/ui/MiniGrid-sample.svg` · consumer `Components/Workspace/VargaRail.razor`                                                                                                     |
 | **`ChartFrame`** — bookmarkable `?view=grid\|wheel` toggle around a grid + a wheel fragment (not a chart)                                                                   | [`spec_SouthIndianGrid_Detailed.md`](spec_SouthIndianGrid_Detailed.md)                      | `src/Ikiastrro.Web/Components/Charts/ChartFrame.razor` · renders `<SegmentedToggle>` · golden `docs/artifacts/ui/ChartFrame-sample.svg` · consumer `Pages/VargaView.razor`                                                                                  |
 | **`VargottamaStrip`** — graha chips lit when Dn sign == D1 sign                                                                                                             | [`spec_SouthIndianGrid_Detailed.md`](spec_SouthIndianGrid_Detailed.md)                      | `src/Ikiastrro.Web/Components/Charts/VargottamaStrip.razor` · golden `docs/artifacts/ui/VargottamaStrip-sample.svg` · consumer `Pages/VargaView.razor`                                                                                                      |
+| **`AshtakavargaVargaCompareChart`** — natal SAV bindus cross-referenced across each selected varga's own houses/signs, 100% stacked comparison | [`spec_AshtakavargaVargaCompareChart.md`](spec_AshtakavargaVargaCompareChart.md) | `src/Ikiastrro.Web/Components/Charts/AshtakavargaVargaCompareChart.razor` · consumer `Pages/KeyInference.razor` step 6 Vargas · sources `vw_ChartAshtakavarga`, `tbl_Rule_AmsabalaGroup`, `WorkspaceData.Charts` |
 | **`LifeWeeks`** — 4000-week grid (52 col/row), `--dasha-*` colours, hover date/lord tooltips                                                                                | — (route only; retired in v2)                                                               | `src/Ikiastrro.Web/Components/Pages/LifeWeeks.razor` (page, not a `Charts/` component) · uses `DashaLegend`                                                                                                                                                 |
 
 ### Dasha / timeline modules

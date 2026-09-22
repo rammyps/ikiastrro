@@ -376,6 +376,12 @@ else
             else
             {
                 <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" />
+                @if (_ashtakavarga.Count > 0)
+                {
+                    <div class="ki-varga-ashtakavarga">
+                        <AshtakavargaVargaCompareChart Rows="_ashtakavarga" Groups="_amsabalaGroups" Charts="_data.Charts" />
+                    </div>
+                }
             }
             </div>
         </MudTabPanel>

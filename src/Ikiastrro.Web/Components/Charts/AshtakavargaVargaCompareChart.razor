@@ -1,0 +1,37 @@
+@using System.Globalization
+@using Ikiastrro.Web.Components.Workspace
+
+<section class="avvc" aria-labelledby="avvc-title">
+    <header class="avvc-head">
+        <div><h2 id="avvc-title">Astavarga across Vargas</h2><p>Natal Sarvāṣṭakavarga bindus looked up against each divisional chart's own houses.</p></div>
+        <div class="avvc-controls">
+            <label>Varga set<select value="@_scheme" @onchange="OnSchemeChanged">@foreach (var scheme in AvailableSchemes) { <option value="@scheme">@SchemeLabel(scheme)</option> }</select></label>
+            <div class="avvc-toggle" role="group" aria-label="Comparison frame"><button type="button" class="@(_frame == Frame.House ? "is-active" : null)" @onclick="() => _frame = Frame.House">By house</button><button type="button" class="@(_frame == Frame.Sign ? "is-active" : null)" @onclick="() => _frame = Frame.Sign">By sign</button></div>
+        </div>
+    </header>
+    <div class="avvc-bars">@foreach (var bar in Bars) { <div class="avvc-row"><b>@bar.Label</b><span class="avvc-stack" aria-label="@bar.AriaLabel">@foreach (var segment in bar.Segments) { <span class="avvc-segment" style="width:@Percent(segment.Bindus, bar.Total)%;background:@Colour(segment.Index)" title="@segment.ChartType: @segment.SignName · @segment.Bindus bindus"><small>@segment.ChartType</small></span> }</span><strong>@bar.Total</strong></div> }</div>
+    <footer class="avvc-key">@foreach (var chart in IncludedCharts.Select((code, index) => (code, index))) { <span><i style="background:@Colour(chart.index)"></i>@chart.code</span> }</footer>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<AshtakavargaRow> Rows { get; set; } = Array.Empty<AshtakavargaRow>();
+    [Parameter, EditorRequired] public IReadOnlyList<AmsabalaGroupMember> Groups { get; set; } = Array.Empty<AmsabalaGroupMember>();
+    [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
+    private enum Frame { House, Sign }
+    private Frame _frame = Frame.House;
+    private string _scheme = "SHODASAVARGA";
+    private static readonly string[] SignNames = { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces" };
+    private static readonly string[] Colours = { "#e46f45", "#315b7d", "#d5a23f", "#6f8e65", "#8b5e83", "#4f8f8b", "#b65f67", "#82704d", "#566b9b", "#9a6a44", "#5d8775", "#7f668d", "#c37a3d", "#607d9a", "#9a5965", "#6e7c49" };
+    private IReadOnlyList<string> AvailableSchemes => Groups.Select(g => g.SchemeCode).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    private IReadOnlyList<string> IncludedCharts => Groups.Where(g => g.SchemeCode.Equals(_scheme, StringComparison.OrdinalIgnoreCase) && Charts.ContainsKey(g.ChartType)).Select(g => g.ChartType).ToList();
+    private IReadOnlyDictionary<int, int> SavBySign => Rows.GroupBy(r => (int)r.SignNumber).ToDictionary(g => g.Key, g => (int)(g.Select(r => (short?)r.SarvaBindus).FirstOrDefault(v => v.HasValue) ?? (short)g.Sum(r => r.BinduCount)));
+    private IReadOnlyList<Bar> Bars => Enumerable.Range(1, 12).Select(slot => { var segments = IncludedCharts.Select((code, index) => { var chart = Charts[code]; var sign = _frame == Frame.Sign ? slot : Wrap(SignNumber(chart.AscendantSign) + slot - 1); return new Segment(code, SignNames[sign], SavBySign.GetValueOrDefault(sign), index); }).ToList(); var label = _frame == Frame.Sign ? SignNames[slot][..3] : $"H{slot}"; var total = segments.Sum(s => s.Bindus); return new Bar(label, total, segments, $"{label}: {total} bindus across {segments.Count} divisional charts"); }).ToList();
+    private void OnSchemeChanged(ChangeEventArgs args) => _scheme = args.Value?.ToString() ?? _scheme;
+    private static int SignNumber(string sign) => Array.FindIndex(SignNames, s => s.Equals(sign == "Capricornus" ? "Capricorn" : sign, StringComparison.OrdinalIgnoreCase)) is var n && n > 0 ? n : 1;
+    private static int Wrap(int sign) => ((sign - 1) % 12) + 1;
+    private static string Percent(int value, int total) => (total == 0 ? 0 : Math.Clamp(value * 100d / total, 0, 100)).ToString("0.##", CultureInfo.InvariantCulture);
+    private static string Colour(int index) => Colours[index % Colours.Length];
+    private static string SchemeLabel(string scheme) => scheme switch { "SHADVARGA" => "Shadvarga", "SAPTAVARGA" => "Saptavarga", "DASAVARGA" => "Dasavarga", "SHODASAVARGA" => "Shodasavarga", _ => scheme };
+    private sealed record Segment(string ChartType, string SignName, int Bindus, int Index);
+    private sealed record Bar(string Label, int Total, IReadOnlyList<Segment> Segments, string AriaLabel);
+}
