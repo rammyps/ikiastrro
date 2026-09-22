@@ -27,9 +27,9 @@ else
                 <tr>
                     <th rowspan="2">House</th>
                     <th rowspan="2">Sign</th>
+                    <th rowspan="2">Net</th>
                     <th colspan="4">Argala</th>
                     <th colspan="4">Virodhargala</th>
-                    <th rowspan="2">Net</th>
                 </tr>
                 <tr>
                     @foreach (var offset in ArgalaOffsetOrder)
@@ -48,6 +48,9 @@ else
                     <tr>
                         <td class="mono">@row.HouseNumber@(row.CountedAntiZodiacally ? "*" : "")</td>
                         <td>@Disp(row.Sign)</td>
+                        <td>
+                            <span class="at-net @NetCss(row.Compare)">@NetLabel(row.Compare) @row.Compare.ArgalaCount&ndash;@row.Compare.VirodhargalaCount</span>
+                        </td>
                         @foreach (var offset in ArgalaOffsetOrder)
                         {
                             var occupants = Occupants(row.Evaluation, offset);
@@ -80,9 +83,6 @@ else
                                 }
                             </td>
                         }
-                        <td>
-                            <span class="at-net @NetCss(row.Compare)">@NetLabel(row.Compare) @row.Compare.ArgalaCount&ndash;@row.Compare.VirodhargalaCount</span>
-                        </td>
                     </tr>
                 }
             </tbody>

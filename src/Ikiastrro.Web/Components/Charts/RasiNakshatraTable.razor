@@ -1,0 +1,85 @@
+@using Ikiastrro.Core.Models
+@* Sign & Nakshatra combination reference (Key Inference "2.3 SIGN & NAKSHATRAS", 2026-09-22) —
+   for each graha (+ Lagna), looks up its own Rasi/Nakshatra pair in the 36-row
+   tbl_Rule_RasiNakshatraCombination reference (migration 124) and shows the matching
+   classical-synthesis row. A pure reference-table join, no calculation — Combinations is
+   loaded once by the parent page and passed straight through. "rnt" = RasiNakshatraTable. *@
+@if (Grahas.Count == 0 || Combinations.Count == 0)
+{
+    <EmptyState Message="No Sign &amp; Nakshatra reference data available." />
+}
+else
+{
+    <div class="rnt-scroll">
+        <table class="rnt">
+            <thead>
+                <tr>
+                    <th>Graha</th><th>Sign</th><th>Nakshatra</th><th>Lord Relation</th><th>Combined Character</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Rows)
+                {
+                    var expanded = _expanded.Contains(row.Graha.Planet);
+                    <tr>
+                        <td>
+                            <button type="button" class="rnt-toggle" @onclick="() => Toggle(row.Graha.Planet)" aria-expanded="@(expanded ? "true" : "false")">
+                                <span class="rnt-chevron @(expanded ? "rnt-chevron-open" : "")">&#8250;</span>
+                                @(row.Graha.Planet == "Ascendant" ? "Lagna" : row.Graha.Planet)
+                            </button>
+                        </td>
+                        <td>@(row.Graha.Sign)</td>
+                        <td>@(row.Graha.Nakshatra ?? "—")</td>
+                        <td>@(row.Combination?.LordRelation ?? "—")</td>
+                        <td>@(row.Combination?.CombinedCharacter ?? "—")</td>
+                    </tr>
+                    @if (expanded)
+                    {
+                        <tr class="rnt-detail-row">
+                            <td colspan="5">
+                                @if (row.Combination is null)
+                                {
+                                    <p class="rnt-detail-empty">No reference row found for this Sign/Nakshatra pair.</p>
+                                }
+                                else
+                                {
+                                    <dl class="rnt-detail">
+                                        <dt>Main significations</dt><dd>@row.Combination.MainSignifications</dd>
+                                        <dt>Potential benefits</dt><dd>@row.Combination.PotentialBenefits</dd>
+                                        <dt>Potential disadvantages</dt><dd>@row.Combination.PotentialDisadvantages</dd>
+                                        <dt>Judgment note</dt><dd>@row.Combination.JudgmentNote</dd>
+                                        <dt>Aspecting signs</dt><dd>@(row.Combination.AspectingRasis ?? "—")</dd>
+                                    </dl>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> Grahas { get; set; } = Array.Empty<ChartKeyDetail>();
+    [Parameter, EditorRequired] public IReadOnlyList<RasiNakshatraCombinationRow> Combinations { get; set; } = Array.Empty<RasiNakshatraCombinationRow>();
+
+    private readonly HashSet<string> _expanded = new(StringComparer.OrdinalIgnoreCase);
+
+    private void Toggle(string planet)
+    {
+        if (!_expanded.Add(planet)) _expanded.Remove(planet);
+    }
+
+    private sealed record CombinedRow(ChartKeyDetail Graha, RasiNakshatraCombinationRow? Combination);
+
+    private IReadOnlyList<CombinedRow> Rows => Grahas
+        .Where(g => g.PointKind == "Graha")
+        .Select(g => new CombinedRow(g, Find(g)))
+        .ToList();
+
+    private RasiNakshatraCombinationRow? Find(ChartKeyDetail graha) =>
+        graha.SignId is null || graha.NakshatraId is null
+            ? null
+            : Combinations.FirstOrDefault(c => c.RasiId == graha.SignId.Value && c.NakshatraId == graha.NakshatraId.Value);
+}

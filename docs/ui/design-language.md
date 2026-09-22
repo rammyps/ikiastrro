@@ -51,6 +51,40 @@ When a header is longer than the widest value in its column — e.g. Current Tra
 `table-layout: auto` everywhere so step 2 actually narrows the column. Applies to every
 MudBlazor table and every hand-rolled `<table>`.
 
+### Standard table format (2026-09-22)
+
+Every table on Key Inference now follows one reference format —
+`PlanetPositionsTable.razor.css`'s `.ppt` (the "1.1 D1-Birth Chart" table). New tables copy
+this pattern into their own scoped CSS (there is no shared stylesheet; each `Component.razor.css`
+repeats it):
+
+- **Font**: `font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;` +
+  `font-size: 0.86em;` declared **once**, at the `<table>` level only — `th`/`td` inherit it,
+  they never redeclare `font-size`. **Exception**: a table rendered inside `MudSimpleTable`
+  (only `.ki-table`, tab 1.2, does this) needs `th`/`td` to explicitly re-assert the same
+  `font: ...; font-size: 0.86em;` pair, because MudBlazor ships its own
+  `.mud-simple-table table * tr > td` rule that sets an absolute font-size directly on `td` —
+  an explicit declaration always beats inheritance, regardless of specificity, so relying on
+  inheritance there silently reverts to MudBlazor's own (larger, Roboto) type. Two things to
+  get right if you touch that table again: don't also leave `font-size` on the table-level rule
+  (it compounds 0.86em twice), and pass `Hover="false"` to `MudSimpleTable` (see next point).
+- **Header**: bold, `color: var(--brand-midnight)`, `border-bottom: 2px solid var(--brand-line)`,
+  `position: sticky; top: 0; background: var(--brand-surface);` so it stays visible while the
+  page scrolls. A two-row `rowspan`'d header (`ArgalaTable`) sticks the whole `<thead>` instead
+  of each `th` individually — simpler than computing a per-row `top` offset, and keeps both
+  header rows pinned together.
+- **Row hover**: `tbody tr:hover td { background: var(--brand-sunrise); }` — `--brand-sunrise`
+  (`#fcd7bd`, tokens.css), not `--brand-peach`. `--brand-peach` stays reserved for its other
+  uses (e.g. the All Charts Lagna box, detail/expand panels); `--brand-sunrise` exists
+  specifically so table hover reads as visibly orange rather than the older, barely-tinted
+  peach. If the table is a `MudSimpleTable`, pass `Hover="false"` — MudBlazor's own
+  `.mud-table-hover` hover rule otherwise wins (a plain gray tint) regardless of what your
+  scoped CSS says, since it only activates once the `Hover` parameter adds that class.
+- **Scroll wrapper**: `<div class="xx-scroll">` with `max-width: 100%; overflow-x: auto;
+  border: 1px solid var(--brand-line); border-radius: 10px;` around the `<table>` — every
+  table gets one, even ones that don't currently overflow, for the same reason `.ppt-scroll`
+  does (§ above).
+
 ## Tabs
 
 **Decided 2026-09-14 (rammyps's directive), rolling out app-wide starting with Key
@@ -160,6 +194,7 @@ wrapper gets promoted, not its grandchildren.
 | `--cell-fill` / `--lagna-fill` / `--grid-stroke` / `--sign-text` | `SouthIndianGrid_Detailed` cell ground, Lagna cell, borders, labels |
 | `--tmpl-*` (+ `--tmpl-rashi-highlight`) | `D1TemplateGrid` light "chart card" palette |
 | `--tab-active-bg` / `-fg`, `--tab-inactive-bg` / `-fg` | tab-strip fills — see "Tabs" above |
+| `--brand-sunrise` | table row-hover, every Key Inference table — see "Standard table format" above. Distinct from `--brand-peach`, which keeps its other uses |
 
 ## Additive-change discipline (keeps a revert mechanical)
 

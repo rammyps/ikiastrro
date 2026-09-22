@@ -225,6 +225,10 @@ h1, h2, h3 {
     --brand-line: #d9d1c7;
     --brand-muted: #53698d;
     --brand-peach: #fff0e5;
+    /* Table row-hover only (2026-09-22, rammyps's directive) — 30% --brand-sunset over white.
+       --brand-peach stays as-is for its other uses (e.g. the All Charts Lagna box); this is a
+       separate, more visibly orange token specifically for the standardized table hover. */
+    --brand-sunrise: #fcd7bd;
     --font-size-display: clamp(38px, 3.05vw, 53px);
     --font-size-tagline: clamp(20px, 2vw, 37px);
     --font-size-control: 19px;

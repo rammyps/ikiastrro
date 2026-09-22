@@ -43,6 +43,7 @@ builder.Services.AddScoped<AmsabalaRepository>();
 builder.Services.AddScoped<AmsabalaSchemeRepository>();
 builder.Services.AddScoped<YogaEvaluationRepository>();
 builder.Services.AddScoped<ArgalaRuleRepository>();
+builder.Services.AddScoped<RasiNakshatraCombinationRepository>();
 builder.Services.AddScoped<InterpretationRepository>();
 builder.Services.AddScoped<AstrologerEvidenceRepository>();
 builder.Services.AddScoped<Natal_Transit_Comp_WheelRepository>();

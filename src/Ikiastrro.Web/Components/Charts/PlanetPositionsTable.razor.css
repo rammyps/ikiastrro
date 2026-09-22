@@ -1,5 +1,7 @@
-/* Table typography standardized onto Key Inference "2. ABOUT"'s .ki-table reference
-   (docs/ui/design-language.md, project_standards.md §5 / 2026-09-14 change log). */
+/* Canonical table format reference for every Key Inference table (docs/ui/design-language.md —
+   standard table format, 2026-09-22; previously this file was itself standardized onto
+   .ki-table, project_standards.md §5 / 2026-09-14 change log — the two were already near-
+   identical, this file is now named the canonical one). */
 .ppt-scroll {
     max-width: 100%;
     overflow-x: auto;
@@ -43,7 +45,7 @@ table.ppt tr:last-child td {
     border-bottom: none;
 }
 
-table.ppt tbody tr:hover td { background: var(--brand-peach); }
+table.ppt tbody tr:hover td { background: var(--brand-sunrise); }
 
 table.ppt tr.asc td {
     color: var(--brand-midnight);

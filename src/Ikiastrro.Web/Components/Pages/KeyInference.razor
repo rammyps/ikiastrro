@@ -23,6 +23,7 @@
 @inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
 @inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
 @inject Ikiastrro.Data.ArgalaRuleRepository ArgalaRuleRepo
+@inject Ikiastrro.Data.RasiNakshatraCombinationRepository RasiNakshatraCombinationRepo
 @inject ActivePerson Active
 
 @* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
@@ -199,7 +200,7 @@ else
                     else
                     {
                         <div class="ki-scroll">
-                            <MudSimpleTable Dense="true" Hover="true" Bordered="false" Class="ki-table">
+                            <MudSimpleTable Dense="true" Hover="false" Bordered="false" Class="ki-table">
                                 <thead>
                                     <tr>
                                         <th>House<br />from D1</th><th>Planet</th><th>Motion</th><th>Degree</th>
@@ -280,6 +281,11 @@ else
 
                     <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
                     <PlanetDignityTable Rows="ExaltationRows(lc)" />
+                </MudTabPanel>
+
+                <MudTabPanel Text="2.3 SIGN & NAKSHATRAS">
+                    <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
+                    <RasiNakshatraTable Grahas="lc.Grahas" Combinations="_rasiNakshatraCombinations" />
                 </MudTabPanel>
             </MudTabs>
             </div>
@@ -404,6 +410,7 @@ else
     private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
     private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
     private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
+    private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
 
     private string? LagnaLord =>
         _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
@@ -463,6 +470,7 @@ else
         _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
         _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
         _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
+        _rasiNakshatraCombinations = RasiNakshatraCombinationRepo.GetAll(1);
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
             ? parsedOffset

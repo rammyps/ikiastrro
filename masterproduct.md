@@ -199,15 +199,14 @@ recomputed against them; treat the table above as stale until that pass runs.)*
 
 - **FEAT-NAKSHATRA-01 · Nakshatra / pāda / Vimśottari lord / KP sub-lord + reference linkage** — Done · 100% · Verify `verify-schema`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
-- **FEAT-NAKSHATRA-02 · Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination** — Verified · 80% (new + narrowed + implemented + verified 2026-09-22)
+- **FEAT-NAKSHATRA-02 · Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination** — Done · 100% (new + narrowed + implemented + verified 2026-09-22; last item closed 2026-09-22)
   DB [x] (`tbl_Fact_KpSubLordChain` L2–L7 populated since 2026-09-18, computed from exact
   longitude via `AstroMath.GetKpSubLordChain`; `RuleSetId` added migration 130;
   `tvf_Chart_DashaLordRelationship` extended migration 131; `tbl_Rule_RasiNakshatraCombination`
   36 rows, migration 124) · Core [x] · Verify [x] (migrations 130/131 applied to dev DB, TVF
-  queried directly against a real chart — L2–L7 populate correctly; browser-verified against a
-  live D1 Key Inference page) · Web [x] (chain only — `tbl_Rule_RasiNakshatraCombination` still
-  unsurfaced) · Docs [x] · Research: complete
-  **Chain-surfacing slice done:** `PlanetPositionsTable`'s d1 variant now shows a live-computed
+  queried directly against a real chart; both Web slices browser-verified against a live D1
+  Key Inference page) · Web [x] · Docs [x] · Research: complete
+  **Chain-surfacing slice:** `PlanetPositionsTable`'s d1 variant shows a live-computed
   "Sub-Lord Chain (L2–L7)" column (`ChartViewModel.BuildPlanetRows`, matching the
   `ArgalaTable`/`BuildExaltationRows` "live calculator, not fact-table read" precedent) —
   browser-verified rendering correctly for Ramakrishnan's D1 chart, `VargaView`'s varga variant
@@ -216,9 +215,10 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   `KpSubLordChainRepository`); `tvf_Chart_DashaLordRelationship`'s join extended L1→L1–L7
   (migration 131, no Web consumer of that TVF exists yet). While verifying this via the Web
   RECALCULATE button, found and fixed an unrelated pre-existing bug — see `FEAT-RELATIONSHIP-04`.
-  **Still open:** migration 124's Rāśi×Nakṣatra-36-combination table has
-  no Web/CLI surfacing yet — needs its own UI-placement decision, deliberately left for a
-  separate pass. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
+  **Rāśi×Nakṣatra combination slice (closed 2026-09-22):** new Key Inference tab "2.3 SIGN &
+  NAKSHATRAS" (`RasiNakshatraTable`, new `RasiNakshatraCombinationRepository`) — one row per
+  graha (+ Lagna), joins each graha's own Sign/Nakshatra against the 36-row reference table,
+  expand-to-reveal the narrative fields. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
   **Out of scope (rammyps, 2026-09-22):** the Nakshatra Pada Lord chain
   (`vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination`, migrations
   125–126) — not a standard technique. Left committed, unconsumed, no further work planned.

@@ -54,16 +54,16 @@ Close the gap between verified engine logic and what the web app actually shows 
   citation for the cross-reference (recommended) vs. independent-recompute-per-varga reading
   — the note's working assumption is cross-reference; flag if a source for the other reading
   exists.
-- **Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination** ·
-  `FEAT-NAKSHATRA-02` (new 2026-09-22, **narrowed + implemented + verified 2026-09-22**)
-  — `PlanetPositionsTable` (d1 variant) now shows a live-computed "Sub-Lord Chain (L2–L7)"
-  column, browser-verified against Ramakrishnan's D1 chart; the Web-generation gap
+- ~~**Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination**~~ **Done,
+  closed 2026-09-22** · `FEAT-NAKSHATRA-02` — `PlanetPositionsTable` (d1 variant) shows a
+  live-computed "Sub-Lord Chain (L2–L7)" column; the Web-generation gap
   (`tbl_Fact_KpSubLordChain` never populated for Web-created charts) is closed
   (`Ikiastrro.Web/Program.cs` registers `KpSubLordChainRepository`);
-  `tvf_Chart_DashaLordRelationship`'s join extended to L2–L7 (migration 131, applied + queried
-  directly against a real chart). **Still open:**
-  `tbl_Rule_RasiNakshatraCombination` (migration 124, 36 rows) has no Web/CLI surfacing yet —
-  separate UI-placement decision, not bundled into this slice. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
+  `tvf_Chart_DashaLordRelationship`'s join extended to L2–L7 (migration 131). New Key Inference
+  tab "2.3 SIGN & NAKSHATRAS" (`RasiNakshatraTable`) surfaces `tbl_Rule_RasiNakshatraCombination`
+  (migration 124, 36 rows) — one row per graha, expand-to-reveal the narrative fields. Both
+  slices browser-verified. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
+  Moving to `masterproduct.md` — this bucket only tracks what's still in flight.
   **Scope decision 2026-09-22 (rammyps):** the Nakshatra *Pada* Lord chain
   (`vw_Rule_NakshatraPadaLordConnection` / `tbl_Rule_NakshatraPadaCombination`, migrations
   125–126) is explicitly **out of scope** — not a standard/classical technique, "not usually
