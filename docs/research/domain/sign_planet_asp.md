@@ -1,6 +1,6 @@
 ---
 last_updated: 2026-09-22
-reflects: Core and D1/D9/D10 persistence implemented; Key Inference UI remains deferred
+reflects: Core, D1/D9/D10 persistence, and first Key Inference Relationships UI slice implemented
 ---
 
 # Sign and planetary aspects
@@ -92,8 +92,8 @@ different varga label.
    chart/rule provenance, input longitudes, and the calculation breakdown.
 4. **Implemented:** `vw_ChartGrahaDrishtiStrengths` exposes the evidence; existing discrete
    `ChartAspect` facts remain canonical and separate.
-5. Add a relationship summary and filterable strength matrix with sticky identity columns,
-   heat colouring, and an evidence drawer.
+5. **Implemented (first UI slice):** relationship summary and D1/D9/D10 strength matrix with
+   sticky identity columns, heat colouring, focus-body selection, and cell evidence detail.
 6. Connect selected results to Rasi drishti, conjunction, combustion, and dispositor chains.
 7. Recalculate from the selected varga's longitudes and verify dropdown changes end-to-end.
 

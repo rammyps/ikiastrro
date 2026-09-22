@@ -24,6 +24,7 @@
 @inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
 @inject Ikiastrro.Data.ArgalaRuleRepository ArgalaRuleRepo
 @inject Ikiastrro.Data.RasiNakshatraCombinationRepository RasiNakshatraCombinationRepo
+@inject Ikiastrro.Data.GrahaDrishtiStrengthRepository GrahaDrishtiStrengthRepo
 @inject ActivePerson Active
 
 @* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
@@ -259,7 +260,7 @@ else
                     <ArgalaTable Grahas="lc.Grahas" AscendantSign="@lc.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
                 </MudTabPanel>
 
-                <MudTabPanel Text="2.2 ABOUT PLANETS">
+                <MudTabPanel Text="2.3 ABOUT PLANETS">
                     <h3 class="ki-sectionhead">Moon context</h3>
                     @if (_moon is null)
                     {
@@ -284,7 +285,7 @@ else
                     <PlanetDignityTable Rows="ExaltationRows(lc)" LagnaSign="@lc.AscendantSign" />
                 </MudTabPanel>
 
-                <MudTabPanel Text="2.3 SIGN & NAKSHATRAS">
+                <MudTabPanel Text="2.4 SIGN & NAKSHATRAS">
                     <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
                     <RasiNakshatraTable Grahas="lc.Grahas" Combinations="_rasiNakshatraCombinations" />
                 </MudTabPanel>
@@ -412,6 +413,9 @@ else
     private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
     private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
+    private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
+    private string _relationshipChart = "D1";
+    private LoadedChart? RelationshipChart => _data?.Charts.GetValueOrDefault(_relationshipChart);
 
     private decimal? MoonPakshaBala => _shadbalaComponents.FirstOrDefault(c =>
         c.Planet.Equals("Moon", StringComparison.OrdinalIgnoreCase) &&
@@ -429,6 +433,7 @@ else
 
     protected override void OnParametersSet()
     {
+        if (Step is "2" or "about" or "relationships") _masterTab = 1;
         if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
         if (Step is "5" or "yogas") _masterTab = 4;
         if (Step is "6" or "vargas") _masterTab = 5;
@@ -476,6 +481,7 @@ else
         _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
         _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
         _rasiNakshatraCombinations = RasiNakshatraCombinationRepo.GetAll(1);
+        _grahaDrishtiStrengths = GrahaDrishtiStrengthRepo.GetByBirthDetailId(Id);
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
             ? parsedOffset
