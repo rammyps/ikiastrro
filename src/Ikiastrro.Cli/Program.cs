@@ -134,7 +134,8 @@ var chartGenerationService = new ChartGenerationService(
     new VargottamaRepository(connectionFactory), new YogaInputRepository(connectionFactory),
     new AshtakavargaRepository(connectionFactory), new PanchangaRepository(connectionFactory),
     new AmsabalaRepository(connectionFactory), new AmsabalaSchemeRepository(connectionFactory),
-    new KpSubLordChainRepository(connectionFactory), new ArgalaFactRepository(connectionFactory));
+    new KpSubLordChainRepository(connectionFactory), new ArgalaFactRepository(connectionFactory),
+    new GrahaDrishtiStrengthRepository(connectionFactory));
 
 // --- One-off backfill mode: `dotnet run -- backfill-analytics` ---
 // Unconditionally re-derives all four analytics tables (KeyDetails/HouseLords/Conjunctions/Aspects)

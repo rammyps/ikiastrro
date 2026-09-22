@@ -20,8 +20,8 @@ public static class RelationshipEngine
     /// <summary>
     /// House-offsets (1 = same sign) each graha casts a full aspect on, counted from its own position.
     /// The 7th is universal to all 7 classical grahas. Mars/Jupiter/Saturn add their classical specials.
-    /// Rahu/Ketu use the Jupiter-style convention (5th/7th/9th) per rammyps's decision (2026-08-24) —
-    /// their aspect rule is genuinely disputed across texts, same as their exaltation/debilitation was.
+    /// Rahu/Ketu receive only the universal 7th under the active PVR rule set. Their sphuta
+    /// strength can still be non-zero elsewhere, but that does not create a discrete aspect.
     /// </summary>
     private static readonly Dictionary<string, int[]> AspectOffsets = new()
     {
@@ -32,8 +32,8 @@ public static class RelationshipEngine
         ["Jupiter"] = new[] { 5, 7, 9 },
         ["Venus"] = new[] { 7 },
         ["Saturn"] = new[] { 3, 7, 10 },
-        ["Rahu"] = new[] { 5, 7, 9 },
-        ["Ketu"] = new[] { 5, 7, 9 }
+        ["Rahu"] = new[] { 7 },
+        ["Ketu"] = new[] { 7 }
     };
 
     private static string OffsetLabel(int offset) => offset switch
