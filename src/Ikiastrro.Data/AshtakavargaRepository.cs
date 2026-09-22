@@ -3,13 +3,13 @@ using Ikiastrro.Core.Engines.Ashtakavarga;
 
 namespace Ikiastrro.Data;
 
-public sealed record AshtakavargaRow(string RecipientCode, byte SignNumber, byte? HouseNumber, byte BinduCount, byte? SarvaBindus);
-public sealed record AshtakavargaPindaRow(string RecipientCode, short? RasiPinda, short? GrahaPinda, short? SodhyaPinda);
+public sealed record AshtakavargaRow(string ChartType, string RecipientCode, byte SignNumber, byte? HouseNumber, byte BinduCount, byte? SarvaBindus);
+public sealed record AshtakavargaPindaRow(string ChartType, string RecipientCode, short? RasiPinda, short? GrahaPinda, short? SodhyaPinda);
 
 /// <summary>
 /// Persists Parāśari Ashtakavarga for one chart — the seven Bhinnāṣṭakavargas (+ the 1/0
 /// contribution detail), the Sarvāṣṭakavarga, and the Sodhya Piṇḍa reductions.
-/// Written on the D1 <c>tbl_ChartResults</c> row, mirroring the strength / vargottama facts.
+/// Written on each divisional chart's <c>tbl_ChartResults</c> row, mirroring the strength / vargottama facts.
 /// Also the read model for Key Inference 3.3, backed by vw_ChartAshtakavarga and the post-sodhana pinda facts.
 /// </summary>
 public sealed class AshtakavargaRepository
@@ -21,10 +21,10 @@ public sealed class AshtakavargaRepository
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         return connection.Query<AshtakavargaRow>("""
-            SELECT RecipientCode, SignNumber, HouseNumber, BinduCount, SarvaBindus
+            SELECT ChartType, RecipientCode, SignNumber, HouseNumber, BinduCount, SarvaBindus
             FROM dbo.vw_ChartAshtakavarga
-            WHERE BirthDetailId = @birthDetailId AND ChartType = 'D1'
-            ORDER BY RecipientCode, SignNumber
+            WHERE BirthDetailId = @birthDetailId
+            ORDER BY ChartType, RecipientCode, SignNumber
             """, new { birthDetailId }).ToList();
     }
 
@@ -32,11 +32,11 @@ public sealed class AshtakavargaRepository
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         return connection.Query<AshtakavargaPindaRow>("""
-            SELECT p.RecipientCode, p.RasiPinda, p.GrahaPinda, p.SodhyaPinda
+            SELECT c.ChartType, p.RecipientCode, p.RasiPinda, p.GrahaPinda, p.SodhyaPinda
             FROM dbo.tbl_Fact_AshtakavargaPinda p
             JOIN dbo.tbl_ChartResults c ON c.Id = p.ChartResultId
-            WHERE c.BirthDetailId = @birthDetailId AND c.ChartType = 'D1'
-            ORDER BY CASE p.RecipientCode
+            WHERE c.BirthDetailId = @birthDetailId
+            ORDER BY c.ChartType, CASE p.RecipientCode
                 WHEN 'SUN' THEN 1 WHEN 'MOON' THEN 2 WHEN 'MARS' THEN 3 WHEN 'MERCURY' THEN 4
                 WHEN 'JUPITER' THEN 5 WHEN 'VENUS' THEN 6 WHEN 'SATURN' THEN 7 ELSE 8 END
             """, new { birthDetailId }).ToList();

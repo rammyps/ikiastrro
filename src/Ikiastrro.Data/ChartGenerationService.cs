@@ -296,6 +296,11 @@ public class ChartGenerationService
         if (aspects.Count > 0) _aspectsRepo.InsertAll(aspects);
         if (planetaryStates.Count > 0) _planetaryStateRepo.InsertAll(planetaryStates);
 
+        // Ashtakavarga is materialised independently for every divisional chart so the UI's
+        // varga selector reads distinct persisted SAV/BAV values instead of relabelling D1.
+        _ashtakavargaRepo.DeleteByChartResultId(chartResultId);
+        _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input), (int)input.AscendantSign + 1);
+
         // Strength facts are materialised on the D1 row, using the complete generated chart bundle
         // so Saptavargaja can see D1/D2/D3/D7/D9/D12/D30 placements.
         if (input.ChartType.Equals("D1", StringComparison.OrdinalIgnoreCase))
@@ -311,8 +316,6 @@ public class ChartGenerationService
             _bhavaStrengthRepo.InsertAll(chartResultId, ruleSetId,
                 BhavaBalaCalculator.Calculate(input, strengths));
             _vargottamaRepo.InsertAll(chartResultId, ruleSetId, VargottamaDetector.Calculate(charts));
-            _ashtakavargaRepo.DeleteByChartResultId(chartResultId);
-            _ashtakavargaRepo.Insert(chartResultId, ruleSetId, AshtakavargaCalculator.Calculate(input), (int)input.AscendantSign + 1);
             _panchangaRepo.DeleteByChartResultId(chartResultId);
             _panchangaRepo.Insert(chartResultId, ruleSetId, panchanga);
 
