@@ -51,7 +51,7 @@
    never had a heading of its own beyond the embedded KarakaPolarWheel's own header. Where a step
    has sub-views, its own inner MudTabs:
    D1-TRANSIT's is 1.1 D1 - BIRTH CHART/1.2 TRANSIT CHART (_activeTab); About's is
-   2.1 ABOUT HOUSES/2.2 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
+   2.1 RELATIONSHIPS/2.2 ABOUT HOUSES/2.3 ABOUT PLANETS and Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
    3.3 ASTHAVARGA (all unbound). Every tab text at every level is ALL CAPS.
    All three levels share `.ki-tabs` styling, unified 2026-09-14 (rammyps's directive) onto the
    same quiet-cream/strong-sunset pill the master step rail (`.ki-master-button`) already used —
@@ -239,16 +239,18 @@ else
 
             <div class="ki-tabs ki-subtabs">
             <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true">
-                <MudTabPanel Text="2.1 ABOUT HOUSES">
-                    <h3 class="ki-sectionhead">Aspects &amp; conjunctions</h3>
-                    <div class="ki-twocol">
-                        <div class="ki-col">
-                            <AspectsTable Aspects="lc.Aspects" KeyDetails="lc.KeyDetails" />
-                        </div>
-                        <div class="ki-col">
-                            <HouseConjunctionsTable Groups="lc.MultiGrahaConjunctions" KeyDetails="lc.KeyDetails" />
-                        </div>
-                    </div>
+                <MudTabPanel Text="2.1 RELATIONSHIPS">
+                    <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
+                    <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" @bind-SelectedChart="_relationshipChart" />
+
+                    @if (RelationshipChart is { } relationshipChart)
+                    {
+                        <h3 class="ki-sectionhead">Conjunctions</h3>
+                        <HouseConjunctionsTable Groups="relationshipChart.MultiGrahaConjunctions" KeyDetails="relationshipChart.KeyDetails" />
+                    }
+                </MudTabPanel>
+
+                <MudTabPanel Text="2.2 ABOUT HOUSES">
 
                     <h3 class="ki-sectionhead">House lord placement</h3>
                     <HouseLordshipTable Rows="lc.HouseLords" Occupants="Occupants(lc)" />
