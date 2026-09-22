@@ -12,7 +12,7 @@ public sealed record GrahaDrishtiStrengthRow(
     decimal AspectingLongitudeDegrees, decimal AspectedLongitudeDegrees,
     decimal DirectedSeparationDegrees, decimal OrdinaryVirupas,
     decimal SpecialVirupas, decimal TotalVirupas, decimal StrengthPercentage,
-    byte? DiscreteAspectHouse, bool IsDiscreteAspect, int RuleSetId, string SourceRefCode);
+    byte? DiscreteAspectHouse, bool IsDiscreteAspect, byte RuleSetId, string SourceRefCode);
 /// <summary>Persists the D1/D9/D10 sphuta Graha-drishti matrix. Discrete aspect rows remain
 /// owned by ChartAspectsRepository; the nullable ordinal here is calculation metadata only.</summary>
 public sealed class GrahaDrishtiStrengthRepository
