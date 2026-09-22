@@ -130,8 +130,8 @@ number and date formatting, and right-to-left is not needed but glyph coverage i
 ## Current v5 delivery — FEAT-ASHTAKAVARGA-02
 
 - Key Inference **3.3 ASTHAVARGA** now keeps the existing `AshtakavargaChart` and adds a
-  Varga dropdown over every generated divisional chart. The single persisted natal SAV/BAV
-  matrix remains unchanged; selecting a varga remaps house labels from that varga's ascendant.
+  Varga dropdown over every generated divisional chart. Each generated varga now has its own persisted SAV/BAV
+  matrix; selecting a varga changes its bindu values, Piṇḍa values, and ascendant-relative houses.
   The separate step-6 comparison chart was removed to keep one Ashtavarga experience.
 - Verification status is recorded with the implementing commit; browser review remains for
   integration.

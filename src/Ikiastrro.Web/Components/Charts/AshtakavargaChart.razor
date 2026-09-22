@@ -4,7 +4,7 @@
 <section class="av" aria-labelledby="av-title">
     <article class="av-card">
         <header class="av-card-head">
-            <div><h2 id="av-title">Sarvāṣṭakavarga</h2><p class="av-context">Natal bindus · houses mapped to @_selectedChart</p></div>
+            <div><h2 id="av-title">Sarvāṣṭakavarga</h2><p class="av-context">@_selectedChart bindus · independently calculated</p></div>
             <div class="av-head-right">
                 <label class="av-chart-select"><span>Varga</span><select value="@_selectedChart" @onchange="OnChartChanged">@foreach (var chart in ChartOptions) { <option value="@chart.ChartType">@chart.Label</option> }</select></label>
                 <div class="av-toggle" role="group" aria-label="Row order">
@@ -34,7 +34,7 @@
                 <tbody>
                     @foreach (var recipient in Recipients)
                     {
-                        var cells = Rows.Where(r => r.RecipientCode.Equals(recipient, StringComparison.OrdinalIgnoreCase)).ToDictionary(r => (int)r.SignNumber);
+                        var cells = SelectedRows.Where(r => r.RecipientCode.Equals(recipient, StringComparison.OrdinalIgnoreCase)).ToDictionary(r => (int)r.SignNumber);
                         <tr><th>@DisplayRecipient(recipient)</th>@foreach (var sign in Signs) { var value = cells.GetValueOrDefault(sign)?.BinduCount; <td class="@(value == 0 ? "av-zero" : value >= 6 ? "av-high" : "")">@(value?.ToString() ?? "—")</td> }<td class="av-sum">@cells.Values.Sum(r => r.BinduCount)</td></tr>
                     }
                 </tbody>
@@ -42,12 +42,12 @@
         </div>
     </article>
 
-    @if (PindaRows.Count > 0)
+    @if (SelectedPindaRows.Count > 0)
     {
         <article class="av-card">
             <header class="av-card-head"><div><h2>Piṇḍa</h2></div></header>
             <div class="av-table-scroll"><table class="av-pinda"><thead><tr><th>Recipient</th><th>Rāśi Piṇḍa</th><th>Graha Piṇḍa</th><th>Śodhya Piṇḍa</th></tr></thead><tbody>
-                @foreach (var row in PindaRows) { <tr><th>@DisplayRecipient(row.RecipientCode)</th><td>@Value(row.RasiPinda)</td><td>@Value(row.GrahaPinda)</td><td class="av-sum">@Value(row.SodhyaPinda)</td></tr> }
+                @foreach (var row in SelectedPindaRows) { <tr><th>@DisplayRecipient(row.RecipientCode)</th><td>@Value(row.RasiPinda)</td><td>@Value(row.GrahaPinda)</td><td class="av-sum">@Value(row.SodhyaPinda)</td></tr> }
             </tbody></table></div>
         </article>
     }
@@ -61,16 +61,18 @@
     private static readonly int[] Signs = Enumerable.Range(1, 12).ToArray();
     private static readonly string[] SignNames = { "", "Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis" };
     private static readonly string[] RecipientOrder = { "SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN" };
-    private IEnumerable<string> Recipients => RecipientOrder.Where(x => Rows.Any(r => r.RecipientCode.Equals(x, StringComparison.OrdinalIgnoreCase)));
+    private IReadOnlyList<AshtakavargaRow> SelectedRows => Rows.Where(r => r.ChartType.Equals(_selectedChart, StringComparison.OrdinalIgnoreCase)).ToList();
+    private IReadOnlyList<AshtakavargaPindaRow> SelectedPindaRows => PindaRows.Where(r => r.ChartType.Equals(_selectedChart, StringComparison.OrdinalIgnoreCase)).ToList();
+    private IEnumerable<string> Recipients => RecipientOrder.Where(x => SelectedRows.Any(r => r.RecipientCode.Equals(x, StringComparison.OrdinalIgnoreCase)));
 
     private enum SortMode { HouseOrder, StrengthRank }
     private SortMode _sort = SortMode.HouseOrder;
     private string _selectedChart = "D1";
-    private IReadOnlyList<LoadedChart> ChartOptions => Charts.Values.OrderBy(c => ChartDivisor(c.ChartType)).ToList();
+    private IReadOnlyList<LoadedChart> ChartOptions => Charts.Values.Where(c => Rows.Any(r => r.ChartType.Equals(c.ChartType, StringComparison.OrdinalIgnoreCase))).OrderBy(c => ChartDivisor(c.ChartType)).ToList();
     private void OnChartChanged(ChangeEventArgs args) => _selectedChart = args.Value?.ToString() ?? "D1";
 
     private IReadOnlyList<(int SignNumber, int TotalBindus)> SavRowsBySign =>
-        Signs.Select(s => (s, Rows.Where(r => r.SignNumber == s).Select(r => (int?)r.SarvaBindus).FirstOrDefault(v => v is not null) ?? Rows.Where(r => r.SignNumber == s).Sum(r => (int)r.BinduCount))).ToList();
+        Signs.Select(s => (s, SelectedRows.Where(r => r.SignNumber == s).Select(r => (int?)r.SarvaBindus).FirstOrDefault(v => v is not null) ?? SelectedRows.Where(r => r.SignNumber == s).Sum(r => (int)r.BinduCount))).ToList();
 
     private IReadOnlyList<(int SignNumber, int TotalBindus)> SavRows =>
         _sort == SortMode.HouseOrder
@@ -81,11 +83,8 @@
 
     private int HouseNumber(int signNumber)
     {
-        if (!Charts.TryGetValue(_selectedChart, out var chart)) return signNumber;
-        var ascendant = SignNumber(chart.AscendantSign);
-        return ((signNumber - ascendant + 12) % 12) + 1;
+        return SelectedRows.FirstOrDefault(r => r.SignNumber == signNumber)?.HouseNumber ?? signNumber;
     }
-    private static int SignNumber(string sign) => sign switch { "Aries" => 1, "Taurus" => 2, "Gemini" => 3, "Cancer" => 4, "Leo" => 5, "Virgo" => 6, "Libra" => 7, "Scorpio" => 8, "Sagittarius" => 9, "Capricorn" or "Capricornus" => 10, "Aquarius" => 11, "Pisces" => 12, _ => 1 };
     private static int ChartDivisor(string code) => int.TryParse(code.TrimStart('D', 'd'), out var divisor) ? divisor : int.MaxValue;
     private static string ShortSign(int signNumber) => SignNames[signNumber];
     private static string DisplayRecipient(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(code.ToLowerInvariant());
