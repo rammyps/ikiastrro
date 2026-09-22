@@ -6,6 +6,13 @@ using Ikiastrro.Core.Pipeline;
 
 namespace Ikiastrro.Data;
 
+public sealed record GrahaDrishtiStrengthRow(
+    int ChartResultId, string ChartType, string AspectingPlanet,
+    string AspectedPointKind, string AspectedPointKey, string? AspectedPlanet,
+    decimal AspectingLongitudeDegrees, decimal AspectedLongitudeDegrees,
+    decimal DirectedSeparationDegrees, decimal OrdinaryVirupas,
+    decimal SpecialVirupas, decimal TotalVirupas, decimal StrengthPercentage,
+    byte? DiscreteAspectHouse, bool IsDiscreteAspect, int RuleSetId, string SourceRefCode);
 /// <summary>Persists the D1/D9/D10 sphuta Graha-drishti matrix. Discrete aspect rows remain
 /// owned by ChartAspectsRepository; the nullable ordinal here is calculation metadata only.</summary>
 public sealed class GrahaDrishtiStrengthRepository
@@ -15,6 +22,21 @@ public sealed class GrahaDrishtiStrengthRepository
 
     private readonly SqlConnectionFactory _connectionFactory;
     public GrahaDrishtiStrengthRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
+    public IReadOnlyList<GrahaDrishtiStrengthRow> GetByBirthDetailId(int birthDetailId)
+    {
+        const string sql = """
+            SELECT ChartResultId, ChartType, AspectingPlanet, AspectedPointKind, AspectedPointKey,
+                   AspectedPlanet, AspectingLongitudeDegrees, AspectedLongitudeDegrees,
+                   DirectedSeparationDegrees, OrdinaryVirupas, SpecialVirupas, TotalVirupas,
+                   StrengthPercentage, DiscreteAspectHouse, IsDiscreteAspect, RuleSetId, SourceRefCode
+            FROM dbo.vw_ChartGrahaDrishtiStrengths
+            WHERE BirthDetailId = @BirthDetailId
+            ORDER BY CASE ChartType WHEN 'D1' THEN 1 WHEN 'D9' THEN 2 WHEN 'D10' THEN 3 ELSE 99 END,
+                     AspectingPlanet, AspectedPointKey
+            """;
+        using var connection = _connectionFactory.CreateOpenConnection();
+        return connection.Query<GrahaDrishtiStrengthRow>(sql, new { BirthDetailId = birthDetailId }).ToList();
+    }
 
     public void DeleteByBirthDetailId(int birthDetailId)
     {
