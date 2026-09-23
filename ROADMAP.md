@@ -45,16 +45,19 @@ Close the gap between verified engine logic and what the web app actually shows 
   2026-09-22). Depends on `FEAT-HOUSE-05`.
 - **Planetary-state (avastha) display** — `AgeState`, `WakefulnessState` · `FEAT-AVASTHA-01/02`
 - **Slow-planet transit history view** — 1930–2060 sign-transit timeline · `FEAT-TRANSIT-01`
-- **Ashtakavarga cross-varga extension + comparison chart** · `FEAT-ASHTAKAVARGA-02` (new
-  2026-09-22) — now unblocked, `FEAT-ASHTAKAVARGA-01`'s engine shipped (migrations 074–078;
-  `pvr-coverage.md` Ch.12 corrected 2026-09-22, was stale). Look up the existing natal
-  SAV/BAV bindu table against every rendered Dn chart's placements (read-side, no second
-  engine) plus a new `AshtakavargaVargaCompareChart` stacked bar, By House / By Sign toggle.
-  Design: `docs/research/domain/ashtakavarga-varga-extension.md`. **Citation decision
-  2026-09-23 (rammyps):** proceed with the cross-reference reading (a) now; the exact
-  `pvr-coverage.md` Ch.12 citation cell stays to be pinned rather than blocking the build.
-  Chart toggle sub-questions decided same day: dedupe varga-code lists to unique codes, one
-  stacked bar per scheme tab, fixed Exalted→Great Enemy segment order.
+- ~~**Ashtakavarga cross-varga extension + comparison chart**~~ **Extension half done, closed
+  2026-09-23** · `FEAT-ASHTAKAVARGA-02` (new 2026-09-22) — this bullet's premise was stale in
+  the opposite direction from what it assumed: `ChartGenerationService.PersistAnalytics`
+  already independently recomputes Ashtakavarga per chart type (not a D1 cross-reference
+  lookup), and `AshtakavargaChart.razor` already has a live "Varga" selector over it. Also
+  wasn't actually uncited: P.V.R.'s *Integrated Approach* Example 39 (p.155) states directly
+  that this is the correct method, worked through PM A.B. Vajpayee's D-10 career case study.
+  **Decided 2026-09-23 (rammyps): keep the shipped behavior, now cited.**
+  `verify-ashtakavarga` Phase 6 guards the per-varga independence. Design:
+  `docs/research/domain/ashtakavarga-varga-extension.md`. Still open (Web-only, deferred):
+  `AshtakavargaVargaCompareChart` stacked bar — its 3 sub-questions decided 2026-09-23: dedupe
+  varga-code lists to unique codes, one stacked bar per scheme tab, fixed Exalted→Great Enemy
+  segment order. Moving to `masterproduct.md`.
 - ~~**Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination**~~ **Done,
   closed 2026-09-22** · `FEAT-NAKSHATRA-02` — `PlanetPositionsTable` (d1 variant) shows a
   live-computed "Sub-Lord Chain (L2–L7)" column; the Web-generation gap

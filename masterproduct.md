@@ -378,13 +378,24 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
 
 ## ASHTAKAVARGA — workstream: cli
 
-- **FEAT-ASHTAKAVARGA-02 · Cross-varga bindu lookup + `AshtakavargaVargaCompareChart`** — Planned · 0% (new 2026-09-22)
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial
-  Read-side extension of `FEAT-ASHTAKAVARGA-01`, no second engine: look up the single natal
-  SAV/BAV bindu table against every rendered Dn chart's placements, plus a new stacked-bar
-  chart (By House / By Sign, % bindu share per varga, same shape as Key Inference 3.4
-  Amsabala's per-graha bar). **Open:** citation for cross-reference (working assumption) vs.
-  independent-recompute-per-varga. Design: `docs/research/domain/ashtakavarga-varga-extension.md`.
+- **FEAT-ASHTAKAVARGA-02 · Cross-varga application + `AshtakavargaVargaCompareChart`** —
+  Verified · 80% (2026-09-23 correction — the cross-varga application half was already shipped,
+  and via the opposite reading from what this row assumed) · Verify `verify-ashtakavarga`
+  DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [ ] · Research: complete (`SRC_PVR_INTEGRATED`
+  Example 39, p.155)
+  This row's premise was stale: `ChartGenerationService.PersistAnalytics` already materializes
+  Ashtakavarga independently for every chart type (reading (b) — recompute, not a D1
+  cross-reference lookup, reading (a)), and `AshtakavargaChart.razor` already has a live "Varga"
+  selector over it. Also wasn't actually uncited — P.V.R.'s *Integrated Approach* Example 39
+  states directly: "Ashtakavarga of divisional charts is prepared in the same manner as that of
+  rasi chart... we can find SAV of a divisional chart too," worked through PM A.B. Vajpayee's
+  D-10 career case study (Examples 39/101/108). **Decided 2026-09-23 (rammyps): keep the
+  shipped behavior**, now cited. `verify-ashtakavarga` Phase 6 (added same day) guards that D9's
+  persisted SAV is a genuine independent recompute, not a relabeled D1 copy. Remaining:
+  `AshtakavargaVargaCompareChart` (By House / By Sign stacked bar) is still unbuilt Web work —
+  its 3 open sub-questions decided 2026-09-23: unique varga codes per tier, one bar per scheme
+  tab, fixed Exalted→Great Enemy segment order. Design:
+  `docs/research/domain/ashtakavarga-varga-extension.md`.
 - **FEAT-ASHTAKAVARGA-01 · Bhinna / Sarva Ashtakavarga + Sodhya Piṇḍa** — Verified · 80% · Verify `verify-ashtakavarga`
   DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [x]
   Production `dbo` schema (migrations 074–078): `tbl_Rule_AshtakavargaContribution` (56-row

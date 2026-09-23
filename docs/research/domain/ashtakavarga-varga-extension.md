@@ -6,6 +6,23 @@ already shipped before 2026-09-16 (migrations 074–078, `AshtakavargaCalculator
 today. Both items below are **not** blocked on an unbuilt engine; they're pure read-side/UI work
 on top of an already-verified one. Triaged to `FEAT-ASHTAKAVARGA-02`, `ROADMAP.md` Now.
 
+**Second correction, 2026-09-23:** §1's premise below is *also* stale, and in the opposite
+direction from what it assumed. Reading (a) (cross-reference, "the lower-risk, working
+assumption") was never built. Reading (b) (independent recompute per varga) is what's actually
+shipped — `ChartGenerationService.PersistAnalytics` runs `AshtakavargaCalculator.Calculate`
+separately for every chart type, and `AshtakavargaChart.razor` already has a live "Varga"
+selector reading distinct per-chart SAV/BAV. This was found *not* uncited, either: P.V.R.
+Narasimha Rao's *Integrated Approach*, Example 39 (Part 1, p.155) states directly —
+"Ashtakavarga of divisional charts is prepared in the same manner as that of rasi chart...
+we can find SAV of a divisional chart too" — and works the method through India PM A.B.
+Vajpayee's D-10 (Examples 39/101/108: D-10 lagna's 35 rekhas and the 8th house's 33 rekhas
+explain both his career success and its struggles, where D1's own lagna/10th bindus were only
+average). **Decided 2026-09-23 (rammyps):** keep (b) as-is, now cited to `SRC_PVR_INTEGRATED`
+Example 39/p.155 — no engine or schema change needed. `verify-ashtakavarga` Phase 6 (added
+2026-09-23) guards that D9's persisted SAV is a genuine independent recompute, not a relabeled
+D1 copy. §2's comparison chart remains unbuilt Web work — its three open sub-questions were
+decided the same day (see `masterproduct.md` `FEAT-ASHTAKAVARGA-02` / ROADMAP).
+
 Research/design note (2026-09-19, chat session) extending [[vedic_reading_layers]] Stage 03
 ("Capacity"). Two additions proposed here, both unbuilt:
 
@@ -104,8 +121,8 @@ mainly as a sanity check on whichever recompute-vs-lookup decision (a)/(b) lands
 
 ## Open items before either half is buildable
 
-1. **Confirm reading (a) vs (b)** above with a citation — still open, needs rammyps. Working
-   assumption (a) stands as the design baseline for `FEAT-ASHTAKAVARGA-02`.
+1. ~~Confirm reading (a) vs (b) above with a citation~~ **Resolved 2026-09-23** — (b) is what's
+   shipped, and it's cited: `SRC_PVR_INTEGRATED` Example 39/p.155 (Vajpayee D-10 case study).
 2. ~~Neither item has a `FEAT-*` slot~~ **Resolved 2026-09-22** — `FEAT-ASHTAKAVARGA-02`,
    `ROADMAP.md` Now (Ch.12/`FEAT-ASHTAKAVARGA-01` was already shipped, not actually blocking).
 3. Add a row to [`v5-notes-index.md`](../v5-notes-index.md) for this file (done alongside this
