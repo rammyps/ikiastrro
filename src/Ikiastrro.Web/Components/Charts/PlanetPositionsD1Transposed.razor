@@ -1,0 +1,142 @@
+@using Ikiastrro.Core.Presentation
+@* Transposed D1 planetary-positions table for Key Inference "1.1 D1 - BIRTH CHART"
+   (rammyps's spec, 2026-09-23) — planets (Lagna/Sun/Moon/...) as columns, fields as rows, so
+   the South Indian grid (left) and this table (right) sit side by side instead of stacking a
+   full-width planet-rows table under the chart. Same canonical table look as PlanetPositionsTable
+   (.ppt/.ppt-scroll), field order and default column sort (Rasi -> Nakshatra -> Nak Pada) are
+   rammyps's spec. Graha-only columns (special points excluded), same as PlanetPositionsTable.
+   Nak Pada Lord isn't on PlanetRow (it's the pada's own Navamsa-sign lord, i.e. this planet's D9
+   SignLordPlanet — same longitude, same 3°20' division math, so no separate reference lookup is
+   needed) — the parent page passes it in as NakPadaLordByPlanet. No horizontal scrollbar
+   (rammyps, 2026-09-23) — small header/cell font, tight padding, and the Sub-Lord Chain stacked
+   one lord per line (`.ppdt-chain`) instead of one wide dot-joined string, so all 10 graha
+   columns fit the available width. "ppdt" = PlanetPositionsD1Transposed. *@
+@if (Columns.Count == 0)
+{
+    <EmptyState Message="No D1 positions available." />
+}
+else
+{
+    <div class="ppt-scroll">
+        <table class="ppt ppdt">
+            <thead>
+                <tr>
+                    <th class="ppdt-fieldcol">Graha</th>
+                    @foreach (var col in Columns)
+                    {
+                        <th class="@(col.Planet == "Ascendant" ? "asc" : "")">@Label(col.Planet)</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th class="ppdt-fieldcol">Degree</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td class="mono">@(string.IsNullOrEmpty(col.DegreesInSignDisplay) ? "—" : col.DegreesInSignDisplay)@(col.IsCombust == true ? " 🔥" : "")</td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">Dir</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td>@ChartViewModel.DirectionLabel(col.IsRetrograde)</td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">House</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td class="mono">@col.HouseFromLagna</td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">House (Ch)</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td class="mono">@col.HouseFromMoon</td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">Rasi</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td>@DisplaySign(col.Sign)</td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">Rasi Lord</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td>@(col.SignLordPlanet ?? "—")</td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">Nakshatra</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td>@(col.Nakshatra ?? "—")</td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">Nak Lord</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td>@(col.NakshatraLordPlanet ?? "—")</td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">Sub-Lord Chain (L1-L7)</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td class="mono">
+                            <div class="ppdt-chain">
+                                @foreach (var lord in SplitChain(col.SubLordChainL1ToL7))
+                                {
+                                    <span>@lord</span>
+                                }
+                            </div>
+                        </td>
+                    }
+                </tr>
+                <tr>
+                    <th class="ppdt-fieldcol">Nak Pada &amp; Nak Pada Lord</th>
+                    @foreach (var col in Columns)
+                    {
+                        <td class="mono">@PadaCell(col)</td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<PlanetRow> Rows { get; set; } = Array.Empty<PlanetRow>();
+    [Parameter] public IReadOnlyDictionary<string, string?> NakPadaLordByPlanet { get; set; } =
+        new Dictionary<string, string?>();
+
+    private IReadOnlyList<PlanetRow> Columns => Rows
+        .Where(r => r.PointKind == "Graha")
+        .OrderBy(r => r.SignId ?? int.MaxValue)
+        .ThenBy(r => r.NakshatraId ?? byte.MaxValue)
+        .ThenBy(r => r.NakshatraPada ?? int.MaxValue)
+        .ToList();
+
+    private static string Label(string planet) => planet == "Ascendant" ? "Lagna" : planet;
+
+    private static string DisplaySign(string sign) => sign == "Capricornus" ? "Capricorn" : sign;
+
+    private string PadaCell(PlanetRow row)
+    {
+        if (row.NakshatraPada is null) return "—";
+        var lord = NakPadaLordByPlanet.GetValueOrDefault(row.Planet);
+        return lord is null ? row.NakshatraPada.Value.ToString() : $"{row.NakshatraPada} · {lord}";
+    }
+
+    /// <summary>L1..L7 stacked one below another (rammyps, 2026-09-23) instead of one long
+    /// dot-joined line — keeps each planet's column narrow enough that all 10 fit without a
+    /// horizontal scrollbar.</summary>
+    private static IReadOnlyList<string> SplitChain(string? chain) =>
+        string.IsNullOrEmpty(chain) ? new[] { "—" } : chain.Split(" · ", StringSplitOptions.RemoveEmptyEntries);
+}

@@ -27,7 +27,11 @@ public record PlanetRow(
     double? SpeedLongitudeDegPerDay,
     double? EclipticLatitudeDegrees,
     double VargaLongitudeDegrees,
-    string PointKind);
+    string PointKind,
+    int? SignId,
+    byte? NakshatraId,
+    string? SignLordPlanet,
+    string? SubLordChainL1ToL7);
 
 /// <summary>One graha's row for Key Inference step 2.2 "About Planets" — dignity, Chara Kāraka,
 /// its classical Uchcha Bindu (deep-exaltation point), and how close its D1 longitude sits to
@@ -134,11 +138,11 @@ public static class ChartViewModel
             // Live-computed, not read from tbl_Fact_KpSubLordChain — same "calculator over fact
             // table" choice ArgalaTable/BuildExaltationRows already made, so this renders for
             // every chart regardless of whether the fact table has been populated for it yet.
-            var subLordChain = k.PointKind == "Graha"
-                ? string.Join(" · ", AstroMath.GetKpSubLordChain(k.NirayanaLongitudeDegrees, 7)
-                    .Skip(1) // L1 is already NakshatraSubLordPlanet above; this is L2-L7 only
-                    .Select(p => p.ToString()[..2]))
+            var fullChain = k.PointKind == "Graha"
+                ? AstroMath.GetKpSubLordChain(k.NirayanaLongitudeDegrees, 7).Select(p => p.ToString()[..2]).ToList()
                 : null;
+            var subLordChain = fullChain is null ? null : string.Join(" · ", fullChain.Skip(1)); // L2-L7; L1 is NakshatraSubLordPlanet above
+            var subLordChainL1ToL7 = fullChain is null ? null : string.Join(" · ", fullChain);
 
             return new PlanetRow(
                 k.Planet,
@@ -163,7 +167,11 @@ public static class ChartViewModel
                 k.SpeedLongitudeDegPerDay,
                 k.EclipticLatitudeDegrees,
                 k.VargaLongitudeDegrees,
-                k.PointKind);
+                k.PointKind,
+                k.SignId,
+                k.NakshatraId,
+                k.SignLordPlanet,
+                subLordChainL1ToL7);
         }).ToList();
     }
 

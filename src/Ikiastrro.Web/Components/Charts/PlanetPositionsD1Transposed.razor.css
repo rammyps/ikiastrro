@@ -1,0 +1,40 @@
+/* Table format standardized onto "1.1 D1-Birth Chart"'s PlanetPositionsTable (.ppt) reference
+   (docs/ui/design-language.md — standard table format, 2026-09-22). Field-column (row header)
+   styling is specific to this transposed layout. No horizontal scroll (rammyps, 2026-09-23) —
+   no min-width/overflow-x on the wrapper, small header font, tight cell padding, and normal
+   wrapping so all 10 graha columns share the available width instead of forcing a scrollbar. */
+.ppt-scroll { max-width: 100%; border: 1px solid var(--brand-line); border-radius: 10px; }
+table.ppt.ppdt { border-collapse: collapse; width: 100%; table-layout: fixed; font: 500 var(--font-size-control) / 1.25 'Manrope', 'Segoe UI', sans-serif; font-size: 0.78em; }
+table.ppt.ppdt th, table.ppt.ppdt td { text-align: left; }
+table.ppt.ppdt thead th { padding: 6px 5px; vertical-align: bottom; color: var(--brand-midnight); font-weight: 700; font-size: 0.92em; border-bottom: 2px solid var(--brand-line); white-space: normal; position: sticky; top: 0; background: var(--brand-surface); }
+table.ppt.ppdt td { padding: 5px; color: var(--brand-midnight); border-bottom: 1px solid var(--brand-line); white-space: normal; overflow-wrap: break-word; }
+table.ppt.ppdt tbody tr:last-child td, table.ppt.ppdt tbody tr:last-child th { border-bottom: none; }
+table.ppt.ppdt tbody tr:hover td { background: var(--brand-sunrise); }
+table.ppt.ppdt thead th.asc { font-style: italic; }
+table.ppt.ppdt .mono { font-variant-numeric: tabular-nums; }
+
+.ppdt-fieldcol {
+    padding: 5px 6px;
+    text-align: left;
+    vertical-align: top;
+    white-space: normal;
+    color: var(--brand-midnight);
+    font-weight: 700;
+    width: 118px;
+    border-bottom: 1px solid var(--brand-line);
+    border-right: 1px solid var(--brand-line);
+    position: sticky;
+    left: 0;
+    background: var(--brand-surface);
+}
+
+thead .ppdt-fieldcol {
+    top: 0;
+    z-index: 1;
+}
+
+.ppdt-chain {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}

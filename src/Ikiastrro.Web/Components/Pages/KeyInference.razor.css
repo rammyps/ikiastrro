@@ -26,6 +26,28 @@
     margin: 0 auto 24px;
 }
 
+/* "1.1 D1 - BIRTH CHART" — chart left, transposed positions table right (rammyps, 2026-09-23).
+   Full-bleed: breaks out of .ik-page's centered max-width/padding (MainLayout.razor.css) so the
+   table gets the whole viewport width to work with instead of just .ik-page's ~1400px column —
+   the standard "100vw + negative margin" break-out, with its own small fixed gutter replacing
+   .ik-page's larger --pad-x so there's no horizontal scrollbar on the table. */
+.ki-d1layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    padding-inline: 12px;
+}
+.ki-d1layout .ki-gridwrap {
+    flex: 0 0 auto;
+    margin: 0;
+}
+.ki-d1table {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 /* Current Transit tab — migrated from Natal_Transit_Comp_Wheel.razor.css (tw-controls/tw-wheel). */
 .ki-controls {
     display: grid;
@@ -266,6 +288,9 @@
     .ki-controls { grid-template-columns: 1fr; }
     .ki-tabs ::deep .ki-table table { font-size: 0.72em; }
     .ki-twocol { grid-template-columns: 1fr; }
+    .ki-d1layout { flex-direction: column; }
+    .ki-d1layout .ki-gridwrap { margin: 0 auto; }
+    .ki-d1table { width: 100%; }
 }
 
 .ki-moon-support { margin-top: 12px; }

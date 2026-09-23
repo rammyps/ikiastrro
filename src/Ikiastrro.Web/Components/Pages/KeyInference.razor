@@ -32,8 +32,11 @@
    /charts/{id} page (AllCharts.razor), its heading literally reads "7. ALL CHARTS" so the
    step numbering reads consistently across the two routes. Same South-Indian grid component
    as /charts (Codex `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not
-   modified) for the "1.1 D1 - BIRTH CHART" tab. D1 table reuses PlanetPositionsTable
-   (VargaView's Variant="d1") for free styling/columns. The standalone /transit-wheel page has
+   modified) for the "1.1 D1 - BIRTH CHART" tab, chart left / table right (`.ki-d1layout`,
+   2026-09-23). D1's table is `PlanetPositionsD1Transposed` — planets as columns, fields as rows,
+   default-sorted Rasi -> Nakshatra -> Nak Pada (rammyps's spec) — not PlanetPositionsTable,
+   whose Variant="d1" path this was the only caller of (now unused; VargaView only passes
+   Variant="varga"). The standalone /transit-wheel page has
    been folded into the "1.2 TRANSIT CHART" tab wholesale — wheel chart, date/dasha selector,
    and Gochara table — reusing its
    Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath exactly;
@@ -111,14 +114,18 @@ else
             <div class="ki-tabs">
             <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_activeTab">
                 <MudTabPanel Text="1.1 D1 - BIRTH CHART">
-                    <div class="ki-gridwrap">
-                        <SouthIndianGrid_Detailed AscendantSign="@lc.AscendantSign" MoonSign="@lc.MoonSign"
-                                         PlanetsBySign="PlanetsBySign(lc)" CenterTitle="D1">
-                            <CenterMeta><b>Lagna</b> @Disp(lc.AscendantSign)</CenterMeta>
-                        </SouthIndianGrid_Detailed>
-                    </div>
+                    <div class="ki-d1layout">
+                        <div class="ki-gridwrap">
+                            <SouthIndianGrid_Detailed AscendantSign="@lc.AscendantSign" MoonSign="@lc.MoonSign"
+                                             PlanetsBySign="PlanetsBySign(lc)" CenterTitle="D1">
+                                <CenterMeta><b>Lagna</b> @Disp(lc.AscendantSign)</CenterMeta>
+                            </SouthIndianGrid_Detailed>
+                        </div>
 
-                    <PlanetPositionsTable Rows="Rows(lc)" LagnaSign="@lc.AscendantSign" Variant="d1" ShowDignity="false" ShowAnalysis="false" />
+                        <div class="ki-d1table">
+                            <PlanetPositionsD1Transposed Rows="Rows(lc)" NakPadaLordByPlanet="NakPadaLordByPlanet" />
+                        </div>
+                    </div>
                 </MudTabPanel>
 
                 <MudTabPanel Text="1.2 TRANSIT CHART">
@@ -126,7 +133,7 @@ else
                     {
                         <section class="ki-controls" aria-label="Transit date and dasha filters">
                             <label class="ki-field">
-                                <span>TRANSIT mm/yyyy</span>
+                                <span>TRANSIT</span>
                                 <span class="ki-monthyear">
                                     <select value="@SelMonth" @onchange="OnMonthChanged">
                                         @for (var m = 1; m <= 12; m++)
@@ -204,7 +211,8 @@ else
                             <MudSimpleTable Dense="true" Hover="false" Bordered="false" Class="ki-table">
                                 <thead>
                                     <tr>
-                                        <th>House<br />from D1</th><th>Planet</th><th>Motion</th><th>Degree</th>
+                                        <th>Planet in<br />Natal House</th><th>House from<br />Natal Planet</th>
+                                        <th>Planet</th><th>Motion</th><th>Degree</th>
                                         <th>Speed<br />°/day</th><th>In sign<br />since</th>
                                         <th>In-sign<br />motion</th><th>Next<br />change</th><th>Next-change<br />motion</th>
                                     </tr>
@@ -213,7 +221,8 @@ else
                                     @foreach (var s in TransitRows)
                                     {
                                         <tr>
-                                            <td class="num">@(HouseFromD1(s)?.ToString() ?? "—")</td>
+                                            <td class="num">@(PlanetInNatalHouse(s)?.ToString() ?? "—")</td>
+                                            <td class="num">@(HouseFromNatalPlanet(s)?.ToString() ?? "—")</td>
                                             <td>@s.Planet</td>
                                             <td>@s.MotionDirection</td>
                                             <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
@@ -620,9 +629,30 @@ else
     private IEnumerable<PlanetTransitSnapshot> TransitRows =>
         _transits.OrderBy(s => Natal_Transit_Comp_WheelMath.PlanetRank(s.Planet.ToString()));
 
-    private int? HouseFromD1(PlanetTransitSnapshot s) =>
+    /// <summary>Houses between this graha's own natal sign and its current transit sign — how far
+    /// it has moved from its own birth position (renamed from "House from D1" 2026-09-23; same
+    /// calculation, clearer name now that "Planet in Natal House" below covers the Lagna-based
+    /// reading).</summary>
+    private int? HouseFromNatalPlanet(PlanetTransitSnapshot s) =>
         Natal_Transit_Comp_WheelMath.HouseFromD1(
             _natalSignByPlanet.GetValueOrDefault(s.Planet.ToString()), SignName(s.SignId));
+
+    /// <summary>Which natal house (counted from the natal Lagna) this transiting planet is
+    /// currently passing through — same sign-counting helper as <see cref="HouseFromNatalPlanet"/>,
+    /// just anchored to the natal Ascendant instead of the planet's own natal sign.</summary>
+    private int? PlanetInNatalHouse(PlanetTransitSnapshot s) =>
+        Natal_Transit_Comp_WheelMath.HouseFromD1(
+            _data?.Charts.GetValueOrDefault("D1")?.AscendantSign, SignName(s.SignId));
+
+    /// <summary>Nak Pada Lord per graha — the lord of the Navamsa sign that graha's own D1
+    /// nakshatra pada falls in. That's the same 3°20' division D9 is built from, so it's read
+    /// straight off this person's own D9 chart's SignLordPlanet (no separate reference lookup
+    /// needed) rather than recomputed here. Empty when D9 hasn't been generated for this chart.</summary>
+    private IReadOnlyDictionary<string, string?> NakPadaLordByPlanet =>
+        _data?.Charts.GetValueOrDefault("D9")?.Grahas
+            .GroupBy(k => k.Planet, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().SignLordPlanet, StringComparer.OrdinalIgnoreCase)
+        ?? new Dictionary<string, string?>();
 
     private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
 }
