@@ -50,10 +50,11 @@ Close the gap between verified engine logic and what the web app actually shows 
   `pvr-coverage.md` Ch.12 corrected 2026-09-22, was stale). Look up the existing natal
   SAV/BAV bindu table against every rendered Dn chart's placements (read-side, no second
   engine) plus a new `AshtakavargaVargaCompareChart` stacked bar, By House / By Sign toggle.
-  Design: `docs/research/domain/ashtakavarga-varga-extension.md`. **Open, needs rammyps:**
-  citation for the cross-reference (recommended) vs. independent-recompute-per-varga reading
-  — the note's working assumption is cross-reference; flag if a source for the other reading
-  exists.
+  Design: `docs/research/domain/ashtakavarga-varga-extension.md`. **Citation decision
+  2026-09-23 (rammyps):** proceed with the cross-reference reading (a) now; the exact
+  `pvr-coverage.md` Ch.12 citation cell stays to be pinned rather than blocking the build.
+  Chart toggle sub-questions decided same day: dedupe varga-code lists to unique codes, one
+  stacked bar per scheme tab, fixed Exalted→Great Enemy segment order.
 - ~~**Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination**~~ **Done,
   closed 2026-09-22** · `FEAT-NAKSHATRA-02` — `PlanetPositionsTable` (d1 variant) shows a
   live-computed "Sub-Lord Chain (L2–L7)" column; the Web-generation gap
@@ -80,8 +81,19 @@ Close the gap between verified engine logic and what the web app actually shows 
 
 Scoped, not started. Ordering set at the next ICE pass.
 
-- **Bhāva significations + Sthira Kāraka mapping** — Designed; migration 030 drafted · `FEAT-HOUSE-03`
-- **Sthira Kāraka / Naisargika Kāraka** — resolve Sapta vs Aṣṭa; needs a cited edition · `FEAT-KARAKA-03/04`
+- ~~**Bhāva significations + Sthira Kāraka mapping**~~ **Done, closed 2026-09-23** ·
+  `FEAT-HOUSE-03`/`FEAT-KARAKA-03` — this bullet was stale on two counts: house significations
+  (`tbl_Rule_HouseSignification`, 12/12 houses) already shipped via migration 31, and the
+  "needs a cited edition" note for Sthira Kāraka was resolved by re-reading B.V. Raman's *How
+  to Judge a Horoscope*, which confirms 6 of the 12 house roles via 20+ case studies (the other
+  6 have no source — left unassigned). Migration 133 seeds the `STHIRA` slot
+  `tbl_Dim_KarakaRole` reserved since migration 103; `verify-sthira-karaka` cross-checks
+  agreement with the independently-sourced PVR Naisargika primary table. Moving to
+  `masterproduct.md`.
+- ~~**Naisargika Kāraka — Sapta vs Aṣṭa**~~ **Not actually undecided, corrected 2026-09-23** ·
+  `FEAT-KARAKA-04` — migrations 086/103 already give all 9 grahas (7 classical + Rahu + Ketu
+  separately) their own role; confirmed as the intended scope, not a live decision. Moving to
+  `masterproduct.md`.
 - ~~**Dispositor chains / final dispositor / mutual reception**~~ **Done, closed 2026-09-23**
   · `FEAT-DISPOSITOR-01` — this bullet was stale: `DispositorEngine.cs` (chain-following,
   final-dispositor resolution, mutual-reception/cycle detection) and a live `DispositorTable.razor`
@@ -111,8 +123,9 @@ Scoped, not started. Ordering set at the next ICE pass.
   prose into queryable `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail` rows,
   giving chara-karaka roles (`tbl_Dim_KarakaRole`) the same shape. Feeds `FEAT-VARGA-02` and
   `FEAT-KARAKA-06` below. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
-  Sequence before `FEAT-HOUSE-03` (Sthira Kāraka needs a cited edition first; this doesn't).
-  **Open, needs rammyps:** Leg A/B reconciliation policy when the two tables disagree.
+  (Sequencing note against `FEAT-HOUSE-03` is moot — that one shipped 2026-09-23.)
+  **Reconciliation policy decided 2026-09-23 (rammyps):** amend Leg A (`tbl_Dim_LifeArea`)
+  wording to match Leg B's narrower framing wherever they disagree, rather than unioning both.
 
 ## Later
 
@@ -134,19 +147,24 @@ Acknowledged, deliberately deferred.
   A Language selector in Preferences. Broad i18n scope — see `docs/ui/MASTER.md` NFRs
 - **Runtime-reorderable tabs** — drag-to-reposition the header tabs / Key-Inference sub-tabs,
   order remembered per user. Deferred NFR — effort + rationale in `docs/ui/MASTER.md`
-- **Sign/house-level benefic-malefic synthesis** · `FEAT-HOUSE-06` (new 2026-09-22) — no
-  engine derives this today (`LagnaFunctionalNature` stops at the planet); a proposed method
-  exists (sign-lord functional nature + occupants + aspects + lord's condition) but needs a
-  source pass before any schema work, per the note's own caution. Design:
-  `docs/research/domain/sign-benefic-malefic.md`.
+- ~~**Sign/house-level benefic-malefic synthesis**~~ **Unblocked 2026-09-23** ·
+  `FEAT-HOUSE-06` (new 2026-09-22) — no engine derives this today (`LagnaFunctionalNature`
+  stops at the planet); the proposed method (sign-lord functional nature + occupants + aspects
+  + lord's condition) needed a source pass first. Found: B.V. Raman's *How to Judge a
+  Horoscope* "Considerations in Judging a House" checklist (p.14-15, `SRC_RAMAN_HTJH`) —
+  points 1/3/5 map onto 3 of the 4 proposed steps, stated as qualitative weighing rather than
+  an enumerable rule. **Decided 2026-09-23 (rammyps): proceed**, cited to that passage.
+  Design: `docs/research/domain/sign-benefic-malefic.md`. Moving to `masterproduct.md` as
+  Next-bucket work, not Later.
 - **Data & Calculation Integrity surfacing** (new 2026-09-22) — birth-time sensitivity
   (±1/±2/±5/±10 min placement drift), rectification-status flag, ayanāṁśa/settings
   declaration shown per-reading. Genuinely new ground, no existing engine gap to close; no
   urgency signal yet. From Stage 01 of `docs/research/domain/vedic_reading_layers.md`.
-- **Nakshatra color scheme** — undecided, not just unbuilt: needs either a citation or an
-  explicit "treat as cosmetic like `TamilName`" call before any migration. Three candidate
-  bases (Tatva/5-color, ruling planet/9-color, an independent 27-color classical scheme) —
-  none sourced. **Open, needs rammyps.**
+- ~~**Nakshatra color scheme**~~ **Decided 2026-09-23 (rammyps):** ruling-planet / 9-color
+  basis — colored by each nakshatra's Vimshottari lord, reusing the app's existing planet-color
+  tokens. Treated as display/cosmetic, same call already made for `TamilName`; no classical
+  citation pursued. Stays a Web-only task (derivable purely from the already-stored
+  `NakshatraLordPlanet`, no new DB work) — not built this session, out of DB/CLI scope.
 - **Reading-layers "suggested additions"** — 5 ideas flagged unconfirmed by their own author,
   not triaged: rule-lifecycle log, cross-chart/synastry module, base-rate comparison in
   Validation, surfacing confidence/source-stratum to the end reader, the reverse muhūrta

@@ -10,6 +10,12 @@ work leans on it.
 
 ## Three axes, not one
 
+**2026-09-23 update:** a source pass found grounding for the proposed synthesis below — B.V.
+Raman's *How to Judge a Horoscope*, "Considerations in Judging a House" (p.14-15,
+`SRC_RAMAN_HTJH`), whose 8-point checklist's points 1/3/5 map onto 3 of the 4 proposed steps
+(lord's condition; occupants + aspects; dignity). Stated as qualitative weighing, not an
+enumerable rule. **Decided (rammyps): proceed, cited to that passage** — `FEAT-HOUSE-06`.
+
 1. **Dignity** (`DignityStatus` — Exalted/Moolatrikona/Own/…/Debilitated, axis A in
    [[dignity-pvr]]) — positional *strength*, driven by planet + sign + degree. This is what the
    South Indian grid's color coding renders (`SouthIndianGrid_Detailed`, spec at

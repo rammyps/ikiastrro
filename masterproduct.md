@@ -110,7 +110,11 @@ recomputed against them; treat the table above as stale until that pass runs. 20
 RELATIONSHIP and DISPOSITOR rows corrected (Argala insert-wiring closed, FEAT-DISPOSITOR-01 and
 FEAT-RELATIONSHIP-05 found already-shipped and undocumented — the `workstream/cli` and
 `workstream/database` worktrees were stale behind `master`; FEAT-RELATIONSHIP-05's `verify-graha-drishti`
-gap closed same day); the rest of the table is still unrecomputed against the v5-batch rows.)*
+gap closed same day). Also 2026-09-23: FEAT-HOUSE-03 found already-mostly-shipped (house
+significations via migration 31) and its remaining Sthira Kāraka gap closed (migration 133);
+FEAT-KARAKA-03 closed the same way; FEAT-KARAKA-04's "Sapta vs Aṣṭa" flag corrected — the data
+already resolves it. HOUSE/KARAKA rollup rows below are not yet recomputed against these; the
+rest of the table is still unrecomputed against the v5-batch rows.)*
 
 ---
 
@@ -177,8 +181,19 @@ gap closed same day); the rest of the table is still unrecomputed against the v5
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
 - **FEAT-HOUSE-02 · Functional benefic / malefic by Lagna** — Verified · 80% · Verify `verify-functional-nature`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [ ] · Research: complete
-- **FEAT-HOUSE-03 · Bhāva significations + Sthira Kāraka mapping** — Designed · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial (`SRC_RAMAN_HTJH`, 3 unsourced cells)
+- **FEAT-HOUSE-03 · Bhāva significations + Sthira Kāraka mapping** — Verified · 80%
+  (2026-09-23 correction — was stale at Designed·0%; the "3 unsourced cells" note belonged to a
+  different, already-removed migration (031), not this one) · Verify `verify-sthira-karaka`
+  DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [ ] · Research: complete (`SRC_RAMAN_HTJH`)
+  House significations (`tbl_Rule_HouseSignification`, 12/12 houses) were already shipped via
+  migration 31, just never cross-referenced back to this row. Sthira Kāraka closed 2026-09-23:
+  migration 133 seeds the 6 roles B.V. Raman's *How to Judge a Horoscope* confirms via 20+
+  case studies (Thanukaraka/1st/Sun, Dhanakaraka/2nd/Jupiter, Bhratrukaraka/3rd/Mars,
+  Matrukaraka/4th/Moon, Putrakaraka/5th/Jupiter, Ayushkaraka/8th/Saturn) into the `STHIRA` slot
+  `tbl_Dim_KarakaRole` reserved since migration 103. No source found for the other 6 houses —
+  left unassigned, not guessed. `NaisargikaKarakaRepository.GetSthiraKarakas()` +
+  `verify-sthira-karaka` (row count, citation, cross-check against the independently-sourced
+  PVR Naisargika primary table on the houses where both agree). See `FEAT-KARAKA-03`.
 - **FEAT-HOUSE-04 · Baadhaka sthaana / baadhaka by rasi (PVR §13.3)** — Verified · 60% · Verify `verify-baadhaka`
   DB [ ] (computed, no rule table) · Core [x] · Verify [x] · Web [ ] · Docs [x] · Research: complete
   (`SRC_PVR_INTEGRATED` Table 31; Rahu/Ketu co-baadhaka rows deliberately diverge, see `pvr-coverage.md` Ch. 3)
@@ -187,10 +202,11 @@ gap closed same day); the rest of the table is still unrecomputed against the v5
   Reconciles `tbl_Dim_LifeArea` (migration 30) and `tbl_Dim_DivisionalSubject` (migration 38) —
   same PVR ground, never cross-checked — and normalizes `DivisionalSubject.D1Foundation`'s
   prose into `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail` rows, giving
-  chara-karaka roles the same shape. Feeds `FEAT-VARGA-02` and `FEAT-KARAKA-06`. Sequence
-  before `FEAT-HOUSE-03` (that one's blocked on a citation; this isn't). **Open, needs
-  rammyps:** Leg A/B reconciliation policy when they disagree. Design:
-  `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
+  chara-karaka roles the same shape. Feeds `FEAT-VARGA-02` and `FEAT-KARAKA-06`. (Sequencing
+  note against `FEAT-HOUSE-03` is moot — that one shipped 2026-09-23.) **Reconciliation policy
+  decided 2026-09-23 (rammyps):** amend Leg A (`tbl_Dim_LifeArea`) wording to match Leg B
+  (`tbl_Dim_DivisionalSubject`)'s narrower framing wherever they overlap, rather than unioning
+  both. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
 - **FEAT-HOUSE-06 · Sign/house-level benefic-malefic synthesis** — Planned · 0% (new 2026-09-22)
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial (no `SRC_*` citation,
   synthesis note only)
@@ -286,10 +302,19 @@ gap closed same day); the rest of the table is still unrecomputed against the v5
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
   PVR Gulika/Maandi convention; `verify-upagrahas` passes all 21 charts (stored charts
   regenerated on the Lahiri default, FEAT-DATA-04).
-- **FEAT-KARAKA-03 · Sthira Kāraka** — Planned · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial (`SRC_RAMAN_HTJH`)
-- **FEAT-KARAKA-04 · Naisargika Kāraka (Sapta vs Aṣṭa — undecided)** — Planned · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial
+- **FEAT-KARAKA-03 · Sthira Kāraka** — In progress · 60% (2026-09-23 correction — was
+  Planned·0%) · Verify `verify-sthira-karaka`
+  DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [ ] · Research: complete for 6/12 houses
+  (`SRC_RAMAN_HTJH`), no source found for the other 6
+  Same build as `FEAT-HOUSE-03`'s Sthira Kāraka half — see that row for detail. Partial by
+  design, not by gap: only 6 of 12 houses have a Raman-confirmed Sthira Karaka role.
+- **FEAT-KARAKA-04 · Naisargika Kāraka** — Done · 100% (2026-09-23 correction — "Sapta vs Aṣṭa"
+  was never actually undecided in the data)
+  DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
+  Migrations 086/103 already give all 9 grahas (7 classical + Rahu + Ketu as separate roles)
+  their own `NAISARGIKA` role in `tbl_Dim_KarakaRole`, and the 34-row Karakatwa grid already
+  includes Rahu/Ketu matters — confirmed 2026-09-23 as the intended scope, not a gap needing a
+  decision. Rendered live in `KarakaPolarWheel.razor` (`NaisargikaKarakaRepository.LoadActive().Primary`).
 - **FEAT-KARAKA-06 · Chara-karaka "Life Matters" panel** — Planned · 0% (new 2026-09-22)
   DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
   Closes `FEAT-KARAKA-01`'s `Web [ ]` gap — the panel from `res_charakarakas.md` §2. Depends

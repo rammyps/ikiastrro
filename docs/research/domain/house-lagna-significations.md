@@ -20,9 +20,14 @@ actually contains for each of the 8 classical Bhava-analysis points, cross-refer
 CLI mode deleted, `db/_archive/031_*.sql` removed; existing DBs run
 `db/00_drop_lagna_functional_nature.sql`). Functional benefic/malefic is now produced solely by
 the computed classifier `Core/Calculators/LagnaFunctionalNature.cs`. Migration **030**
-(house/planet significations, Sthira Karaka) is still scoped-not-built; `LifeAreaMap` (Core)
-hardcodes the house/karaka-per-life-area subset it needs, cross-checked to this source.
-Everything else here (the synthesis layer, yoga detection) is scoped but not built.
+(house/planet significations, Sthira Karaka) as originally scoped here was never built as its
+own migration — but its ground turned out already covered: house significations shipped via
+migration 31 (`tbl_Rule_HouseSignification`, 12/12 houses), and Sthira Karaka closed 2026-09-23
+via migration 133 (the 6 roles this file's point #3 already confirmed), seeded into
+`docs/database/karakafix.md`'s `tbl_Dim_KarakaRole`/`tbl_Rule_KarakaMatter` model instead of a
+standalone `tbl_Dim_PlanetHouseKaraka` table — see `FEAT-HOUSE-03`/`FEAT-KARAKA-03` in
+`masterproduct.md` for the current shape. Everything else here (the synthesis layer, yoga
+detection) is scoped but not built.
 
 ---
 
