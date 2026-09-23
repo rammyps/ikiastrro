@@ -197,16 +197,22 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
 - **FEAT-HOUSE-04 · Baadhaka sthaana / baadhaka by rasi (PVR §13.3)** — Verified · 60% · Verify `verify-baadhaka`
   DB [ ] (computed, no rule table) · Core [x] · Verify [x] · Web [ ] · Docs [x] · Research: complete
   (`SRC_PVR_INTEGRATED` Table 31; Rahu/Ketu co-baadhaka rows deliberately diverge, see `pvr-coverage.md` Ch. 3)
-- **FEAT-HOUSE-05 · LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** — Planned · 0% (new 2026-09-22)
-  DB [ ] · Core [—] · Verify [ ] · Web [—] · Docs [x] · Research: complete
-  Reconciles `tbl_Dim_LifeArea` (migration 30) and `tbl_Dim_DivisionalSubject` (migration 38) —
-  same PVR ground, never cross-checked — and normalizes `DivisionalSubject.D1Foundation`'s
-  prose into `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail` rows, giving
-  chara-karaka roles the same shape. Feeds `FEAT-VARGA-02` and `FEAT-KARAKA-06`. (Sequencing
-  note against `FEAT-HOUSE-03` is moot — that one shipped 2026-09-23.) **Reconciliation policy
-  decided 2026-09-23 (rammyps):** amend Leg A (`tbl_Dim_LifeArea`) wording to match Leg B
-  (`tbl_Dim_DivisionalSubject`)'s narrower framing wherever they overlap, rather than unioning
-  both. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
+- **FEAT-HOUSE-05 · LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** — Verified · 80%
+  (2026-09-23 correction — was Planned·0%; most of the bridge already existed, undocumented)
+  DB [x] · Core [x] · Verify [x] · Web [—] · Docs [ ] · Research: complete
+  **This row's own premise was stale, found mid-build 2026-09-23:** migration 109 (2026-09-16)
+  had already built `tbl_Dim_InterpretiveFactor` + `tbl_Rule_InterpretiveFactorDetail` (real
+  typed FKs — `LifeAreaId`/`DivisionalSubjectCode`/`KarakaRoleId` columns, not the polymorphic
+  `ReferenceId` this row's own design doc proposed) and normalized all 11
+  `tbl_Dim_DivisionalSubject` rows' House/Planet/Varga facts — the design doc that proposed this
+  feature (written 2026-09-22) missed that 109 existed. `InterpretiveFactorDetailRepository` and
+  CLI `verify-interpretive-factors` already existed too. What was actually still missing (109's
+  own stated deferral): **Reconciliation policy decided 2026-09-23 (rammyps):** amend Leg A
+  (`tbl_Dim_LifeArea`, 10 of 20 rows) wording to match Leg B's narrower framing — done, migration
+  134. LifeArea VARGA facts (21 rows, WEALTH has both D2/D2-US) seeded into 109's table, same
+  migration; `verify-interpretive-factors` gained a LifeArea-coverage check. Still open, not
+  guessed: `CHARA_KARAKA_ROLE` (Leg D) stays unseeded — no source content exists to seed it from,
+  same gap 109 already flagged. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
 - **FEAT-HOUSE-06 · Sign/house-level benefic-malefic synthesis** — Planned · 0% (new 2026-09-22)
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial (no `SRC_*` citation,
   synthesis note only)

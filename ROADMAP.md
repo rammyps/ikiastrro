@@ -120,15 +120,18 @@ Scoped, not started. Ordering set at the next ICE pass.
   not a gap:** `tbl_Rule_CompoundRelationship` (migration 24) is deliberately cited-but-not-read,
   same pattern as `ArgalaCalculator`/`RasiDrishtiCalculator` — `verify-rules` already proves it
   matches `DignityEngine.CombineToPanchadha`'s hardcoded truth table
-- **LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** · `FEAT-HOUSE-05` (new 2026-09-22) —
-  reconcile the two never-cross-checked PVR-sourced tables (`tbl_Dim_LifeArea` migration 30,
-  `tbl_Dim_DivisionalSubject` migration 38) and normalize `DivisionalSubject.D1Foundation`'s
-  prose into queryable `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail` rows,
-  giving chara-karaka roles (`tbl_Dim_KarakaRole`) the same shape. Feeds `FEAT-VARGA-02` and
-  `FEAT-KARAKA-06` below. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
-  (Sequencing note against `FEAT-HOUSE-03` is moot — that one shipped 2026-09-23.)
-  **Reconciliation policy decided 2026-09-23 (rammyps):** amend Leg A (`tbl_Dim_LifeArea`)
-  wording to match Leg B's narrower framing wherever they disagree, rather than unioning both.
+- ~~**LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge**~~ **Mostly done, closed 2026-09-23**
+  · `FEAT-HOUSE-05` (new 2026-09-22) — this bullet's own premise was stale: migration 109
+  (2026-09-16) had already built `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail`
+  and normalized all 11 `tbl_Dim_DivisionalSubject` rows into it, with a repository and CLI
+  `verify-interpretive-factors` already in place — the design doc proposing this feature
+  (written 2026-09-22) missed that 109 existed. What 109 had explicitly deferred: **Leg A/B
+  reconciliation, decided 2026-09-23 (rammyps):** amend Leg A (`tbl_Dim_LifeArea`, 10 of 20
+  rows) wording to match Leg B's narrower framing — done, migration 134, plus the missing
+  LifeArea VARGA facts (21 rows) seeded into 109's table. Design:
+  `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`. Still open, not guessed:
+  Chara-karaka-role (Leg D) detail rows — no source content exists to seed them from. Moving to
+  `masterproduct.md`.
 
 ## Later
 
