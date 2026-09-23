@@ -11,6 +11,7 @@ using Ikiastrro.Core.Pipeline;
 using Ikiastrro.Core.Engines.PlanetaryStates;
 using Ikiastrro.Core.Engines.Dasha;
 using Ikiastrro.Core.Engines.Dignity;
+using Ikiastrro.Core.Engines.Dispositors;
 using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Engines.Karakas;
 using Ikiastrro.Core.Geocoding;
@@ -1386,6 +1387,70 @@ if (args.Length > 0 && args[0] == "verify-planet-in-house")
     Check("dispositor matches tbl_Chart_HouseLords' own lord for every row (whole-sign)", mismatches, 0);
 
     Console.WriteLine(failures == 0 ? "\nverify-planet-in-house: ALL PASS" : $"\nverify-planet-in-house: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- One-off check: `dotnet run -- verify-dispositor` ---
+// DispositorEngine (chain-following + final-dispositor + mutual-reception/cycle detection) is a
+// pure, live Core calculator — no fact table (FEAT-DISPOSITOR-01, live-only by design, same
+// category as ArgalaTable/RasiDrishtiCalculator). No unit-test project covers CLI-reachable
+// stored-chart integration, so this is the only place its output gets checked against real,
+// persisted charts rather than hand-built fixtures (see DispositorEngineTests for those).
+if (args.Length > 0 && args[0] == "verify-dispositor")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var keyDetailsRepo = new ChartKeyDetailsRepository(connectionFactory);
+    using var dispConn = connectionFactory.CreateOpenConnection();
+
+    foreach (var person in birthDetailsRepo.GetAll())
+    {
+        var d1ChartResultId = dispConn.ExecuteScalar<int?>(
+            "SELECT cr.Id FROM dbo.tbl_ChartResults cr WHERE cr.BirthDetailId = @Id AND cr.ChartType = 'D1'", new { person.Id });
+        if (d1ChartResultId is null) continue;
+
+        var keyDetails = keyDetailsRepo.GetByChartResultId(d1ChartResultId.Value);
+        var ascendantSign = Enum.Parse<ZodiacName>(keyDetails.Single(k => k.Planet == "Ascendant").Sign);
+        // Matches DispositorTable.razor's own filter exactly: PointKind == "Graha" alone isn't
+        // enough to exclude Ascendant/other non-classical points in every stored chart.
+        var grahas = keyDetails.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant"
+            && Enum.TryParse<PlanetName>(k.Planet, true, out _)).ToList();
+        var input = new ChartAnalysisInput("D1", ascendantSign,
+            grahas.Select(k => new PlanetPosition { Planet = k.Planet, Sign = k.Sign, PointKind = "Graha", HouseNumber = k.HouseNumberFromLagna }).ToList());
+
+        var chains = new DispositorEngine().Compute(input).ToDictionary(c => c.Planet);
+        Check($"{person.Name}: every graha resolves a chain", chains.Count, grahas.Count);
+        Check($"{person.Name}: no chain hits MISSING_PLACEMENT", chains.Values.Count(c => c.TerminationCode == "MISSING_PLACEMENT"), 0);
+
+        // Cross-check against ChartAnalyzer's own independently-computed SignLordPlanet
+        // (tbl_Chart_KeyDetails, stamped at generation time) — the chain's first hop must agree.
+        var firstHopMismatches = grahas.Count(k => chains[k.Planet].Chain[1] != k.SignLordPlanet);
+        Check($"{person.Name}: chain's first hop matches stored SignLordPlanet for every graha", firstHopMismatches, 0);
+
+        // FinalDispositor is where the chain terminates, not necessarily the starting planet —
+        // that IS the point of "final dispositor" (e.g. Mars -> Jupiter -> Jupiter means Jupiter
+        // is Mars's final dispositor). The real invariant: FinalDispositor must be a genuine
+        // fixed point — looked up as its own starting planet, it resolves self-disposed onto itself.
+        var finalDispositorsAreFixedPoints = chains.Values.Where(c => c.TerminationCode == "SELF_DISPOSED")
+            .All(c => c.FinalDispositor is not null && chains.TryGetValue(c.FinalDispositor, out var fd)
+                && fd.TerminationCode == "SELF_DISPOSED" && fd.FinalDispositor == c.FinalDispositor);
+        Check($"{person.Name}: every SELF_DISPOSED chain's FinalDispositor is a genuine fixed point", finalDispositorsAreFixedPoints, true);
+
+        var mutualReceptionConsistent = chains.Values.Where(c => c.TerminationCode == "MUTUAL_RECEPTION")
+            .All(c => c.InMutualReception && c.Cycle is { Count: 2 } cycle && cycle.Contains(c.Planet));
+        Check($"{person.Name}: every MUTUAL_RECEPTION chain is flagged + has a 2-planet cycle containing itself", mutualReceptionConsistent, true);
+
+        var outcomes = chains.Values.GroupBy(c => c.TerminationCode).ToDictionary(g => g.Key, g => g.Count());
+        Console.WriteLine($"    ({person.Name} outcome mix: {string.Join(", ", outcomes.Select(o => $"{o.Key}={o.Value}"))})");
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-dispositor: ALL PASS" : $"\nverify-dispositor: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
