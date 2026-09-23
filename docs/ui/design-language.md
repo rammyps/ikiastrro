@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-14
+last_updated: 2026-09-23
 workstream: ui
 togaf: C — UI standards
 ---
@@ -133,9 +133,10 @@ sunset-fill selected state:
   `padding: 4-6px 10-14px` (vs a nav tab's `--font-size-control`/6-20px).
 - Positioned on the **right** of the card header, opposite the `<h2>` (and before any trailing
   stat like Sarvāṣṭakavarga's grand total) — never left-aligned under the heading.
-- A `<select>` that drives the same chart (SPL LAGNAS's divisional-chart picker) matches this
-  same navy/cream/caps look so it reads as part of the same control cluster as the toggle beside
-  it, not a separate form field.
+- A `<select>` that chooses or drives a chart (including Key Inference's Natal Chart dropdown
+  and SPL LAGNAS's divisional-chart picker) uses a dark-blue `--brand-midnight` surface with
+  cream `--brand-canvas` text. This navy/cream/caps look identifies chart-selection controls
+  consistently and keeps them visually distinct from ordinary data-entry form fields.
 
 Rationale: this reuses the app's own dark-navy brand color as a visual signal that a control
 "belongs to a chart" (part of that card's own display state) rather than to page navigation

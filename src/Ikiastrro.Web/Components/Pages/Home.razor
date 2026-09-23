@@ -7,12 +7,9 @@
 
 <PageTitle>Iki-Astrro · Discover Your Path</PageTitle>
 
-<div class="home @(_adding ? "home--compact" : "")">
-    @* .home-main starts at the heading, the first thing under the top nav. Default state: the
-       art column is pinned tall (position:sticky) beside the short search/results content.
-       Add-New state (.home--compact): the art column instead STRETCHES to match .home-main's
-       own (now panel-compact) height — see .home--compact .home-art below — so the panel's
-       top/bottom line up with the art's top/bottom and the whole screen fits with no scroll. *@
+<div class="home">
+    @* The Ganesha art keeps its natural aspect ratio beside both the search and Add-New
+       states. *@
     <div class="home-main">
 
         <h1 class="home-title">Discover Your Path<span class="home-title-sprout" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none">

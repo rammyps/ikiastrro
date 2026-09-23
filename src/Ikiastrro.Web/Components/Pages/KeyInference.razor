@@ -53,8 +53,8 @@
    .ki-tabs:first-child` carries the top margin that heading used to provide. "4. SPL LAGNAS"
    never had a heading of its own beyond the embedded KarakaPolarWheel's own header. Where a step
    has sub-views, its own inner MudTabs:
-   Natal Charts uses a D1-default chart selector and 1.1 Signs & Nakshatras / 1.2 Houses /
-   1.3 Planets / 1.4 Relationships (_activeTab); Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
+   Natal Charts uses a D1-default chart selector and 1.1 Overview / 1.2 Signs & Nakshatras /
+   1.3 Houses / 1.4 Planets / 1.5 Relationships (_activeTab); Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
    3.3 ASTHAVARGA (all unbound). Every tab text at every level is ALL CAPS.
    All three levels share `.ki-tabs` styling, unified 2026-09-14 (rammyps's directive) onto the
    same quiet-cream/strong-sunset pill the master step rail (`.ki-master-button`) already used —
@@ -121,28 +121,25 @@ else
                         }
                     </select>
                 </label>
-                <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
-                    @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
-                </button>
                 </div>
                 @if (NatalChart is { } natalChart)
                 {
-                    <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
-                        @if (!_natalChartCollapsed)
-                        {
+                    <div class="ki-natal-layout">
                         <div class="ki-gridwrap">
                             <SouthIndianGrid_Detailed AscendantSign="@natalChart.AscendantSign" MoonSign="@natalChart.MoonSign" PlanetsBySign="PlanetsBySign(natalChart)" CenterTitle="@natalChart.ChartType">
                                 <CenterMeta><b>Lagna</b> @Disp(natalChart.AscendantSign)</CenterMeta>
                             </SouthIndianGrid_Detailed>
                         </div>
-                        }
                         <div class="ki-natal-detail ki-tabs ki-subtabs">
                         <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_activeTab">
-                            <MudTabPanel Text="1.1 ABOUT SIGNS &amp; NAKSHATRAS">
+                            <MudTabPanel Text="1.1 OVERVIEW">
+                                <PlanetPositionsD1Transposed Rows="Rows(natalChart)" NakPadaLordByPlanet="NakPadaLordByPlanet" />
+                            </MudTabPanel>
+                            <MudTabPanel Text="1.2 ABOUT SIGNS &amp; NAKSHATRAS">
 <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
                             </MudTabPanel>
-                            <MudTabPanel Text="1.2 ABOUT HOUSES">
+                            <MudTabPanel Text="1.3 ABOUT HOUSES">
 <h3 class="ki-sectionhead">House lord placement</h3>
                     <HouseLordshipTable Rows="natalChart.HouseLords" Occupants="Occupants(natalChart)" />
 
@@ -152,7 +149,7 @@ else
                     <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
                     <ArgalaTable Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
                             </MudTabPanel>
-                            <MudTabPanel Text="1.3 ABOUT PLANETS">
+                            <MudTabPanel Text="1.4 ABOUT PLANETS">
 <h3 class="ki-sectionhead">Moon context</h3>
                     @if (_moon is null)
                     {
@@ -176,7 +173,7 @@ else
                     <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
                     <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
                             </MudTabPanel>
-                            <MudTabPanel Text="1.4 RELATIONSHIPS">
+                            <MudTabPanel Text="1.5 RELATIONSHIPS">
 <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
                     <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="_natalChart" SelectedChartChanged="OnRelationshipChartChanged" />
 
@@ -432,7 +429,6 @@ else
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
     private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
     private string _natalChart = "D1";
-    private bool _natalChartCollapsed;
     private LoadedChart? NatalChart => _data?.Charts.GetValueOrDefault(_natalChart);
     private IEnumerable<LoadedChart> NatalChartOptions => _data?.Charts.Values
         .OrderBy(c => c.ChartType == "D1" ? 0 : 1)
@@ -457,10 +453,11 @@ else
     protected override void OnParametersSet()
     {
         if (Step is "1" or "natal" or "about") _masterTab = 0;
-        if (Step is "signs" or "nakshatras") { _masterTab = 0; _activeTab = 0; }
-        if (Step is "houses") { _masterTab = 0; _activeTab = 1; }
-        if (Step is "planets") { _masterTab = 0; _activeTab = 2; }
-        if (Step is "relationships") { _masterTab = 0; _activeTab = 3; }
+        if (Step is "overview") { _masterTab = 0; _activeTab = 0; }
+        if (Step is "signs" or "nakshatras") { _masterTab = 0; _activeTab = 1; }
+        if (Step is "houses") { _masterTab = 0; _activeTab = 2; }
+        if (Step is "planets") { _masterTab = 0; _activeTab = 3; }
+        if (Step is "relationships") { _masterTab = 0; _activeTab = 4; }
         if (Step is "2" or "transit") _masterTab = 1;
         if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
         if (Step is "5" or "yogas") _masterTab = 4;
