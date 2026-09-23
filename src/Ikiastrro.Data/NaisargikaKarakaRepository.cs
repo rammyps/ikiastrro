@@ -3,6 +3,7 @@ using Dapper;
 namespace Ikiastrro.Data;
 
 public sealed record NaisargikaKarakaRow(int HouseNumber, string Graha, string MattersSignified);
+public sealed record SthiraKarakaRow(int HouseNumber, string Graha, string RoleCode, string MattersSignified);
 public sealed record NaisargikaKarakatwaRow(int HouseNumber, string Graha, string Matter, int DisplayOrder);
 public sealed record LifeMatterReferenceRow(
     string CategoryName, int DisplayOrder, string MatterText, string PrimaryChartsText,
@@ -76,5 +77,20 @@ public sealed class NaisargikaKarakaRepository(SqlConnectionFactory factory)
             ORDER BY r.SortOrder
             """).ToList();
         return new(primary, details, lifeMatters, houses, signs, relationships, references);
+    }
+
+    /// <summary>The 6 Raman-sourced Sthira Karaka roles (SRC_RAMAN_HTJH) — a separate,
+    /// independently-cited tradition from the Naisargika primary table above, not a
+    /// re-derivation of it, even where the (planet, house) pairs happen to coincide.</summary>
+    public IReadOnlyList<SthiraKarakaRow> GetSthiraKarakas()
+    {
+        using var connection = factory.CreateOpenConnection();
+        return connection.Query<SthiraKarakaRow>("""
+            SELECT CAST(sk.HouseNumber AS INT) AS HouseNumber, p.PlanetName AS Graha, sk.RoleCode, sk.MattersSignified
+            FROM dbo.vw_Rule_SthiraKaraka sk
+            JOIN dbo.tbl_Rule_Sets rs ON rs.Id = sk.RuleSetId AND rs.IsActive = 1
+            JOIN dbo.tbl_Planets p ON p.Id = sk.GrahaId
+            WHERE sk.IsActive = 1 ORDER BY sk.HouseNumber
+            """).ToList();
     }
 }
