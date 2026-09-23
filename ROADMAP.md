@@ -60,7 +60,7 @@ Close the gap between verified engine logic and what the web app actually shows 
   (`tbl_Fact_KpSubLordChain` never populated for Web-created charts) is closed
   (`Ikiastrro.Web/Program.cs` registers `KpSubLordChainRepository`);
   `tvf_Chart_DashaLordRelationship`'s join extended to L2–L7 (migration 131). New Key Inference
-  tab "2.3 SIGN & NAKSHATRAS" (`RasiNakshatraTable`) surfaces `tbl_Rule_RasiNakshatraCombination`
+  tab "1.1 ABOUT SIGNS & NAKSHATRAS" (`RasiNakshatraTable`) surfaces `tbl_Rule_RasiNakshatraCombination`
   (migration 124, 36 rows) — one row per graha, expand-to-reveal the narrative fields. Both
   slices browser-verified. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
   Moving to `masterproduct.md` — this bucket only tracks what's still in flight.

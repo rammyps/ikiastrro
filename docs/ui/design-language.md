@@ -103,7 +103,7 @@ filled-segment nested style:
 - The underline slider MudBlazor draws by default is redundant against a filled pill — hide it
   (`.mud-tab-slider { display: none; }`).
 
-Applies uniformly to the Key Inference master step rail (1. D1-TRANSIT / 2. ABOUT / 3. STRENGTH
+Applies uniformly to the Key Inference master step rail (1. NATAL CHARTS / 2. TRANSIT CHART / 3. STRENGTH
 / 4. SPL LAGNAS / 5. YOGAS / 6. VARGAS) **and** every nested tab strip beneath it (1.1/1.2,
 2.1/2.2, 3.1/3.2/3.3/3.4) — one tab style, not two. `KeyInference.razor.css`'s
 `.ki-tabs ::deep .mud-tab` rule is the base pill; `.ki-mastertabs ::deep .ki-master-button` only

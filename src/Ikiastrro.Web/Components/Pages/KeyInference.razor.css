@@ -294,3 +294,65 @@
 }
 
 .ki-moon-support { margin-top: 12px; }
+
+.ki-chart-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(100%, 360px);
+    margin: 16px 0;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+}
+.ki-chart-picker select {
+    flex: 1;
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid var(--brand-line);
+    border-radius: 8px;
+    background: var(--brand-canvas);
+    color: var(--brand-midnight);
+}
+.ki-chart-picker select:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
+
+.ki-natal-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    padding-inline: 12px;
+}
+.ki-natal-layout .ki-gridwrap {
+    position: sticky;
+    top: 12px;
+    width: 100%;
+    margin: 0;
+}
+.ki-natal-detail { min-width: 0; }
+
+@media (max-width: 900px) {
+    .ki-natal-layout { grid-template-columns: 1fr; width: 100%; margin-left: 0; padding-inline: 0; }
+    .ki-natal-layout .ki-gridwrap { position: static; margin: 0 auto 16px; }
+}
+.ki-chart-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+.ki-chart-toolbar .ki-chart-picker { margin: 0; }
+.ki-chart-toggle {
+    min-height: 36px;
+    padding: 6px 14px;
+    border: 1px solid var(--brand-sunset);
+    border-radius: 999px;
+    background: var(--brand-canvas);
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    cursor: pointer;
+}
+.ki-chart-toggle:hover { background: var(--brand-peach); }
+.ki-chart-toggle:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
+.ki-natal-layout.is-chart-collapsed { grid-template-columns: minmax(0, 1fr); }
+.ki-natal-detail { width: 100%; overflow: visible; }
+.ki-natal-detail ::deep table { width: 100%; min-width: 0 !important; }
+.ki-natal-detail ::deep .gds-scroll,
+.ki-natal-detail ::deep .rds-scroll,
+.ki-natal-detail ::deep .dsp-scroll { overflow: visible; }
