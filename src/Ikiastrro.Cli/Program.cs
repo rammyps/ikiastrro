@@ -1019,6 +1019,32 @@ if (args.Length > 0 && args[0] == "verify-ashtakavarga")
         }
     }
 
+    // --- Phase 6: D9 Ashtakavarga is a genuine independent per-varga recompute, not a D1 copy ---
+    // FEAT-ASHTAKAVARGA-02: PVR's Integrated Approach, Example 39 (p.155) explicitly endorses
+    // this — "Ashtakavarga of divisional charts is prepared in the same manner as that of rasi
+    // chart... we can find SAV of a divisional chart too" — worked through Vajpayee's D-10
+    // (Examples 39/101/108). ChartGenerationService.PersistAnalytics already materializes this per
+    // chart type; this proves the persisted D9 SAV both differs from D1's and matches an
+    // independent recompute off D9's own sign positions, not a relabeled D1 row.
+    var d9 = bundle.Charts.FirstOrDefault(c => c.ChartType.Equals("D9", StringComparison.OrdinalIgnoreCase));
+    if (d9 is not null)
+    {
+        var d9Av = AshtakavargaCalculator.Calculate(d9);
+        using var conn = connectionFactory.CreateOpenConnection();
+        var storedD9Sav = conn.Query<int>(
+            @"SELECT f.TotalBindus FROM dbo.tbl_Fact_SarvaAshtakavarga f
+              JOIN dbo.tbl_ChartResults cr ON cr.Id = f.ChartResultId
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
+              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D9' ORDER BY f.SignNumber").ToArray();
+        Check("persisted D9 SAV matches an independent D9 recompute", Csv(storedD9Sav), Csv(d9Av.Sarva.Bindus));
+        Check("D9 SAV genuinely differs from D1 SAV (not a relabeled copy)",
+            Csv(storedD9Sav) != Csv(av.Sarva.Bindus), true);
+    }
+    else
+    {
+        Console.WriteLine("  [SKIP] Phase 6 (D9 Ashtakavarga) — no D9 chart in the pipeline bundle");
+    }
+
     Console.WriteLine(failures == 0 ? "\nverify-ashtakavarga: ALL PASS" : $"\nverify-ashtakavarga: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
