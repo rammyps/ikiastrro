@@ -16,6 +16,7 @@ using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Engines.Karakas;
 using Ikiastrro.Core.Geocoding;
 using Ikiastrro.Core.Models;
+using Ikiastrro.Core.Engines.Relationships;
 using Ikiastrro.Core.Transits;
 using Ikiastrro.Data;
 
@@ -1451,6 +1452,75 @@ if (args.Length > 0 && args[0] == "verify-dispositor")
     }
 
     Console.WriteLine(failures == 0 ? "\nverify-dispositor: ALL PASS" : $"\nverify-dispositor: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- One-off check: `dotnet run -- verify-graha-drishti` ---
+// GrahaDrishtiStrengthRepository.Replace persists the sphuta (longitude-based) Virupa
+// strength for every aspecting/aspected pair in D1/D9/D10 (FEAT-RELATIONSHIP-05, migration
+// 132) but has no CLI coverage yet. This recomputes GrahaDrishtiStrengthCalculator
+// independently from each chart's own stored longitudes and cross-checks it against the
+// persisted tbl_Fact_GrahaDrishtiStrengths rows, rather than re-deriving via the same code path.
+if (args.Length > 0 && args[0] == "verify-graha-drishti")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var gdKeyDetailsRepo = new ChartKeyDetailsRepository(connectionFactory);
+    var grahaDrishtiRepo = new GrahaDrishtiStrengthRepository(connectionFactory);
+    using var gdConn = connectionFactory.CreateOpenConnection();
+    var supportedChartTypes = new[] { "D1", "D9", "D10" };
+
+    foreach (var person in birthDetailsRepo.GetAll())
+    {
+        var storedRows = grahaDrishtiRepo.GetByBirthDetailId(person.Id);
+        Check($"{person.Name}: no rows outside D1/D9/D10", storedRows.Count(r => !supportedChartTypes.Contains(r.ChartType)), 0);
+
+        foreach (var chartType in supportedChartTypes)
+        {
+            var chartResultId = gdConn.ExecuteScalar<int?>(
+                "SELECT cr.Id FROM dbo.tbl_ChartResults cr WHERE cr.BirthDetailId = @Id AND cr.ChartType = @ChartType",
+                new { person.Id, ChartType = chartType });
+            if (chartResultId is null) continue;
+
+            var points = gdKeyDetailsRepo.GetByChartResultId(chartResultId.Value)
+                .Where(k => k.PointKind == "Graha").ToList();
+            var aspecting = points.Where(k => Enum.TryParse<PlanetName>(k.Planet, true, out _)).ToList();
+            var rows = storedRows.Where(r => r.ChartType == chartType).ToList();
+
+            Check($"{person.Name}/{chartType}: row count = aspecting x (points - 1)", rows.Count, aspecting.Count * (points.Count - 1));
+
+            var mismatches = 0;
+            foreach (var source in aspecting)
+            {
+                var sourcePlanet = Enum.Parse<PlanetName>(source.Planet, true);
+                foreach (var target in points.Where(p => p.Planet != source.Planet))
+                {
+                    var expected = GrahaDrishtiStrengthCalculator.Calculate(
+                        sourcePlanet, source.VargaLongitudeDegrees, target.VargaLongitudeDegrees);
+                    var row = rows.FirstOrDefault(r => r.AspectingPlanet == source.Planet && r.AspectedPointKey == target.Planet);
+                    if (row is null
+                        || Math.Abs((double)row.TotalVirupas - expected.TotalVirupas) > 0.01
+                        || Math.Abs((double)row.StrengthPercentage - expected.Percentage) > 0.01
+                        || (row.DiscreteAspectHouse.HasValue ? (int)row.DiscreteAspectHouse.Value : (int?)null) != expected.DiscreteAspectHouse)
+                        mismatches++;
+                }
+            }
+            Check($"{person.Name}/{chartType}: every row matches an independent recompute", mismatches, 0);
+
+            Check($"{person.Name}/{chartType}: IsDiscreteAspect matches DiscreteAspectHouse for every row",
+                rows.Count(r => r.IsDiscreteAspect != r.DiscreteAspectHouse.HasValue), 0);
+            Check($"{person.Name}/{chartType}: every row cites SRC_PVR_INTEGRATED", rows.Count(r => r.SourceRefCode != "SRC_PVR_INTEGRATED"), 0);
+            Check($"{person.Name}/{chartType}: every row has a RuleSetId", rows.Count(r => r.RuleSetId == 0), 0);
+        }
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-graha-drishti: ALL PASS" : $"\nverify-graha-drishti: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
