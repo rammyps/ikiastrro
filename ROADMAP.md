@@ -153,15 +153,14 @@ Acknowledged, deliberately deferred.
   A Language selector in Preferences. Broad i18n scope — see `docs/ui/MASTER.md` NFRs
 - **Runtime-reorderable tabs** — drag-to-reposition the header tabs / Key-Inference sub-tabs,
   order remembered per user. Deferred NFR — effort + rationale in `docs/ui/MASTER.md`
-- ~~**Sign/house-level benefic-malefic synthesis**~~ **Unblocked 2026-09-23** ·
-  `FEAT-HOUSE-06` (new 2026-09-22) — no engine derives this today (`LagnaFunctionalNature`
-  stops at the planet); the proposed method (sign-lord functional nature + occupants + aspects
-  + lord's condition) needed a source pass first. Found: B.V. Raman's *How to Judge a
-  Horoscope* "Considerations in Judging a House" checklist (p.14-15, `SRC_RAMAN_HTJH`) —
-  points 1/3/5 map onto 3 of the 4 proposed steps, stated as qualitative weighing rather than
-  an enumerable rule. **Decided 2026-09-23 (rammyps): proceed**, cited to that passage.
-  Design: `docs/research/domain/sign-benefic-malefic.md`. Moving to `masterproduct.md` as
-  Next-bucket work, not Later.
+- ~~**Sign/house-level benefic-malefic synthesis**~~ **Done, closed 2026-09-23** ·
+  `FEAT-HOUSE-06` — B.V. Raman's *How to Judge a Horoscope* "Considerations in Judging a
+  House" checklist (p.14-15, `SRC_RAMAN_HTJH`) — same passage `LagnaFunctionalNature` already
+  cites. Built `HouseBeneficMaleficCalculator` (`workstream/cli`): sign-lord functional nature
+  (dominant) + occupants + discrete graha dṛṣṭi (new `RelationshipEngine.AspectsSign`) + lord
+  dignity/combustion as a separate, non-voting modifier. Live-only, no new table — same pattern
+  as `LagnaFunctionalNature` itself. `verify-house-benefic-malefic` ALL PASS across every D1
+  chart on file. See `masterproduct.md` HOUSES.
 - **Data & Calculation Integrity surfacing** (new 2026-09-22) — birth-time sensitivity
   (±1/±2/±5/±10 min placement drift), rectification-status flag, ayanāṁśa/settings
   declaration shown per-reading. Genuinely new ground, no existing engine gap to close; no

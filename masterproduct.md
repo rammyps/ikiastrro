@@ -213,12 +213,20 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   migration; `verify-interpretive-factors` gained a LifeArea-coverage check. Still open, not
   guessed: `CHARA_KARAKA_ROLE` (Leg D) stays unseeded — no source content exists to seed it from,
   same gap 109 already flagged. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
-- **FEAT-HOUSE-06 · Sign/house-level benefic-malefic synthesis** — Planned · 0% (new 2026-09-22)
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial (no `SRC_*` citation,
-  synthesis note only)
-  No engine derives this today — `LagnaFunctionalNature` stops at the planet. Proposed method:
-  sign-lord functional nature (dominant) + occupants + graha dṛṣṭi + lord's dignity/condition
-  as a modifier. Needs a source pass before any schema work. Design:
+- **FEAT-HOUSE-06 · Sign/house-level benefic-malefic synthesis** — Done · 100% (built 2026-09-23)
+  DB [—] (deliberately none — live-only "hardcode + cite" pattern, same as `LagnaFunctionalNature`
+  itself) · Core [x] `HouseBeneficMaleficCalculator` (`workstream/cli`) · Verify [x]
+  `verify-house-benefic-malefic` · Web [ ] · Docs [x] · Research: complete, cited
+  `SRC_RAMAN_HTJH` p.14-15 (same passage `LagnaFunctionalNature` already carries).
+  Combines sign-lord functional nature (dominant input, via `LagnaFunctionalNature.For`) +
+  occupants + discrete graha dṛṣṭi landing on the house (new `RelationshipEngine.AspectsSign`,
+  reusing `FindAspects`' own aspect table so an empty house can still be tested), each counted
+  equally; lord dignity/combustion reported separately as a modifier, not folded into the count
+  — no blended numeric score, per the `DignityScore`/`RelationshipScore` precedent. Verdict is
+  Benefic/Malefic/Mixed/Neutral, never a tie-breaking guess. `verify-house-benefic-malefic`
+  recomputes for every D1 chart on file and checks house/sign/lord consistency, real occupancy,
+  no double-counting, and that the Verdict follows deterministically from its own counted lists
+  — all PASS. Web rendering not built this session (Web workstream out of scope). Design:
   `docs/research/domain/sign-benefic-malefic.md`.
 
 ## NAKSHATRA — workstream: cli

@@ -45,7 +45,22 @@ malefic still acts as a malefic, just more capably (can even produce Neecha-Bhan
 reversals for a debilitated planet); dignity color is an input to the synthesis below, never
 the verdict.
 
-## What determines a sign's (house's) benefic/malefic nature — proposed method, unbuilt
+## What determines a sign's (house's) benefic/malefic nature — built 2026-09-23
+
+**Built 2026-09-23:** `HouseBeneficMaleficCalculator` (`Core/Engines/Houses`, `workstream/cli`)
+implements steps 1–4 below. Live-only, no persisted table — same "hardcode + cite" pattern as
+`LagnaFunctionalNature` itself, cited to the same `SRC_RAMAN_HTJH` p.14-15 passage. Step 3
+(aspects) reuses `RelationshipEngine`'s own `AspectOffsets` table via a new public
+`AspectsSign` helper rather than a separate implementation, so an aspect onto an *empty* house
+(no occupant, so no `tbl_Chart_Aspects`/`AspectingPlanets` row) is still detected. Verdict is
+Benefic/Malefic/Mixed/Neutral by equal-weight count of (lord + occupants + aspectors), matching
+the "no blended score" decision in Open Questions below; dignity/combustion is exposed
+separately (`LordDignityStatus`), never folded into the count. `verify-house-benefic-malefic`
+(CLI) checks house/sign/lord consistency, real occupancy, no double-counting, and that Verdict
+follows deterministically from the result's own lists — ALL PASS on every D1 chart on file.
+Web rendering not built this session.
+
+### Original proposed method (superseded by the above; kept for the reasoning trail)
 
 No engine or table in this repo currently derives a sign-level or house-level benefic/malefic
 verdict. `LagnaFunctionalNature` stops at the planet. Synthesizing one would combine, roughly
@@ -70,14 +85,19 @@ axis 3's *natural* half, with the waxing-Moon/afflicted-Mercury conditionals rei
 gap and this one (a sign/house-level synthesis across all of steps 1–4) are related but
 distinct — closing the Deeptadi gap does not by itself produce a sign benefic/malefic verdict.
 
-## Open questions if this gets built
+## Open questions
 
-- Does "sign benefic/malefic" mean the *rashi* in isolation, or always the *bhava* (house) it
-  occupies for a given Lagna? Steps 1 and 2 above only make sense relative to a Lagna — a sign
-  has no benefic/malefic nature on its own outside a chart.
-- Score/weight model, if any — `dignity-pvr.md`'s `DignityScore`/`RelationshipScore` split
-  (raw ordinals combined only at the interpretation layer) is the established precedent to
-  follow rather than inventing a new blended number.
+- ~~Does "sign benefic/malefic" mean the *rashi* in isolation, or always the *bhava* (house) it
+  occupies for a given Lagna?~~ **Resolved 2026-09-23:** always the bhava, per-Lagna —
+  `HouseBeneficMaleficCalculator.ComputeAll(ascendantSign, grahas)` takes the Lagna as a
+  required input; a sign has no benefic/malefic nature on its own outside a chart.
+- ~~Score/weight model, if any~~ **Resolved 2026-09-23:** followed `dignity-pvr.md`'s
+  `DignityScore`/`RelationshipScore` precedent — raw ordinal factors (lord nature, occupant
+  list, aspector list) kept separate on the result record; `Verdict` is an equal-weight count
+  of those factors, not a blended number, and `LordDignityStatus` is exposed but never counted.
 - Whether `RulingPlanetNature`'s conditional cases (waxing Moon, unafflicted Mercury) get
-  reinstated here, in the Deeptadi classifier, or in both — avoid a third divergent
-  hard-coded set.
+  reinstated here, in the Deeptadi classifier, or in both — **still open**, deliberately out of
+  scope for this build to avoid a third divergent hard-coded set. `HouseBeneficMaleficCalculator`
+  classifies occupants/aspectors by `LagnaFunctionalNature` (functional axis) for the 7
+  classical grahas and the natural-malefic convention for Rahu/Ketu, same as everywhere else in
+  this codebase.
