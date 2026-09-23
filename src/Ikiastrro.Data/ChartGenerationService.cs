@@ -1,5 +1,6 @@
 using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.PlanetaryStates;
 using Ikiastrro.Core.Engines.Relationships;
@@ -171,7 +172,7 @@ public class ChartGenerationService
             result.SiderealTimeHours = ctx.LocalSiderealTimeHours;
             result.Ayanamsha = (ayanamsa ?? AyanamsaDefinition.Default).DisplayName;
             _chartResultsRepo.InsertAll(new[] { result });   // populates result.Id
-            PersistAnalytics(birthDetails, result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId,
+            PersistAnalytics(birthDetails, result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId, result.ChartTypeId,
                 input.ChartType == "D1" ? _orchestrator.CalculateAll(birthDetails, ayanamsa).Select(c => c.Input).ToList() : new[] { input });
             written.Add(chartType);
         }
@@ -216,7 +217,7 @@ public class ChartGenerationService
             _multiGrahaConjunctionsRepo.DeleteByChartResultId(result.Id);  // after pair rows (they FK the groups)
             _aspectsRepo.DeleteByChartResultId(result.Id);
             _planetaryStateRepo.DeleteByChartResultId(result.Id);
-            PersistAnalytics(birthDetails, result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId,
+            PersistAnalytics(birthDetails, result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId, result.ChartTypeId,
                 input.ChartType == "D1" ? _orchestrator.CalculateAll(birthDetails, ayanamsa).Select(c => c.Input).ToList() : new[] { input });
             written.Add(result.ChartType);
         }
@@ -244,7 +245,7 @@ public class ChartGenerationService
         _chartResultsRepo.InsertAll(computed.Select(c => c.Result));   // populates each Result.Id
         var charaKarakaByPlanet = CharaKarakaByPlanet(ctx);
         foreach (var (result, input) in computed)
-            PersistAnalytics(bd, result.Id, input, charaKarakaByPlanet, ctx, SwissEphemerisProvider.GetSunTimes(bd), activeRuleSetId, computed.Select(c => c.Input).ToList());
+            PersistAnalytics(bd, result.Id, input, charaKarakaByPlanet, ctx, SwissEphemerisProvider.GetSunTimes(bd), activeRuleSetId, result.ChartTypeId, computed.Select(c => c.Input).ToList());
         return computed.Select(c => c.Result.ChartType).ToList();
     }
 
@@ -266,7 +267,7 @@ public class ChartGenerationService
 
     private void PersistAnalytics(BirthDetails bd, int chartResultId, ChartAnalysisInput input,
         IReadOnlyDictionary<string, string> charaKarakaByPlanet,
-        SiderealPositions positions, SunTimes sunTimes, int ruleSetId,
+        SiderealPositions positions, SunTimes sunTimes, int ruleSetId, int? chartTypeId,
         IReadOnlyList<ChartAnalysisInput>? allCharts = null)
     {
         var (keyDetails, houseLords, conjunctions, aspects) = ChartAnalyzer.Compute(input);
@@ -341,6 +342,22 @@ public class ChartGenerationService
                     .Where(r => r.PointKind == "Graha" && r.PlanetId.HasValue)
                     .Select(r => (r.PlanetId!.Value, r.NirayanaLongitudeDegrees));
                 _kpSubLordChainRepo.InsertAll(chartResultId, ruleSetId, grahas);
+            }
+
+            // Argala/Virodhargala facts (migration 128). Optional dependency, same pattern as
+            // _kpSubLordChainRepo above — was previously only populated by hand via the
+            // backfill-argala CLI mode; wired here so a live GenerateAll/RecomputeAnalytics call
+            // keeps tbl_Fact_Argala current without a manual re-run.
+            if (_argalaFactRepo is not null)
+            {
+                // BuildOccupancy only excludes "Ascendant" itself, not the other special points
+                // (Arudha Lagna, upagrahas, ...) keyDetails also carries — filter to Graha rows
+                // first, matching backfill-argala's own `WHERE PointKind = 'Graha'` SQL projection.
+                var occupancy = ArgalaFactBuilder.BuildOccupancy(keyDetails.Where(r => r.PointKind == "Graha"));
+                var argalaFacts = ArgalaFactBuilder.BuildForHouses(input.AscendantSign, occupancy);
+                argalaFacts.AddRange(ArgalaFactBuilder.BuildForPlanets(input.AscendantSign, occupancy));
+                _argalaFactRepo.DeleteForChart(chartResultId, chartTypeId);
+                _argalaFactRepo.InsertAll(chartResultId, ruleSetId, chartTypeId, argalaFacts);
             }
         }
     }
