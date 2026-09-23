@@ -344,6 +344,26 @@ public static class ChartViewModel
         _ => null
     };
 
+    /// <summary>4-letter nakshatra abbreviation (the common Vedic-software convention), for tables
+    /// too width-constrained for the full name — e.g. Key Inference's transposed D1 table, one
+    /// column per graha, where "Purva Bhadrapada" would force either a horizontal scrollbar or a
+    /// smaller font than the rest of the page (rammyps, 2026-09-24). Keyed on
+    /// AstroMath.NakshatraCanonicalNames' exact spelling; returns the input unchanged if it isn't
+    /// one of the 27 (so an unexpected value degrades visibly instead of disappearing).</summary>
+    private static readonly IReadOnlyDictionary<string, string> NakshatraShortNames = new Dictionary<string, string>
+    {
+        ["Ashwini"] = "Aswi", ["Bharani"] = "Bhar", ["Krittika"] = "Krit", ["Rohini"] = "Rohi",
+        ["Mrigashira"] = "Mrig", ["Ardra"] = "Ardr", ["Punarvasu"] = "Puna", ["Pushya"] = "Push",
+        ["Ashlesha"] = "Asre", ["Magha"] = "Magh", ["Purva Phalguni"] = "PPha", ["Uttara Phalguni"] = "UPha",
+        ["Hasta"] = "Hast", ["Chitra"] = "Chit", ["Swati"] = "Swat", ["Vishakha"] = "Visa",
+        ["Anuradha"] = "Anu", ["Jyeshtha"] = "Jye", ["Mula"] = "Mool", ["Purva Ashadha"] = "PSha",
+        ["Uttara Ashadha"] = "USha", ["Shravana"] = "Srav", ["Dhanishta"] = "Dhan", ["Shatabhisha"] = "Sata",
+        ["Purva Bhadrapada"] = "PBha", ["Uttara Bhadrapada"] = "UBha", ["Revati"] = "Reva",
+    };
+
+    public static string NakshatraShort(string? nakshatra) =>
+        nakshatra is not null && NakshatraShortNames.TryGetValue(nakshatra, out var shortName) ? shortName : nakshatra ?? "—";
+
     /// <summary>Short glyph for the South Indian grid cells (2 letters, Sanskrit-flavored for Jupiter/Rahu/Ketu per this project's convention).</summary>
     public static string PlanetGlyph(string planet) => planet switch
     {

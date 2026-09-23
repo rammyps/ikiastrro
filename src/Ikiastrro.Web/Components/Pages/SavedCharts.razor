@@ -11,7 +11,6 @@
 @inject IPlaceResolver PlaceResolver
 @inject DatabaseMaintenanceService DbMaintenanceService
 @inject AyanamsaRuleRepository AyanamsaRules
-@inject Microsoft.JSInterop.IJSRuntime JS
 
 <PageTitle>Saved Charts — ikiastrro</PageTitle>
 
@@ -27,9 +26,6 @@
                 <p class="sp-subtitle">Manage and open your saved birth charts.</p>
             </div>
             <div class="sp-toolbar">
-                <button type="button" class="sp-print-btn" @onclick="PrintAsync">
-                    Print
-                </button>
                 <div class="sp-menu">
                     <button type="button" class="sp-menu-btn" @onclick="@(() => ToggleMenu("settings"))">Settings <span class="sp-caret">▾</span></button>
                     @if (_openMenu == "settings")
@@ -205,8 +201,6 @@
 </div>
 
 @code {
-    private async Task PrintAsync() => await JS.InvokeVoidAsync("window.print");
-
     private const int BuildBatchCap = 25;   // per press; the button re-shows for the rest if more remain (decisions/002)
     private const string BuiltChartType = "D1";
 

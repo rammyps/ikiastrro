@@ -28,9 +28,11 @@
 @inject ActivePerson Active
 
 @* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
-   2026-09-16), 5 (Yogas) and 6 (Vargas) added 2026-09-16; 7 (All Charts) is the separate
-   /charts/{id} page (AllCharts.razor), its heading literally reads "7. ALL CHARTS" so the
-   step numbering reads consistently across the two routes. Same South-Indian grid component
+   2026-09-16), 5 (Yogas) and 6 (Vargas) added 2026-09-16; 7 (All Charts) embedded as its own
+   master tab 2026-09-24 (rammyps's directive — no more jumping to a separate page for it) via
+   the shared `AllChartsGrid` component (Components/Charts/**), which also backs the standalone
+   /charts/{id} page (AllCharts.razor) — both render off the same already-loaded WorkspaceData,
+   so this tab needs no extra query. Same South-Indian grid component
    as /charts (Codex `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not
    modified) for the "1.1 D1 - BIRTH CHART" tab, chart left / table right (`.ki-d1layout`,
    2026-09-23). D1's table is `PlanetPositionsD1Transposed` — planets as columns, fields as rows,
@@ -111,24 +113,27 @@ else
              @bind-ActivePanelIndex="_masterTab">
         <MudTabPanel Text="1. NATAL CHARTS">
             <div class="ki-panelbody">
-                <div class="ki-chart-toolbar">
-                <label class="ki-chart-picker">
-                    <span>NATAL CHART</span>
-                    <select value="@_natalChart" @onchange="OnNatalChartChanged">
-                        @foreach (var chart in NatalChartOptions)
-                        {
-                            <option value="@chart.ChartType">@chart.Label</option>
-                        }
-                    </select>
-                </label>
-                </div>
                 @if (NatalChart is { } natalChart)
                 {
-                    <div class="ki-natal-layout">
+                    <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
                         <div class="ki-gridwrap">
-                            <SouthIndianGrid_Detailed AscendantSign="@natalChart.AscendantSign" MoonSign="@natalChart.MoonSign" PlanetsBySign="PlanetsBySign(natalChart)" CenterTitle="@natalChart.ChartType">
-                                <CenterMeta><b>Lagna</b> @Disp(natalChart.AscendantSign)</CenterMeta>
-                            </SouthIndianGrid_Detailed>
+                            <div class="ki-chart-toolbar">
+                                <select class="ki-chart-picker" aria-label="Natal chart" value="@_natalChart" @onchange="OnNatalChartChanged">
+                                    @foreach (var chart in NatalChartOptions)
+                                    {
+                                        <option value="@chart.ChartType">@chart.Label</option>
+                                    }
+                                </select>
+                                <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
+                                    @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
+                                </button>
+                            </div>
+                            @if (!_natalChartCollapsed)
+                            {
+                                <SouthIndianGrid_Detailed AscendantSign="@natalChart.AscendantSign" MoonSign="@natalChart.MoonSign" PlanetsBySign="PlanetsBySign(natalChart)" CenterTitle="@natalChart.ChartType">
+                                    <CenterMeta><b>Lagna</b> @Disp(natalChart.AscendantSign)</CenterMeta>
+                                </SouthIndianGrid_Detailed>
+                            }
                         </div>
                         <div class="ki-natal-detail ki-tabs ki-subtabs">
                         <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_activeTab">
@@ -395,6 +400,13 @@ else
             }
             </div>
         </MudTabPanel>
+
+        <MudTabPanel Text="7. ALL CHARTS">
+            <div class="ki-panelbody">
+            <h1 class="ki-heading">7. ALL CHARTS</h1>
+            <AllChartsGrid Data="_data" />
+            </div>
+        </MudTabPanel>
     </MudTabs>
     </div>
 }
@@ -429,6 +441,7 @@ else
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
     private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
     private string _natalChart = "D1";
+    private bool _natalChartCollapsed;
     private LoadedChart? NatalChart => _data?.Charts.GetValueOrDefault(_natalChart);
     private IEnumerable<LoadedChart> NatalChartOptions => _data?.Charts.Values
         .OrderBy(c => c.ChartType == "D1" ? 0 : 1)
@@ -462,6 +475,7 @@ else
         if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
         if (Step is "5" or "yogas") _masterTab = 4;
         if (Step is "6" or "vargas") _masterTab = 5;
+        if (Step is "7" or "allcharts") _masterTab = 6;
         if (Step is "3" or "strength") _masterTab = 2;
         if (Step is "3.3" or "astavarga" or "ashtakavarga")
         {

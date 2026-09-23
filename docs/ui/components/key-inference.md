@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-23
+last_updated: 2026-09-24
 workstream: ui
 component: KeyInference
 route: /key-inference/{id}
@@ -274,7 +274,36 @@ flow above instead of sitting in a side panel:
 ## 2026-09-23 — Natal/Transit navigation revision
 
 - Master item 1 is **Natal Charts**, with a persisted-chart dropdown defaulting to D1.
-- The selected chart stays visible on the left; the Collapse/Expand control was removed because it did not add value.
 - The default detail tab is 1.1 Overview (the restored key table), followed by 1.2 About Signs & Nakshatras, 1.3 About Houses, 1.4 About Planets, and 1.5 Relationships.
 - Relationships includes graha drishti, rasi drishti, rasi/graha dispositor chains, and conjunctions for the selected chart.
 - Master item 2 is **Transit Chart**. Its centered full-width wheel remains unchanged and has no collapse interaction.
+
+## 2026-09-24 — master tab rail, chart toolbar, 7th step, nakshatra abbreviations
+
+(Supersedes the 2026-09-23 "Collapse/Expand control was removed" line above — rammyps asked for
+it back three revisions later; it turned out to add value after all.)
+
+- **Master tab rail now really is evenly spread** across the 7 steps. The prior grid-stretch CSS
+  targeted `.mud-tabs-toolbar-wrapper`/`-toolbar-inner`, which this MudBlazor version never
+  renders (confirmed live via devtools), so it was inert and MudTabs' natural left-packed flex
+  layout is what actually shipped. Corrected to the real DOM
+  (`.mud-tabs-tabbar-wrapper` > each tab's `.mud-tooltip-root.mud-tooltip-inline` wrapper) — this
+  does NOT trip MudTabs' overflow/scroll-arrow JS into "arrows + 2 tabs" mode, which the earlier
+  investigation (2026-09-14) had worried it would.
+- **7. ALL CHARTS is now its own master tab**, not just the separate `/charts/{id}` page. Both
+  render the same `AllChartsGrid` component (`Components/Charts/**`) off the same already-loaded
+  `WorkspaceData` — no extra query for the embedded tab. The standalone `/charts/{id}` route
+  still exists (linked from the top app-bar's "ALL CHARTS") and still works for a direct
+  person-scoped **Print** — see that section's own note.
+- **Natal Chart picker moved.** It now sits directly above the D1 grid inside `.ki-gridwrap`
+  (left-aligned with the chart, not spanning the full two-column layout), and dropped its visible
+  "NATAL CHART" label — the label was redundant once the control sat right on top of what it
+  controls (an `aria-label` covers it for screen readers). Still the documented dark-navy/cream
+  "chart control" look (design-language.md "Chart controls").
+- **Collapse/Expand Chart is back**, next to the picker in the same toolbar — same
+  `_natalChartCollapsed` mechanism as before its 2026-09-23 removal.
+- **Nakshatra column in 1.1 Overview now abbreviates** (`ChartViewModel.NakshatraShort`, 4
+  letters, full name on the cell's `title` tooltip) instead of the full name. Full names up to
+  "Purva Bhadrapada" (16 chars) were forcing either a horizontal scrollbar or a smaller font than
+  the rest of the page in this 10-graha-column table — the fixed small font this table already
+  uses (2026-09-23) stays consistent across every row now.

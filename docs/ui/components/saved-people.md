@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-23
+last_updated: 2026-09-24
 workstream: ui
 component: SavedCharts
 route: /charts
@@ -27,14 +27,16 @@ art's left inset grew with viewport width while its right edge stayed flush agai
 a shared `gap` keeping both edges equal at any width — same "one page gutter, no page-specific
 bleed trick" shape as the rest of the app. `object-fit` changed `cover` → `contain` (matching
 `Home.razor.css`'s `.home-art` convention) so the art is never cropped.
-## Print format
 
-The header toolbar includes a **Print** action that opens the browser's print dialog. The
-print stylesheet removes the hero art, settings/import/export controls, build controls,
-modal layers, and the per-row edit/delete column. It prints a full-width, high-contrast saved
-chart list without rounded cards or shadows while retaining the page title, saved-chart count,
-and chart identity fields.
-
+**2026-09-24 — Print removed from this page.** A page-wide Print button briefly lived in the
+header toolbar here (2026-09-23) and printed the whole saved-people list — not any one person's
+charts, which is what printing a chart actually means. Removed; printing is scoped per-person
+instead, on the "7. ALL CHARTS" gallery (`AllChartsGrid`, shared by `/charts/{id}` and Key
+Inference's own "7. ALL CHARTS" tab — see `key-inference.md`'s 2026-09-24 note). This page also
+had two native browser "Choose File" buttons showing unstyled beneath the header on this same
+build — a casualty of the same change: its CSS file's added print-button rule was missing a
+closing brace, and the file was truncated mid-rule at the end, which broke `.sp-hidden-inputs`'
+hiding rule along with the whole file. Both since fixed.
 
 ## The list
 
