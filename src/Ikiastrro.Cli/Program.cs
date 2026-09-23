@@ -1524,6 +1524,48 @@ if (args.Length > 0 && args[0] == "verify-graha-drishti")
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
+// --- One-off check: `dotnet run -- verify-sthira-karaka` ---
+// Migration 133 populates the STHIRA slot in tbl_Dim_KarakaRole reserved-but-unseeded by
+// migration 103, sourced to B.V. Raman's How to Judge a Horoscope (SRC_RAMAN_HTJH) rather than
+// PVR. FEAT-HOUSE-03 / FEAT-KARAKA-03.
+if (args.Length > 0 && args[0] == "verify-sthira-karaka")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var karakaRepo = new NaisargikaKarakaRepository(connectionFactory);
+    var sthira = karakaRepo.GetSthiraKarakas();
+    Check("6 Sthira Karaka rows", sthira.Count, 6);
+
+    var expected = new Dictionary<int, string> { [1] = "Sun", [2] = "Jupiter", [3] = "Mars", [4] = "Moon", [5] = "Jupiter", [8] = "Saturn" };
+    var wrongPairs = sthira.Count(r => !expected.TryGetValue(r.HouseNumber, out var planet) || planet != r.Graha);
+    Check("every row matches the confirmed (house, planet) pairs", wrongPairs, 0);
+    Check("no rows outside the 6 confirmed houses", sthira.Select(r => r.HouseNumber).Except(expected.Keys).Count(), 0);
+
+    using var skConn = connectionFactory.CreateOpenConnection();
+    var badSource = skConn.ExecuteScalar<int>("""
+        SELECT COUNT(*) FROM dbo.tbl_Rule_KarakaMatter km
+        JOIN dbo.tbl_Dim_KarakaRole kr ON kr.Id = km.KarakaRoleId AND kr.KarakaTypeCode = 'STHIRA'
+        WHERE km.SourceRefCode <> 'SRC_RAMAN_HTJH'
+        """);
+    Check("every Sthira Karaka row cites SRC_RAMAN_HTJH", badSource, 0);
+
+    // Independent cross-check: for the 6 houses where both traditions have a role, Raman's
+    // Sthira Karaka and PVR's Naisargika primary-karaka name the same planet — an agreement
+    // this project treats as a real cross-check, not an assumption (they're separately cited).
+    var naisargikaPrimary = karakaRepo.LoadActive().Primary.ToDictionary(r => r.HouseNumber, r => r.Graha);
+    var mismatches = sthira.Count(r => naisargikaPrimary.TryGetValue(r.HouseNumber, out var g) && g != r.Graha);
+    Check("Sthira Karaka agrees with the Naisargika primary table on the same houses", mismatches, 0);
+
+    Console.WriteLine(failures == 0 ? "\nverify-sthira-karaka: ALL PASS" : $"\nverify-sthira-karaka: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
 // --- One-off check: `dotnet run -- verify-pipeline` ---
 // The DB-free ChartPipeline.Run façade must reproduce, for person 1 (Ramakrishnan), the same D1
 // KeyDetails the stored rows hold — proving the compute half of ChartGenerationService is faithfully
