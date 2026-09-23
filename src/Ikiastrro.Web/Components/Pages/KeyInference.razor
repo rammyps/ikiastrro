@@ -245,6 +245,12 @@ else
 
                     @if (RelationshipChart is { } relationshipChart)
                     {
+                        <h3 class="ki-sectionhead">Rāśi Dṛṣṭi</h3>
+                        <RasiDrishtiMatrix KeyDetails="relationshipChart.KeyDetails" />
+
+                        <h3 class="ki-sectionhead">Rāśi &amp; graha dispositors</h3>
+                        <DispositorTable ChartType="relationshipChart.ChartType" AscendantSign="relationshipChart.AscendantSign" KeyDetails="relationshipChart.KeyDetails" />
+
                         <h3 class="ki-sectionhead">Conjunctions</h3>
                         <HouseConjunctionsTable Groups="relationshipChart.MultiGrahaConjunctions" KeyDetails="relationshipChart.KeyDetails" />
                     }

@@ -1,0 +1,33 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Houses
+@using Ikiastrro.Core.Models
+
+<section class="rds" aria-label="Rasi Drishti relationships">
+    <div class="rds-toolbar"><span class="rds-label">Focus rāśi</span><div class="rds-switch" role="group" aria-label="Focus rasi">
+        @foreach (var sign in Signs) { <button class="@(sign == _selectedSign ? "is-active" : null)" @onclick="() => _selectedSign = sign">@Short(sign)</button> }
+    </div></div>
+    <div class="rds-summary">
+        <div><small>Focus</small><strong>@_selectedSign</strong></div><div><small>Rāśi type</small><strong>@Modality(_selectedSign)</strong></div>
+        <div><small>Rāśi dispositor</small><strong>@Lord(_selectedSign)</strong></div><div><small>Occupants</small><strong>@Occupants(_selectedSign)</strong></div>
+        <div><small>Aspects</small><strong>@string.Join(", ", Targets(_selectedSign).Select(Short))</strong></div>
+    </div>
+    <div class="rds-scroll"><table class="rds-matrix">
+        <thead><tr><th>Aspecting rāśi</th>@foreach (var target in Signs){<th class="@(target == _selectedSign ? "is-focus" : null)" title="@target">@Short(target)</th>}</tr></thead>
+        <tbody>@foreach (var source in Signs) { <tr class="@(source == _selectedSign ? "is-focus-row" : null)"><th><span>@source</span><small>@Occupants(source)</small></th>
+            @foreach (var target in Signs) { <td class="@(target == _selectedSign ? "is-focus" : null)">@if (RasiDrishtiCalculator.Aspects(source, target)) { <button class="rds-cell" title="@($"{source} aspects {target}")" @onclick="() => _selectedSign = target"><b>●</b><span>@Occupants(target)</span></button> }</td> }
+        </tr> }</tbody>
+    </table></div>
+    <p class="rds-legend"><b>●</b> = whole-sign rāśi dṛṣṭi. Movable signs aspect fixed signs except the adjacent one; fixed signs reciprocate; dual signs aspect each other.</p>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+    private static readonly ZodiacName[] Signs = Enum.GetValues<ZodiacName>();
+    private ZodiacName _selectedSign = ZodiacName.Aries;
+    protected override void OnParametersSet() { var lagna = KeyDetails.FirstOrDefault(k => k.Planet == "Ascendant")?.Sign; if (Enum.TryParse<ZodiacName>(lagna, true, out var sign)) _selectedSign = sign; }
+    private static IReadOnlyList<ZodiacName> Targets(ZodiacName sign) => RasiDrishtiCalculator.GetAspectedSigns(sign);
+    private static string Lord(ZodiacName sign) => HouseEngine.GetSignLord(sign);
+    private static string Modality(ZodiacName sign) => BaadhakaCalculator.GetModality(sign).ToString();
+    private static string Short(ZodiacName sign) => sign.ToString()[..2];
+    private string Occupants(ZodiacName sign) { var names = KeyDetails.Where(k => k.PointKind == "Graha" && k.Sign.Equals(sign.ToString(), StringComparison.OrdinalIgnoreCase)).Select(k => k.Planet == "Ascendant" ? "Lagna" : k.Planet[..Math.Min(2, k.Planet.Length)]).ToList(); return names.Count == 0 ? "—" : string.Join(", ", names); }
+}

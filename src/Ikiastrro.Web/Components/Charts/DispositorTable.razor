@@ -1,0 +1,18 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Dispositors
+@using Ikiastrro.Core.Models
+@using Ikiastrro.Core.Pipeline
+
+<div class="dsp-scroll"><table class="dsp-table"><thead><tr><th>Graha</th><th>Rāśi</th><th>Rāśi dispositor</th><th>Graha dispositor chain</th><th>Final dispositor</th><th>Outcome</th></tr></thead><tbody>
+@foreach (var row in Rows) { <tr><th>@row.Planet</th><td>@row.Sign</td><td>@row.ImmediateDispositor</td><td>@string.Join(" → ", row.Chain.Chain)</td><td>@(row.Chain.FinalDispositor ?? "—")</td><td>@Outcome(row.Chain.TerminationCode)</td></tr> }
+</tbody></table></div>
+<p class="dsp-note">The rāśi dispositor is the lord of the occupied sign; the chain follows that lord until it reaches its own sign or a reception cycle.</p>
+
+@code {
+    [Parameter, EditorRequired] public string ChartType { get; set; } = "D1";
+    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "Aries";
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+    private IReadOnlyList<Row> Rows { get { if (!Enum.TryParse<ZodiacName>(AscendantSign, true, out var ascendant)) return Array.Empty<Row>(); var grahas = KeyDetails.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant" && Enum.TryParse<PlanetName>(k.Planet, true, out _)).ToList(); var input = new ChartAnalysisInput(ChartType, ascendant, grahas.Select(k => new PlanetPosition { Planet = k.Planet, Sign = k.Sign, PointKind = "Graha", HouseNumber = k.HouseNumberFromLagna }).ToList()); var chains = new DispositorEngine().Compute(input).ToDictionary(c => c.Planet); return grahas.OrderBy(k => k.PlanetId).Select(k => new Row(k.Planet, k.Sign, k.SignLordPlanet ?? "—", chains[k.Planet])).ToList(); } }
+    private static string Outcome(string code) => code switch { "SELF_DISPOSED" => "Own sign", "MUTUAL_RECEPTION" => "Mutual reception", "CYCLE" => "Cycle", _ => code.Replace('_', ' ').ToLowerInvariant() };
+    private sealed record Row(string Planet, string Sign, string ImmediateDispositor, DispositorChain Chain);
+}
