@@ -133,7 +133,7 @@ h1 {
 }
 
 .saved-charts-table ::deep .dt th:first-child,
-.saved-charts-table ::deep .dt td:first-child { width: 22%; }
+.saved-charts-table ::deep .dt td:first-child { width: 20%; }
 .saved-charts-table ::deep .dt th:nth-child(2),
 .saved-charts-table ::deep .dt td:nth-child(2) { width: 16%; white-space: nowrap; }
 .saved-charts-table ::deep .dt th:nth-child(3),
@@ -142,8 +142,10 @@ h1 {
 .saved-charts-table ::deep .dt td:nth-child(4) { width: 24%; }
 .saved-charts-table ::deep .dt th:nth-child(5),
 .saved-charts-table ::deep .dt td:nth-child(5) { width: 14%; }
+/* 3 icon buttons now (Edit/Delete/Print, rammyps 2026-09-23) — a touch wider than the 2-button
+   original so they don't crowd. */
 .saved-charts-table ::deep .dt th:last-child,
-.saved-charts-table ::deep .dt td:last-child { width: 10%; }
+.saved-charts-table ::deep .dt td:last-child { width: 12%; }
 
 .row-actions {
     display: flex;
@@ -151,10 +153,13 @@ h1 {
     justify-content: flex-end;
 }
 
-/* Edit/Delete — outlined squares (mockup), overriding the shared components' plain-icon
-   default just on this page via ::deep (same technique .sp-hidden-inputs uses below). */
+/* Edit/Delete/Print — outlined squares (mockup), overriding the shared components' plain-icon
+   default just on this page via ::deep (same technique .sp-hidden-inputs uses below). Print
+   sits to the right of Delete (rammyps, 2026-09-23 — markup order in SavedCharts.razor already
+   places it last). */
 .row-actions ::deep .edit-icon-btn,
-.row-actions ::deep .delete-icon-btn {
+.row-actions ::deep .delete-icon-btn,
+.row-actions ::deep .print-icon-btn {
     width: 30px;
     height: 30px;
     border-radius: 7px;
@@ -174,6 +179,16 @@ h1 {
 .row-actions ::deep .delete-icon-btn {
     border: 1.5px solid rgba(179, 38, 30, .3);
     color: var(--danger, #b3261e);
+}
+
+.row-actions ::deep .print-icon-btn {
+    border: 1.5px solid rgba(15, 32, 65, .3);
+    color: var(--brand-midnight);
+}
+
+.row-actions ::deep .print-icon-btn:hover,
+.row-actions ::deep .print-icon-btn:focus-visible {
+    background: var(--brand-peach);
 }
 
 .saved-charts-error {

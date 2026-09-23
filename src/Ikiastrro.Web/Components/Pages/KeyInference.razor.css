@@ -96,8 +96,9 @@
 .ki-wheel ::deep .ntw { width: 100%; }
 
 /* Tab-strip convention (tokens.css --tab-*, design-language.md "Tabs"): every tab, at every
-   level (master, D1 Birth/Current Transit, 2.1/2.2, 3.1/3.2), is the same quiet-cream/
-   strong-sunset pill — the look the master step rail (.ki-master-button below) originated.
+   level (master, D1 Birth/Current Transit, 2.1/2.2, 3.1/3.2), is the same flat dark-navy/
+   sunset-orange pill (2026-09-23 — active and inactive share one look, no colour swap) — the
+   look the master step rail (.ki-master-button below) originated.
    The underline slider MudBlazor draws by default is redundant against a filled pill and is
    hidden. */
 .ki-tabs ::deep .mud-tab {
@@ -233,6 +234,20 @@
 /* 2. About — nested MudTabs (2.1 About House / 2.2 About Planets) reuse .ki-tabs styling. */
 .ki-subtabs ::deep .mud-tabs-panels { padding-top: 12px; }
 
+/* Every nested sub-tab strip (1.1-1.4 Natal Charts, 3.1-3.3 Strength) wraps its label onto two
+   lines and shrinks to fit rather than growing the pill wide or truncating (rammyps,
+   2026-09-23) — labels like "1.1 GENERAL DETAILS" and "1.4 ASPECTED (%)" read as two short
+   lines instead of one long one. */
+.ki-subtabs ::deep .mud-tab {
+    min-height: 44px;
+    padding: 6px 12px;
+    font-size: calc(var(--font-size-control) * 0.72);
+    line-height: 1.15;
+    white-space: normal;
+    text-align: center;
+    max-width: 130px;
+}
+
 .ki-sectionhead {
     margin: 20px 0 8px;
     color: var(--brand-midnight);
@@ -297,17 +312,20 @@
    directly above the chart it controls, inside .ki-gridwrap, so the label was redundant).
    Dark-navy surface + cream text (design-language.md "Chart controls" — the documented look for
    any <select> that chooses/drives a chart, matching SPL LAGNAS's own divisional-chart picker),
-   not this page's ordinary form-field style. */
+   not this page's ordinary form-field style. Sits to the right of EXPAND/COLLAPSE CHART
+   (rammyps, 2026-09-23) and sized to its content rather than stretching to fill the toolbar. */
 .ki-chart-picker {
-    flex: 1;
-    min-height: 36px;
+    flex: 0 0 auto;
+    min-height: 32px;
     min-width: 0;
-    padding: 6px 10px;
+    width: auto;
+    max-width: 130px;
+    padding: 4px 8px;
     border: 1px solid var(--brand-line);
     border-radius: 8px;
     background: var(--brand-midnight);
     color: var(--brand-canvas);
-    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
 }
 .ki-chart-picker:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
 
@@ -347,6 +365,11 @@
     white-space: nowrap;
 }
 .ki-chart-toggle:hover { background: var(--brand-peach); }
+
+/* Moon context (Tithi/Pakṣa/Elongation/Birth/Moon nakṣatra + LunarPhaseCard) — moved out of the
+   "1.4 About Planets" sub-tab into the chart view itself (rammyps, 2026-09-23), so it's visible
+   under the chart regardless of which sub-tab is active, not buried one click away. */
+.ki-chart-moonfacts { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--brand-line); }
 .ki-chart-toggle:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
 .ki-natal-layout.is-chart-collapsed { grid-template-columns: minmax(0, 1fr); }
 .ki-natal-detail { width: 100%; overflow: visible; }

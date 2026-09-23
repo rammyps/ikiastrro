@@ -11,6 +11,7 @@
 @inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
 @inject ChartTypeRepository ChartTypeRepo
 @inject ActivePerson Active
+@inject Microsoft.JSInterop.IJSRuntime JS
 
 @* v2 All Charts — docs/ui/wkstream_UI_v2.md. Every stored divisional chart as a plain
    South-Indian grid, 3 per row, divisor order. Only the card heading bar is sunset; card,
@@ -37,8 +38,18 @@ else
 
 @code {
     [Parameter] public int Id { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "print")] public bool? Print { get; set; }
 
     private WorkspaceData? _data;
+
+    /// <summary>Saved Charts' per-row Print button opens this page with `?print=1` in a new
+    /// tab — auto-fire window.print() once the charts have actually rendered, instead of
+    /// making the person find AllChartsGrid's own Print button themselves.</summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Print == true && _data is not null)
+            await JS.InvokeVoidAsync("print");
+    }
 
     protected override void OnParametersSet()
     {
