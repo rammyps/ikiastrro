@@ -1275,6 +1275,13 @@ if (args.Length > 0 && args[0] == "verify-interpretive-factors")
     Console.WriteLine($"  [INFO] tbl_Rule_InterpretiveFactorDetail row count: {detailCount} (sanity ceiling 160)");
     Check("detail row count within sanity ceiling", detailCount <= 160, true);
 
+    // FEAT-HOUSE-05 (migration 134): every one of the 20 tbl_Dim_LifeArea rows now has at
+    // least one VARGA detail row -- the piece migration 109 explicitly deferred.
+    var lifeAreasCovered = conn.ExecuteScalar<int>("""
+        SELECT COUNT(DISTINCT LifeAreaId) FROM dbo.tbl_Rule_InterpretiveFactorDetail WHERE LifeAreaId IS NOT NULL
+        """);
+    Check("every LifeArea has at least one InterpretiveFactorDetail row", lifeAreasCovered, 20);
+
     Console.WriteLine(failures == 0 ? "\nverify-interpretive-factors: ALL PASS" : $"\nverify-interpretive-factors: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
