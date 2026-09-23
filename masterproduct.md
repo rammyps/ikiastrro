@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-22
+last_updated: 2026-09-23
 togaf: Requirements Management
 safe: Feature / Capability register
 ---
@@ -89,10 +89,10 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 | HOUSE | cli | 3 | 60% | 1 | 1 | 1 | 0 | 1 |
 | NAKSHATRA | cli | 1 | 100% | 0 | 0 | 0 | 0 | 0 |
 | DIGNITY | cli | 1 | 100% | 0 | 0 | 0 | 0 | 0 |
-| RELATIONSHIP | cli | 4 | 60% | 1 | 1 | 1 | 1 | 1 |
+| RELATIONSHIP | cli | 5 | 88% | 0 | 0 | 1 | 0 | 1 |
 | KARAKA | cli | 4 | 55% | 2 | 2 | 2 | 2 | 2 |
 | AVASTHA | cli | 5 | 32% | 3 | 3 | 3 | 5 | 3 |
-| DISPOSITOR | cli | 1 | 0% | 1 | 1 | 1 | 1 | 1 |
+| DISPOSITOR | cli | 1 | 80% | 0 | 0 | 0 | 0 | 1 |
 | STRENGTH | cli | 2 | 40% | 1 | 2 | 2 | 2 | 1 |
 | ASHTAKAVARGA | cli | 1 | 80% | 0 | 0 | 0 | 1 | 0 |
 | DASHA | cli | 2 | 90% | 0 | 0 | 0 | 0 | 1 |
@@ -106,7 +106,11 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 
 *(The rollup is a manual mirror — recompute from the feature rows whenever a box changes.
 2026-09-22: 7 rows added/corrected below as part of v5-batch triage — rollup not yet
-recomputed against them; treat the table above as stale until that pass runs.)*
+recomputed against them; treat the table above as stale until that pass runs. 2026-09-23:
+RELATIONSHIP and DISPOSITOR rows corrected (Argala insert-wiring closed, FEAT-DISPOSITOR-01 and
+FEAT-RELATIONSHIP-05 found already-shipped and undocumented — the `workstream/cli` and
+`workstream/database` worktrees were stale behind `master`); the rest of the table is still
+unrecomputed against the v5-batch rows.)*
 
 ---
 
@@ -240,7 +244,7 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
 - **FEAT-RELATIONSHIP-03 · Combustion (Asta)** — Done · 100% · Verify `verify-schema`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
-- **FEAT-RELATIONSHIP-04 · Compound Maitrī / argala / sambandha** — In progress · 70% (2026-09-22 correction — was stale at Planned·0%) · Verify `verify-rules`
+- **FEAT-RELATIONSHIP-04 · Compound Maitrī / argala / sambandha** — In progress · 80% (2026-09-23 correction) · Verify `verify-rules`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete (argala/virodhargala only)
   Argala/virodhargala built 2026-09-19: `tbl_Rule_Argala` (migration 127, `SRC_PVR_INTEGRATED`
   §10.5–10.6) + `ArgalaCalculator` + `tbl_Fact_Argala` (migration 128) +
@@ -250,11 +254,27 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   `BirthDetailDeletionService` — once `backfill-argala` had run, every RECALCULATE and
   person-delete threw `FK_Fact_Argala_ChartResult`. Fixed (`ArgalaFactRepository.DeleteByBirthDetailId`,
   wired as an optional dep in both services + both composition roots, matching
-  `KpSubLordChainRepository`'s pattern). Remaining: wire `ArgalaFactBuilder`'s *insert* side into
-  `ChartGenerationService` (fact table still needs manual `backfill-argala` after a rebuild);
-  career worked-example `CalculationNarrative`; Compound Maitrī —
-  `tbl_Rule_CompoundRelationship` (migration 24) exists but `DignityEngine.CombineToPanchadha`
-  doesn't read it; sambandha types not started. Detail: `argala-virodhargala-drishti-lifematters.md`.
+  `KpSubLordChainRepository`'s pattern). **Insert-side wired 2026-09-23:** `ArgalaFactBuilder`'s
+  output is now written on every live `GenerateAll`/`GenerateMissing`/`RecomputeAnalytics` call
+  (`ChartGenerationService.PersistAnalytics`, mirroring the `_kpSubLordChainRepo` block); no
+  longer needs a manual `backfill-argala` re-run after a rebuild. Found + fixed in the same pass:
+  the unfiltered `keyDetails` list also carries non-Graha special points (Arudha Lagna etc.) that
+  `ArgalaFactBuilder.BuildOccupancy` can't parse as a `PlanetName` — now filtered to
+  `PointKind == "Graha"` first, matching `backfill-argala`'s own SQL projection. Remaining: career
+  worked-example `CalculationNarrative`; sambandha types not started. **Compound Maitrī — not a
+  gap, corrected 2026-09-23:** `tbl_Rule_CompoundRelationship` (migration 24) exists as cited
+  reference data that `verify-rules` proves matches `DignityEngine.CombineToPanchadha`'s hardcoded
+  truth table — the engine deliberately doesn't read it live, same "hardcode + cite + verify
+  equivalence" pattern as `ArgalaCalculator`/`RasiDrishtiCalculator` (see those files' own doc
+  comments). Detail: `argala-virodhargala-drishti-lifematters.md`.
+- **FEAT-RELATIONSHIP-05 · Sphuta (longitude-based) Graha Dṛṣṭi strength** — In progress · 60%
+  (new 2026-09-23, found undocumented on `master`) · Research: complete (`SRC_PVR_INTEGRATED`)
+  DB [x] (`tbl_Fact_GrahaDrishtiStrengths`, migration 132 — Virupas + strength % per
+  aspecting/aspected pair, D1/D9/D10 only; distinct from the discrete whole-sign aspects already
+  in `tbl_Chart_Aspects`/`FEAT-RELATIONSHIP-02`) · Core [x] (`GrahaDrishtiStrengthRepository`,
+  wired live in `ChartGenerationService.PersistAnalytics`) · Verify [ ] (no CLI check exists yet —
+  candidate for a `verify-graha-drishti` mode, same shape as `verify-dispositor`) · Web [x]
+  (`GrahaDrishtiMatrix.razor`, `RasiDrishtiMatrix.razor`, Key Inference tab) · Docs [ ]
 
 ## KARAKA — workstream: cli
 
@@ -298,8 +318,17 @@ recomputed against them; treat the table above as stale until that pass runs.)*
 
 ## DISPOSITOR — workstream: cli
 
-- **FEAT-DISPOSITOR-01 · Dispositor chains / final dispositor / mutual reception** — Planned · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: not started
+- **FEAT-DISPOSITOR-01 · Dispositor chains / final dispositor / mutual reception** — Verified · 80% (2026-09-23 correction — was stale at Planned·0%; Core/Web had already shipped undocumented, worktrees were behind master) · Verify `verify-dispositor`
+  DB [—] (deliberately live-only, same "hardcode, no fact table until something needs to
+  cross-reference it in SQL" pattern as Argala/RasiDrishti) · Core [x] (`DispositorEngine.cs` —
+  chain-following, self-disposed/mutual-reception/cycle termination, `DispositorEngineTests.cs`)
+  · Verify [x] (`verify-dispositor`, added 2026-09-23 — checks every saved person's D1 chart:
+  full chain coverage, no `MISSING_PLACEMENT`, first hop agrees with `ChartAnalyzer`'s
+  independently-stamped `SignLordPlanet`, `SELF_DISPOSED` chains terminate at a genuine fixed
+  point, `MUTUAL_RECEPTION` cycles are internally consistent) · Web [x] (`DispositorTable.razor`,
+  live calculator reading `ChartKeyDetail` rows, matching the `ArgalaTable` precedent) · Docs [ ]
+  · Research: not started (no citation needed — deterministic graph traversal over already-cited
+  sign-lord data, migration 116)
 
 ## STRENGTH — workstream: cli
 

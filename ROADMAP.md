@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-22
+last_updated: 2026-09-23
 ---
 
 # ikiastrro — Roadmap
@@ -82,12 +82,14 @@ Scoped, not started. Ordering set at the next ICE pass.
 
 - **Bhāva significations + Sthira Kāraka mapping** — Designed; migration 030 drafted · `FEAT-HOUSE-03`
 - **Sthira Kāraka / Naisargika Kāraka** — resolve Sapta vs Aṣṭa; needs a cited edition · `FEAT-KARAKA-03/04`
-- **Dispositor chains / final dispositor / mutual reception** · `FEAT-DISPOSITOR-01` — a
-  single-level building block landed 2026-09-18 (migration 116:
-  `vw_ChartPlanetInHouseInterpretation` now cross-references each placed graha's own
-  dispositor — sign lord — and that dispositor's house/sign/dignity), but chains (dispositor
-  of the dispositor, n-deep), final-dispositor resolution, and mutual reception detection are
-  still not built
+- ~~**Dispositor chains / final dispositor / mutual reception**~~ **Done, closed 2026-09-23**
+  · `FEAT-DISPOSITOR-01` — this bullet was stale: `DispositorEngine.cs` (chain-following,
+  final-dispositor resolution, mutual-reception/cycle detection) and a live `DispositorTable.razor`
+  had already shipped on `master`, just undocumented (the `workstream/cli`/`workstream/ui`
+  worktrees were behind). Deliberately live-only, no fact table — same pattern as Argala/RasiDrishti
+  until something needs to cross-reference it in SQL. Closed out with `verify-dispositor` CLI
+  coverage (checks every saved person's D1 chart against independently-stamped `SignLordPlanet`
+  and structural chain invariants). Moving to `masterproduct.md`.
 - **Compound Maitrī, sambandha** · `FEAT-RELATIONSHIP-04` — argala/virodhargala split out and
   built 2026-09-19: rule layer (`ArgalaCalculator` + `tbl_Rule_Argala`, migration 127), fact
   layer (`tbl_Fact_Argala` migration 128 + `ArgalaFactBuilder`/`ArgalaFactRepository` +
@@ -96,12 +98,13 @@ Scoped, not started. Ordering set at the next ICE pass.
   2026-09-22:** `tbl_Fact_Argala` had no delete-wiring at all, so once `backfill-argala` had run,
   every RECALCULATE and person-delete threw `FK_Fact_Argala_ChartResult` — fixed, matching
   `KpSubLordChainRepository`'s optional-dependency pattern in both `ChartGenerationService` and
-  `BirthDetailDeletionService`. Still open: `ArgalaFactBuilder`'s *insert* side not wired into
-  `ChartGenerationService` (the live recompute pipeline), so `tbl_Fact_Argala` still needs
-  `backfill-argala` re-run by hand after a rebuild; the career worked-example
-  `CalculationNarrative` not authored. Compound Maitrī data exists
-  (`tbl_Rule_CompoundRelationship`, migration 24) but `DignityEngine.CombineToPanchadha` still
-  doesn't read it (see dignity-pvr.md); sambandha not started
+  `BirthDetailDeletionService`. **Insert-side wired 2026-09-23:** `ArgalaFactBuilder`'s output is
+  now written on every live `GenerateAll`/`GenerateMissing`/`RecomputeAnalytics` call, so
+  `tbl_Fact_Argala` no longer needs a manual `backfill-argala` re-run after a rebuild. Still open:
+  the career worked-example `CalculationNarrative`; sambandha not started. **Compound Maitrī —
+  not a gap:** `tbl_Rule_CompoundRelationship` (migration 24) is deliberately cited-but-not-read,
+  same pattern as `ArgalaCalculator`/`RasiDrishtiCalculator` — `verify-rules` already proves it
+  matches `DignityEngine.CombineToPanchadha`'s hardcoded truth table
 - **LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** · `FEAT-HOUSE-05` (new 2026-09-22) —
   reconcile the two never-cross-checked PVR-sourced tables (`tbl_Dim_LifeArea` migration 30,
   `tbl_Dim_DivisionalSubject` migration 38) and normalize `DivisionalSubject.D1Foundation`'s
