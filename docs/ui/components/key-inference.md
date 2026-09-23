@@ -307,3 +307,43 @@ it back three revisions later; it turned out to add value after all.)
   "Purva Bhadrapada" (16 chars) were forcing either a horizontal scrollbar or a smaller font than
   the rest of the page in this 10-graha-column table — the fixed small font this table already
   uses (2026-09-23) stays consistent across every row now.
+
+## 2026-09-23 (later) — sub-tab consolidation, moon context moved to chart view, tab palette flattened
+
+Supersedes the "2026-09-23 — Natal/Transit navigation revision" section's sub-tab list above.
+
+- **Master item 2 renamed "2. TRANSIT CHART" → "2. TRANSIT CHARTS"** — plural, matching "1.
+  NATAL CHARTS" (was inconsistently singular).
+- **Chart toolbar reordered**: EXPAND/COLLAPSE CHART now sits to the *left* of the chart-type
+  dropdown (was right); the dropdown itself shrank (`max-width: 130px`, smaller font/padding —
+  was `flex: 1`, stretching to fill the toolbar).
+- **Natal Charts' 5 sub-tabs collapsed to 4:**
+  - **1.1 GENERAL DETAILS** (renamed from "1.1 Overview") — now combines the old 1.1 Overview
+    (`PlanetPositionsD1Transposed`) and 1.2 About Signs & Nakshatras (`RasiNakshatraTable`)
+    tables, one after the other in a single tab, instead of two separate tabs.
+  - **1.2 ABOUT PLANETS** (moved up from 1.4) — the Moon-context fact chips (Tithi/Pakṣa/
+    Elongation/Birth/Moon nakṣatra + `LunarPhaseCard`) that used to open this tab were pulled
+    out entirely; it's now just `PlanetDignityTable` under "Planets — dignity, kāraka,
+    exaltation". The Moon-context block moved to the **chart view** itself — a new
+    `.ki-chart-moonfacts` block inside `.ki-gridwrap`, directly under the South-Indian grid —
+    so it's visible under the chart no matter which sub-tab is open, instead of being one click
+    away inside a single tab.
+  - **1.3 ABOUT HOUSES** — unchanged content (House Lord Placement / House Lord Key Findings /
+    Argala & Virodhargala), same tab index (2) it already had.
+  - **1.4 ASPECTED (%)** (renamed from "1.5 Relationships") — unchanged content (Graha Dṛṣṭi
+    strength, Rāśi Dṛṣṭi, Rāśi & graha dispositors, Conjunctions).
+  - `KeyInference.razor`'s `Step` query-param routing updated to match: `overview`/`general`/
+    `generaldetails`/`signs`/`nakshatras` all resolve to the new combined tab 0; `planets` → 1;
+    `houses` → 2 (unchanged); `relationships`/`aspected` → 3.
+- **Every nested sub-tab strip (1.1–1.4, and 3.1–3.3) now wraps its label onto two lines**
+  instead of growing the pill wide — `.ki-subtabs ::deep .mud-tab` caps `max-width: 130px`,
+  allows `white-space: normal`, and drops to `0.72×` the base control font size.
+- **Tab palette flattened app-wide**: `--tab-active-bg`/`--tab-inactive-bg` both now resolve to
+  `--brand-midnight` (dark navy) and `--tab-active-fg`/`--tab-inactive-fg` both to
+  `--brand-sunset` (orange) — one flat look for every tab, active or not, replacing the
+  sunset-fill-vs-cream-fill distinction from 2026-09-14. See `design-language.md` "Tabs".
+- **Saved Charts (`/charts`) gained a per-row Print action**, `PrintIconButton`, to the right of
+  the existing Delete icon button in each person's row-actions cell. It opens that person's
+  `/charts/{id}?print=1` in a new tab; `AllCharts.razor` auto-fires `window.print()` once loaded
+  when `print=1` is present, keeping printing scoped to one person (same reasoning as
+  `AllChartsGrid`'s own Print button — see that component's comment).

@@ -45,7 +45,8 @@
    only the chart shown under a tab now, not a separate route.
 
    Three tab levels (2026-09-14 restructure, rammyps's directive): an outer "master" MudTabs
-   (_masterTab) with one panel per step — "1. NATAL CHARTS", "2. TRANSIT CHART", "3. STRENGTH",
+   (_masterTab) with one panel per step — "1. NATAL CHARTS", "2. TRANSIT CHARTS" (renamed from
+   "2. TRANSIT CHART" 2026-09-23 — plural, matching "NATAL CHARTS"), "3. STRENGTH",
    "4. SPL LAGNAS" (renamed from "4. KARAKAS" 2026-09-16 — the embedded KarakaPolarWheel already
    titles itself "SPECIAL LAGNAS & KARAKAS" and now also lists all 4 special lagnas in a table,
    not just the 3 marked on the wheel), "5. YOGAS" and "6. VARGAS" (both added 2026-09-16) — the
@@ -55,12 +56,18 @@
    .ki-tabs:first-child` carries the top margin that heading used to provide. "4. SPL LAGNAS"
    never had a heading of its own beyond the embedded KarakaPolarWheel's own header. Where a step
    has sub-views, its own inner MudTabs:
-   Natal Charts uses a D1-default chart selector and 1.1 Overview / 1.2 Signs & Nakshatras /
-   1.3 Houses / 1.4 Planets / 1.5 Relationships (_activeTab); Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
+   Natal Charts uses a D1-default chart selector and 1.1 General Details / 1.2 About Planets /
+   1.3 About Houses / 1.4 Aspected (%) (_activeTab, restructured 2026-09-23 — 1.1 now combines
+   the old 1.1 Overview + 1.2 Signs & Nakshatras tables one after the other, renamed "General
+   Details"; the old 1.4 About Planets' Moon-context facts (Tithi/Pakṣa/Elongation/Birth/Moon
+   nakṣatra + LunarPhaseCard) moved out of the tabs entirely into the chart view itself
+   (`.ki-chart-moonfacts`, under the SouthIndianGrid in `.ki-gridwrap`) so they're visible
+   regardless of which sub-tab is active; the old 1.5 Relationships is renamed "Aspected (%)");
+   Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/
    3.3 ASTHAVARGA (all unbound). Every tab text at every level is ALL CAPS.
-   All three levels share `.ki-tabs` styling, unified 2026-09-14 (rammyps's directive) onto the
-   same quiet-cream/strong-sunset pill the master step rail (`.ki-master-button`) already used —
-   inactive = quiet cream pill + midnight text, active = sunset pill + midnight text
+   All three levels share `.ki-tabs` styling, unified 2026-09-14 (rammyps's directive), revised
+   2026-09-23 to a flat midnight-fill/sunset-text pill for every tab regardless of active state —
+   both inactive and active are the same dark-navy pill + sunset-orange text
    (tokens.css `--tab-*`, design-language.md "Tabs") — the single app-wide tab convention, no
    longer split between a pill master rail and a filled-segment nested style.
    2.2's exaltation-closeness bar + table read ChartViewModel.BuildExaltationRows (Core) over
@@ -118,15 +125,15 @@ else
                     <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
                         <div class="ki-gridwrap">
                             <div class="ki-chart-toolbar">
+                                <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
+                                    @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
+                                </button>
                                 <select class="ki-chart-picker" aria-label="Natal chart" value="@_natalChart" @onchange="OnNatalChartChanged">
                                     @foreach (var chart in NatalChartOptions)
                                     {
                                         <option value="@chart.ChartType">@chart.Label</option>
                                     }
                                 </select>
-                                <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
-                                    @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
-                                </button>
                             </div>
                             @if (!_natalChartCollapsed)
                             {
@@ -134,15 +141,40 @@ else
                                     <CenterMeta><b>Lagna</b> @Disp(natalChart.AscendantSign)</CenterMeta>
                                 </SouthIndianGrid_Detailed>
                             }
+                            <div class="ki-chart-moonfacts">
+<h3 class="ki-sectionhead">Moon context</h3>
+                                @if (_moon is null)
+                                {
+                                    <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                                        Moon context not available for this chart yet — run <code>recompute-keydetails</code>.
+                                    </MudAlert>
+                                }
+                                else
+                                {
+                                    var moonGraha = natalChart.Grahas.FirstOrDefault(k => k.Planet == "Moon");
+                                    <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
+                                    <dl class="ki-facts ki-moon-support">
+                                        <div class="ki-fact"><dt>Tithi</dt><dd>@ChartViewModel.TithiDisplay(_moon.TithiNumber, _moon.PakshaCode)</dd></div>
+                                        <div class="ki-fact"><dt>Pakṣa</dt><dd>@ChartViewModel.PakshaDisplay(_moon.PakshaCode) (@(_moon.IsWaxingMoon == true ? "waxing" : "waning"))</dd></div>
+                                        <div class="ki-fact"><dt>Elongation</dt><dd>@(_moon.ElongationDegrees is { } e ? $"{e:0.00}°" : "—")</dd></div>
+                                        <div class="ki-fact"><dt>Birth</dt><dd>@(_moon.IsNightBirth switch { true => "Night", false => "Day", null => "—" })</dd></div>
+                                        <div class="ki-fact"><dt>Moon nakṣatra</dt><dd>@(moonGraha is null ? "—" : $"{moonGraha.Nakshatra} · {moonGraha.NakshatraPada}")</dd></div>
+                                    </dl>
+                                }
+                            </div>
                         </div>
                         <div class="ki-natal-detail ki-tabs ki-subtabs">
                         <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" @bind-ActivePanelIndex="_activeTab">
-                            <MudTabPanel Text="1.1 OVERVIEW">
-                                <PlanetPositionsD1Transposed Rows="Rows(natalChart)" NakPadaLordByPlanet="NakPadaLordByPlanet" />
-                            </MudTabPanel>
-                            <MudTabPanel Text="1.2 ABOUT SIGNS &amp; NAKSHATRAS">
-<h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
+                            <MudTabPanel Text="1.1 GENERAL DETAILS">
+<h3 class="ki-sectionhead">Planet positions</h3>
+                    <PlanetPositionsD1Transposed Rows="Rows(natalChart)" NakPadaLordByPlanet="NakPadaLordByPlanet" />
+
+                    <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
+                            </MudTabPanel>
+                            <MudTabPanel Text="1.2 ABOUT PLANETS">
+<h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
+                    <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
                             </MudTabPanel>
                             <MudTabPanel Text="1.3 ABOUT HOUSES">
 <h3 class="ki-sectionhead">House lord placement</h3>
@@ -154,31 +186,7 @@ else
                     <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
                     <ArgalaTable Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
                             </MudTabPanel>
-                            <MudTabPanel Text="1.4 ABOUT PLANETS">
-<h3 class="ki-sectionhead">Moon context</h3>
-                    @if (_moon is null)
-                    {
-                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                            Moon context not available for this chart yet — run <code>recompute-keydetails</code>.
-                        </MudAlert>
-                    }
-                    else
-                    {
-                        var moonGraha = natalChart.Grahas.FirstOrDefault(k => k.Planet == "Moon");
-                        <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
-                        <dl class="ki-facts ki-moon-support">
-                            <div class="ki-fact"><dt>Tithi</dt><dd>@ChartViewModel.TithiDisplay(_moon.TithiNumber, _moon.PakshaCode)</dd></div>
-                            <div class="ki-fact"><dt>Pakṣa</dt><dd>@ChartViewModel.PakshaDisplay(_moon.PakshaCode) (@(_moon.IsWaxingMoon == true ? "waxing" : "waning"))</dd></div>
-                            <div class="ki-fact"><dt>Elongation</dt><dd>@(_moon.ElongationDegrees is { } e ? $"{e:0.00}°" : "—")</dd></div>
-                            <div class="ki-fact"><dt>Birth</dt><dd>@(_moon.IsNightBirth switch { true => "Night", false => "Day", null => "—" })</dd></div>
-                            <div class="ki-fact"><dt>Moon nakṣatra</dt><dd>@(moonGraha is null ? "—" : $"{moonGraha.Nakshatra} · {moonGraha.NakshatraPada}")</dd></div>
-                        </dl>
-                    }
-
-                    <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
-                    <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
-                            </MudTabPanel>
-                            <MudTabPanel Text="1.5 RELATIONSHIPS">
+                            <MudTabPanel Text="1.4 ASPECTED (%)">
 <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
                     <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="_natalChart" SelectedChartChanged="OnRelationshipChartChanged" />
 
@@ -201,7 +209,7 @@ else
             </div>
         </MudTabPanel>
 
-        <MudTabPanel Text="2. TRANSIT CHART">
+        <MudTabPanel Text="2. TRANSIT CHARTS">
             <div class="ki-panelbody">
 @if (_selection is not null)
                     {
@@ -466,11 +474,10 @@ else
     protected override void OnParametersSet()
     {
         if (Step is "1" or "natal" or "about") _masterTab = 0;
-        if (Step is "overview") { _masterTab = 0; _activeTab = 0; }
-        if (Step is "signs" or "nakshatras") { _masterTab = 0; _activeTab = 1; }
+        if (Step is "overview" or "general" or "generaldetails" or "signs" or "nakshatras") { _masterTab = 0; _activeTab = 0; }
+        if (Step is "planets") { _masterTab = 0; _activeTab = 1; }
         if (Step is "houses") { _masterTab = 0; _activeTab = 2; }
-        if (Step is "planets") { _masterTab = 0; _activeTab = 3; }
-        if (Step is "relationships") { _masterTab = 0; _activeTab = 4; }
+        if (Step is "relationships" or "aspected") { _masterTab = 0; _activeTab = 3; }
         if (Step is "2" or "transit") _masterTab = 1;
         if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
         if (Step is "5" or "yogas") _masterTab = 4;
