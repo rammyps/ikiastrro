@@ -89,7 +89,7 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 | HOUSE | cli | 3 | 60% | 1 | 1 | 1 | 0 | 1 |
 | NAKSHATRA | cli | 1 | 100% | 0 | 0 | 0 | 0 | 0 |
 | DIGNITY | cli | 1 | 100% | 0 | 0 | 0 | 0 | 0 |
-| RELATIONSHIP | cli | 5 | 88% | 0 | 0 | 1 | 0 | 1 |
+| RELATIONSHIP | cli | 5 | 92% | 0 | 0 | 0 | 0 | 1 |
 | KARAKA | cli | 4 | 55% | 2 | 2 | 2 | 2 | 2 |
 | AVASTHA | cli | 5 | 32% | 3 | 3 | 3 | 5 | 3 |
 | DISPOSITOR | cli | 1 | 80% | 0 | 0 | 0 | 0 | 1 |
@@ -109,8 +109,8 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 recomputed against them; treat the table above as stale until that pass runs. 2026-09-23:
 RELATIONSHIP and DISPOSITOR rows corrected (Argala insert-wiring closed, FEAT-DISPOSITOR-01 and
 FEAT-RELATIONSHIP-05 found already-shipped and undocumented — the `workstream/cli` and
-`workstream/database` worktrees were stale behind `master`); the rest of the table is still
-unrecomputed against the v5-batch rows.)*
+`workstream/database` worktrees were stale behind `master`; FEAT-RELATIONSHIP-05's `verify-graha-drishti`
+gap closed same day); the rest of the table is still unrecomputed against the v5-batch rows.)*
 
 ---
 
@@ -267,13 +267,15 @@ unrecomputed against the v5-batch rows.)*
   truth table — the engine deliberately doesn't read it live, same "hardcode + cite + verify
   equivalence" pattern as `ArgalaCalculator`/`RasiDrishtiCalculator` (see those files' own doc
   comments). Detail: `argala-virodhargala-drishti-lifematters.md`.
-- **FEAT-RELATIONSHIP-05 · Sphuta (longitude-based) Graha Dṛṣṭi strength** — In progress · 60%
-  (new 2026-09-23, found undocumented on `master`) · Research: complete (`SRC_PVR_INTEGRATED`)
+- **FEAT-RELATIONSHIP-05 · Sphuta (longitude-based) Graha Dṛṣṭi strength** — Verified · 80%
+  (new 2026-09-23, found undocumented on `master`; Verify closed 2026-09-23) · Research: complete
+  (`SRC_PVR_INTEGRATED`)
   DB [x] (`tbl_Fact_GrahaDrishtiStrengths`, migration 132 — Virupas + strength % per
   aspecting/aspected pair, D1/D9/D10 only; distinct from the discrete whole-sign aspects already
   in `tbl_Chart_Aspects`/`FEAT-RELATIONSHIP-02`) · Core [x] (`GrahaDrishtiStrengthRepository`,
-  wired live in `ChartGenerationService.PersistAnalytics`) · Verify [ ] (no CLI check exists yet —
-  candidate for a `verify-graha-drishti` mode, same shape as `verify-dispositor`) · Web [x]
+  wired live in `ChartGenerationService.PersistAnalytics`) · Verify [x] (`verify-graha-drishti` —
+  recomputes `GrahaDrishtiStrengthCalculator` independently from stored longitudes and
+  cross-checks every saved person's D1/D9/D10 rows, same shape as `verify-dispositor`) · Web [x]
   (`GrahaDrishtiMatrix.razor`, `RasiDrishtiMatrix.razor`, Key Inference tab) · Docs [ ]
 
 ## KARAKA — workstream: cli
