@@ -1599,6 +1599,81 @@ if (args.Length > 0 && args[0] == "verify-sthira-karaka")
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 
+// --- One-off check: `dotnet run -- verify-house-benefic-malefic` ---
+// HouseBeneficMaleficCalculator (FEAT-HOUSE-06, cited SRC_RAMAN_HTJH p.14-15) has no persisted
+// table — same "hardcode + cite" pattern as LagnaFunctionalNature. This recomputes it for every
+// D1 chart on file and checks structural invariants plus internal consistency (the verdict is a
+// deterministic function of the same counts the Rationale string reports).
+if (args.Length > 0 && args[0] == "verify-house-benefic-malefic")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var hbmKeyDetailsRepo = new ChartKeyDetailsRepository(connectionFactory);
+    using var hbmConn = connectionFactory.CreateOpenConnection();
+
+    foreach (var person in birthDetailsRepo.GetAll())
+    {
+        var chartResultId = hbmConn.ExecuteScalar<int?>(
+            "SELECT cr.Id FROM dbo.tbl_ChartResults cr WHERE cr.BirthDetailId = @Id AND cr.ChartType = 'D1'",
+            new { person.Id });
+        if (chartResultId is null) continue;
+
+        var keyDetails = hbmKeyDetailsRepo.GetByChartResultId(chartResultId.Value);
+        var ascendantRow = keyDetails.FirstOrDefault(k => k.Planet == "Ascendant");
+        if (ascendantRow is null) continue;
+
+        var ascendantSign = Enum.Parse<ZodiacName>(ascendantRow.Sign);
+        var results = HouseBeneficMaleficCalculator.ComputeAll(ascendantSign, keyDetails);
+
+        Check($"{person.Name}: 12 house results", results.Count, 12);
+        Check($"{person.Name}: house numbers are 1-12 in order", string.Join(",", results.Select(r => r.HouseNumber)), string.Join(",", Enumerable.Range(1, 12)));
+
+        var badLord = results.Count(r => r.LordPlanet != HouseEngine.GetSignLord(r.Sign));
+        Check($"{person.Name}: every house's lord matches HouseEngine.GetSignLord", badLord, 0);
+
+        var badSign = results.Count(r => r.Sign != HouseEngine.GetHouseSign(ascendantSign, r.HouseNumber));
+        Check($"{person.Name}: every house's sign matches HouseEngine.GetHouseSign", badSign, 0);
+
+        // Independent recount: the Verdict must follow from the very lists the result itself
+        // exposes (lord's nature + occupants + aspectors), not some other hidden weighting.
+        var badVerdict = results.Count(r =>
+        {
+            var beneficCount = (r.LordFunctionalNature is FunctionalNature.Benefic or FunctionalNature.Yogakaraka ? 1 : 0)
+                + r.BeneficOccupants.Count + r.BeneficAspectors.Count;
+            var maleficCount = (r.LordFunctionalNature == FunctionalNature.Malefic ? 1 : 0)
+                + r.MaleficOccupants.Count + r.MaleficAspectors.Count;
+            var expectedVerdict = (beneficCount, maleficCount) switch
+            {
+                (0, 0) => HouseBeneficMaleficVerdict.Neutral,
+                var (b, m) when b > m => HouseBeneficMaleficVerdict.Benefic,
+                var (b, m) when m > b => HouseBeneficMaleficVerdict.Malefic,
+                _ => HouseBeneficMaleficVerdict.Mixed
+            };
+            return r.Verdict != expectedVerdict;
+        });
+        Check($"{person.Name}: every Verdict follows deterministically from its own counted lists", badVerdict, 0);
+
+        var badOccupant = results.Count(o =>
+            o.BeneficOccupants.Concat(o.MaleficOccupants).Any(p =>
+                !keyDetails.Any(k => k.Planet == p && k.HouseNumberFromLagna == o.HouseNumber)));
+        Check($"{person.Name}: every listed occupant is really placed in that house", badOccupant, 0);
+
+        // No planet is both a listed benefic occupant and a listed malefic occupant of the same house.
+        var overlap = results.Count(r => r.BeneficOccupants.Intersect(r.MaleficOccupants).Any()
+            || r.BeneficAspectors.Intersect(r.MaleficAspectors).Any());
+        Check($"{person.Name}: no planet double-counted as both benefic and malefic on the same house", overlap, 0);
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-house-benefic-malefic: ALL PASS" : $"\nverify-house-benefic-malefic: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
 // --- One-off check: `dotnet run -- verify-pipeline` ---
 // The DB-free ChartPipeline.Run façade must reproduce, for person 1 (Ramakrishnan), the same D1
 // KeyDetails the stored rows hold — proving the compute half of ChartGenerationService is faithfully
