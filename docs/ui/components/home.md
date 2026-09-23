@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-10
+last_updated: 2026-09-23
 workstream: ui
 component: Home
 route: /
@@ -61,6 +61,9 @@ footer. The Ganesha / Navagraha illustration is a **first-class part of the Home
     `▾` control back here to switch person; `HOME` keeps the person active.
 - The **Ganesha / Navagraha illustration** is the right column of the two-column Home layout
   (`../brand.md` — a first-class part of the page, not tied to any toggle).
+- The Add New form uses the plain brand surface; the former `BigBang-i2.png` panel background
+  was removed. The Ganesha image keeps its natural aspect ratio and a viewport-bounded height
+  in both search and Add New states, so opening the form no longer stretches or compresses it.
 
 ## Header &amp; band on Home
 

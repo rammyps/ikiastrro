@@ -219,6 +219,24 @@ h1 {
 
 .sp-menu { position: relative; }
 
+.sp-print-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: .5rem .9rem;
+    border: 1.5px solid var(--brand-midnight);
+    border-radius: 999px;
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
+    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    cursor: pointer;
+}
+
+.sp-print-btn:hover {
+    border-color: var(--brand-sunset);
+    background: var(--brand-sunset);
+
 .sp-menu-btn {
     display: inline-flex;
     align-items: center;
@@ -462,3 +480,35 @@ h1 {
 }
 
 .edit-actions button:disabled { opacity: .6; cursor: default; }
+
+@media print {
+    :host {
+        color: #111;
+        background: #fff;
+    }
+
+    .sp-layout { display: block; min-height: 0; }
+    .sp-art,
+    .sp-toolbar,
+    .sp-subtitle,
+    .sp-build-btn,
+    .sp-progress,
+    .sp-progress-label,
+    .sp-import-status,
+    .sp-menu-backdrop,
+    .sp-hidden-inputs,
+    .edit-backdrop { display: none !important; }
+
+    .sp-header { margin-bottom: 1rem; }
+    .sp-count { color: #333; }
+    .saved-charts-table {
+        border: 1px solid #777;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
+    }
+    .saved-charts-table ::deep .dt { width: 100%; }
+    .saved-charts-table ::deep .dt thead { background: #eee !important; }
+    .saved-charts-table ::deep .dt th,
+    .saved-charts-table ::deep .dt td { break-inside: avoid; }
+    .saved-charts-table ::deep .dt th:last-child,

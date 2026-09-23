@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-17
+last_updated: 2026-09-23
 workstream: ui
 component: SavedCharts
 route: /charts
@@ -27,6 +27,14 @@ art's left inset grew with viewport width while its right edge stayed flush agai
 a shared `gap` keeping both edges equal at any width — same "one page gutter, no page-specific
 bleed trick" shape as the rest of the app. `object-fit` changed `cover` → `contain` (matching
 `Home.razor.css`'s `.home-art` convention) so the art is never cropped.
+## Print format
+
+The header toolbar includes a **Print** action that opens the browser's print dialog. The
+print stylesheet removes the hero art, settings/import/export controls, build controls,
+modal layers, and the per-row edit/delete column. It prints a full-width, high-contrast saved
+chart list without rounded cards or shadows while retaining the page title, saved-chart count,
+and chart identity fields.
+
 
 ## The list
 
