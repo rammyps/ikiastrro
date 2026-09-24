@@ -254,10 +254,18 @@ h1, h2, h3 {
    Deliberately does NOT reach MudBlazor's <MudSelect> (Saved Charts' Settings panel,
    `<select>`-free custom markup) — those are ordinary data-entry form fields, not
    chart/period-heading pickers, the same distinction design-language.md's "Chart controls"
-   section already draws for the pill-style pickers. */
-th,
-select,
-select option {
+   section already draws for the pill-style pickers.
+
+   `html` prefix (2026-09-25 fix, rammyps's bug report — Dasha's Month/Year/Mahadasha/
+   Antardasha/Pratyantar selects were still showing mixed-case): MudBlazor ships its own
+   `button, select { text-transform: none; }` reset in MudBlazor.min.css, equal specificity to
+   a bare `select`/`th`, and it happens to be linked after tokens.css — so on any element that
+   doesn't ALSO carry its own more-specific local rule (`.ki-chart-picker` etc. do, which is why
+   those already worked), the tie went to whichever stylesheet loads last and MudBlazor won.
+   `html th`/`html select` outrank both at (0,0,2) without needing `!important`. */
+html th,
+html select,
+html select option {
     text-transform: uppercase;
 }
 

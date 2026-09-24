@@ -105,10 +105,15 @@ repeats it):
   page scrolls. A two-row `rowspan`'d header (`ArgalaTable`) sticks the whole `<thead>` instead
   of each `th` individually — simpler than computing a per-row `top` offset, and keeps both
   header rows pinned together. Every `th`, app-wide, renders ALL CAPS (2026-09-25, rammyps's
-  directive) — one unscoped `th { text-transform: uppercase; }` rule in `tokens.css`, not a
-  per-table rule, so it needs no per-table opt-in and reaches every `MudSimpleTable`/hand-rolled
-  `<table>` alike. Worth re-checking the "headers vs. horizontal scroll" order above on any table
-  whose header was already close to wrapping — caps run visually wider than mixed-case.
+  directive) — one unscoped `html th { text-transform: uppercase; }` rule in `tokens.css` (the
+  `html` prefix beats MudBlazor's own `text-transform: none` reset — see "Chart controls" below
+  for why a bare `th`/`select` alone isn't reliable), not a per-table rule, so it needs no
+  per-table opt-in and reaches every `MudSimpleTable`/hand-rolled `<table>` alike. One exception:
+  `Components/Shared/DataTable.razor`'s sortable headers wrap their text in a `<button>`, and
+  browsers force `text-transform: none` on form controls regardless of any inherited/cascaded
+  value, so that one component needs (and has) its own explicit override on `.dt-sort`. Worth
+  re-checking the "headers vs. horizontal scroll" order above on any table whose header was
+  already close to wrapping — caps run visually wider than mixed-case.
 - **Row hover**: `tbody tr:hover td { background: var(--brand-sunrise); }` — `--brand-sunrise`
   (`#fcd7bd`, tokens.css), not `--brand-peach`. `--brand-peach` stays reserved for its other
   uses (e.g. the All Charts Lagna box, detail/expand panels); `--brand-sunrise` exists
@@ -177,20 +182,30 @@ sunset-fill selected state:
   consistently and keeps them visually distinct from ordinary data-entry form fields.
 - **Every native `<select>` in the app, not just these navy chart pickers, renders ALL CAPS**
   (2026-09-25, rammyps's directive — "make all the … drop-down heading in caps across the
-  entire app"): one unscoped `select, select option { text-transform: uppercase; }` rule in
-  `tokens.css`, alongside the `th` rule above, so Key Inference's Dasha Month/Year/Mahadasha/
-  Antardasha/Pratyantar pickers and AstrologerEvidence's chart select get it too without each
-  needing its own local rule. Deliberately excludes MudBlazor's `<MudSelect>` (Saved Charts'
-  Settings panel) — its custom-rendered markup isn't a real `<select>` the rule can reach, and
-  those are ordinary data-entry form fields per the "distinct from ordinary data-entry form
-  fields" line just above, not chart/period-heading pickers.
+  entire app"): one unscoped `html select, html select option { text-transform: uppercase; }`
+  rule in `tokens.css`, alongside the `html th` rule above, so Key Inference's Dasha Month/Year/
+  Mahadasha/Antardasha/Pratyantar pickers and AstrologerEvidence's chart select get it too
+  without each needing its own local rule. Deliberately excludes MudBlazor's `<MudSelect>`
+  (Saved Charts' Settings panel) — its custom-rendered markup isn't a real `<select>` the rule
+  can reach, and those are ordinary data-entry form fields per the "distinct from ordinary
+  data-entry form fields" line just above, not chart/period-heading pickers.
+  **The `html` prefix is load-bearing, not decoration** (fixed same day, same directive —
+  Dasha's selects were still showing mixed-case after the plain-`select` version): MudBlazor
+  ships its own `button, select { text-transform: none; }` reset in `MudBlazor.min.css`, exactly
+  the same specificity as a bare `select`, and it happens to be linked into the page after
+  `tokens.css` — so on any `<select>` that doesn't also carry its own more-specific local rule
+  (`.ki-chart-picker` etc. do, which is why those worked from the start), the cascade tie went
+  to whichever stylesheet loads last, and MudBlazor won. `html select` outranks both at
+  specificity (0,0,2) without reaching for `!important`.
 
 Rationale: this reuses the app's own dark-navy brand color as a visual signal that a control
 "belongs to a chart" (part of that card's own display state) rather than to page navigation
 (which stays the quiet-cream/strong-sunset MudTabs pill above). Each chart component
 re-declares this rule set under its own CSS-isolation scope (`.av-toggle`, `.psc-toggle`,
-`.hsc-toggle`, `.am-schemes`, `.karaka-view-tabs`/`.karaka-chart-select`) — same duplication
-every `.pill`/`.dot` status class in this codebase already carries per component.
+`.hsc-toggle`, `.am-schemes`, `.karaka-view-tabs`/`.karaka-chart-select`, `.ki-chart-toggle` —
+Key Inference's NATAL "COLLAPSE CHART"/"EXPAND CHART" button, fixed 2026-09-25 from a leftover
+cream/sunset-border nav-tab look that made it read as one more sub-tab) — same duplication every
+`.pill`/`.dot` status class in this codebase already carries per component.
 
 The app header follows the same filled-pill grammar (`.ik-headtab`, matching the Key Inference
 master rail). Its active state (`.is-here`) uses midnight fill for contrast on the sunset app

@@ -342,18 +342,28 @@
 /* Sits above the chart, inside .ki-gridwrap — left-aligned with the chart itself, not spanning
    the full two-column layout (rammyps, 2026-09-24). */
 .ki-chart-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+/* Was cream/sunset-border at the full nav-tab size (`font: 700 var(--font-size-control) / 1`,
+   the same weight/family as `.ki-steptab`) — close enough to GENERAL/ABOUT PLANETS's sub-tab
+   pills just below it in the layout that it read as one more tab (rammyps, 2026-09-25 bug
+   report: "Collapsed Chart is following the same font as the sub-tabs font"). This toggle
+   changes how the chart *inside* this step displays itself, exactly the case
+   docs/ui/design-language.md's "Chart controls (in-chart toggles) — distinct from navigation
+   tabs" section covers — and its own toolbar sibling `.ki-chart-picker` right next to it
+   already uses that convention's dark-navy/cream look. Matched here (same font-size multiplier,
+   same navy/cream pair) so the toolbar reads as one coherent unit, clearly distinct from the
+   sunset/cream nav-tab family below. */
 .ki-chart-toggle {
-    min-height: 36px;
-    padding: 6px 14px;
-    border: 1px solid var(--brand-sunset);
+    min-height: 32px;
+    padding: 5px 14px;
+    border: 1px solid var(--brand-line);
     border-radius: 999px;
-    background: var(--brand-canvas);
-    color: var(--brand-midnight);
-    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
+    font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
     cursor: pointer;
     white-space: nowrap;
 }
-.ki-chart-toggle:hover { background: var(--brand-peach); }
+.ki-chart-toggle:hover { background: color-mix(in srgb, var(--brand-midnight) 85%, white); }
 
 .ki-chart-toggle:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
 .ki-natal-layout.is-chart-collapsed { grid-template-columns: minmax(0, 1fr); }

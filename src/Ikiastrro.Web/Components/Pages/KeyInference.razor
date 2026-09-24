@@ -264,7 +264,7 @@ else
                                 </span>
                             </label>
                             <label class="ki-field">
-                                <span>Mahadasha</span>
+                                <span>MAHADASHA</span>
                                 <select value="@(_selection.Maha?.Id.ToString() ?? string.Empty)" @onchange="OnMahaChanged">
                                     <option value="">Select Mahadasha</option>
                                     @foreach (var period in _selection.Periods)
@@ -274,7 +274,7 @@ else
                                 </select>
                             </label>
                             <label class="ki-field">
-                                <span>Antardasha</span>
+                                <span>ANTARDASHA</span>
                                 <select value="@(_selection.Antar?.Id.ToString() ?? string.Empty)" @onchange="OnAntarChanged" disabled="@(_selection.Maha is null)">
                                     <option value="">Select Antardasha</option>
                                     @foreach (var period in _selection.AntarPeriods)
@@ -284,7 +284,7 @@ else
                                 </select>
                             </label>
                             <label class="ki-field">
-                                <span>Pratyantar</span>
+                                <span>PRATYANTAR</span>
                                 <select value="@(_selection.Pratyantar?.Id.ToString() ?? string.Empty)" @onchange="OnPratyantarChanged" disabled="@(_selection.Antar is null)">
                                     <option value="">Select Pratyantar</option>
                                     @foreach (var period in _selection.PratyantarPeriods)
