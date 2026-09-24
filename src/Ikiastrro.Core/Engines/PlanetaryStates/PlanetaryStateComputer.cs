@@ -1,4 +1,6 @@
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Engines.Dignity;
+using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Models;
 
 using Ikiastrro.Core.Pipeline;
@@ -13,6 +15,8 @@ namespace Ikiastrro.Core.Engines.PlanetaryStates;
 ///
 /// Ascendant is excluded (no avastha for a house-circle point). The age state is emitted only for
 /// D1 (needs a continuous within-sign degree); the wakefulness state is emitted for every chart type.
+/// Dīptādi/Lajjitādi are also emitted for every chart type — like Wakefulness, they only need
+/// DignityStatus + conjunctions/aspects, all chart-type-agnostic.
 /// </summary>
 public static class PlanetaryStateComputer
 {
@@ -20,10 +24,31 @@ public static class PlanetaryStateComputer
         ChartAnalysisInput input,
         IReadOnlyList<ChartKeyDetail> keyDetails,
         PlanetaryStateRuleSet rules,
-        double? janmaGhatis = null)
+        double? janmaGhatis = null,
+        IReadOnlyList<ChartConjunction>? conjunctions = null,
+        IReadOnlyList<ChartAspect>? aspects = null)
     {
         var isRasiChart = input.ChartType == "D1";
         var facts = new List<PlanetaryStateFact>();
+
+        // Dīptādi/Lajjitādi shared inputs: natural-malefic predicate (reuses ArgalaCalculator's
+        // already-sourced conditional Moon/Mercury reading), each planet's own sign (for
+        // DignityEngine.EvaluatePairRelationship), and conjunct/aspecting-planet lookups built once
+        // from the already-computed conjunction/aspect rows — not recomputed here.
+        var grahaDetails = keyDetails.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant").ToList();
+        var occupancy = ArgalaFactBuilder.BuildOccupancy(grahaDetails);
+        bool IsNaturalMalefic(string planet) => ArgalaCalculator.IsNaturalMalefic(Enum.Parse<PlanetName>(planet), occupancy);
+        var signByPlanet = grahaDetails
+            .Where(k => Enum.TryParse<ZodiacName>(k.Sign, out _))
+            .ToDictionary(k => k.Planet, k => Enum.Parse<ZodiacName>(k.Sign));
+
+        var conjunctionsByPlanet = (conjunctions ?? Array.Empty<ChartConjunction>())
+            .SelectMany(c => new[] { (Planet: c.Planet1, Other: c.Planet2), (Planet: c.Planet2, Other: c.Planet1) })
+            .GroupBy(x => x.Planet)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(x => x.Other).ToList());
+        var aspectingByTarget = (aspects ?? Array.Empty<ChartAspect>())
+            .GroupBy(a => a.AspectedTarget)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(a => a.AspectingPlanet).ToList());
 
         // Sayanaadi's chart-wide (not per-planet) inputs: M = Moon's nakshatra, L = Lagna's rasi,
         // G = the ghati running at birth. Resolved once; only used when isRasiChart.
@@ -79,6 +104,27 @@ public static class PlanetaryStateComputer
                 var navamsa = PostureStateCalculator.NavamsaIndex(degreeForNavamsa);
                 var index = PostureStateCalculator.ComputeIndex(c, planetIndex, navamsa, m, g, l);
                 fact.PostureStateId = PostureStateCalculator.For(index, rules.PostureStatesBySequence)?.Id;
+            }
+
+            // Dīptādi + Lajjitādi — every chart type, from dignity + this chart's own
+            // conjunctions/aspects (already computed by ChartAnalyzer/RelationshipEngine).
+            var conjunctWith = conjunctionsByPlanet.GetValueOrDefault(kd.Planet, Array.Empty<string>());
+            var aspectedBy = aspectingByTarget.GetValueOrDefault(kd.Planet, Array.Empty<string>());
+
+            fact.DeeptadiStateIds = DeeptadiStateCalculator.For(
+                kd.DignityStatus, kd.SignLordPlanet, conjunctWith, IsNaturalMalefic,
+                kd.IsCombust ?? false, rules);
+
+            if (signByPlanet.TryGetValue(kd.Planet, out var ownSign))
+            {
+                string? RelationshipOf(string other) =>
+                    signByPlanet.TryGetValue(other, out var otherSign)
+                        ? DignityEngine.EvaluatePairRelationship(kd.Planet, other, ownSign, otherSign)
+                        : null;
+
+                fact.LajjitadiStateIds = LajjitadiStateCalculator.For(
+                    kd.Sign, kd.DignityStatus, kd.HouseNumberFromLagna, conjunctWith, aspectedBy,
+                    IsNaturalMalefic, RelationshipOf, rules);
             }
 
             facts.Add(fact);

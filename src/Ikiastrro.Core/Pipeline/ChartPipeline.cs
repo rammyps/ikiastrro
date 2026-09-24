@@ -52,11 +52,12 @@ public sealed class ChartPipeline
         var states = new List<PlanetaryStateFact>();
         foreach (var input in charts)
         {
-            var (keyDetails, _, _, _) = ChartAnalyzer.Compute(input);
+            var (keyDetails, _, conjunctions, aspects) = ChartAnalyzer.Compute(input);
             foreach (var r in keyDetails)
                 if (r.PointKind == "Graha" && charaKarakaByPlanet.TryGetValue(r.Planet, out var ck))
                     r.CharaKaraka = ck;
-            states.AddRange(PlanetaryStateComputer.Compute(input, keyDetails, _planetaryStateRules, janmaGhatis));
+            states.AddRange(PlanetaryStateComputer.Compute(
+                input, keyDetails, _planetaryStateRules, janmaGhatis, conjunctions, aspects));
         }
 
         var panchanga = PanchangaCalculator.Calculate(birth, positions, sunTimes);

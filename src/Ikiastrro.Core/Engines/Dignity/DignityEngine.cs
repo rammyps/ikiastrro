@@ -185,6 +185,31 @@ public static class DignityEngine
             dignityStatus);
     }
 
+    /// <summary>
+    /// Panchadha Maitri of <paramref name="associatedPlanet"/> as seen from <paramref name="subjectPlanet"/>
+    /// — the same Naisargika + Tatkalika combination <see cref="Evaluate"/> uses for a planet vs. its
+    /// own sign lord, generalized to any two planets. Needed by avastha rules that test "conjoined/
+    /// aspected by a friend/enemy" (e.g. PVR's Lajjitadi group, sec 15.4.3) rather than only the
+    /// sign-lord relationship.
+    ///
+    /// Null when <paramref name="subjectPlanet"/> is Rahu/Ketu — no Naisargika Maitri table for
+    /// nodes, same limitation <see cref="Evaluate"/> already has. When <paramref name="associatedPlanet"/>
+    /// is Rahu/Ketu, it matches neither the friends nor enemies list (the table has no node entries
+    /// either way) and so falls through to the natural-neutral, temporary-friendship-only branch —
+    /// consistent, not a special case.
+    /// </summary>
+    public static string? EvaluatePairRelationship(
+        string subjectPlanet, string associatedPlanet, ZodiacName subjectSign, ZodiacName associatedSign)
+    {
+        if (!NaturalRelationship.TryGetValue(subjectPlanet, out var relationship))
+            return null;
+
+        var naturalFriend = relationship.Friends.Contains(associatedPlanet);
+        var naturalEnemy = relationship.Enemies.Contains(associatedPlanet);
+        var temporaryFriend = IsTemporaryFriend(subjectSign, associatedSign);
+        return CombineToPanchadha(naturalFriend, naturalEnemy, temporaryFriend);
+    }
+
     private static bool IsPvrExaltationSegment(string planet, double? degreeInSign) =>
         degreeInSign is null || planet switch
         {
