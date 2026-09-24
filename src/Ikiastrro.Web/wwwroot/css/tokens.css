@@ -241,6 +241,26 @@ h1, h2, h3 {
     font-weight: 400;
 }
 
+/* Table headers and native chart/period dropdowns read as one caps visual language app-wide
+   (rammyps, 2026-09-25: "make all the table heading and drop-down heading in caps across the
+   entire app"). One unscoped rule here reaches every <th>/<select>, including inside a
+   component's own CSS-isolated stylesheet — Blazor's scope attribute only gates a component's
+   OWN rules against markup outside it, never the other way around, so a global selector still
+   matches scoped markup. A few pickers (`.ki-chart-picker`, `.av-chart-select select`,
+   `.karaka-chart-select`) already set `text-transform: uppercase` locally; this is now
+   redundant there but harmless, and is what actually turns on every other native <select> in
+   the app (Key Inference's Dasha Month/Year/Mahadasha/Antardasha/Pratyantar pickers,
+   AstrologerEvidence's chart select, any future one) without editing each one by hand.
+   Deliberately does NOT reach MudBlazor's <MudSelect> (Saved Charts' Settings panel,
+   `<select>`-free custom markup) — those are ordinary data-entry form fields, not
+   chart/period-heading pickers, the same distinction design-language.md's "Chart controls"
+   section already draws for the pill-style pickers. */
+th,
+select,
+select option {
+    text-transform: uppercase;
+}
+
 /* Supplied natal/transit template palette. */
 :root {
     --transit-paper: #fff0a6;

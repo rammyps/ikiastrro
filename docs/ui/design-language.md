@@ -104,7 +104,11 @@ repeats it):
   `position: sticky; top: 0; background: var(--brand-surface);` so it stays visible while the
   page scrolls. A two-row `rowspan`'d header (`ArgalaTable`) sticks the whole `<thead>` instead
   of each `th` individually — simpler than computing a per-row `top` offset, and keeps both
-  header rows pinned together.
+  header rows pinned together. Every `th`, app-wide, renders ALL CAPS (2026-09-25, rammyps's
+  directive) — one unscoped `th { text-transform: uppercase; }` rule in `tokens.css`, not a
+  per-table rule, so it needs no per-table opt-in and reaches every `MudSimpleTable`/hand-rolled
+  `<table>` alike. Worth re-checking the "headers vs. horizontal scroll" order above on any table
+  whose header was already close to wrapping — caps run visually wider than mixed-case.
 - **Row hover**: `tbody tr:hover td { background: var(--brand-sunrise); }` — `--brand-sunrise`
   (`#fcd7bd`, tokens.css), not `--brand-peach`. `--brand-peach` stays reserved for its other
   uses (e.g. the All Charts Lagna box, detail/expand panels); `--brand-sunrise` exists
@@ -171,6 +175,15 @@ sunset-fill selected state:
   and SPL LAGNAS's divisional-chart picker) uses a dark-blue `--brand-midnight` surface with
   cream `--brand-canvas` text. This navy/cream/caps look identifies chart-selection controls
   consistently and keeps them visually distinct from ordinary data-entry form fields.
+- **Every native `<select>` in the app, not just these navy chart pickers, renders ALL CAPS**
+  (2026-09-25, rammyps's directive — "make all the … drop-down heading in caps across the
+  entire app"): one unscoped `select, select option { text-transform: uppercase; }` rule in
+  `tokens.css`, alongside the `th` rule above, so Key Inference's Dasha Month/Year/Mahadasha/
+  Antardasha/Pratyantar pickers and AstrologerEvidence's chart select get it too without each
+  needing its own local rule. Deliberately excludes MudBlazor's `<MudSelect>` (Saved Charts'
+  Settings panel) — its custom-rendered markup isn't a real `<select>` the rule can reach, and
+  those are ordinary data-entry form fields per the "distinct from ordinary data-entry form
+  fields" line just above, not chart/period-heading pickers.
 
 Rationale: this reuses the app's own dark-navy brand color as a visual signal that a control
 "belongs to a chart" (part of that card's own display state) rather than to page navigation

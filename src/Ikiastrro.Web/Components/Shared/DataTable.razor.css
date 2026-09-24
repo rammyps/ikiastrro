@@ -10,6 +10,11 @@
     background: none; border: 0; color: var(--brand-midnight); font: inherit; font-weight: 700;
     cursor: pointer; padding: 9px 8px; display: inline-flex; gap: .3rem; align-items: center;
     white-space: normal;
+    /* The header text lives inside this <button>, and browsers' UA stylesheet sets
+       `button { text-transform: none; }` unconditionally — that beats inheriting uppercase
+       from tokens.css's global `th` rule (docs/ui/design-language.md "Standard table format"),
+       so every sortable header needs its own explicit override to actually show caps. */
+    text-transform: uppercase;
 }
 .dt-sort.on { color: var(--brand-midnight); }
 .dt-arrow { color: var(--brand-sunset); font-size: 12px; }
