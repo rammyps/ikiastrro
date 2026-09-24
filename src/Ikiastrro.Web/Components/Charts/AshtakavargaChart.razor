@@ -4,9 +4,9 @@
 <section class="av" aria-labelledby="av-title">
     <article class="av-card">
         <header class="av-card-head">
-            <div><h2 id="av-title">Sarvāṣṭavarga</h2><p class="av-context">@_selectedChart bindus · independently calculated</p></div>
+            <div><h2 id="av-title">Sarvāṣṭavarga</h2><p class="av-context">@SelectedChart bindus · independently calculated</p></div>
             <div class="av-head-right">
-                <label class="av-chart-select"><select aria-label="Chart" value="@_selectedChart" @onchange="OnChartChanged">@foreach (var chart in ChartOptions) { <option value="@chart.ChartType">@chart.Label</option> }</select></label>
+                <label class="av-chart-select"><select aria-label="Chart" value="@SelectedChart" @onchange="OnChartChanged">@foreach (var chart in ChartOptions) { <option value="@chart.ChartType">@chart.Label</option> }</select></label>
                 <div class="av-toggle" role="group" aria-label="Row order">
                     <button type="button" class="@(_sort == SortMode.HouseOrder ? "av-toggle-on" : "")" @onclick="() => _sort = SortMode.HouseOrder">House order</button>
                     <button type="button" class="@(_sort == SortMode.StrengthRank ? "av-toggle-on" : "")" @onclick="() => _sort = SortMode.StrengthRank">Strength rank</button>
@@ -61,15 +61,30 @@
     private static readonly int[] Signs = Enumerable.Range(1, 12).ToArray();
     private static readonly string[] SignNames = { "", "Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis" };
     private static readonly string[] RecipientOrder = { "SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN" };
-    private IReadOnlyList<AshtakavargaRow> SelectedRows => Rows.Where(r => r.ChartType.Equals(_selectedChart, StringComparison.OrdinalIgnoreCase)).ToList();
-    private IReadOnlyList<AshtakavargaPindaRow> SelectedPindaRows => PindaRows.Where(r => r.ChartType.Equals(_selectedChart, StringComparison.OrdinalIgnoreCase)).ToList();
+    private IReadOnlyList<AshtakavargaRow> SelectedRows => Rows.Where(r => r.ChartType.Equals(SelectedChart, StringComparison.OrdinalIgnoreCase)).ToList();
+    private IReadOnlyList<AshtakavargaPindaRow> SelectedPindaRows => PindaRows.Where(r => r.ChartType.Equals(SelectedChart, StringComparison.OrdinalIgnoreCase)).ToList();
     private IEnumerable<string> Recipients => RecipientOrder.Where(x => SelectedRows.Any(r => r.RecipientCode.Equals(x, StringComparison.OrdinalIgnoreCase)));
+
+    /// <summary>Two-way bound to the caller's own chart picker (KeyInference's
+    /// `_natalChart`/`ChartColumn`, 2026-09-25, rammyps's call — "connect related drop-downs"):
+    /// picking a chart here also moves the natal chart on the left, and vice versa, same
+    /// `Name`/`NameChanged` pair Blazor's `@bind-SelectedChart` expects (GrahaDrishtiMatrix
+    /// already declared this pair but never got a caller wired up to it — this is the first
+    /// live use). See design-language.md "Related chart drop-downs" for the convention this
+    /// establishes for any other picker pair found to represent the same chart selection.</summary>
+    [Parameter] public string SelectedChart { get; set; } = "D1";
+    [Parameter] public EventCallback<string> SelectedChartChanged { get; set; }
 
     private enum SortMode { HouseOrder, StrengthRank }
     private SortMode _sort = SortMode.HouseOrder;
-    private string _selectedChart = "D1";
     private IReadOnlyList<LoadedChart> ChartOptions => Charts.Values.Where(c => Rows.Any(r => r.ChartType.Equals(c.ChartType, StringComparison.OrdinalIgnoreCase))).OrderBy(c => ChartDivisor(c.ChartType)).ToList();
-    private void OnChartChanged(ChangeEventArgs args) => _selectedChart = args.Value?.ToString() ?? "D1";
+    private async Task OnChartChanged(ChangeEventArgs args)
+    {
+        var value = args.Value?.ToString() ?? "D1";
+        if (value == SelectedChart) return;
+        SelectedChart = value;
+        await SelectedChartChanged.InvokeAsync(value);
+    }
 
     private IReadOnlyList<(int SignNumber, int TotalBindus)> SavRowsBySign =>
         Signs.Select(s => (s, SelectedRows.Where(r => r.SignNumber == s).Select(r => (int?)r.SarvaBindus).FirstOrDefault(v => v is not null) ?? SelectedRows.Where(r => r.SignNumber == s).Sum(r => (int)r.BinduCount))).ToList();

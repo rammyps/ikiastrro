@@ -243,6 +243,31 @@ follow for any new badge like this: give the status override a compound selector
 (`.psc-rankbadge.psc-status-strong { background: …; }`), one class more specific than either
 rule alone, so it wins regardless of declaration order.
 
+## Related chart drop-downs (2026-09-25, rammyps's call)
+
+When two chart-picker drop-downs on the same page represent the *same underlying selection* —
+"which chart am I looking at" — they must be two-way linked, not two silently independent copies
+of `_selectedChart` that can disagree. Reference implementation: Key Inference's STRENGTH tab.
+The left-side natal chart picker (`KeyInference.razor`'s `_natalChart` field, rendered by the
+shared `ChartColumn` fragment) and `AshtakavargaChart`'s own "Chart" drop-down in its
+ASHTAVARGA sub-tab are the same selection wearing two hats, so changing either now moves both.
+
+**Pattern**: the child component exposes the standard Blazor two-way-bind pair —
+`[Parameter] public string SelectedChart { get; set; }` +
+`[Parameter] public EventCallback<string> SelectedChartChanged { get; set; }` — and its own
+`<select>` sets the parameter directly and invokes the callback on change, instead of owning a
+private `_selectedChart` field. The caller wires it with `@bind-SelectedChart="_natalChart"`
+rather than one-way `SelectedChart="@_natalChart"`. `GrahaDrishtiMatrix` already declared this
+same parameter pair earlier (2026-09-24) but nothing ever bound to `SelectedChartChanged` — it
+has no picker of its own, so there was nothing to link; `AshtakavargaChart` is the first live
+use of the pair.
+
+**Before doing this to another pair of drop-downs**, confirm they really are the same selection
+and not two axes that only look similar — e.g. a "which varga" picker is not automatically the
+same concept as a "which recipient" or "which dasha level" picker just because both are
+`<select>`s in the same panel. Link only when picking one value in either place should change
+what the *other* is also showing.
+
 ## Additive-change discipline (keeps a revert mechanical)
 
 1. **Chart tokens are namespaced and additive.** Never repurpose a token's meaning — a

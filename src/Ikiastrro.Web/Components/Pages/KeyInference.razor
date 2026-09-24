@@ -409,7 +409,7 @@ else
                     }
                     else
                     {
-                        <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" Charts="_data.Charts" />
+                        <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" Charts="_data.Charts" @bind-SelectedChart="_natalChart" />
                     }
                     </div>
                 }
@@ -542,7 +542,12 @@ else
     /// own inline copy, so switching tabs doesn't reset either. NATAL CHARTS keeps its own inline
     /// markup (nested inside its `NatalChart is { } natalChart` guard alongside the sub-tabs)
     /// rather than being refactored onto this fragment, to avoid touching already-shipped,
-    /// working structure for its own sake.</summary>
+    /// working structure for its own sake. `_natalChart` also now drives (and is driven by,
+    /// two-way) AshtakavargaChart's own "Chart" picker in the ASHTAVARGA sub-tab, via
+    /// `@bind-SelectedChart` — see that component's `SelectedChart`/`SelectedChartChanged` doc
+    /// comment and design-language.md "Related chart drop-downs" (2026-09-25). Any other
+    /// component found to carry its own independent copy of "which chart" alongside this rail
+    /// should get the same treatment rather than living as a silently out-of-sync duplicate.</summary>
     private RenderFragment ChartColumn => @<div class="ki-gridwrap">
         <div class="ki-chart-toolbar">
             <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
