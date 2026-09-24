@@ -54,8 +54,8 @@
 .ik-headtab:hover { background: rgb(255 250 242 / 0.7); }
 
 .ik-headtab.is-here {
-    background: var(--brand-midnight);
-    color: var(--brand-canvas);
+    background: var(--brand-sunset);
+    color: var(--brand-midnight);
 }
 
 .ik-brand {

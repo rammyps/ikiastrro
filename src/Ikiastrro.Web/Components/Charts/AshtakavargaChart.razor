@@ -4,9 +4,9 @@
 <section class="av" aria-labelledby="av-title">
     <article class="av-card">
         <header class="av-card-head">
-            <div><h2 id="av-title">Sarvāṣṭakavarga</h2><p class="av-context">@_selectedChart bindus · independently calculated</p></div>
+            <div><h2 id="av-title">Sarvāṣṭavarga</h2><p class="av-context">@_selectedChart bindus · independently calculated</p></div>
             <div class="av-head-right">
-                <label class="av-chart-select"><span>Varga</span><select value="@_selectedChart" @onchange="OnChartChanged">@foreach (var chart in ChartOptions) { <option value="@chart.ChartType">@chart.Label</option> }</select></label>
+                <label class="av-chart-select"><select aria-label="Chart" value="@_selectedChart" @onchange="OnChartChanged">@foreach (var chart in ChartOptions) { <option value="@chart.ChartType">@chart.Label</option> }</select></label>
                 <div class="av-toggle" role="group" aria-label="Row order">
                     <button type="button" class="@(_sort == SortMode.HouseOrder ? "av-toggle-on" : "")" @onclick="() => _sort = SortMode.HouseOrder">House order</button>
                     <button type="button" class="@(_sort == SortMode.StrengthRank ? "av-toggle-on" : "")" @onclick="() => _sort = SortMode.StrengthRank">Strength rank</button>
@@ -14,7 +14,7 @@
                 <strong>@GrandTotal <span>total</span></strong>
             </div>
         </header>
-        <div class="av-bars" role="img" aria-label="Sarvashtakavarga bindus by sign and house">
+        <div class="av-bars" role="img" aria-label="Sarvashtavarga bindus by sign and house">
             @foreach (var row in SavRows)
             {
                 <div class="av-bar-row">
@@ -27,7 +27,7 @@
     </article>
 
     <article class="av-card">
-        <header class="av-card-head"><div><h2>Bhinnāṣṭakavarga</h2></div></header>
+        <header class="av-card-head"><div><h2>Bhinnāṣṭavarga</h2></div></header>
         <div class="av-table-scroll">
             <table>
                 <thead><tr><th>Recipient</th>@foreach (var sign in Signs) { <th><span>@ShortSign(sign)</span><small>H@(HouseNumber(sign))</small></th> }<th>Σ</th></tr></thead>

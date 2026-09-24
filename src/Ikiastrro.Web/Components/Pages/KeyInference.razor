@@ -159,7 +159,8 @@ else
                         <nav class="ki-subnav" role="tablist" aria-label="Natal chart details">
                             <button type="button" role="tab" id="ki-natal-tab-0" aria-selected="@(_activeTab == 0)" aria-controls="ki-natal-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 0">GENERAL</button>
                             <button type="button" role="tab" id="ki-natal-tab-1" aria-selected="@(_activeTab == 1)" aria-controls="ki-natal-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 1">ABOUT PLANETS</button>
-                            <button type="button" role="tab" id="ki-natal-tab-2" aria-selected="@(_activeTab == 2)" aria-controls="ki-natal-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 2">ABOUT HOUSES &amp; SIGN &amp; PLANET ASPECTS</button>
+                            <button type="button" role="tab" id="ki-natal-tab-2" aria-selected="@(_activeTab == 2)" aria-controls="ki-natal-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 2">ABOUT HOUSES</button>
+                            <button type="button" role="tab" id="ki-natal-tab-3" aria-selected="@(_activeTab == 3)" aria-controls="ki-natal-panel-3" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 3">SIGNS &amp; PLANET ASPECTS</button>
                         </nav>
                         <div class="ki-subpanels">
                             @if (_activeTab == 0)
@@ -195,7 +196,8 @@ else
 
                     <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
                     <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames"
-                                           PostureInterpretations="_postureInterpretations" />
+                                           PostureInterpretations="_postureInterpretations"
+                                           KeyDetails="natalChart.KeyDetails" Strengths="_shadbala" />
                                 </div>
                             }
                             @if (_activeTab == 2)
@@ -209,9 +211,13 @@ else
 
                     <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
                     <ArgalaTable Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
-
+                                </div>
+                            }
+                            @if (_activeTab == 3)
+                            {
+                                <div id="ki-natal-panel-3" role="tabpanel" aria-labelledby="ki-natal-tab-3">
                     <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
-                    <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="_natalChart" SelectedChartChanged="OnRelationshipChartChanged" />
+                    <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="_natalChart" />
 
                     @if (NatalChart is { } relationshipChart)
                     {
@@ -354,7 +360,7 @@ else
             <nav class="ki-subnav" role="tablist" aria-label="Strength details">
                 <button type="button" role="tab" id="ki-strength-tab-0" aria-selected="@(_strengthTab == 0)" aria-controls="ki-strength-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 0">PLANET STRENGTH</button>
                 <button type="button" role="tab" id="ki-strength-tab-1" aria-selected="@(_strengthTab == 1)" aria-controls="ki-strength-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 1">HOUSE STRENGTH</button>
-                <button type="button" role="tab" id="ki-strength-tab-2" aria-selected="@(_strengthTab == 2)" aria-controls="ki-strength-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 2">ASHTAKAVARGA</button>
+                <button type="button" role="tab" id="ki-strength-tab-2" aria-selected="@(_strengthTab == 2)" aria-controls="ki-strength-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 2">ASHTAVARGA</button>
             </nav>
             <div class="ki-subpanels">
                 @if (_strengthTab == 0)
@@ -395,7 +401,7 @@ else
                     @if (_ashtakavarga.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                            Ashtakavarga has not been computed for these charts yet — recalculate the saved chart.
+                            Ashtavarga has not been computed for these charts yet — recalculate the saved chart.
                         </MudAlert>
                     }
                     else
@@ -560,7 +566,6 @@ else
         return int.TryParse(digits, out var n) ? n : int.MaxValue;
     }
     private void OnNatalChartChanged(ChangeEventArgs e) => _natalChart = e.Value?.ToString() ?? "D1";
-    private Task OnRelationshipChartChanged(string chart) { _natalChart = chart; return Task.CompletedTask; }
 
     private decimal? MoonPakshaBala => _shadbalaComponents.FirstOrDefault(c =>
         c.Planet.Equals("Moon", StringComparison.OrdinalIgnoreCase) &&
@@ -581,7 +586,8 @@ else
         if (Step is "1" or "natal" or "about") _masterTab = 0;
         if (Step is "overview" or "general" or "generaldetails" or "signs" or "nakshatras") { _masterTab = 0; _activeTab = 0; }
         if (Step is "planets") { _masterTab = 0; _activeTab = 1; }
-        if (Step is "houses" or "relationships" or "aspected") { _masterTab = 0; _activeTab = 2; }
+        if (Step is "houses") { _masterTab = 0; _activeTab = 2; }
+        if (Step is "relationships" or "aspected") { _masterTab = 0; _activeTab = 3; }
         if (Step is "2" or "transit") _masterTab = 1;
         if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
         if (Step is "5" or "yogas") _masterTab = 4;

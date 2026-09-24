@@ -3,15 +3,6 @@
 <section class="gds" aria-label="Graha Drishti relationships">
     <div class="gds-toolbar">
         <div>
-            <span class="gds-label">Chart</span>
-            <div class="gds-switch" role="group" aria-label="Chart">
-                @foreach (var chart in ChartOrder.Where(HasChart))
-                {
-                    <button class="@(chart == SelectedChart ? "is-active" : null)" @onclick="() => SelectChart(chart)">@chart</button>
-                }
-            </div>
-        </div>
-        <div>
             <span class="gds-label">Focus body</span>
             <div class="gds-switch gds-bodies" role="group" aria-label="Focus body">
                 @foreach (var body in Targets)

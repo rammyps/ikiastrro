@@ -1,4 +1,5 @@
 @using Ikiastrro.Core.Engines.PlanetaryStates
+@using Ikiastrro.Core.Models
 @using Ikiastrro.Data
 @* Key Inference "ABOUT PLANETS" — Bālādi/Jāgradādi/Śayanādi/Dīptādi/Lajjitādi avasthas, one row
    per graha. Bālādi/Śayanādi are D1-only: PlanetaryStateFact.AgeStateId/PostureStateId are
@@ -13,12 +14,13 @@
     3 affliction flags (Vikala/Khala/Kopita), and Lajjitādi is 6 independent condition flags — the
     book gives no precedence between simultaneous matches within Dīptādi or Lajjitādi, so every
     match is kept. Interpretations are source summaries, not deterministic predictions; weigh
-    them with dignity, strength, houses and aspects.
+    them with dignity, strength, houses and aspects. Combined inference keeps capacity, baseline
+    condition and relational context separate so dignity is not counted repeatedly.
 </div>
 <div class="pst-scroll">
     <table class="pst">
         <thead><tr>
-            <th>Planet</th><th>Bālādi<br />(capacity)</th><th>Jāgradādi<br />(availability)</th><th>Śayanādi<br />(activity)</th><th>Dīptādi</th><th>Lajjitādi</th><th>Interpretation</th>
+            <th>Planet</th><th>Bālādi<br />(capacity)</th><th>Jāgradādi<br />(availability)</th><th>Śayanādi<br />(activity)</th><th>Dīptādi</th><th>Lajjitādi</th><th>Combined inference</th><th>Interpretation</th>
         </tr></thead>
         <tbody>
         @foreach (var r in Rows)
@@ -39,6 +41,13 @@
                 </td>
                 <td><strong>@StateNamesJoined(r.DeeptadiStateIds)</strong></td>
                 <td><strong>@StateNamesJoined(r.LajjitadiStateIds)</strong></td>
+                <td class="pst-inference">
+                    @{ var synthesis = CombinedInference(r); }
+                    <span class="pst-verdict pst-verdict-@synthesis.Tone">@synthesis.Headline</span>
+                    <span><b>Capacity:</b> @synthesis.Capacity</span>
+                    <span><b>Baseline:</b> @synthesis.Baseline</span>
+                    <span><b>Context:</b> @synthesis.Context</span>
+                </td>
                 <td class="pst-reading">
                     @if (Interpretation(r) is { } interpretation)
                     {
@@ -65,6 +74,13 @@
     [Parameter, EditorRequired] public IReadOnlyDictionary<byte, PlanetaryStateRow> StateNames { get; set; } = new Dictionary<byte, PlanetaryStateRow>();
     [Parameter, EditorRequired] public IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow> PostureInterpretations { get; set; } =
         new Dictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow>();
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+    [Parameter, EditorRequired] public IReadOnlyList<ShadbalaSummaryRow> Strengths { get; set; } = Array.Empty<ShadbalaSummaryRow>();
+
+    private static readonly HashSet<string> Supportive = new(StringComparer.OrdinalIgnoreCase)
+        { "Deepta", "Swastha", "Mudita", "Saanta", "Garvita" };
+    private static readonly HashSet<string> Adverse = new(StringComparer.OrdinalIgnoreCase)
+        { "Duhkhita", "Vikala", "Khala", "Kopita", "Lajjita", "Kshudhita", "Trishita", "Kshobhita" };
 
     private string StateLabel(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.StateName : "—";
     private string? StateMeaning(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.Meaning : null;
@@ -74,4 +90,48 @@
         row.PostureStateId is { } stateId && row.PlanetId is { } planetId
             ? PostureInterpretations.GetValueOrDefault((stateId, planetId))
             : null;
+
+    private CombinedStateInference CombinedInference(PlanetaryStateFact row)
+    {
+        var dignity = KeyDetails.FirstOrDefault(k => k.Planet.Equals(row.Planet, StringComparison.OrdinalIgnoreCase))?.DignityStatus;
+        var strength = Strengths.FirstOrDefault(s => s.Planet.Equals(row.Planet, StringComparison.OrdinalIgnoreCase));
+        var deeptadi = StateLabels(row.DeeptadiStateIds);
+        var lajjitadi = StateLabels(row.LajjitadiStateIds);
+        var capacity = new List<string>();
+        if (strength?.PercentOfMinimum is { } percent)
+            capacity.Add($"{StrengthBand(percent)} Ṣaḍbala ({percent:0}% of minimum)");
+        if (row.AgeStateId is { } ageId)
+            capacity.Add($"{StateLabel(ageId)} Bālādi{(row.AgeEffectFraction is { } fraction ? $" ({fraction:0.#%})" : "")}");
+
+        var baseline = new List<string>();
+        if (!string.IsNullOrWhiteSpace(dignity)) baseline.Add(dignity);
+        var wakefulness = StateLabel(row.WakefulnessStateId);
+        if (wakefulness != "—") baseline.Add(wakefulness);
+        if (deeptadi.Count > 0) baseline.Add(string.Join(", ", deeptadi));
+
+        var allStates = deeptadi.Concat(lajjitadi).ToList();
+        var hasSupport = allStates.Any(Supportive.Contains);
+        var hasAdverse = allStates.Any(Adverse.Contains);
+        var (headline, tone) = (hasSupport, hasAdverse) switch
+        {
+            (true, false) => ("Supported expression", "supportive"),
+            (false, true) => ("Constrained expression", "adverse"),
+            (true, true) => ("Mixed expression", "mixed"),
+            _ => ("Baseline expression", "neutral")
+        };
+        return new CombinedStateInference(headline, tone,
+            capacity.Count == 0 ? "not available" : string.Join("; ", capacity),
+            baseline.Count == 0 ? "not available" : string.Join(" · ", baseline),
+            lajjitadi.Count == 0 ? "no additional Lajjitādi condition stored" : string.Join(", ", lajjitadi));
+    }
+
+    private List<string> StateLabels(IReadOnlyList<byte> ids) =>
+        ids.Select(id => StateLabel(id)).Where(s => s != "—").Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+    private static string StrengthBand(decimal percent) => percent switch
+    {
+        < 75 => "very weak", < 90 => "weak", < 110 => "adequate", < 130 => "strong", _ => "very strong"
+    };
+
+    private sealed record CombinedStateInference(string Headline, string Tone, string Capacity, string Baseline, string Context);
 }
