@@ -1,16 +1,22 @@
 /* v2 app shell — docs/ui/wkstream_UI_v2.md "Navigation". Tokens only; Manrope only;
    the three --font-size-* tokens only. HOME pill hard-left, per-person tabs (hidden until a
-   person is open), brand lockup right; one --maxw / --pad-x width through bar, band and page. */
+   person is open), SAVED CHARTS pinned right; one --maxw / --pad-x width through bar, band and
+   page. The brand lockup (Ganesha icon + "Iki-Astrro" + tagline) no longer lives in this bar —
+   moved to the footer's bottom-left (rammyps, 2026-09-26). Once a person is open, the app bar's
+   centre column instead shows that person's name/birth line (`.ik-appbar-person`, reusing
+   `.ik-person-block`) — "the top where iki-astro used to be" is now the person's own identity,
+   not the brand. On Home (nobody open yet) that centre column is simply empty; the brand lives
+   only in the footer now, on every screen. */
 
-/* Three-zone app bar shared by every route: navigation left, brand centred, saved charts
-   pinned to the far right. `.ik-appbar-scope` (a plain wrapping div, literal markup) is the
-   anchor `::deep` needs — `Class="ik-appbar"` on `<MudAppBar>` puts that class on its rendered
-   root but not this file's scope attribute (MudAppBar doesn't capture/forward it, same
-   documented MudBlazor gotcha as MudTabs — docs/ui/design-language.md "Tabs"), so a bare
-   `::deep .ik-appbar .mud-toolbar` selector compiled to a scope-prefixed selector with no
-   scoped ancestor anywhere above `.mud-toolbar` and never matched anything; this whole grid
-   (and therefore the centred brand / right-pinned Saved Charts it was meant to produce) was
-   dead CSS until the 2026-09-14 standardization pass wrapped MudAppBar and fixed it. */
+/* Three-zone app bar shared by every route: navigation left, open person's name centred
+   (`.ik-appbar-person`, empty when nobody's open), saved charts pinned to the far right.
+   `.ik-appbar-scope` (a plain wrapping div, literal markup) is the anchor `::deep` needs —
+   `Class="ik-appbar"` on `<MudAppBar>` puts that class on its rendered root but not this file's
+   scope attribute (MudAppBar doesn't capture/forward it, same documented MudBlazor gotcha as
+   MudTabs — docs/ui/design-language.md "Tabs"), so a bare `::deep .ik-appbar .mud-toolbar`
+   selector compiled to a scope-prefixed selector with no scoped ancestor anywhere above
+   `.mud-toolbar` and never matched anything; this whole grid was dead CSS until the 2026-09-14
+   standardization pass wrapped MudAppBar and fixed it. */
 .ik-appbar-scope ::deep .ik-appbar .mud-toolbar {
     max-width: none;
     width: 100%;
@@ -58,11 +64,12 @@
     color: var(--brand-sunset);
 }
 
+/* Lives only in the footer now (rammyps, 2026-09-26) — no longer a grid item of the app bar
+   toolbar, so no `justify-self` needed; `.ik-footer-inner`'s own flex row pins it left. */
 .ik-brand {
     display: flex;
     align-items: center;
     gap: 8px;
-    justify-self: center;
     color: var(--brand-midnight);
     font: 700 calc(var(--font-size-control) * 0.78) / 1.1 var(--font-interface);
     letter-spacing: 0.01em;
@@ -94,29 +101,25 @@
     opacity: 0.72;
 }
 
-/* Context band — person strip only (empty on Home, so the band is not rendered there). */
+/* Context band — Key Inference's master step rail only now (`Active.HeaderExtra`); the person
+   name/birth line that used to live here moved up into the app bar itself (`.ik-appbar-person`
+   below, rammyps, 2026-09-26 — "once a person's chart is chosen it should be at the top"), so
+   MainLayout only renders this band at all when a page has supplied HeaderExtra. Full width,
+   matching the app bar toolbar's own full-bleed approach, so the rail lands flush with HOME/
+   SAVED CHARTS above it. */
 .ik-band {
     border-bottom: 1px solid var(--brand-line);
     background: var(--brand-canvas);
 }
 
-/* Name-centred/DOB-below-it standard (rammyps, 2026-09-14: moved off right-aligned to centred,
-   and sized up a step for a centred focal element): stacked, centred — this is the one place
-   it's rendered, so it's automatically the same on every individual/chart page that has no
-   `Active.HeaderExtra` content. */
 .ik-band-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    max-width: var(--maxw);
+    width: 100%;
     margin-inline: auto;
-    padding: 12px var(--pad-x);
+    padding: 6px var(--pad-x) 8px;
 }
 
-/* Name + birth line always stack together as one block (`.ik-person-block`), independent of
-   whether the band as a whole is column (default) or row (`.has-extra`) — matches the old
-   `.ik-band-inner` stacking exactly so pages without extra content look unchanged. */
+/* Stacked name-over-birth-line block — shared by the app bar's `.ik-appbar-person` (the one
+   place it renders now) and, historically, the old person band this replaced. */
 .ik-person-block {
     display: flex;
     flex-direction: column;
@@ -124,36 +127,11 @@
     gap: 2px;
 }
 
-/* A page that supplies `Active.HeaderExtra` (currently only Key Inference, for its master
-   step rail — rammyps, 2026-09-23 evening: reclaim the vertical space the tab rail used to
-   take as its own row) puts the extra content on the left and the person block on the right,
-   on one row, instead of the name sitting centred on its own row above it. Unlike the base
-   `.ik-band-inner` rule above, this variant drops the `--maxw` cap and matches the app bar
-   toolbar's own full-width approach (`.ik-appbar-scope ::deep .ik-appbar .mud-toolbar` above:
-   `max-width: none; width: 100%;`) so the person name lands at the same right edge as "SAVED
-   CHARTS" in the bar above it, instead of stopping short at the narrower centred-content
-   column (rammyps's correction, 2026-09-23 evening). Pages that don't supply it are untouched
-   (`.ik-band-inner` above still applies, `--maxw` and all). */
-.ik-band-inner.has-extra {
-    max-width: none;
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-}
-.ik-band-inner.has-extra .ik-person-block { align-items: flex-end; }
-
-@media (max-width: 900px) {
-    /* Not enough width for name-left/tabs-right — fall back to the stacked, centred layout
-       (tab rail then renders as its own centred block below the name, inside the band). */
-    .ik-band-inner.has-extra {
-        flex-direction: column;
-        align-items: center;
-    }
-    .ik-band-inner.has-extra .ik-person-block { align-items: center; }
-}
+/* Sits in the app bar toolbar's centre grid column (`.ik-appbar-scope ::deep .ik-appbar
+   .mud-toolbar`, `minmax(0,1fr) auto minmax(0,1fr)`) — same slot the brand lockup used to
+   occupy, now showing the open person's name/DOB instead (rammyps, 2026-09-26). Renders only
+   when `Active.Id` is set; on Home this column is simply empty. */
+.ik-appbar-person { min-width: 0; }
 
 .ik-person {
     display: inline-flex;
@@ -256,9 +234,18 @@
     padding: 28px var(--pad-x) 40px;
 }
 
+/* Key Inference only (`.ik-page-tight-top`, rammyps, 2026-09-26 — "reduce the space between
+   1st-level tabs and its sub-tabs"): when the master step rail band is showing right above this
+   page, the page's own top padding is redundant on top of the band's — cuts the combined gap
+   between the rail and the page's first sub-tab row roughly in half. Every other page (no band)
+   keeps the full 28px. */
+.ik-page-tight-top { padding-top: 12px; }
+
 /* Full-bleed band, same shape as .ik-appbar's own toolbar (bar spans the viewport, its content
    sits in the shared centered column) — same vertical padding as the app bar's toolbar so the
-   page reads as bookended top and bottom. */
+   page reads as bookended top and bottom. Brand lockup pinned bottom-left (rammyps, 2026-09-26
+   — moved out of the app bar, see the file-level comment up top); the dedication line takes the
+   remaining width, centred in it. */
 .ik-footer {
     flex: none;
     background: var(--brand-sunset);
@@ -268,16 +255,31 @@
     max-width: var(--maxw);
     margin-inline: auto;
     padding: 20px var(--pad-x);
-    text-align: center;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
     color: var(--brand-midnight);
     font: 600 var(--font-size-control) / 1.4 var(--font-interface);
 }
 
-/* One line — never split between the dedication and the "By …" credit. */
+.ik-footer .ik-brand { flex: none; }
+
+/* One line — never split between the dedication and the "By …" credit. Fills the remaining
+   footer width and centres within it, so it still reads as the bar's focal line even though the
+   brand now shares the row (rammyps, 2026-09-26). */
 .ik-footer-line {
+    flex: 1 1 auto;
     display: inline-block;
+    text-align: center;
     text-wrap: balance;
+    /* Halved everywhere except Home (`.ik-footer.is-home`, MainLayout.razor's `CurrentPath ==
+       "/"` check) — rammyps, 2026-09-26: the dedication line should read as a quiet footer
+       credit on every chart/analysis page, but stay full-size on the landing page where it's
+       the only thing in the footer competing for attention. */
+    font-size: calc(var(--font-size-control) * 0.5);
 }
+.ik-footer.is-home .ik-footer-line { font-size: var(--font-size-control); }
 
 .ik-footer-by {
     font-size: 0.82em;
@@ -306,8 +308,3 @@
     .ik-headtab { min-width: 58px; min-height: 34px; padding: 4px 7px; letter-spacing: 0.02em; }
 }
 
-@media (max-width: 520px) {
-    .ik-brand { display: none; }
-    .ik-appbar-scope ::deep .ik-appbar .mud-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
-    .ik-header-save { grid-column: 2; }
-}

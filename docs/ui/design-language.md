@@ -149,10 +149,21 @@ every `.pill`/`.dot` status class in this codebase already carries per component
 
 The app header follows the same filled-pill grammar (`.ik-headtab`, matching the Key Inference
 master rail). Its active state (`.is-here`) uses midnight fill for contrast on the sunset app
-bar. The header spans the viewport as three zones: person tabs (ALL CHARTS / KEY INFERENCE) at
-left, the compact brand line centred, and **SAVED / CHARTS** at the extreme right. All three
-nav labels stack onto two lines (two `<span>`s each); "Saved Charts" retains its accessible
-name.
+bar. The header spans the viewport as three zones: person tabs (KEY INFERENCE / NUMEROLOGY) at
+left, and **SAVED / CHARTS** at the extreme right. All nav labels stack onto two lines (two
+`<span>`s each); "Saved Charts" retains its accessible name.
+
+**Header centre column and the brand lockup (revised 2026-09-26, rammyps's directive).** The
+Ganesha-icon + "Iki-Astrro" + tagline lockup (`.ik-brand`) no longer lives in the app bar at
+all — it moved to the footer's bottom-left, alongside the dedication line, on every screen. In
+its place, the header's centre column now shows the currently-open person's name/birth line
+(`.ik-appbar-person`, MainLayout.razor — reuses `.ik-person-block`, the same stacked
+name-over-DOB block Key Inference's old context band used) as soon as a person is opened;
+"the top where iki-astro used to be" is now the person's own identity, not the brand. On Home,
+before any person is opened, that centre column is simply empty. Downstream of this, the
+context band below the app bar (`.ik-band`) now renders only when a page supplies
+`Active.HeaderExtra` (currently just Key Inference's master step rail) — it no longer has a
+"just the person name, centred" mode, since that content moved up into the app bar.
 
 **Implementation note — `::deep` through a MudBlazor component's `Class` parameter doesn't
 work.** Blazor's CSS-isolation scope attribute is only added to elements written literally in

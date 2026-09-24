@@ -140,22 +140,18 @@
     color: var(--tab-active-fg);
 }
 
-/* Master step rail — rendered inside MainLayout's person band (`Active.HeaderExtra`, see
-   KeyInference.razor's `MasterNav`), not at the top of this page's own body, so it sits next
-   to the person name instead of on its own row (rammyps, 2026-09-23 evening — reclaim the
-   vertical space the row used to take; see MainLayout.razor.css `.has-extra`). Single line, no
-   step numbers, `flex: 1 1 auto` so the rail grows to fill the leftover row width next to the
-   (fixed-width) person block, left-packed from its own left edge (`justify-content: flex-start`).
-   Never wraps to a second line (rammyps, 2026-09-25 — the previous `margin-left: 440px` (lining
-   the rail's left edge up with the detail table below, not the chart) plus `flex-wrap: wrap` +
-   `justify-content: space-between` broke on any laptop-width viewport: the 7 pills' own natural
-   width is ~1140px, and that margin alone ate the ~915px budget left after the person block,
-   forcing an ugly 5-then-2 wrap with the last pill stranded far right. `flex-wrap: nowrap` +
-   `overflow-x: auto` makes this a single-line, horizontally-scrollable strip instead — the
-   alignment nicety wasn't worth breaking the layout for, and a scrollable tab strip on a narrow
-   window beats a two-line one on every width). Reset to a stacked block under the 900px
-   breakpoint, where the band drops to a centred column layout anyway
-   (MainLayout.razor.css `.has-extra`'s own breakpoint). */
+/* Master step rail — rendered inside MainLayout's context band (`Active.HeaderExtra`, see
+   KeyInference.razor's `MasterNav`), not at the top of this page's own body (rammyps,
+   2026-09-23 evening — reclaim the vertical space the row used to take). As of 2026-09-26 the
+   band holds only this rail (the person name/birth line moved up into the app bar itself,
+   `.ik-appbar-person` in MainLayout.razor.css), so the rail simply fills the band's full width —
+   no more sharing the row with a person block. Single line, no step numbers, left-packed from
+   its own left edge (`justify-content: flex-start`). Never wraps to a second line (rammyps,
+   2026-09-25 — a previous fixed `margin-left: 440px` plus `flex-wrap: wrap` broke on any
+   laptop-width viewport: the 7 pills' own natural width is ~1140px, wider than the space left
+   after that margin, forcing an ugly 5-then-2 wrap with the last pill stranded far right).
+   `flex-wrap: nowrap` + `overflow-x: auto` makes this a single-line, horizontally-scrollable
+   strip instead on any viewport too narrow for all 7 pills at once. */
 .ki-master {
     display: flex;
     flex: 1 1 auto;
@@ -167,7 +163,11 @@
     padding-bottom: 2px;
 }
 
-.ki-panelbody { min-width: 0; margin-top: 16px; }
+/* Margin halved 16px -> 8px (rammyps, 2026-09-26 — "reduce the space between 1st-level tabs
+   and its sub-tabs"), paired with MainLayout.razor.css's `.ik-page-tight-top` (also cut on this
+   page only) — together they roughly halve the gap between the master rail band above and the
+   first sub-tab row (1.1-1.3 Natal Charts' / 3.1-3.3 Strength's `.ki-subnav`) inside it. */
+.ki-panelbody { min-width: 0; margin-top: 8px; }
 
 /* Nested sub-tab rail (1.1-1.3 Natal Charts, 3.1-3.3 Strength) — same pill, smaller, single line
    (rammyps, 2026-09-24: was two-line stacked `<span>`s; flattened to one line now that the merged

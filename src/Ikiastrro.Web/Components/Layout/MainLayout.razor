@@ -36,76 +36,76 @@
                 </nav>
             }
         </div>
-        <span class="ik-brand">
-            <img src="/images/Ganesha-Icon.png" alt="" class="ik-brand-icon" />
-            <span class="ik-brand-text">
-                <span class="ik-brand-name">Iki-Astrro</span>
-                <span class="ik-tagline">Where Passion, Purpose &amp; Planets Align.</span>
-            </span>
-        </span>
+        @if (Active is { Id: not null, Name: not null })
+        {
+            <div class="ik-person-block ik-appbar-person">
+                <div class="ik-person-wrap">
+                    <button type="button" class="ik-person" @onclick="TogglePersonMenu"
+                            aria-haspopup="listbox" aria-expanded="@_personMenuOpen" title="Switch person">
+                        <span class="ik-person-name">@Active.Name</span>
+                        <span class="ik-person-caret" aria-hidden="true">▾</span>
+                    </button>
+                    @if (_personMenuOpen)
+                    {
+                        <ul class="ik-person-menu" role="listbox">
+                            @if (OtherPeople.Count == 0)
+                            {
+                                <li class="ik-person-menu-empty">No other saved people</li>
+                            }
+                            else
+                            {
+                                @foreach (var p in OtherPeople)
+                                {
+                                    <li>
+                                        <button type="button" @onclick="() => GoToPerson(p.Id)">
+                                            <span class="ik-person-menu-name">@p.Name</span>
+                                            <span class="ik-person-menu-birth">@p.DateOfBirth.ToString("dd MMM yyyy")</span>
+                                        </button>
+                                    </li>
+                                }
+                            }
+                            <li class="ik-person-menu-all">
+                                <button type="button" @onclick="GoToPicker">All saved people…</button>
+                            </li>
+                        </ul>
+                    }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
+                {
+                    <span class="ik-person-birth">@Active.BirthLine</span>
+                }
+            </div>
+        }
         <nav class="ik-header-save" aria-label="Saved charts">
             <a href="/charts" class="ik-headtab @(CurrentPath == "/charts" ? "is-here" : "")"><span>SAVED</span> <span>CHARTS</span></a>
         </nav>
     </MudAppBar>
     </div>
     <MudMainContent>
-        @if (Active is { Id: not null, Name: not null })
+        @if (_personMenuOpen)
+        {
+            <div class="ik-person-scrim" @onclick="ClosePersonMenu"></div>
+        }
+        @if (Active.HeaderExtra is not null)
         {
             <div class="ik-band">
-                <div class="ik-band-inner @(Active.HeaderExtra is not null ? "has-extra" : null)">
-                    @if (Active.HeaderExtra is not null)
-                    {
-                        @Active.HeaderExtra
-                    }
-                    <div class="ik-person-block">
-                        <div class="ik-person-wrap">
-                            <button type="button" class="ik-person" @onclick="TogglePersonMenu"
-                                    aria-haspopup="listbox" aria-expanded="@_personMenuOpen" title="Switch person">
-                                <span class="ik-person-name">@Active.Name</span>
-                                <span class="ik-person-caret" aria-hidden="true">▾</span>
-                            </button>
-                            @if (_personMenuOpen)
-                            {
-                                <ul class="ik-person-menu" role="listbox">
-                                    @if (OtherPeople.Count == 0)
-                                    {
-                                        <li class="ik-person-menu-empty">No other saved people</li>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var p in OtherPeople)
-                                        {
-                                            <li>
-                                                <button type="button" @onclick="() => GoToPerson(p.Id)">
-                                                    <span class="ik-person-menu-name">@p.Name</span>
-                                                    <span class="ik-person-menu-birth">@p.DateOfBirth.ToString("dd MMM yyyy")</span>
-                                                </button>
-                                            </li>
-                                        }
-                                    }
-                                    <li class="ik-person-menu-all">
-                                        <button type="button" @onclick="GoToPicker">All saved people…</button>
-                                    </li>
-                                </ul>
-                            }
-                        </div>
-                        @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
-                        {
-                            <span class="ik-person-birth">@Active.BirthLine</span>
-                        }
-                    </div>
+                <div class="ik-band-inner">
+                    @Active.HeaderExtra
                 </div>
             </div>
-            @if (_personMenuOpen)
-            {
-                <div class="ik-person-scrim" @onclick="ClosePersonMenu"></div>
-            }
         }
-        <div class="ik-page">
+        <div class="ik-page @(Active.HeaderExtra is not null ? "ik-page-tight-top" : null)">
             @Body
         </div>
-        <footer class="ik-footer">
+        <footer class="ik-footer @(CurrentPath == "/" ? "is-home" : null)">
             <div class="ik-footer-inner">
+                <span class="ik-brand">
+                    <img src="/images/Ganesha-Icon.png" alt="" class="ik-brand-icon" />
+                    <span class="ik-brand-text">
+                        <span class="ik-brand-name">Iki-Astrro</span>
+                        <span class="ik-tagline">Where Passion, Purpose &amp; Planets Align.</span>
+                    </span>
+                </span>
                 <span class="ik-footer-line">Dedicated to my guru (Sundari Hemachandran)<span class="ik-footer-by"> — By Ramakrishnan P</span></span>
             </div>
         </footer>

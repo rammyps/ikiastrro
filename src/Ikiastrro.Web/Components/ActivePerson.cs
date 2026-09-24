@@ -18,8 +18,9 @@ public sealed class ActivePerson
     public string? Name { get; private set; }
     public string? BirthLine { get; private set; }
 
-    /// <summary>Page-supplied extra content for the right side of <c>MainLayout</c>'s
-    /// context band (e.g. Key Inference's master step rail). Every other page that calls
+    /// <summary>Page-supplied content for <c>MainLayout</c>'s context band, which only renders
+    /// at all when this is non-null (e.g. Key Inference's master step rail — every other page
+    /// leaves it null, so the band simply doesn't appear there). Every other page that calls
     /// <see cref="Set"/> must also call <see cref="SetHeaderExtra"/> with <c>null</c>
     /// alongside it, so this doesn't stay populated after navigating away from the page that
     /// set it.</summary>

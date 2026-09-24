@@ -492,24 +492,27 @@ else
     private int _strengthTab;
 
     /// <summary>Master step rail — handed to <c>Active.SetHeaderExtra</c> (see
-    /// <see cref="OnParametersSet"/>) so it renders inside MainLayout's person band, to the
-    /// left of the name (rammyps, 2026-09-23 evening: reclaim the vertical space the rail
-    /// used to take as its own row, then moved to the left/name-right so the rail's own left
-    /// edge lines up with the page content's left edge below it — both share
-    /// `.ik-band-inner`'s max-width/padding with `.ik-page`). Plain markup, not MudTabs — see
-    /// docs/ui/design-language.md "Tabs" for why. Single line, no step numbers (rammyps's
-    /// call, same evening — the numbered two-line pills from earlier that day were dropped).
-    /// Because this fragment's markup physically renders inside MainLayout's tree, a click
-    /// there re-renders MainLayout automatically (whoever owns the triggering DOM event gets
-    /// re-rendered), which is enough to repaint the pills' active state; it does NOT also
+    /// <see cref="OnParametersSet"/>) so it renders inside MainLayout's context band, below the
+    /// app bar (rammyps, 2026-09-23 evening: reclaim the vertical space the rail used to take
+    /// as its own row in the page body). As of 2026-09-26 the band holds only this rail — the
+    /// person name/birth line that used to share the row moved up into the app bar itself
+    /// (MainLayout.razor's `.ik-appbar-person`), so the rail now simply fills the band's full
+    /// width. Plain markup, not MudTabs — see docs/ui/design-language.md "Tabs" for why. Single
+    /// line, no step numbers (rammyps's call, 2026-09-23 evening — the numbered two-line pills
+    /// from earlier that day were dropped); labels shortened 2026-09-26 ("NATAL CHARTS"/
+    /// "TRANSIT CHARTS" -> "NATAL"/"TRANSIT" — the rail reads as steps of one flow, not a list
+    /// of noun phrases, so the repeated "CHARTS" was redundant with "ALL CHARTS" already
+    /// present). Because this fragment's markup physically renders inside MainLayout's tree, a
+    /// click there re-renders MainLayout automatically (whoever owns the triggering DOM event
+    /// gets re-rendered), which is enough to repaint the pills' active state; it does NOT also
     /// re-render this page's own body (the `@if (_masterTab == N)` panels below), so
     /// <see cref="SelectMaster"/> calls <c>StateHasChanged()</c> explicitly — same
     /// cross-component pattern <c>ActivePerson.Changed</c>/<c>MainLayout</c> already uses,
     /// just in the other direction.</summary>
     private static readonly string[] MasterSteps =
     {
-        "NATAL CHARTS",
-        "TRANSIT CHARTS",
+        "NATAL",
+        "TRANSIT",
         "STRENGTH",
         "SPL LAGNAS",
         "YOGAS",
