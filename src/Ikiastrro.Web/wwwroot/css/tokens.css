@@ -231,7 +231,12 @@ h1, h2, h3 {
     --brand-sunrise: #fcd7bd;
     --font-size-display: clamp(38px, 3.05vw, 53px);
     --font-size-tagline: clamp(20px, 2vw, 37px);
-    --font-size-control: 19px;
+    /* App-wide base size — every standardized table/tab/control reads off this one token via
+       calc(var(--font-size-control) * X) (docs/ui/design-language.md). Bumped from 19px
+       (rammyps, 2026-09-24: across-the-board legibility pass); table cell padding was trimmed
+       in the same pass so the larger text still fits every standardized table without a
+       horizontal scrollbar. */
+    --font-size-control: 21px;
 
     /* One content width + gutter run through the app bar, the band, every page and the
        footer (docs/ui/wkstream_UI_v2.md — "Navigation / Header bar"). */

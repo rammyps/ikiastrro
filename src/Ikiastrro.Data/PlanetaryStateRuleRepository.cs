@@ -20,6 +20,18 @@ public class PlanetaryStateRuleRepository
         return GetRuleSet(activeId);
     }
 
+    /// <summary>Every `tbl_Dim_PlanetaryState` row keyed by Id — resolves `PlanetaryStateFact`'s
+    /// AgeStateId/WakefulnessStateId/PostureStateId FKs to a display name/meaning for the Key
+    /// Inference "Planet States" table, across all three avastha systems (Baaladi/Jagradadi/
+    /// Sayanadi) in one lookup, unlike <see cref="GetRuleSet"/>'s per-system shape.</summary>
+    public IReadOnlyDictionary<byte, PlanetaryStateRow> GetAllStates()
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        return connection.Query<PlanetaryStateRow>(
+                "SELECT Id, AvasthaSystem, StateName, SequenceOrder, Meaning FROM dbo.tbl_Dim_PlanetaryState")
+            .ToDictionary(r => r.Id, r => r);
+    }
+
     public PlanetaryStateRuleSet GetRuleSet(byte ruleSetId)
     {
         using var connection = _connectionFactory.CreateOpenConnection();

@@ -25,6 +25,9 @@
 @inject Ikiastrro.Data.ArgalaRuleRepository ArgalaRuleRepo
 @inject Ikiastrro.Data.RasiNakshatraCombinationRepository RasiNakshatraCombinationRepo
 @inject Ikiastrro.Data.GrahaDrishtiStrengthRepository GrahaDrishtiStrengthRepo
+@inject Ikiastrro.Data.PlanetaryStateRepository PlanetaryStateRepo
+@inject Ikiastrro.Data.PlanetaryStateRuleRepository PlanetaryStateRuleRepo
+@inject Ikiastrro.Data.PanchangaRepository PanchangaRepo
 @inject ActivePerson Active
 
 @* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
@@ -179,6 +182,9 @@ else
 
                     <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
+
+                    <h3 class="ki-sectionhead">Birth Pañchāṅga</h3>
+                    <PanchangaCard Row="_panchanga" UtcOffset="_utcOffset" />
                                 </div>
                             }
                             @if (_activeTab == 1)
@@ -186,6 +192,9 @@ else
                                 <div id="ki-natal-panel-1" role="tabpanel" aria-labelledby="ki-natal-tab-1">
 <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
                     <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
+
+                    <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
+                    <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames" />
                                 </div>
                             }
                             @if (_activeTab == 2)
@@ -530,6 +539,10 @@ else
     private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
     private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
+    private IReadOnlyList<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact> _planetaryStates = Array.Empty<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact>();
+    private IReadOnlyDictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow> _stateNames = new Dictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow>();
+    private Ikiastrro.Data.ChartPanchangaRow? _panchanga;
+    private TimeSpan _utcOffset = TransitSelection.IstOffset;
     private string _natalChart = "D1";
     private bool _natalChartCollapsed;
     private LoadedChart? NatalChart => _data?.Charts.GetValueOrDefault(_natalChart);
@@ -611,10 +624,17 @@ else
         _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
         _rasiNakshatraCombinations = RasiNakshatraCombinationRepo.GetAll(1);
         _grahaDrishtiStrengths = GrahaDrishtiStrengthRepo.GetByBirthDetailId(Id);
+        // AgeStateId is populated for D1 only (PlanetaryStateFact's own doc comment), so this
+        // filter is how the page narrows the person's all-chart-types fact list down to D1's
+        // rows without needing D1's ChartResultId (LoadedChart doesn't carry one).
+        _planetaryStates = PlanetaryStateRepo.GetByBirthDetailId(Id).Where(r => r.AgeStateId.HasValue).ToList();
+        _stateNames = PlanetaryStateRuleRepo.GetAllStates();
+        _panchanga = PanchangaRepo.GetByBirthDetailId(Id);
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
             ? parsedOffset
             : TransitSelection.IstOffset;
+        _utcOffset = offset;
         _selection = new TransitSelection(DashaRepo.GetTreeByBirthDetailId(Id), offset, DateTimeOffset.UtcNow);
         _asOfUtc = _selection.ActiveUtc.UtcDateTime;
 
