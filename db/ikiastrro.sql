@@ -3549,6 +3549,28 @@ INSERT dbo.tbl_Dim_PlanetaryState (AvasthaSystem, StateName, SequenceOrder, Mean
     ('Jagradadi', 'Swapna',   2, 'Dreaming — middling result (friendly / neutral sign)'),
     ('Jagradadi', 'Sushupti', 3, 'Sleeping — weak result (enemy sign / debilitation)');
 GO
+-- Dieptadi (9 states) + Lajjitadi (6 states) — folded forward from migration 136.
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_PlanetaryState WHERE AvasthaSystem = 'Deeptadi')
+INSERT dbo.tbl_Dim_PlanetaryState (AvasthaSystem, StateName, SequenceOrder, Meaning) VALUES
+    ('Deeptadi', 'Deepta',   1, 'Bright — exaltation sign'),
+    ('Deeptadi', 'Swastha',  2, 'Doing well, contented, natural — own sign (incl. moolatrikona)'),
+    ('Deeptadi', 'Mudita',   3, 'Delighted — great friend''s sign'),
+    ('Deeptadi', 'Saanta',   4, 'Peaceful — friend''s sign'),
+    ('Deeptadi', 'Deena',    5, 'Sad, depressed — neutral planet''s sign'),
+    ('Deeptadi', 'Duhkhita', 6, 'Distressed, miserable — enemy''s sign (incl. great enemy / debilitated)'),
+    ('Deeptadi', 'Vikala',   7, 'Crippled, confused — joined by malefic planet(s)'),
+    ('Deeptadi', 'Khala',    8, 'Mischievous, scheming — in a malefic planet''s sign'),
+    ('Deeptadi', 'Kopita',   9, 'Angry — joined closely by the Sun (combust)');
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Dim_PlanetaryState WHERE AvasthaSystem = 'Lajjitadi')
+INSERT dbo.tbl_Dim_PlanetaryState (AvasthaSystem, StateName, SequenceOrder, Meaning) VALUES
+    ('Lajjitadi', 'Lajjita',   1, 'Ashamed — in the 5th house, joined by Sun/Mars/Saturn/Rahu/Ketu'),
+    ('Lajjitadi', 'Garvita',   2, 'Proud — exaltation or moolatrikona sign'),
+    ('Lajjitadi', 'Kshudhita', 3, 'Hungry — enemy''s sign, or conjoined/aspected by enemies, or conjoined by Saturn'),
+    ('Lajjitadi', 'Trishita',  4, 'Thirsty — watery sign, aspected by enemies, without benefic aspect'),
+    ('Lajjitadi', 'Mudita',    5, 'Delighted — friend''s sign, conjoined/aspected by friends, or conjoined by Jupiter'),
+    ('Lajjitadi', 'Kshobhita', 6, 'Shaken, agitated — conjoined by Sun and aspected by malefics or enemies');
+GO
 IF OBJECT_ID('dbo.tbl_Rule_AgeState', 'U') IS NULL
 CREATE TABLE dbo.tbl_Rule_AgeState (
     Id                 TINYINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Rule_AgeState PRIMARY KEY,
@@ -3613,6 +3635,39 @@ FROM (VALUES
 ) v (DignityStatus, StateName)
 JOIN dbo.tbl_Dim_PlanetaryState s ON s.AvasthaSystem = 'Jagradadi' AND s.StateName = v.StateName;
 GO
+-- tbl_Rule_DeeptadiState — folded forward from migration 136.
+IF OBJECT_ID('dbo.tbl_Rule_DeeptadiState', 'U') IS NULL
+CREATE TABLE dbo.tbl_Rule_DeeptadiState (
+    Id             TINYINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Rule_DeeptadiState PRIMARY KEY,
+    RuleSetId      TINYINT     NOT NULL CONSTRAINT FK_Rule_DeeptadiState_RuleSet FOREIGN KEY REFERENCES dbo.tbl_Rule_Sets (Id),
+    DignityStatus  VARCHAR(20) NOT NULL,
+    AvasthaStateId TINYINT     NOT NULL CONSTRAINT FK_Rule_DeeptadiState_State   FOREIGN KEY REFERENCES dbo.tbl_Dim_PlanetaryState (Id),
+    MethodCode           VARCHAR(30)   NULL,
+    RuleParametersJson   NVARCHAR(MAX) NULL,
+    CalculationNarrative NVARCHAR(MAX) NULL,
+    SourceRefCode        VARCHAR(40)   NULL,
+    IsActive             BIT NOT NULL CONSTRAINT DF_Rule_DeeptadiState_IsActive DEFAULT 1,
+    CONSTRAINT UQ_Rule_DeeptadiState UNIQUE (RuleSetId, DignityStatus),
+    CONSTRAINT CK_RuleDeeptadiState_Json CHECK (RuleParametersJson IS NULL OR ISJSON(RuleParametersJson) = 1),
+    CONSTRAINT CK_RuleDeeptadiState_Src  CHECK (SourceRefCode IS NULL OR SourceRefCode LIKE 'SRC[_]%')
+);
+GO
+IF NOT EXISTS (SELECT 1 FROM dbo.tbl_Rule_DeeptadiState)
+INSERT dbo.tbl_Rule_DeeptadiState (RuleSetId, DignityStatus, AvasthaStateId, SourceRefCode, CalculationNarrative)
+SELECT 1, v.DignityStatus, s.Id, 'SRC_PVR_INTEGRATED', v.Narrative
+FROM (VALUES
+    ('Exalted',      'Deepta',   N'PVR sec 15.4.3 (1): exaltation rasi.'),
+    ('Moolatrikona', 'Swastha',  N'PVR sec 15.4.3 (2) names only "own rasi"; moolatrikona folded in here as the classical sub-range of the own sign — same folding shape tbl_Rule_WakefulnessState already uses for Jagradadi.'),
+    ('Own Sign',     'Swastha',  N'PVR sec 15.4.3 (2): own rasi.'),
+    ('Great Friend', 'Mudita',   N'PVR sec 15.4.3 (3): "a good friend''s rasi."'),
+    ('Friend',       'Saanta',   N'PVR sec 15.4.3 (4): "a friend''s rasi."'),
+    ('Neutral',      'Deena',    N'PVR sec 15.4.3 (5): "a neutral planet''s rasi."'),
+    ('Enemy',        'Duhkhita', N'PVR sec 15.4.3 (6): "an enemy''s rasi."'),
+    ('Great Enemy',  'Duhkhita', N'PVR names only "an enemy''s rasi" (6 tiers); this project''s DignityStatus splits Enemy/Great Enemy/Debilitated into 3 — folded onto Duhkhita alongside Enemy, same shape tbl_Rule_WakefulnessState uses for Jagradadi''s Sushupti tier.'),
+    ('Debilitated',  'Duhkhita', N'Not named in PVR sec 15.4.3''s 6 tiers at all; folded onto Duhkhita (weakest tier) for the same reason as Great Enemy above.')
+) v (DignityStatus, StateName, Narrative)
+JOIN dbo.tbl_Dim_PlanetaryState s ON s.AvasthaSystem = 'Deeptadi' AND s.StateName = v.StateName;
+GO
 
 -- =====================================================================
 -- Rule-table portability (folded from db/18_rule_table_portability.sql).
@@ -3656,6 +3711,7 @@ VALUES
     ('tbl_Rule_TemporaryFriendshipDistance','DIGNITY',      'DISTANCE_SET',  'Tatkalika (temporary) friendship: which sign-distances from a planet count as friendly.', 'baseline'),
     ('tbl_Rule_AgeState',                   'AVASTHA',      'BAND_LOOKUP',   'Baaladi avastha (infant..dead) degree bands per odd/even sign, with the effect fraction.', 'migration 00 / renamed 16'),
     ('tbl_Rule_WakefulnessState',           'AVASTHA',      'MAP_LOOKUP',    'Jagradadi avastha (awake/dreaming/sleeping) keyed by the planet''s dignity status.', 'migration 00 / renamed 16'),
+    ('tbl_Rule_DeeptadiState',              'AVASTHA',      'MAP_LOOKUP',    'Deeptadi avastha''s 6 dignity-tier states (Deepta..Duhkhita) keyed by the planet''s dignity status; the other 3 Deeptadi states and all 6 Lajjitadi states are computed directly (no rule row).', 'migration 136'),
     ('tbl_Rule_HouseSignification',         'HOUSE',        'MAP_LOOKUP',    'Bhava karatvas: the significations attached to each house (PVR sec 7.2). One row per matter, categorised body-part / person / matter / derived-house, RuleSetId 1.', '31_add_house_model.sql'),
     ('tbl_Rule_Karaka',                     'KARAKA',       'MAP_LOOKUP',    'Reserved: chara / sthira / naisargika karaka assignment schemes.', 'migration 18 (empty; P2)'),
     ('tbl_Rule_HouseAttribute',             'HOUSE',        'ATTR_LOOKUP',   'Per-house descriptive attributes (PVR ch. 7): general character, sec 7.4.6 special-category effect, and naisargika bhava karaka. One row per (rule-set, house, attribute, priority); mirror of tbl_Rule_GrahaAttribute.', '31_add_house_model.sql'),
@@ -3783,6 +3839,22 @@ BEGIN
         CONSTRAINT UQ_Fact_PlanetaryState UNIQUE (ChartResultId, Planet)
     );
     CREATE NONCLUSTERED INDEX IX_Fact_PlanetaryState_ChartResultId ON dbo.tbl_Fact_PlanetaryState (ChartResultId);
+END
+GO
+
+-- tbl_Fact_PlanetaryStateFlag — folded forward from migration 136. Generic multi-row child of
+-- tbl_Fact_PlanetaryState: every matched Deeptadi/Lajjitadi state per planet per chart (the book
+-- gives no precedence between states, so several can hold at once — same reasoning as
+-- tbl_Fact_Argala flattening a variable-cardinality result into a child table).
+IF OBJECT_ID('dbo.tbl_Fact_PlanetaryStateFlag', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.tbl_Fact_PlanetaryStateFlag (
+        Id                    INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Fact_PlanetaryStateFlag PRIMARY KEY,
+        PlanetaryStateFactId  INT     NOT NULL CONSTRAINT FK_Fact_PlanetaryStateFlag_Fact  FOREIGN KEY REFERENCES dbo.tbl_Fact_PlanetaryState (Id) ON DELETE CASCADE,
+        AvasthaStateId        TINYINT NOT NULL CONSTRAINT FK_Fact_PlanetaryStateFlag_State FOREIGN KEY REFERENCES dbo.tbl_Dim_PlanetaryState (Id),
+        CONSTRAINT UQ_Fact_PlanetaryStateFlag UNIQUE (PlanetaryStateFactId, AvasthaStateId)
+    );
+    CREATE NONCLUSTERED INDEX IX_Fact_PlanetaryStateFlag_FactId ON dbo.tbl_Fact_PlanetaryStateFlag (PlanetaryStateFactId);
 END
 GO
 
@@ -6064,6 +6136,8 @@ SELECT
     ageState.StateName           AS AgeState,
     av.AgeEffectFraction,
     wakeState.StateName          AS WakefulnessState,
+    Deeptadi.StateList           AS DeeptadiStates,
+    Lajjitadi.StateList          AS LajjitadiStates,
     RulesHouses.HouseList        AS RulesHouseNumbers,
     Conjunct.PlanetList           AS ConjunctWith,
     AspectsCast.TargetList        AS Aspects,
@@ -6075,6 +6149,18 @@ JOIN dbo.tbl_BirthDetails bd  ON bd.Id = cr.BirthDetailId
 LEFT JOIN dbo.tbl_Fact_PlanetaryState av ON av.ChartResultId = kd.ChartResultId AND av.PlanetId = kd.PlanetId
 LEFT JOIN dbo.tbl_Dim_PlanetaryState  ageState  ON ageState.Id  = av.AgeStateId
 LEFT JOIN dbo.tbl_Dim_PlanetaryState  wakeState ON wakeState.Id = av.WakefulnessStateId
+OUTER APPLY (
+    SELECT STRING_AGG(s.StateName, '','') WITHIN GROUP (ORDER BY s.SequenceOrder) AS StateList
+    FROM dbo.tbl_Fact_PlanetaryStateFlag f
+    JOIN dbo.tbl_Dim_PlanetaryState s ON s.Id = f.AvasthaStateId AND s.AvasthaSystem = ''Deeptadi''
+    WHERE f.PlanetaryStateFactId = av.Id
+) Deeptadi
+OUTER APPLY (
+    SELECT STRING_AGG(s.StateName, '','') WITHIN GROUP (ORDER BY s.SequenceOrder) AS StateList
+    FROM dbo.tbl_Fact_PlanetaryStateFlag f
+    JOIN dbo.tbl_Dim_PlanetaryState s ON s.Id = f.AvasthaStateId AND s.AvasthaSystem = ''Lajjitadi''
+    WHERE f.PlanetaryStateFactId = av.Id
+) Lajjitadi
 OUTER APPLY (
     SELECT STRING_AGG(CAST(hl.HouseNumber AS VARCHAR(2)), '','') WITHIN GROUP (ORDER BY hl.HouseNumber) AS HouseList
     FROM dbo.tbl_Chart_HouseLords hl
