@@ -300,8 +300,11 @@ public class ChartGenerationService
             _multiGrahaConjunctionsRepo.LinkPairRows(chartResultId);
         }
         if (aspects.Count > 0) _aspectsRepo.InsertAll(aspects);
-        if (input.ChartType is "D1" or "D9" or "D10")
-            _grahaDrishtiStrengthRepo?.Replace(chartResultId, ruleSetId, input);
+
+        // Graha-drishti sphuta strength, like Ashtakavarga below, is materialised independently
+        // for every divisional chart so the UI's varga selector reads distinct persisted
+        // percentages instead of relabelling D1 (sign_planet_asp.md slices 6-7).
+        _grahaDrishtiStrengthRepo?.Replace(chartResultId, ruleSetId, input);
         if (planetaryStates.Count > 0) _planetaryStateRepo.InsertAll(planetaryStates);
 
         // Ashtakavarga is materialised independently for every divisional chart so the UI's

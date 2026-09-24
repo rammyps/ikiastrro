@@ -78,9 +78,10 @@ strength ~= 91.79%
 - Maandi, Gulika, special lagnas, sphutas, Arudha Lagna, A2-A11, and UL.
 - V2-V12 and other persisted special points when their longitudes are available.
 
-Start with D-1 and the Ramakrishnan fixture. Extend to other vargas only after defining how
-each selected varga supplies its body longitudes; never show reused D-1 percentages under a
-different varga label.
+Started with D-1 and the Ramakrishnan fixture; extended to every other registered varga
+2026-09-24 by feeding each chart's own stored longitudes through the same calculator — never
+shows reused D-1 percentages under a different varga label (`verify-graha-drishti` checks this
+per chart type).
 
 ## Implementation slices
 
@@ -88,14 +89,19 @@ different varga label.
    virupas, special virupas, capped total, percentage, and discrete-aspect metadata.
 2. Reproduce the Ramakrishnan fixture to `+/-0.01%`, including special-aspect boundaries and
    Rahu/Ketu cases.
-3. **Implemented:** D1/D9/D10 results persist in `tbl_Fact_GrahaDrishtiStrengths`, carrying
-   chart/rule provenance, input longitudes, and the calculation breakdown.
+3. **Implemented:** results persist in `tbl_Fact_GrahaDrishtiStrengths` for every registered
+   chart type (D1..D60, widened from D1/D9/D10 2026-09-24 — same independent-per-varga
+   recompute pattern as Ashtakavarga), carrying chart/rule provenance, input longitudes, and the
+   calculation breakdown.
 4. **Implemented:** `vw_ChartGrahaDrishtiStrengths` exposes the evidence; existing discrete
    `ChartAspect` facts remain canonical and separate.
-5. **Implemented (first UI slice):** relationship summary and D1/D9/D10 strength matrix with
-   sticky identity columns, heat colouring, focus-body selection, and cell evidence detail.
+5. **Implemented (first UI slice):** relationship summary and strength matrix with sticky
+   identity columns, heat colouring, focus-body selection, and cell evidence detail, for whichever
+   varga the shared Key Inference chart picker selects.
 6. Connect selected results to Rasi drishti, conjunction, combustion, and dispositor chains.
-7. Recalculate from the selected varga's longitudes and verify dropdown changes end-to-end.
+7. **Implemented 2026-09-24:** each varga's rows are recomputed independently from that varga's
+   own longitudes (not reused D1 percentages) and `verify-graha-drishti` confirms every
+   dropdown/chart-type change end-to-end.
 
 ## Acceptance criteria for later implementation
 

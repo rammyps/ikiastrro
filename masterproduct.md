@@ -298,15 +298,18 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   equivalence" pattern as `ArgalaCalculator`/`RasiDrishtiCalculator` (see those files' own doc
   comments). Detail: `argala-virodhargala-drishti-lifematters.md`.
 - **FEAT-RELATIONSHIP-05 · Sphuta (longitude-based) Graha Dṛṣṭi strength** — Verified · 80%
-  (new 2026-09-23, found undocumented on `master`; Verify closed 2026-09-23) · Research: complete
-  (`SRC_PVR_INTEGRATED`)
+  (new 2026-09-23, found undocumented on `master`; Verify closed 2026-09-23; widened from
+  D1/D9/D10-only to every registered chart type 2026-09-24, same "materialise independently per
+  varga" pattern as `FEAT-ASHTAKAVARGA-02`) · Research: complete (`SRC_PVR_INTEGRATED`)
   DB [x] (`tbl_Fact_GrahaDrishtiStrengths`, migration 132 — Virupas + strength % per
-  aspecting/aspected pair, D1/D9/D10 only; distinct from the discrete whole-sign aspects already
-  in `tbl_Chart_Aspects`/`FEAT-RELATIONSHIP-02`) · Core [x] (`GrahaDrishtiStrengthRepository`,
-  wired live in `ChartGenerationService.PersistAnalytics`) · Verify [x] (`verify-graha-drishti` —
-  recomputes `GrahaDrishtiStrengthCalculator` independently from stored longitudes and
-  cross-checks every saved person's D1/D9/D10 rows, same shape as `verify-dispositor`) · Web [x]
-  (`GrahaDrishtiMatrix.razor`, `RasiDrishtiMatrix.razor`, Key Inference tab) · Docs [ ]
+  aspecting/aspected pair, every registered chart type (D1..D60); distinct from the discrete
+  whole-sign aspects already in `tbl_Chart_Aspects`/`FEAT-RELATIONSHIP-02`) · Core [x]
+  (`GrahaDrishtiStrengthRepository`, wired live and unconditionally in
+  `ChartGenerationService.PersistAnalytics`) · Verify [x] (`verify-graha-drishti` — recomputes
+  `GrahaDrishtiStrengthCalculator` independently from stored longitudes and cross-checks every
+  saved person's rows across every registered chart type, same shape as `verify-dispositor`) ·
+  Web [x] (`GrahaDrishtiMatrix.razor`, `RasiDrishtiMatrix.razor`, Key Inference tab, reachable for
+  any varga via the shared chart picker) · Docs [ ]
 
 ## KARAKA — workstream: cli
 

@@ -79,7 +79,6 @@
     [Parameter] public string SelectedChart { get; set; } = "D1";
     [Parameter] public EventCallback<string> SelectedChartChanged { get; set; }
 
-    private static readonly string[] ChartOrder = ["D1", "D9", "D10"];
     private static readonly string[] PlanetOrder = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
     private string _selectedBody = "Ascendant";
     private GrahaDrishtiStrengthRow? _selected;
@@ -88,7 +87,6 @@
     private IReadOnlyList<string> Targets => new[] { "Ascendant" }.Concat(PlanetOrder).Where(p => ChartRows.Any(r => r.AspectedPointKey == p)).ToList();
     private IEnumerable<GrahaDrishtiStrengthRow> Incoming => ChartRows.Where(r => r.AspectedPointKey == _selectedBody);
     private IEnumerable<GrahaDrishtiStrengthRow> Outgoing => ChartRows.Where(r => r.AspectingPlanet == _selectedBody);
-    private bool HasChart(string chart) => Rows.Any(r => r.ChartType == chart);
     private GrahaDrishtiStrengthRow? Cell(string source, string target) => ChartRows.FirstOrDefault(r => r.AspectingPlanet == source && r.AspectedPointKey == target);
     private static GrahaDrishtiStrengthRow? Strongest(IEnumerable<GrahaDrishtiStrengthRow> rows) => rows.OrderByDescending(r => r.StrengthPercentage).FirstOrDefault();
     private string IncomingStrength => Strongest(Incoming) is { } row ? $"{row.AspectingPlanet} {row.StrengthPercentage:0.##}%" : "—";
@@ -96,5 +94,4 @@
     private static string Short(string body) => body == "Ascendant" ? "Lagna" : body[..Math.Min(2, body.Length)];
     private static string Ordinal(byte? house) => house switch { 3 => "3rd", 4 => "4th", 5 => "5th", 7 => "7th", 8 => "8th", 9 => "9th", 10 => "10th", _ => "—" };
     private static string CellTitle(GrahaDrishtiStrengthRow row) => $"{row.AspectingPlanet} to {row.AspectedPointKey}: {row.StrengthPercentage:0.00}%";
-    private async Task SelectChart(string chart) { _selected = null; await SelectedChartChanged.InvokeAsync(chart); }
 }

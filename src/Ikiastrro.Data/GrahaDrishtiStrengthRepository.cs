@@ -17,9 +17,6 @@ public sealed record GrahaDrishtiStrengthRow(
 /// owned by ChartAspectsRepository; the nullable ordinal here is calculation metadata only.</summary>
 public sealed class GrahaDrishtiStrengthRepository
 {
-    private static readonly HashSet<string> SupportedChartTypes =
-        new(StringComparer.OrdinalIgnoreCase) { "D1", "D9", "D10" };
-
     private readonly SqlConnectionFactory _connectionFactory;
     public GrahaDrishtiStrengthRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
     public IReadOnlyList<GrahaDrishtiStrengthRow> GetByBirthDetailId(int birthDetailId)
@@ -50,8 +47,6 @@ public sealed class GrahaDrishtiStrengthRepository
 
     public void Replace(int chartResultId, int ruleSetId, ChartAnalysisInput input)
     {
-        if (!SupportedChartTypes.Contains(input.ChartType)) return;
-
         var points = input.Planets
             .Where(p => p.PointKind == "Graha" && Longitude(p).HasValue)
             .ToList();

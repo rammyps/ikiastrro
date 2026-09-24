@@ -1490,10 +1490,11 @@ if (args.Length > 0 && args[0] == "verify-dispositor")
 
 // --- One-off check: `dotnet run -- verify-graha-drishti` ---
 // GrahaDrishtiStrengthRepository.Replace persists the sphuta (longitude-based) Virupa
-// strength for every aspecting/aspected pair in D1/D9/D10 (FEAT-RELATIONSHIP-05, migration
-// 132) but has no CLI coverage yet. This recomputes GrahaDrishtiStrengthCalculator
-// independently from each chart's own stored longitudes and cross-checks it against the
-// persisted tbl_Fact_GrahaDrishtiStrengths rows, rather than re-deriving via the same code path.
+// strength for every aspecting/aspected pair in every registered chart type (FEAT-RELATIONSHIP-05,
+// migration 132; widened from D1/D9/D10-only per sign_planet_asp.md slices 6-7). This recomputes
+// GrahaDrishtiStrengthCalculator independently from each chart's own stored longitudes and
+// cross-checks it against the persisted tbl_Fact_GrahaDrishtiStrengths rows, rather than
+// re-deriving via the same code path.
 if (args.Length > 0 && args[0] == "verify-graha-drishti")
 {
     var failures = 0;
@@ -1507,12 +1508,13 @@ if (args.Length > 0 && args[0] == "verify-graha-drishti")
     var gdKeyDetailsRepo = new ChartKeyDetailsRepository(connectionFactory);
     var grahaDrishtiRepo = new GrahaDrishtiStrengthRepository(connectionFactory);
     using var gdConn = connectionFactory.CreateOpenConnection();
-    var supportedChartTypes = new[] { "D1", "D9", "D10" };
+    // Same "every registered chart type except VimshottariDasha" scope recompute-keydetails uses.
+    var supportedChartTypes = orchestrator.Calculators.Select(c => c.ChartType).ToArray();
 
     foreach (var person in birthDetailsRepo.GetAll())
     {
         var storedRows = grahaDrishtiRepo.GetByBirthDetailId(person.Id);
-        Check($"{person.Name}: no rows outside D1/D9/D10", storedRows.Count(r => !supportedChartTypes.Contains(r.ChartType)), 0);
+        Check($"{person.Name}: no rows outside registered chart types", storedRows.Count(r => !supportedChartTypes.Contains(r.ChartType)), 0);
 
         foreach (var chartType in supportedChartTypes)
         {
