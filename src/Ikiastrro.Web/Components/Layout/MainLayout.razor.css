@@ -102,7 +102,8 @@
 
 /* Name-centred/DOB-below-it standard (rammyps, 2026-09-14: moved off right-aligned to centred,
    and sized up a step for a centred focal element): stacked, centred — this is the one place
-   it's rendered, so it's automatically the same on every individual/chart page. */
+   it's rendered, so it's automatically the same on every individual/chart page that has no
+   `Active.HeaderExtra` content. */
 .ik-band-inner {
     display: flex;
     flex-direction: column;
@@ -111,6 +112,47 @@
     max-width: var(--maxw);
     margin-inline: auto;
     padding: 12px var(--pad-x);
+}
+
+/* Name + birth line always stack together as one block (`.ik-person-block`), independent of
+   whether the band as a whole is column (default) or row (`.has-extra`) — matches the old
+   `.ik-band-inner` stacking exactly so pages without extra content look unchanged. */
+.ik-person-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+/* A page that supplies `Active.HeaderExtra` (currently only Key Inference, for its master
+   step rail — rammyps, 2026-09-23 evening: reclaim the vertical space the tab rail used to
+   take as its own row) puts the extra content on the left and the person block on the right,
+   on one row, instead of the name sitting centred on its own row above it. Unlike the base
+   `.ik-band-inner` rule above, this variant drops the `--maxw` cap and matches the app bar
+   toolbar's own full-width approach (`.ik-appbar-scope ::deep .ik-appbar .mud-toolbar` above:
+   `max-width: none; width: 100%;`) so the person name lands at the same right edge as "SAVED
+   CHARTS" in the bar above it, instead of stopping short at the narrower centred-content
+   column (rammyps's correction, 2026-09-23 evening). Pages that don't supply it are untouched
+   (`.ik-band-inner` above still applies, `--maxw` and all). */
+.ik-band-inner.has-extra {
+    max-width: none;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.ik-band-inner.has-extra .ik-person-block { align-items: flex-end; }
+
+@media (max-width: 900px) {
+    /* Not enough width for name-left/tabs-right — fall back to the stacked, centred layout
+       (tab rail then renders as its own centred block below the name, inside the band). */
+    .ik-band-inner.has-extra {
+        flex-direction: column;
+        align-items: center;
+    }
+    .ik-band-inner.has-extra .ik-person-block { align-items: center; }
 }
 
 .ik-person {

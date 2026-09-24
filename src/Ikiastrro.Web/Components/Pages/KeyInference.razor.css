@@ -95,76 +95,94 @@
 }
 .ki-wheel ::deep .ntw { width: 100%; }
 
-/* Tab-strip convention (tokens.css --tab-*, design-language.md "Tabs"): every tab, at every
-   level (master, D1 Birth/Current Transit, 2.1/2.2, 3.1/3.2), is the same flat dark-navy/
-   sunset-orange pill (2026-09-23 — active and inactive share one look, no colour swap) — the
-   look the master step rail (.ki-master-button below) originated.
-   The underline slider MudBlazor draws by default is redundant against a filled pill and is
-   hidden. */
-.ki-tabs ::deep .mud-tab {
-    font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: none;
-    background: var(--tab-inactive-bg);
-    color: var(--tab-inactive-fg);
+/* Tab-strip convention (tokens.css --tab-*, design-language.md "Tabs") — plain hand-rolled
+   pill nav at every level (master rail, 1.1-1.4, 3.1-3.3), not MudBlazor's <MudTabs>
+   (rammyps, 2026-09-23 evening: three separate rounds of fighting MudTabs' internal DOM just
+   to get this exact plain-pill look was enough — the app's own header nav, `.ik-headtab` in
+   MainLayout.razor.css, already proves the plain-markup version of this same look works, so
+   the tab strip here now follows it instead). Same shared `--tab-*` tokens as before, same
+   sunset-fill/navy-text pill, but now on real `<button role="tab">` elements with
+   `aria-selected` driving the active look — no more `::deep` MudBlazor-DOM targeting needed
+   anywhere in this file. */
+.ki-steptab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    min-height: 44px;
+    padding: 6px 16px;
     border: 0;
     border-radius: 999px;
-    min-height: 36px;
-    padding: 6px 20px;
-    margin: 0 6px 0 0;
+    background: var(--tab-inactive-bg);
+    color: var(--tab-inactive-fg);
+    /* At least as large as the table column headers below (.ki-table th, 1em) — rammyps,
+       2026-09-23 evening: the tabs read as the page's primary nav and shouldn't be smaller
+       than the content they control. */
+    font: 700 calc(var(--font-size-control) * 1.05) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.02em;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
 }
-
-.ki-tabs ::deep .mud-tab.mud-tab-active {
+/* Inactive tabs are transparent (tokens.css --tab-inactive-bg), so a plain brightness filter
+   has nothing to darken — hover instead tints in a faint peach so unselected pills still give
+   feedback; the active pill (already solid sunset) just brightens slightly instead. */
+.ki-steptab:hover { background: var(--brand-peach); }
+.ki-steptab[aria-selected="true"]:hover { filter: brightness(0.96); background: var(--tab-active-bg); }
+.ki-steptab:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 2px; }
+.ki-steptab[aria-selected="true"] {
     background: var(--tab-active-bg);
     color: var(--tab-active-fg);
 }
 
-.ki-tabs ::deep .mud-tabs-tabbar-wrapper .mud-tab-slider { display: none; }
-.ki-tabs ::deep .mud-tabs-panels { padding-top: 16px; }
+/* Master step rail — rendered inside MainLayout's person band (`Active.HeaderExtra`, see
+   KeyInference.razor's `MasterNav`), not at the top of this page's own body, so it sits next
+   to the person name instead of on its own row (rammyps, 2026-09-23 evening — reclaim the
+   vertical space the row used to take; see MainLayout.razor.css `.has-extra`). Single line, no
+   step numbers, `flex: 1 1 auto` so the rail grows to fill the leftover row width next to the
+   (fixed-width) person block and `justify-content: space-between` spreads the 7 pills evenly
+   across that width, from its own left edge out to the person block on the right, instead of
+   left-packing into a tight cluster. `margin-left` starts that left edge where the D1 chart
+   widget ends, not where the page content column starts — 420px is `.ki-gridwrap`'s own max
+   width below (rammyps's call, 2026-09-23 evening: line the rail up with where the detail
+   table begins, not the chart). Reset to 0 under the 900px breakpoint, where the band drops
+   to a stacked column layout and this offset would just crowd the rail into the person block
+   above it (MainLayout.razor.css `.has-extra`'s own breakpoint). */
+.ki-master {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px;
+    margin-left: 440px;
+}
 
-/* The attached Key Inference design uses one horizontal, evenly spaced master-step rail.
-   This remains the single shell for every step so switching never changes page geometry. */
-.ki-mastertabs { margin-bottom: 4px; }
-.ki-mastertabs ::deep .ki-master-header {
-    border-bottom: 1px solid var(--brand-line);
+@media (max-width: 900px) {
+    .ki-master { margin-left: 0; }
 }
-/* CORRECTED 2026-09-24: the previous attempt targeted `.mud-tabs-toolbar-wrapper`/`-toolbar-inner`,
-   which this MudBlazor version never renders (confirmed live via devtools) — it renders
-   `.mud-tabs-tabbar-inner` > `.mud-tabs-tabbar-content` > `.mud-tabs-tabbar-wrapper`, whose direct
-   children are each tab's own `.mud-tooltip-root.mud-tooltip-inline` wrapper plus the slider. That
-   wrong selector was inert, so MudTabs' own natural-width flex packing was all that ever rendered.
-   Targeting the REAL wrapper with a grid stretches all 7 steps evenly across the full width without
-   tripping MudTabs' overflow/scroll-arrow JS into "arrows + 2 tabs" mode (verified in-browser:
-   switching tabs, resizing down to the 900px breakpoint below). */
-.ki-mastertabs ::deep .mud-tabs-tabbar-wrapper {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    width: 100%;
-    gap: 8px;
-}
-.ki-mastertabs ::deep .mud-tabs-tabbar-wrapper > .mud-tooltip-root.mud-tooltip-inline {
-    width: 100%;
-}
-.ki-mastertabs ::deep .mud-tabs-tabbar-wrapper > .mud-tooltip-root.mud-tooltip-inline > button {
-    width: 100%;
-}
-.ki-mastertabs ::deep .ki-master > .mud-tabs-panels { padding-top: 0; }
-.ki-panelbody { min-width: 0; }
 
-/* Panels with no heading of their own (About, Strength — the "Step N of 6"/heading text was
-   dropped 2026-09-16/09-17) still need breathing room below the master tab row's divider line,
-   same as .ki-stephead used to give every panel before its heading was removed. */
-.ki-panelbody > .ki-tabs:first-child { margin-top: 16px; }
+.ki-panelbody { min-width: 0; margin-top: 16px; }
 
-/* Master steps are quiet cream pills; the selected step is the strong sunset pill from
-   KEY-INFERENCE-TAB-DESIGN-v2 — same shape/colour as every nested tab level now (.ki-tabs
-   above), via the shared --tab-* tokens. Label centring matters here because the grid-stretch
-   above (`.mud-tabs-tabbar-wrapper`) now really does give each of the 7 steps equal width. */
-.ki-mastertabs ::deep .ki-master-button {
-    justify-content: center;
-    margin: 0;
-    padding-inline: 0;
+/* Nested sub-tab rail (1.1-1.4 Natal Charts, 3.1-3.3 Strength) — same pill, smaller, still
+   two-line (`.ki-steptab-sub` below), unlike the now-single-line master rail above. */
+.ki-subnav-wrap { min-width: 0; }
+.ki-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
 }
+.ki-subpanels { min-width: 0; }
+.ki-steptab-sub {
+    flex-direction: column;
+    white-space: normal;
+    min-width: 64px;
+    min-height: 38px;
+    padding: 5px 12px;
+    font-size: calc(var(--font-size-control) * 0.86);
+    line-height: 1.15;
+}
+.ki-steptab-sub span { display: block; white-space: nowrap; }
 
 .ki-alert { font-size: 0.85em; }
 
@@ -175,20 +193,25 @@
     border-radius: 10px;
 }
 
-.ki-tabs ::deep .ki-table {
+/* Anchored to `.ki-panelbody` (a plain literal div, not a MudBlazor Class-passthrough) rather
+   than a dedicated wrapper, since the Current Transit table (`Variant="2. TRANSIT CHARTS"`) is
+   this rule's only remaining consumer post-MudTabs-removal — see design-language.md "::deep
+   through a MudBlazor component's Class parameter doesn't work" for why `::deep` off *some*
+   literal scoped ancestor is required at all. */
+.ki-panelbody ::deep .ki-table {
     box-shadow: none;
     background: transparent;
 }
 
-.ki-tabs ::deep .ki-table table {
+.ki-panelbody ::deep .ki-table table {
     width: 100%;
     table-layout: auto;
     border-collapse: collapse;
     /* Deliberately no font-size here, and no "font:" shorthand (which sets font-size as part of
        it even when you only meant to set family/weight) — unlike every plain-<table> component's
-       own table-level rule. th/td below must explicitly re-assert 0.86em to beat MudSimpleTable's
+       own table-level rule. th/td below must explicitly re-assert 1em to beat MudSimpleTable's
        own td rule (see their comment); this element's own font-size needs to stay whatever it
-       already inherits (MudBlazor's ambient body size), or that 0.86em ends up scaling the wrong
+       already inherits (MudBlazor's ambient body size), or that 1em ends up scaling the wrong
        base. Longhand only, so font-size is never touched. */
     font-family: 'Manrope', 'Segoe UI', sans-serif;
     line-height: 1.3;
@@ -197,55 +220,40 @@
 /* MudSimpleTable ships its own .mud-simple-table table * tr > td rule (font-family/font-size
    from --mud-typography-body2-*) which beats plain inheritance from the "table" rule above (an
    explicit rule always beats an inherited value, regardless of specificity) — so font has to be
-   re-asserted here, at .ppt's actual 0.86em, not left to inherit like the other (non-Mud, plain
-   <table>) standardized components can. */
-.ki-tabs ::deep .ki-table th {
+   re-asserted here, at .ppt's actual 1em (bumped from 0.86em 2026-09-23 evening, rammyps's
+   call, matched across every standardized table component — PlanetPositionsTable.razor.css
+   and friends), not left to inherit like the other (non-Mud, plain <table>) standardized
+   components can. */
+.ki-panelbody ::deep .ki-table th {
     padding: 9px 8px;
     text-align: left;
     vertical-align: bottom;
     background: var(--brand-surface);
     color: var(--brand-midnight);
     font: 700 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
-    font-size: 0.86em;
+    font-size: 1em;
     border-bottom: 2px solid var(--brand-line);
     white-space: normal;
     position: sticky;
     top: 0;
 }
 
-.ki-tabs ::deep .ki-table td {
+.ki-panelbody ::deep .ki-table td {
     padding: 8px 7px;
     background: transparent;
     color: var(--brand-midnight);
     font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
-    font-size: 0.86em;
+    font-size: 1em;
     border-bottom: 1px solid var(--brand-line);
     white-space: normal;
 }
 
-.ki-tabs ::deep .ki-table tbody tr:last-child td { border-bottom: 0; }
-.ki-tabs ::deep .ki-table tbody tr:hover td { background: var(--brand-sunrise); }
+.ki-panelbody ::deep .ki-table tbody tr:last-child td { border-bottom: 0; }
+.ki-panelbody ::deep .ki-table tbody tr:hover td { background: var(--brand-sunrise); }
 
-.ki-tabs ::deep .ki-table .num {
+.ki-panelbody ::deep .ki-table .num {
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
-}
-
-/* 2. About — nested MudTabs (2.1 About House / 2.2 About Planets) reuse .ki-tabs styling. */
-.ki-subtabs ::deep .mud-tabs-panels { padding-top: 12px; }
-
-/* Every nested sub-tab strip (1.1-1.4 Natal Charts, 3.1-3.3 Strength) wraps its label onto two
-   lines and shrinks to fit rather than growing the pill wide or truncating (rammyps,
-   2026-09-23) — labels like "1.1 GENERAL DETAILS" and "1.4 ASPECTED (%)" read as two short
-   lines instead of one long one. */
-.ki-subtabs ::deep .mud-tab {
-    min-height: 44px;
-    padding: 6px 12px;
-    font-size: calc(var(--font-size-control) * 0.72);
-    line-height: 1.15;
-    white-space: normal;
-    text-align: center;
-    max-width: 130px;
 }
 
 .ki-sectionhead {
@@ -265,48 +273,14 @@
 }
 .ki-col { min-width: 0; }
 
-/* 2.2 About Planets — Moon-context fact chips. */
-.ki-facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 0 0 20px;
-}
-
-.ki-fact {
-    display: grid;
-    gap: 2px;
-    padding: 6px 12px;
-    border: 1px solid var(--brand-line);
-    border-radius: 10px;
-    background: var(--brand-peach);
-}
-.ki-fact dt {
-    color: var(--brand-muted);
-    font: 700 var(--font-size-control) / 1.1 'Manrope', 'Segoe UI', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-.ki-fact dd {
-    margin: 0;
-    color: var(--brand-midnight);
-    font: 600 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-}
-
 @media (max-width: 900px) {
-    .ki-mastertabs ::deep .mud-tabs-tabbar-wrapper {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-    }
     .ki-controls { grid-template-columns: 1fr; }
-    .ki-tabs ::deep .ki-table table { font-size: 0.72em; }
+    .ki-panelbody ::deep .ki-table table { font-size: 0.72em; }
     .ki-twocol { grid-template-columns: 1fr; }
     .ki-d1layout { flex-direction: column; }
     .ki-d1layout .ki-gridwrap { margin: 0 auto; }
     .ki-d1table { width: 100%; }
 }
-
-.ki-moon-support { margin-top: 12px; }
 
 /* Natal chart picker — a plain <select>, no "NATAL CHART" label text (rammyps, 2026-09-24: sits
    directly above the chart it controls, inside .ki-gridwrap, so the label was redundant).
@@ -366,9 +340,11 @@
 }
 .ki-chart-toggle:hover { background: var(--brand-peach); }
 
-/* Moon context (Tithi/Pakṣa/Elongation/Birth/Moon nakṣatra + LunarPhaseCard) — moved out of the
-   "1.4 About Planets" sub-tab into the chart view itself (rammyps, 2026-09-23), so it's visible
-   under the chart regardless of which sub-tab is active, not buried one click away. */
+/* Moon context (LunarPhaseCard) — moved out of the "1.4 About Planets" sub-tab into the chart
+   view itself (rammyps, 2026-09-23), so it's visible under the chart regardless of which
+   sub-tab is active, not buried one click away. The separate Tithi/Pakṣa/Elongation/Birth/Moon
+   nakṣatra fact chips that used to sit below the card were dropped the same evening — pure
+   duplication of what the card and 1.1 General Details' Sign & Nakshatra table already show. */
 .ki-chart-moonfacts { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--brand-line); }
 .ki-chart-toggle:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
 .ki-natal-layout.is-chart-collapsed { grid-template-columns: minmax(0, 1fr); }

@@ -239,15 +239,15 @@ h1, h2, h3 {
     --pad-x: clamp(16px, 4vw, 48px);
 
     /* Tab-strip convention (2026-09-14, rammyps's directive — docs/ui/design-language.md
-       "Tabs"), revised 2026-09-23: every tab level — the Key Inference master step rail and
-       every nested tab strip (1.1/1.2, 2.1/2.2, 3.1/3.2) — is now the SAME midnight-fill/
-       sunset-text pill, active and inactive alike (previously active/inactive were
-       distinguished by a sunset-fill-vs-cream-fill swap; rammyps's call was one flat look for
-       every tab regardless of state). Distinct from the "Actions" (buttons) treatment above —
-       tabs get their own small token family so the two conventions can be retuned
-       independently. */
-    --tab-active-bg: var(--brand-midnight);
-    --tab-active-fg: var(--brand-sunset);
-    --tab-inactive-bg: var(--brand-midnight);
-    --tab-inactive-fg: var(--brand-sunset);
+       "Tabs"), revised 2026-09-23 evening (rammyps's redesign — plain hand-rolled pill nav
+       replacing MudTabs, see KeyInference.razor's top comment): inactive tabs are transparent
+       — no pill fill at all, just text blending into whatever sits behind them (the band or
+       the page, both --brand-canvas) — so only the active tab reads as a filled sunset pill.
+       Earlier the same day both states were briefly made identical (flat sunset/midnight for
+       every tab regardless of selection), which made it impossible to tell which tab was
+       selected at all; this is the fix that stuck. */
+    --tab-active-bg: var(--brand-sunset);
+    --tab-active-fg: var(--brand-midnight);
+    --tab-inactive-bg: transparent;
+    --tab-inactive-fg: var(--brand-midnight);
 }

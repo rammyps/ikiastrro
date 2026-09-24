@@ -347,3 +347,39 @@ Supersedes the "2026-09-23 — Natal/Transit navigation revision" section's sub-
   `/charts/{id}?print=1` in a new tab; `AllCharts.razor` auto-fires `window.print()` once loaded
   when `print=1` is present, keeping printing scoped to one person (same reasoning as
   `AllChartsGrid`'s own Print button — see that component's comment).
+
+## 2026-09-23 (evening) — further iteration: more two-line labels, tab palette reverted, Moon facts dropped, planet table reverted
+
+Rapid follow-up round after the section above, done interactively (rammyps reviewing each step
+live against a running instance before moving to the next):
+
+- **Master rail relabeled and two-lined further**: "3. STRENGTH" → "3. ALL STRENGTH", "5. YOGAS"
+  → "5. ALL YOGAS", "6. VARGAS" → "6. VARGA CHARTS" (all wrap via inline padding narrowing the
+  text column within each step's already-even grid width). "4. SPL LAGNAS", "5. ALL YOGAS" and
+  "7. ALL CHARTS" are short enough to otherwise fit on one line at that width, so their `Text` in
+  `KeyInference.razor` carries an explicit `"\n"` at the word break rammyps wanted ("4. SPL" /
+  "LAGNAS", "5. ALL" / "YOGAS", "7. ALL" / "CHARTS") — `.ki-mastertabs ::deep .ki-master-button`
+  switched from `white-space: normal` to `white-space: pre-line` so that literal newline renders
+  as a forced break instead of collapsing to a space (labels with no `"\n"` still wrap naturally
+  when they don't fit).
+- **Sub-tabs 1.2/1.3/1.4 got the same explicit-break treatment**: `Text` is now `"1.2 ABOUT\n
+  PLANETS"`, `"1.3 ABOUT\nHOUSES"`, `"1.4 ASPECTED\n(%)"` — `.ki-subtabs ::deep .mud-tab` also
+  moved to `white-space: pre-line` for the same reason.
+- **Moon-context fact chips dropped entirely** (the `<dl class="ki-facts">` that briefly lived
+  under `LunarPhaseCard` in the chart view per the section above) — rammyps's call: they were
+  pure duplication, not new information. Tithi/Pakṣa/Elongation already read off
+  `LunarPhaseCard` itself (its kicker, phase heading, and own Elongation/Illumination/Pakṣa Bala
+  `<dl>`); Moon nakṣatra already has a full-detail home in 1.1 General Details' Sign & Nakshatra
+  Combination table. Only `<LunarPhaseCard>` remains in `.ki-chart-moonfacts` now. The now-unused
+  `.ki-facts`/`.ki-fact`/`.ki-moon-support` CSS and the `moonGraha`/`NakPadaLordByPlanet`-adjacent
+  Moon nakṣatra lookup were removed with it.
+- **1.1 General Details' planet-positions table reverted from `PlanetPositionsD1Transposed` back
+  to `PlanetPositionsTable`** (`Variant="d1"`, `ShowAnalysis="false"`) — rammyps's call, the
+  transposed planets-as-columns layout (added 2026-09-23 earlier the same day) was harder to
+  read than the plain planets-as-rows table it replaced. `PlanetPositionsD1Transposed` (with its
+  Nak Pada Lord column, read off the person's own D9 chart) still exists as a component but is
+  now unused; `PlanetPositionsTable`'s only other caller remains `VargaView` (`Variant="varga"`).
+- **Tab palette reverted**: `--tab-active-bg`/`--tab-inactive-bg` back to `--brand-sunset`
+  (orange) and `--tab-active-fg`/`--tab-inactive-fg` back to `--brand-midnight` (dark navy) — the
+  midnight-fill/sunset-text flip from earlier the same day didn't stick; still one flat look for
+  every tab, active or not, just the opposite colour pairing. See `design-language.md` "Tabs".
