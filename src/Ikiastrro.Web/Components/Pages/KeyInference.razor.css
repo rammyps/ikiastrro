@@ -145,25 +145,26 @@
    to the person name instead of on its own row (rammyps, 2026-09-23 evening — reclaim the
    vertical space the row used to take; see MainLayout.razor.css `.has-extra`). Single line, no
    step numbers, `flex: 1 1 auto` so the rail grows to fill the leftover row width next to the
-   (fixed-width) person block and `justify-content: space-between` spreads the 7 pills evenly
-   across that width, from its own left edge out to the person block on the right, instead of
-   left-packing into a tight cluster. `margin-left` starts that left edge where the D1 chart
-   widget ends, not where the page content column starts — 420px is `.ki-gridwrap`'s own max
-   width below (rammyps's call, 2026-09-23 evening: line the rail up with where the detail
-   table begins, not the chart). Reset to 0 under the 900px breakpoint, where the band drops
-   to a stacked column layout and this offset would just crowd the rail into the person block
-   above it (MainLayout.razor.css `.has-extra`'s own breakpoint). */
+   (fixed-width) person block, left-packed from its own left edge (`justify-content: flex-start`).
+   Never wraps to a second line (rammyps, 2026-09-25 — the previous `margin-left: 440px` (lining
+   the rail's left edge up with the detail table below, not the chart) plus `flex-wrap: wrap` +
+   `justify-content: space-between` broke on any laptop-width viewport: the 7 pills' own natural
+   width is ~1140px, and that margin alone ate the ~915px budget left after the person block,
+   forcing an ugly 5-then-2 wrap with the last pill stranded far right. `flex-wrap: nowrap` +
+   `overflow-x: auto` makes this a single-line, horizontally-scrollable strip instead — the
+   alignment nicety wasn't worth breaking the layout for, and a scrollable tab strip on a narrow
+   window beats a two-line one on every width). Reset to a stacked block under the 900px
+   breakpoint, where the band drops to a centred column layout anyway
+   (MainLayout.razor.css `.has-extra`'s own breakpoint). */
 .ki-master {
     display: flex;
     flex: 1 1 auto;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     gap: 6px;
-    margin-left: 440px;
-}
-
-@media (max-width: 900px) {
-    .ki-master { margin-left: 0; }
+    overflow-x: auto;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
 }
 
 .ki-panelbody { min-width: 0; margin-top: 16px; }
