@@ -275,7 +275,8 @@ public class ChartGenerationService
             if (r.PointKind == "Graha" && charaKarakaByPlanet.TryGetValue(r.Planet, out var ck))
                 r.CharaKaraka = ck;
         var janmaGhatis = SwissEphemerisProvider.JanmaGhatis(bd, sunTimes);
-        var planetaryStates = PlanetaryStateComputer.Compute(input, keyDetails, PlanetaryStateRules, janmaGhatis);
+        var planetaryStates = PlanetaryStateComputer.Compute(
+            input, keyDetails, PlanetaryStateRules, janmaGhatis, conjunctions, aspects);
 
         // Multi-graha conjunction groups: derived from the built graha KeyDetail rows (which already
         // carry the stitched DignityStatus / IsCombust). The 2-planet case is a group too.
