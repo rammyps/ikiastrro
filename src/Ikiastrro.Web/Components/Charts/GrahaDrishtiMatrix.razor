@@ -42,11 +42,11 @@
                                 @if (row is not null)
                                 {
                                     <button class="gds-cell" style="--strength:@row.StrengthPercentage%" title="@CellTitle(row)" @onclick="() => _selected = row">
-                                        <span>@(row.StrengthPercentage == 0 ? "—" : $"{row.StrengthPercentage:0.##}%")</span>
                                         @if (row.IsDiscreteAspect)
                                         {
                                             <b>@Ordinal(row.DiscreteAspectHouse)</b>
                                         }
+                                        <span>@(row.StrengthPercentage == 0 ? "—" : $"{row.StrengthPercentage:0.##}%")</span>
                                     </button>
                                 }
                             </td>
