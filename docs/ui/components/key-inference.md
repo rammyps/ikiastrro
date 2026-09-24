@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-23
+last_updated: 2026-09-24
 workstream: ui
 component: KeyInference
 route: /key-inference/{id}
@@ -39,11 +39,12 @@ below); the rest stay inline here until split out the same way in later work.
 | Step | Chart | Table | Source |
 |---|---|---|---|
 | **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table only (Planet · Sign · Degree · Nakṣatra · Pāda · Nakṣatra/Sub-lord chain · direction · house from Lagna/Moon) + D1 Birth / Current Transit toggle; analytical role/condition columns belong exclusively to 2.2 | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
-| **2.1 · Relationships** | `GrahaDrishtiMatrix` — D1/D9/D10 selector, focus-body summary, heat matrix, discrete ordinal badges, and selected-cell evidence breakdown | Sphuṭa percentage and discrete aspect metadata remain visually distinct; chart-matched conjunction groups follow the matrix. This is the sole full-detail relationship owner. | `vw_ChartGrahaDrishtiStrengths` via `GrahaDrishtiStrengthRepository` + `tbl_Chart_MultiGrahaConjunction(+Member)` |
-| **2.2 · About Houses** | — | House Lord Placement; House Lord Key Findings; Argala &amp; Virodhargala | `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` + live `ArgalaCalculator` |
+| **1.4 · Relationships** | `GrahaDrishtiMatrix` — D1/D9/D10 selector, focus-body summary, heat matrix, discrete ordinal badges, and selected-cell evidence breakdown | Sphuṭa percentage and discrete aspect metadata remain visually distinct; chart-matched conjunction groups follow the matrix. This is the sole full-detail relationship owner. | `vw_ChartGrahaDrishtiStrengths` via `GrahaDrishtiStrengthRepository` + `tbl_Chart_MultiGrahaConjunction(+Member)` |
+| **1.2 · About Houses** | — | House Lord Placement; House Lord Key Findings; Argala &amp; Virodhargala | `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` + live `ArgalaCalculator` |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
-| **2.3 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | functional nature + ruled houses + independent ownership flags (māraka, bādhaka, dusthāna, triṣaḍāya, Kendrādhipati doṣa) + rationale disclosure + dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
-| **2.4 · Sign & Nakshatras** (new 2026-09-22) | — | `RasiNakshatraTable` — one row per graha (+ Lagna): Sign, Nakshatra, Lord Relation, Combined Character, expand-to-reveal Main Significations / Potential Benefits / Potential Disadvantages / Judgment Note / Aspecting Signs. Closes `FEAT-NAKSHATRA-02`'s last open item — the 36-row Rāśi×Nakṣatra combination table had zero Web/CLI consumer before this | `tbl_Rule_RasiNakshatraCombination` (migration 124) via `RasiNakshatraCombinationRepository.GetAll`, joined client-side against each graha's own `SignId`/`NakshatraId` from `tbl_Chart_KeyDetails` |
+| **1.3 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | functional nature + ruled houses + independent ownership flags (māraka, bādhaka, dusthāna, triṣaḍāya, Kendrādhipati doṣa) + rationale disclosure + dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
+| **1.1 · Overview** | — | `PlanetPositionsD1Transposed` — the default natal key table, with grahas as columns and Degree / Direction / House / Rāśi / Rāśi Lord / Nakshatra / Nakshatra Lord / Sub-Lord Chain / Nakshatra Pāda rows | `tbl_Chart_KeyDetails` via `ChartViewModel.BuildPlanetRows` |
+| **1.2 · About Signs & Nakshatras** (new 2026-09-22) | — | `RasiNakshatraTable` — one row per graha (+ Lagna): Sign, Nakshatra, Lord Relation, Combined Character, expand-to-reveal Main Significations / Potential Benefits / Potential Disadvantages / Judgment Note / Aspecting Signs. Closes `FEAT-NAKSHATRA-02`'s last open item — the 36-row Rāśi×Nakṣatra combination table had zero Web/CLI consumer before this | `tbl_Rule_RasiNakshatraCombination` (migration 124) via `RasiNakshatraCombinationRepository.GetAll`, joined client-side against each graha's own `SignId`/`NakshatraId` from `tbl_Chart_KeyDetails` |
 | **3 · Strength** | 3.1 `PlanetStrengthChart` — %-of-minimum bar (Performance) or a component-composition stacked bar (Composition toggle), plus a per-graha expandable Bala breakdown. 3.2 `HouseStrengthChart` — Rūpas bar (scale is dynamic — see 2026-09-17 note below, not the fixed 0–9 this spec originally called for), House order/Strength rank toggle, per-house expandable breakdown. 3.3 `AshtakavargaChart` — Varga dropdown (all generated Dn charts; independently persisted SAV/BAV + Piṇḍa for the selected varga) + Sarvāṣṭakavarga bar (House order/Strength rank toggle) + Bhinnāṣṭakavarga grid (7×12) + Piṇḍa table | Bar and table are one component each (not chart+table separately — the bar sits inline in the row) | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (both via `PlanetaryStrengthRepository`/`BhavaStrengthRepository`'s `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`) · `vw_ChartAshtakavarga` + `tbl_Fact_AshtakavargaPinda` (`AshtakavargaRepository`) |
 | **4 · Spl Lagnas** | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) — full detail, including the proposed `SouthIndianGrid_Micro` Grid view, moved there 2026-09-17 | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) |
 | **5 · Yogas** | — (coverage donut planned, not built) | Yogas Present: Type · Yoga · Rule · Source, deduplicated by `YogaCode` (a yoga can match several classical source citations independently — e.g. Daridra against Raman combinations #148/#149/#151/#152 — which used to list it once per citation) and sorted by type in Lagna/Sun/Moon/Combination order, any other `YogaTypeCode` following alphabetically | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) via `YogaEvaluationRepository` |
@@ -269,3 +270,116 @@ flow above instead of sitting in a side panel:
      `(DignityScore + 4) / 8.0` over the existing -4..+4 scale — shown in the new detail table,
      for later statistical use (see `docs/research/domain/stat_strength.md`, the broader
      Shadbala/Amsabala/Bhavabala/Ashtakavarga normalization framework this is phase 0 of).
+
+## 2026-09-23 — Natal/Transit navigation revision
+
+- Master item 1 is **Natal Charts**, with a persisted-chart dropdown defaulting to D1.
+- The default detail tab is 1.1 Overview (the restored key table), followed by 1.2 About Signs & Nakshatras, 1.3 About Houses, 1.4 About Planets, and 1.5 Relationships.
+- Relationships includes graha drishti, rasi drishti, rasi/graha dispositor chains, and conjunctions for the selected chart.
+- Master item 2 is **Transit Chart**. Its centered full-width wheel remains unchanged and has no collapse interaction.
+
+## 2026-09-24 — master tab rail, chart toolbar, 7th step, nakshatra abbreviations
+
+(Supersedes the 2026-09-23 "Collapse/Expand control was removed" line above — rammyps asked for
+it back three revisions later; it turned out to add value after all.)
+
+- **Master tab rail now really is evenly spread** across the 7 steps. The prior grid-stretch CSS
+  targeted `.mud-tabs-toolbar-wrapper`/`-toolbar-inner`, which this MudBlazor version never
+  renders (confirmed live via devtools), so it was inert and MudTabs' natural left-packed flex
+  layout is what actually shipped. Corrected to the real DOM
+  (`.mud-tabs-tabbar-wrapper` > each tab's `.mud-tooltip-root.mud-tooltip-inline` wrapper) — this
+  does NOT trip MudTabs' overflow/scroll-arrow JS into "arrows + 2 tabs" mode, which the earlier
+  investigation (2026-09-14) had worried it would.
+- **7. ALL CHARTS is now its own master tab**, not just the separate `/charts/{id}` page. Both
+  render the same `AllChartsGrid` component (`Components/Charts/**`) off the same already-loaded
+  `WorkspaceData` — no extra query for the embedded tab. The standalone `/charts/{id}` route
+  still exists (linked from the top app-bar's "ALL CHARTS") and still works for a direct
+  person-scoped **Print** — see that section's own note.
+- **Natal Chart picker moved.** It now sits directly above the D1 grid inside `.ki-gridwrap`
+  (left-aligned with the chart, not spanning the full two-column layout), and dropped its visible
+  "NATAL CHART" label — the label was redundant once the control sat right on top of what it
+  controls (an `aria-label` covers it for screen readers). Still the documented dark-navy/cream
+  "chart control" look (design-language.md "Chart controls").
+- **Collapse/Expand Chart is back**, next to the picker in the same toolbar — same
+  `_natalChartCollapsed` mechanism as before its 2026-09-23 removal.
+- **Nakshatra column in 1.1 Overview now abbreviates** (`ChartViewModel.NakshatraShort`, 4
+  letters, full name on the cell's `title` tooltip) instead of the full name. Full names up to
+  "Purva Bhadrapada" (16 chars) were forcing either a horizontal scrollbar or a smaller font than
+  the rest of the page in this 10-graha-column table — the fixed small font this table already
+  uses (2026-09-23) stays consistent across every row now.
+
+## 2026-09-23 (later) — sub-tab consolidation, moon context moved to chart view, tab palette flattened
+
+Supersedes the "2026-09-23 — Natal/Transit navigation revision" section's sub-tab list above.
+
+- **Master item 2 renamed "2. TRANSIT CHART" → "2. TRANSIT CHARTS"** — plural, matching "1.
+  NATAL CHARTS" (was inconsistently singular).
+- **Chart toolbar reordered**: EXPAND/COLLAPSE CHART now sits to the *left* of the chart-type
+  dropdown (was right); the dropdown itself shrank (`max-width: 130px`, smaller font/padding —
+  was `flex: 1`, stretching to fill the toolbar).
+- **Natal Charts' 5 sub-tabs collapsed to 4:**
+  - **1.1 GENERAL DETAILS** (renamed from "1.1 Overview") — now combines the old 1.1 Overview
+    (`PlanetPositionsD1Transposed`) and 1.2 About Signs & Nakshatras (`RasiNakshatraTable`)
+    tables, one after the other in a single tab, instead of two separate tabs.
+  - **1.2 ABOUT PLANETS** (moved up from 1.4) — the Moon-context fact chips (Tithi/Pakṣa/
+    Elongation/Birth/Moon nakṣatra + `LunarPhaseCard`) that used to open this tab were pulled
+    out entirely; it's now just `PlanetDignityTable` under "Planets — dignity, kāraka,
+    exaltation". The Moon-context block moved to the **chart view** itself — a new
+    `.ki-chart-moonfacts` block inside `.ki-gridwrap`, directly under the South-Indian grid —
+    so it's visible under the chart no matter which sub-tab is open, instead of being one click
+    away inside a single tab.
+  - **1.3 ABOUT HOUSES** — unchanged content (House Lord Placement / House Lord Key Findings /
+    Argala & Virodhargala), same tab index (2) it already had.
+  - **1.4 ASPECTED (%)** (renamed from "1.5 Relationships") — unchanged content (Graha Dṛṣṭi
+    strength, Rāśi Dṛṣṭi, Rāśi & graha dispositors, Conjunctions).
+  - `KeyInference.razor`'s `Step` query-param routing updated to match: `overview`/`general`/
+    `generaldetails`/`signs`/`nakshatras` all resolve to the new combined tab 0; `planets` → 1;
+    `houses` → 2 (unchanged); `relationships`/`aspected` → 3.
+- **Every nested sub-tab strip (1.1–1.4, and 3.1–3.3) now wraps its label onto two lines**
+  instead of growing the pill wide — `.ki-subtabs ::deep .mud-tab` caps `max-width: 130px`,
+  allows `white-space: normal`, and drops to `0.72×` the base control font size.
+- **Tab palette flattened app-wide**: `--tab-active-bg`/`--tab-inactive-bg` both now resolve to
+  `--brand-midnight` (dark navy) and `--tab-active-fg`/`--tab-inactive-fg` both to
+  `--brand-sunset` (orange) — one flat look for every tab, active or not, replacing the
+  sunset-fill-vs-cream-fill distinction from 2026-09-14. See `design-language.md` "Tabs".
+- **Saved Charts (`/charts`) gained a per-row Print action**, `PrintIconButton`, to the right of
+  the existing Delete icon button in each person's row-actions cell. It opens that person's
+  `/charts/{id}?print=1` in a new tab; `AllCharts.razor` auto-fires `window.print()` once loaded
+  when `print=1` is present, keeping printing scoped to one person (same reasoning as
+  `AllChartsGrid`'s own Print button — see that component's comment).
+
+## 2026-09-23 (evening) — further iteration: more two-line labels, tab palette reverted, Moon facts dropped, planet table reverted
+
+Rapid follow-up round after the section above, done interactively (rammyps reviewing each step
+live against a running instance before moving to the next):
+
+- **Master rail relabeled and two-lined further**: "3. STRENGTH" → "3. ALL STRENGTH", "5. YOGAS"
+  → "5. ALL YOGAS", "6. VARGAS" → "6. VARGA CHARTS" (all wrap via inline padding narrowing the
+  text column within each step's already-even grid width). "4. SPL LAGNAS", "5. ALL YOGAS" and
+  "7. ALL CHARTS" are short enough to otherwise fit on one line at that width, so their `Text` in
+  `KeyInference.razor` carries an explicit `"\n"` at the word break rammyps wanted ("4. SPL" /
+  "LAGNAS", "5. ALL" / "YOGAS", "7. ALL" / "CHARTS") — `.ki-mastertabs ::deep .ki-master-button`
+  switched from `white-space: normal` to `white-space: pre-line` so that literal newline renders
+  as a forced break instead of collapsing to a space (labels with no `"\n"` still wrap naturally
+  when they don't fit).
+- **Sub-tabs 1.2/1.3/1.4 got the same explicit-break treatment**: `Text` is now `"1.2 ABOUT\n
+  PLANETS"`, `"1.3 ABOUT\nHOUSES"`, `"1.4 ASPECTED\n(%)"` — `.ki-subtabs ::deep .mud-tab` also
+  moved to `white-space: pre-line` for the same reason.
+- **Moon-context fact chips dropped entirely** (the `<dl class="ki-facts">` that briefly lived
+  under `LunarPhaseCard` in the chart view per the section above) — rammyps's call: they were
+  pure duplication, not new information. Tithi/Pakṣa/Elongation already read off
+  `LunarPhaseCard` itself (its kicker, phase heading, and own Elongation/Illumination/Pakṣa Bala
+  `<dl>`); Moon nakṣatra already has a full-detail home in 1.1 General Details' Sign & Nakshatra
+  Combination table. Only `<LunarPhaseCard>` remains in `.ki-chart-moonfacts` now. The now-unused
+  `.ki-facts`/`.ki-fact`/`.ki-moon-support` CSS and the `moonGraha`/`NakPadaLordByPlanet`-adjacent
+  Moon nakṣatra lookup were removed with it.
+- **1.1 General Details' planet-positions table reverted from `PlanetPositionsD1Transposed` back
+  to `PlanetPositionsTable`** (`Variant="d1"`, `ShowAnalysis="false"`) — rammyps's call, the
+  transposed planets-as-columns layout (added 2026-09-23 earlier the same day) was harder to
+  read than the plain planets-as-rows table it replaced. `PlanetPositionsD1Transposed` (with its
+  Nak Pada Lord column, read off the person's own D9 chart) still exists as a component but is
+  now unused; `PlanetPositionsTable`'s only other caller remains `VargaView` (`Variant="varga"`).
+- **Tab palette reverted**: `--tab-active-bg`/`--tab-inactive-bg` back to `--brand-sunset`
+  (orange) and `--tab-active-fg`/`--tab-inactive-fg` back to `--brand-midnight` (dark navy) — the
+  midnight-fill/sunset-text flip from earlier the same day didn't stick; still one flat look for
+  every tab, active or not, just the opposite colour pairing. See `design-language.md` "Tabs".

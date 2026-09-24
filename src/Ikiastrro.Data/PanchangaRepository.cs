@@ -3,6 +3,17 @@ using Ikiastrro.Core.Engines.Panchanga;
 
 namespace Ikiastrro.Data;
 
+/// <summary>Key Inference "Birth Pañchāṅga" card — one row from `vw_ChartPanchanga` (db/081), the
+/// D1-only birth-moment Tithi/Karana/NityaYoga/Weekday/HoraLord plus sunrise/sunset/Janma Ghatis.
+/// Null fields (KaranaName/NityaYogaName's Meaning) mirror the view's own nullable columns.</summary>
+public sealed record ChartPanchangaRow(
+    int BirthDetailId, int ChartResultId, byte RuleSetId,
+    DateTime SunriseUtc, DateTime SunsetUtc, DateTime NextSunriseUtc, bool IsNightBirth, decimal JanmaGhatis,
+    string Paksha, string TithiName, byte TithiLordPlanetId, decimal TithiPercentRemaining,
+    string KaranaName, string KaranaType, decimal KaranaPercentRemaining,
+    string NityaYogaName, string? NityaYogaMeaning, decimal NityaYogaPercentRemaining,
+    string VedicWeekdayName, string HoraLordName, DateTime ComputedAtUtc);
+
 /// <summary>
 /// Persists Tithi / Karana / Nitya Yoga / Vedic Weekday / Hora Lord for one chart. Written on
 /// the D1 <c>tbl_ChartResults</c> row only, mirroring the strength / vargottama / Ashtakavarga
@@ -12,6 +23,17 @@ public sealed class PanchangaRepository
 {
     private readonly SqlConnectionFactory _connectionFactory;
     public PanchangaRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
+
+    /// <summary>D1's Panchanga row for this person, or null if D1 hasn't been recomputed since the
+    /// Panchanga calculator was added (`recompute-panchanga`). `vw_ChartPanchanga` carries exactly
+    /// one row per person — Panchanga is written on the D1 ChartResult only.</summary>
+    public ChartPanchangaRow? GetByBirthDetailId(int birthDetailId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        return connection.QueryFirstOrDefault<ChartPanchangaRow>(
+            "SELECT * FROM dbo.vw_ChartPanchanga WHERE BirthDetailId = @BirthDetailId",
+            new { BirthDetailId = birthDetailId });
+    }
 
     public void Insert(int chartResultId, int ruleSetId, PanchangaResult result)
     {

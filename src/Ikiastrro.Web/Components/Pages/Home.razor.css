@@ -129,9 +129,7 @@
     padding: 0.85rem 0.9rem 0.9rem;
     border: 1px solid var(--brand-line);
     border-radius: 14px;
-    background:
-        linear-gradient(color-mix(in srgb, var(--brand-canvas) 55%, transparent), color-mix(in srgb, var(--brand-canvas) 55%, transparent)),
-        url('/images/BigBang-i2.png') center / cover no-repeat;
+    background: var(--brand-surface);
 }
 
 .home-form-caption {
@@ -208,36 +206,13 @@
 .home-art img {
     display: block;
     width: 100%;
-    height: 100%;
+    height: auto;
     max-width: none;
+    max-height: calc(100vh - var(--ik-appbar-h, 64px) - 2rem);
     object-fit: contain;
-    object-position: right center;
+    object-position: right top;
 }
 
-/* Add-New (.home--compact): the art column no longer pins tall — it STRETCHES to match
-   .home-main's own compact height instead. The image is taken out of flow (position:absolute)
-   so it contributes no intrinsic height of its own; grid's `align-items: stretch` then sizes
-   the row entirely off .home-main's (shorter) content, and .home-art's box — now that same
-   height — is handed to the absolutely-positioned, object-fit:contain image, which shrinks to
-   fit. Net effect: the panel's top and bottom line up exactly with the art's top and bottom,
-   with no leftover space and no page scroll. */
-.home--compact {
-    align-items: stretch;
-    min-height: 0;
-}
-
-.home--compact .home-art {
-    position: relative;
-    top: 0;
-    align-self: stretch;
-    max-height: none;
-    overflow: hidden;
-}
-
-.home--compact .home-art img {
-    position: absolute;
-    inset: 0;
-}
 
 /* Primary buttons are sunset-filled via the app theme (IkiastrroTheme). */
 

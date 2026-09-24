@@ -9,40 +9,34 @@
     .print-head { break-after: avoid; }
     .print-minis > * , table tr, .chart, .mini-chart, .cd9-chart, .wheel { break-inside: avoid; }
 
-    /* --- All-charts gallery (/charts/{id}/all-charts) print: the charts and nothing else —
-       two full D1-template cards per row at 50% each, on a light ground (the card's own --tmpl-*
-       palette is parchment, not the dark PrintChart theme). Scoped with :has() so PrintChart
-       above keeps its dark body. --- */
-    body:has(.ac-list) { background: #ffffff !important; color: #2a2118 !important; }
+    /* --- All-charts gallery (/charts/{id}, and Key Inference's embedded "7. ALL CHARTS" tab)
+       print: the charts and nothing else, on a light ground (the card's own --brand-* palette is
+       parchment, not the dark PrintChart theme). Scoped with :has() so PrintChart above keeps its
+       dark body. Class names matched to Components/Charts/AllChartsGrid.razor (2026-09-24 —
+       previously targeted a since-renamed .ac-list/.ac-tile/.ac-print/.ac-nav/.ac-back
+       structure that no longer exists on this page). --- */
+    body:has(.ac-grid) { background: #ffffff !important; color: #2a2118 !important; }
 
-    /* Strip everything that isn't a chart: page nav, the Print button, the person/identity
-       band (WorkspaceHeader) and the Birth & computation disclosure. */
-    body:has(.ac-list) .ac-nav,
-    body:has(.ac-list) .ac-print,
-    body:has(.ac-list) .ac-back,
-    body:has(.ac-list) .ws-header,
-    body:has(.ac-list) .ws-comp { display: none !important; }
+    /* Strip everything that isn't a chart: site nav, the person identity band, this page's own
+       Print button, and (when printed from inside Key Inference) the master/sub tab rails. */
+    body:has(.ac-grid) .ik-appbar-scope,
+    body:has(.ac-grid) .ik-band,
+    body:has(.ac-grid) .ik-footer,
+    body:has(.ac-grid) .acg-toolbar,
+    body:has(.ac-grid) .ki-mastertabs > .ki-master > .mud-tabs-toolbar-wrapper,
+    body:has(.ac-grid) .ki-mastertabs ::deep .ki-master-header { display: none !important; }
 
-    .ac-group { margin: 0 0 8px !important; break-before: auto; }
-    .ac-group h2 { break-after: avoid; margin: 0 0 6px !important; color: #8c2f39 !important; }
-
-    /* Two per row, 50% span each. zoom shrinks the dense grid (its clamp() font sizes key off
-       viewport width, which on a sheet is far narrower than the screen) so both cards' detail —
-       Ras(L)/Hor(L) tags, Sun/Moon house badges, per-planet degree + Dg(±N), ASP: rows, upagraha
-       row, karaka triplets — still fits the column. Chrome/Edge "Save as PDF" honour zoom; nudge
-       the value if a cell clips. */
-    .ac-list {
+    /* Two per row so the dense South-Indian grid still reads at print size; three-per-row (the
+       screen layout) would shrink each card too far. */
+    .ac-grid {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         gap: 10px !important;
-        zoom: 0.62;
     }
-    .ac-tile {
+    .ac-card {
         max-width: none !important;
         width: 100% !important;
         break-inside: avoid;
+        box-shadow: none !important;
     }
-    .ac-cap { color: #2a2118 !important; }
-    .ac-missing { max-width: none !important; }
-    .ac-tile .tmpl-chart { aspect-ratio: auto !important; max-width: none !important; }
 }

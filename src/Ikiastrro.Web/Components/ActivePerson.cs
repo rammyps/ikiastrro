@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace Ikiastrro.Web.Components;
 
 /// <summary>
@@ -16,6 +18,13 @@ public sealed class ActivePerson
     public string? Name { get; private set; }
     public string? BirthLine { get; private set; }
 
+    /// <summary>Page-supplied extra content for the right side of <c>MainLayout</c>'s
+    /// context band (e.g. Key Inference's master step rail). Every other page that calls
+    /// <see cref="Set"/> must also call <see cref="SetHeaderExtra"/> with <c>null</c>
+    /// alongside it, so this doesn't stay populated after navigating away from the page that
+    /// set it.</summary>
+    public RenderFragment? HeaderExtra { get; private set; }
+
     /// <summary>Raised only when a field actually changes, so the layout is not re-rendered on
     /// every navigation to the same person.</summary>
     public event Action? Changed;
@@ -31,10 +40,17 @@ public sealed class ActivePerson
 
     public void Clear()
     {
-        if (Id is null && Name is null && BirthLine is null) return;
+        if (Id is null && Name is null && BirthLine is null && HeaderExtra is null) return;
         Id = null;
         Name = null;
         BirthLine = null;
+        HeaderExtra = null;
+        Changed?.Invoke();
+    }
+
+    public void SetHeaderExtra(RenderFragment? fragment)
+    {
+        HeaderExtra = fragment;
         Changed?.Invoke();
     }
 }

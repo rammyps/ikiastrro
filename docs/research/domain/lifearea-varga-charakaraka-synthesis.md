@@ -18,6 +18,17 @@ two plus the connective layer this file researches.
 just this file's slice — see that index's 2026-09-22 update. This file's own proposals landed
 as `FEAT-VARGA-02` / `FEAT-KARAKA-06` / `FEAT-HOUSE-05` in `ROADMAP.md`.
 
+**Correction, 2026-09-23:** this file's §3 design (`tbl_Dim_InterpretiveFactor` /
+`tbl_Rule_InterpretiveFactorDetail`) was proposed as new — it wasn't. Migration 109
+(2026-09-16, six days before this file was written) already built almost exactly this model
+(with a better shape: real typed `LifeAreaId`/`DivisionalSubjectCode`/`KarakaRoleId` FK columns
+instead of the polymorphic `ReferenceId` §3 proposes below) and had already normalized all 11
+`tbl_Dim_DivisionalSubject` rows' House/Planet/Varga facts — a repository and CLI
+`verify-interpretive-factors` existed too. This file's own research missed grepping for
+"InterpretiveFactor" before proposing a new design. What 109 actually left open — LifeArea
+detail rows and the Leg A/B reconciliation policy — was closed 2026-09-23 by migration 134; §3
+below is historical design intent, not a current gap. See `masterproduct.md` `FEAT-HOUSE-05`.
+
 ## 1. What already exists — three legs, none of them connected
 
 ### Leg A — LifeArea (chart-primary)
@@ -190,15 +201,13 @@ land in each classical dignity tier, across that scheme's member vargas.
 
 ## Open questions
 
-- Reconciliation policy for Leg A vs Leg B when they disagree (e.g. does D-9's LifeArea
-  wording get amended to match DivisionalSubject's narrower "Marriage" framing, or do both
-  stay and a view unions them?) — not decided here, needs a call before `FEAT-HOUSE-05`.
-- `tbl_Rule_InterpretiveFactorDetail`'s `ReferenceTypeCode` polymorphic FK (`ReferenceId`
-  meaning depends on `ReferenceTypeCode`) is a normalization trade-off — three separate
-  bridge tables (one per leg) would give real FKs instead but triple the table count for a
-  first pass. Revisit once row counts are known (Leg A ×4 factors ≤ 80 rows, Leg B similar,
-  Leg D ×4 ≤ 32 — all small; a single polymorphic table is likely fine at this scale, but
-  flagging the trade-off since `karakafix.md` deliberately avoided a similar shortcut for
-  `KarakaRole`).
+- ~~Reconciliation policy for Leg A vs Leg B when they disagree~~ **Resolved 2026-09-23
+  (rammyps):** amend Leg A to match Leg B's narrower framing — done, migration 134 (10 of 20
+  `tbl_Dim_LifeArea.Description` rows).
+- ~~`ReferenceTypeCode` polymorphic FK normalization trade-off~~ **Moot — migration 109 didn't
+  take this shortcut.** It used three nullable typed FK columns (`LifeAreaId`/
+  `DivisionalSubjectCode`/`KarakaRoleId`, exactly-one-populated CHECK) instead of a polymorphic
+  `ReferenceId`, avoiding the trade-off this bullet worried about — same real-FK discipline
+  `karakafix.md` used for `KarakaRole`.
 - ~~Confirm "v5" scope~~ **Resolved 2026-09-22** — see the top-of-file note; the full
   v5-notes-index.md batch, not just this file's slice.

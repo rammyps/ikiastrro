@@ -1,0 +1,18 @@
+@* Icon button to print a row's own charts. Sits after DeleteIconButton in the actions cell
+   (rammyps, 2026-09-23 — Saved Charts previously had no per-row print action; the page-wide
+   Print button was removed 2026-09-24 for printing the whole list instead of one person, and
+   moved into AllChartsGrid, scoped per-person). Mirrors EditIconButton/DeleteIconButton —
+   renders only the trigger, the caller owns what "print" does. *@
+<button type="button" class="print-icon-btn" title="@Title" aria-label="@Title" @onclick="OnClick">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+        <rect x="6" y="14" width="12" height="8"></rect>
+    </svg>
+</button>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Print";
+    [Parameter] public EventCallback OnClick { get; set; }
+}

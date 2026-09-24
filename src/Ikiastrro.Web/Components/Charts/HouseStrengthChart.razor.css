@@ -218,7 +218,7 @@
     font-variant-numeric: tabular-nums;
     font-weight: 700;
     color: var(--brand-midnight);
-    font-size: 0.86em;
+    font-size: 1em;
 }
 
 .hsc-detail-sum {

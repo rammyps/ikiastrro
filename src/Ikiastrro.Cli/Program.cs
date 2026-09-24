@@ -11,10 +11,12 @@ using Ikiastrro.Core.Pipeline;
 using Ikiastrro.Core.Engines.PlanetaryStates;
 using Ikiastrro.Core.Engines.Dasha;
 using Ikiastrro.Core.Engines.Dignity;
+using Ikiastrro.Core.Engines.Dispositors;
 using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Engines.Karakas;
 using Ikiastrro.Core.Geocoding;
 using Ikiastrro.Core.Models;
+using Ikiastrro.Core.Engines.Relationships;
 using Ikiastrro.Core.Transits;
 using Ikiastrro.Data;
 
@@ -1017,6 +1019,32 @@ if (args.Length > 0 && args[0] == "verify-ashtakavarga")
         }
     }
 
+    // --- Phase 6: D9 Ashtakavarga is a genuine independent per-varga recompute, not a D1 copy ---
+    // FEAT-ASHTAKAVARGA-02: PVR's Integrated Approach, Example 39 (p.155) explicitly endorses
+    // this — "Ashtakavarga of divisional charts is prepared in the same manner as that of rasi
+    // chart... we can find SAV of a divisional chart too" — worked through Vajpayee's D-10
+    // (Examples 39/101/108). ChartGenerationService.PersistAnalytics already materializes this per
+    // chart type; this proves the persisted D9 SAV both differs from D1's and matches an
+    // independent recompute off D9's own sign positions, not a relabeled D1 row.
+    var d9 = bundle.Charts.FirstOrDefault(c => c.ChartType.Equals("D9", StringComparison.OrdinalIgnoreCase));
+    if (d9 is not null)
+    {
+        var d9Av = AshtakavargaCalculator.Calculate(d9);
+        using var conn = connectionFactory.CreateOpenConnection();
+        var storedD9Sav = conn.Query<int>(
+            @"SELECT f.TotalBindus FROM dbo.tbl_Fact_SarvaAshtakavarga f
+              JOIN dbo.tbl_ChartResults cr ON cr.Id = f.ChartResultId
+              JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
+              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D9' ORDER BY f.SignNumber").ToArray();
+        Check("persisted D9 SAV matches an independent D9 recompute", Csv(storedD9Sav), Csv(d9Av.Sarva.Bindus));
+        Check("D9 SAV genuinely differs from D1 SAV (not a relabeled copy)",
+            Csv(storedD9Sav) != Csv(av.Sarva.Bindus), true);
+    }
+    else
+    {
+        Console.WriteLine("  [SKIP] Phase 6 (D9 Ashtakavarga) — no D9 chart in the pipeline bundle");
+    }
+
     Console.WriteLine(failures == 0 ? "\nverify-ashtakavarga: ALL PASS" : $"\nverify-ashtakavarga: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
@@ -1247,6 +1275,13 @@ if (args.Length > 0 && args[0] == "verify-interpretive-factors")
     Console.WriteLine($"  [INFO] tbl_Rule_InterpretiveFactorDetail row count: {detailCount} (sanity ceiling 160)");
     Check("detail row count within sanity ceiling", detailCount <= 160, true);
 
+    // FEAT-HOUSE-05 (migration 134): every one of the 20 tbl_Dim_LifeArea rows now has at
+    // least one VARGA detail row -- the piece migration 109 explicitly deferred.
+    var lifeAreasCovered = conn.ExecuteScalar<int>("""
+        SELECT COUNT(DISTINCT LifeAreaId) FROM dbo.tbl_Rule_InterpretiveFactorDetail WHERE LifeAreaId IS NOT NULL
+        """);
+    Check("every LifeArea has at least one InterpretiveFactorDetail row", lifeAreasCovered, 20);
+
     Console.WriteLine(failures == 0 ? "\nverify-interpretive-factors: ALL PASS" : $"\nverify-interpretive-factors: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
@@ -1386,6 +1421,256 @@ if (args.Length > 0 && args[0] == "verify-planet-in-house")
     Check("dispositor matches tbl_Chart_HouseLords' own lord for every row (whole-sign)", mismatches, 0);
 
     Console.WriteLine(failures == 0 ? "\nverify-planet-in-house: ALL PASS" : $"\nverify-planet-in-house: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- One-off check: `dotnet run -- verify-dispositor` ---
+// DispositorEngine (chain-following + final-dispositor + mutual-reception/cycle detection) is a
+// pure, live Core calculator — no fact table (FEAT-DISPOSITOR-01, live-only by design, same
+// category as ArgalaTable/RasiDrishtiCalculator). No unit-test project covers CLI-reachable
+// stored-chart integration, so this is the only place its output gets checked against real,
+// persisted charts rather than hand-built fixtures (see DispositorEngineTests for those).
+if (args.Length > 0 && args[0] == "verify-dispositor")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var keyDetailsRepo = new ChartKeyDetailsRepository(connectionFactory);
+    using var dispConn = connectionFactory.CreateOpenConnection();
+
+    foreach (var person in birthDetailsRepo.GetAll())
+    {
+        var d1ChartResultId = dispConn.ExecuteScalar<int?>(
+            "SELECT cr.Id FROM dbo.tbl_ChartResults cr WHERE cr.BirthDetailId = @Id AND cr.ChartType = 'D1'", new { person.Id });
+        if (d1ChartResultId is null) continue;
+
+        var keyDetails = keyDetailsRepo.GetByChartResultId(d1ChartResultId.Value);
+        var ascendantSign = Enum.Parse<ZodiacName>(keyDetails.Single(k => k.Planet == "Ascendant").Sign);
+        // Matches DispositorTable.razor's own filter exactly: PointKind == "Graha" alone isn't
+        // enough to exclude Ascendant/other non-classical points in every stored chart.
+        var grahas = keyDetails.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant"
+            && Enum.TryParse<PlanetName>(k.Planet, true, out _)).ToList();
+        var input = new ChartAnalysisInput("D1", ascendantSign,
+            grahas.Select(k => new PlanetPosition { Planet = k.Planet, Sign = k.Sign, PointKind = "Graha", HouseNumber = k.HouseNumberFromLagna }).ToList());
+
+        var chains = new DispositorEngine().Compute(input).ToDictionary(c => c.Planet);
+        Check($"{person.Name}: every graha resolves a chain", chains.Count, grahas.Count);
+        Check($"{person.Name}: no chain hits MISSING_PLACEMENT", chains.Values.Count(c => c.TerminationCode == "MISSING_PLACEMENT"), 0);
+
+        // Cross-check against ChartAnalyzer's own independently-computed SignLordPlanet
+        // (tbl_Chart_KeyDetails, stamped at generation time) — the chain's first hop must agree.
+        var firstHopMismatches = grahas.Count(k => chains[k.Planet].Chain[1] != k.SignLordPlanet);
+        Check($"{person.Name}: chain's first hop matches stored SignLordPlanet for every graha", firstHopMismatches, 0);
+
+        // FinalDispositor is where the chain terminates, not necessarily the starting planet —
+        // that IS the point of "final dispositor" (e.g. Mars -> Jupiter -> Jupiter means Jupiter
+        // is Mars's final dispositor). The real invariant: FinalDispositor must be a genuine
+        // fixed point — looked up as its own starting planet, it resolves self-disposed onto itself.
+        var finalDispositorsAreFixedPoints = chains.Values.Where(c => c.TerminationCode == "SELF_DISPOSED")
+            .All(c => c.FinalDispositor is not null && chains.TryGetValue(c.FinalDispositor, out var fd)
+                && fd.TerminationCode == "SELF_DISPOSED" && fd.FinalDispositor == c.FinalDispositor);
+        Check($"{person.Name}: every SELF_DISPOSED chain's FinalDispositor is a genuine fixed point", finalDispositorsAreFixedPoints, true);
+
+        var mutualReceptionConsistent = chains.Values.Where(c => c.TerminationCode == "MUTUAL_RECEPTION")
+            .All(c => c.InMutualReception && c.Cycle is { Count: 2 } cycle && cycle.Contains(c.Planet));
+        Check($"{person.Name}: every MUTUAL_RECEPTION chain is flagged + has a 2-planet cycle containing itself", mutualReceptionConsistent, true);
+
+        var outcomes = chains.Values.GroupBy(c => c.TerminationCode).ToDictionary(g => g.Key, g => g.Count());
+        Console.WriteLine($"    ({person.Name} outcome mix: {string.Join(", ", outcomes.Select(o => $"{o.Key}={o.Value}"))})");
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-dispositor: ALL PASS" : $"\nverify-dispositor: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- One-off check: `dotnet run -- verify-graha-drishti` ---
+// GrahaDrishtiStrengthRepository.Replace persists the sphuta (longitude-based) Virupa
+// strength for every aspecting/aspected pair in D1/D9/D10 (FEAT-RELATIONSHIP-05, migration
+// 132) but has no CLI coverage yet. This recomputes GrahaDrishtiStrengthCalculator
+// independently from each chart's own stored longitudes and cross-checks it against the
+// persisted tbl_Fact_GrahaDrishtiStrengths rows, rather than re-deriving via the same code path.
+if (args.Length > 0 && args[0] == "verify-graha-drishti")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var gdKeyDetailsRepo = new ChartKeyDetailsRepository(connectionFactory);
+    var grahaDrishtiRepo = new GrahaDrishtiStrengthRepository(connectionFactory);
+    using var gdConn = connectionFactory.CreateOpenConnection();
+    var supportedChartTypes = new[] { "D1", "D9", "D10" };
+
+    foreach (var person in birthDetailsRepo.GetAll())
+    {
+        var storedRows = grahaDrishtiRepo.GetByBirthDetailId(person.Id);
+        Check($"{person.Name}: no rows outside D1/D9/D10", storedRows.Count(r => !supportedChartTypes.Contains(r.ChartType)), 0);
+
+        foreach (var chartType in supportedChartTypes)
+        {
+            var chartResultId = gdConn.ExecuteScalar<int?>(
+                "SELECT cr.Id FROM dbo.tbl_ChartResults cr WHERE cr.BirthDetailId = @Id AND cr.ChartType = @ChartType",
+                new { person.Id, ChartType = chartType });
+            if (chartResultId is null) continue;
+
+            var points = gdKeyDetailsRepo.GetByChartResultId(chartResultId.Value)
+                .Where(k => k.PointKind == "Graha").ToList();
+            var aspecting = points.Where(k => Enum.TryParse<PlanetName>(k.Planet, true, out _)).ToList();
+            var rows = storedRows.Where(r => r.ChartType == chartType).ToList();
+
+            Check($"{person.Name}/{chartType}: row count = aspecting x (points - 1)", rows.Count, aspecting.Count * (points.Count - 1));
+
+            var mismatches = 0;
+            foreach (var source in aspecting)
+            {
+                var sourcePlanet = Enum.Parse<PlanetName>(source.Planet, true);
+                foreach (var target in points.Where(p => p.Planet != source.Planet))
+                {
+                    var expected = GrahaDrishtiStrengthCalculator.Calculate(
+                        sourcePlanet, source.VargaLongitudeDegrees, target.VargaLongitudeDegrees);
+                    var row = rows.FirstOrDefault(r => r.AspectingPlanet == source.Planet && r.AspectedPointKey == target.Planet);
+                    if (row is null
+                        || Math.Abs((double)row.TotalVirupas - expected.TotalVirupas) > 0.01
+                        || Math.Abs((double)row.StrengthPercentage - expected.Percentage) > 0.01
+                        || (row.DiscreteAspectHouse.HasValue ? (int)row.DiscreteAspectHouse.Value : (int?)null) != expected.DiscreteAspectHouse)
+                        mismatches++;
+                }
+            }
+            Check($"{person.Name}/{chartType}: every row matches an independent recompute", mismatches, 0);
+
+            Check($"{person.Name}/{chartType}: IsDiscreteAspect matches DiscreteAspectHouse for every row",
+                rows.Count(r => r.IsDiscreteAspect != r.DiscreteAspectHouse.HasValue), 0);
+            Check($"{person.Name}/{chartType}: every row cites SRC_PVR_INTEGRATED", rows.Count(r => r.SourceRefCode != "SRC_PVR_INTEGRATED"), 0);
+            Check($"{person.Name}/{chartType}: every row has a RuleSetId", rows.Count(r => r.RuleSetId == 0), 0);
+        }
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-graha-drishti: ALL PASS" : $"\nverify-graha-drishti: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- One-off check: `dotnet run -- verify-sthira-karaka` ---
+// Migration 133 populates the STHIRA slot in tbl_Dim_KarakaRole reserved-but-unseeded by
+// migration 103, sourced to B.V. Raman's How to Judge a Horoscope (SRC_RAMAN_HTJH) rather than
+// PVR. FEAT-HOUSE-03 / FEAT-KARAKA-03.
+if (args.Length > 0 && args[0] == "verify-sthira-karaka")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var karakaRepo = new NaisargikaKarakaRepository(connectionFactory);
+    var sthira = karakaRepo.GetSthiraKarakas();
+    Check("6 Sthira Karaka rows", sthira.Count, 6);
+
+    var expected = new Dictionary<int, string> { [1] = "Sun", [2] = "Jupiter", [3] = "Mars", [4] = "Moon", [5] = "Jupiter", [8] = "Saturn" };
+    var wrongPairs = sthira.Count(r => !expected.TryGetValue(r.HouseNumber, out var planet) || planet != r.Graha);
+    Check("every row matches the confirmed (house, planet) pairs", wrongPairs, 0);
+    Check("no rows outside the 6 confirmed houses", sthira.Select(r => r.HouseNumber).Except(expected.Keys).Count(), 0);
+
+    using var skConn = connectionFactory.CreateOpenConnection();
+    var badSource = skConn.ExecuteScalar<int>("""
+        SELECT COUNT(*) FROM dbo.tbl_Rule_KarakaMatter km
+        JOIN dbo.tbl_Dim_KarakaRole kr ON kr.Id = km.KarakaRoleId AND kr.KarakaTypeCode = 'STHIRA'
+        WHERE km.SourceRefCode <> 'SRC_RAMAN_HTJH'
+        """);
+    Check("every Sthira Karaka row cites SRC_RAMAN_HTJH", badSource, 0);
+
+    // Independent cross-check: for the 6 houses where both traditions have a role, Raman's
+    // Sthira Karaka and PVR's Naisargika primary-karaka name the same planet — an agreement
+    // this project treats as a real cross-check, not an assumption (they're separately cited).
+    var naisargikaPrimary = karakaRepo.LoadActive().Primary.ToDictionary(r => r.HouseNumber, r => r.Graha);
+    var mismatches = sthira.Count(r => naisargikaPrimary.TryGetValue(r.HouseNumber, out var g) && g != r.Graha);
+    Check("Sthira Karaka agrees with the Naisargika primary table on the same houses", mismatches, 0);
+
+    Console.WriteLine(failures == 0 ? "\nverify-sthira-karaka: ALL PASS" : $"\nverify-sthira-karaka: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- One-off check: `dotnet run -- verify-house-benefic-malefic` ---
+// HouseBeneficMaleficCalculator (FEAT-HOUSE-06, cited SRC_RAMAN_HTJH p.14-15) has no persisted
+// table — same "hardcode + cite" pattern as LagnaFunctionalNature. This recomputes it for every
+// D1 chart on file and checks structural invariants plus internal consistency (the verdict is a
+// deterministic function of the same counts the Rationale string reports).
+if (args.Length > 0 && args[0] == "verify-house-benefic-malefic")
+{
+    var failures = 0;
+    void Check(string label, object? actual, object? expected)
+    {
+        var ok = $"{actual}" == $"{expected}";
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual}, expected {expected}");
+        if (!ok) failures++;
+    }
+
+    var hbmKeyDetailsRepo = new ChartKeyDetailsRepository(connectionFactory);
+    using var hbmConn = connectionFactory.CreateOpenConnection();
+
+    foreach (var person in birthDetailsRepo.GetAll())
+    {
+        var chartResultId = hbmConn.ExecuteScalar<int?>(
+            "SELECT cr.Id FROM dbo.tbl_ChartResults cr WHERE cr.BirthDetailId = @Id AND cr.ChartType = 'D1'",
+            new { person.Id });
+        if (chartResultId is null) continue;
+
+        var keyDetails = hbmKeyDetailsRepo.GetByChartResultId(chartResultId.Value);
+        var ascendantRow = keyDetails.FirstOrDefault(k => k.Planet == "Ascendant");
+        if (ascendantRow is null) continue;
+
+        var ascendantSign = Enum.Parse<ZodiacName>(ascendantRow.Sign);
+        var results = HouseBeneficMaleficCalculator.ComputeAll(ascendantSign, keyDetails);
+
+        Check($"{person.Name}: 12 house results", results.Count, 12);
+        Check($"{person.Name}: house numbers are 1-12 in order", string.Join(",", results.Select(r => r.HouseNumber)), string.Join(",", Enumerable.Range(1, 12)));
+
+        var badLord = results.Count(r => r.LordPlanet != HouseEngine.GetSignLord(r.Sign));
+        Check($"{person.Name}: every house's lord matches HouseEngine.GetSignLord", badLord, 0);
+
+        var badSign = results.Count(r => r.Sign != HouseEngine.GetHouseSign(ascendantSign, r.HouseNumber));
+        Check($"{person.Name}: every house's sign matches HouseEngine.GetHouseSign", badSign, 0);
+
+        // Independent recount: the Verdict must follow from the very lists the result itself
+        // exposes (lord's nature + occupants + aspectors), not some other hidden weighting.
+        var badVerdict = results.Count(r =>
+        {
+            var beneficCount = (r.LordFunctionalNature is FunctionalNature.Benefic or FunctionalNature.Yogakaraka ? 1 : 0)
+                + r.BeneficOccupants.Count + r.BeneficAspectors.Count;
+            var maleficCount = (r.LordFunctionalNature == FunctionalNature.Malefic ? 1 : 0)
+                + r.MaleficOccupants.Count + r.MaleficAspectors.Count;
+            var expectedVerdict = (beneficCount, maleficCount) switch
+            {
+                (0, 0) => HouseBeneficMaleficVerdict.Neutral,
+                var (b, m) when b > m => HouseBeneficMaleficVerdict.Benefic,
+                var (b, m) when m > b => HouseBeneficMaleficVerdict.Malefic,
+                _ => HouseBeneficMaleficVerdict.Mixed
+            };
+            return r.Verdict != expectedVerdict;
+        });
+        Check($"{person.Name}: every Verdict follows deterministically from its own counted lists", badVerdict, 0);
+
+        var badOccupant = results.Count(o =>
+            o.BeneficOccupants.Concat(o.MaleficOccupants).Any(p =>
+                !keyDetails.Any(k => k.Planet == p && k.HouseNumberFromLagna == o.HouseNumber)));
+        Check($"{person.Name}: every listed occupant is really placed in that house", badOccupant, 0);
+
+        // No planet is both a listed benefic occupant and a listed malefic occupant of the same house.
+        var overlap = results.Count(r => r.BeneficOccupants.Intersect(r.MaleficOccupants).Any()
+            || r.BeneficAspectors.Intersect(r.MaleficAspectors).Any());
+        Check($"{person.Name}: no planet double-counted as both benefic and malefic on the same house", overlap, 0);
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-house-benefic-malefic: ALL PASS" : $"\nverify-house-benefic-malefic: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 

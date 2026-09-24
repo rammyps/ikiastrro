@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-22
+last_updated: 2026-09-23
 togaf: Requirements Management
 safe: Feature / Capability register
 ---
@@ -89,10 +89,10 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 | HOUSE | cli | 3 | 60% | 1 | 1 | 1 | 0 | 1 |
 | NAKSHATRA | cli | 1 | 100% | 0 | 0 | 0 | 0 | 0 |
 | DIGNITY | cli | 1 | 100% | 0 | 0 | 0 | 0 | 0 |
-| RELATIONSHIP | cli | 4 | 60% | 1 | 1 | 1 | 1 | 1 |
+| RELATIONSHIP | cli | 5 | 92% | 0 | 0 | 0 | 0 | 1 |
 | KARAKA | cli | 4 | 55% | 2 | 2 | 2 | 2 | 2 |
 | AVASTHA | cli | 5 | 32% | 3 | 3 | 3 | 5 | 3 |
-| DISPOSITOR | cli | 1 | 0% | 1 | 1 | 1 | 1 | 1 |
+| DISPOSITOR | cli | 1 | 80% | 0 | 0 | 0 | 0 | 1 |
 | STRENGTH | cli | 2 | 40% | 1 | 2 | 2 | 2 | 1 |
 | ASHTAKAVARGA | cli | 1 | 80% | 0 | 0 | 0 | 1 | 0 |
 | DASHA | cli | 2 | 90% | 0 | 0 | 0 | 0 | 1 |
@@ -106,7 +106,15 @@ The DB + CLI stream **publishes**; the UI stream **consumes**. The contract:
 
 *(The rollup is a manual mirror — recompute from the feature rows whenever a box changes.
 2026-09-22: 7 rows added/corrected below as part of v5-batch triage — rollup not yet
-recomputed against them; treat the table above as stale until that pass runs.)*
+recomputed against them; treat the table above as stale until that pass runs. 2026-09-23:
+RELATIONSHIP and DISPOSITOR rows corrected (Argala insert-wiring closed, FEAT-DISPOSITOR-01 and
+FEAT-RELATIONSHIP-05 found already-shipped and undocumented — the `workstream/cli` and
+`workstream/database` worktrees were stale behind `master`; FEAT-RELATIONSHIP-05's `verify-graha-drishti`
+gap closed same day). Also 2026-09-23: FEAT-HOUSE-03 found already-mostly-shipped (house
+significations via migration 31) and its remaining Sthira Kāraka gap closed (migration 133);
+FEAT-KARAKA-03 closed the same way; FEAT-KARAKA-04's "Sapta vs Aṣṭa" flag corrected — the data
+already resolves it. HOUSE/KARAKA rollup rows below are not yet recomputed against these; the
+rest of the table is still unrecomputed against the v5-batch rows.)*
 
 ---
 
@@ -173,26 +181,52 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
 - **FEAT-HOUSE-02 · Functional benefic / malefic by Lagna** — Verified · 80% · Verify `verify-functional-nature`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [ ] · Research: complete
-- **FEAT-HOUSE-03 · Bhāva significations + Sthira Kāraka mapping** — Designed · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial (`SRC_RAMAN_HTJH`, 3 unsourced cells)
+- **FEAT-HOUSE-03 · Bhāva significations + Sthira Kāraka mapping** — Verified · 80%
+  (2026-09-23 correction — was stale at Designed·0%; the "3 unsourced cells" note belonged to a
+  different, already-removed migration (031), not this one) · Verify `verify-sthira-karaka`
+  DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [ ] · Research: complete (`SRC_RAMAN_HTJH`)
+  House significations (`tbl_Rule_HouseSignification`, 12/12 houses) were already shipped via
+  migration 31, just never cross-referenced back to this row. Sthira Kāraka closed 2026-09-23:
+  migration 133 seeds the 6 roles B.V. Raman's *How to Judge a Horoscope* confirms via 20+
+  case studies (Thanukaraka/1st/Sun, Dhanakaraka/2nd/Jupiter, Bhratrukaraka/3rd/Mars,
+  Matrukaraka/4th/Moon, Putrakaraka/5th/Jupiter, Ayushkaraka/8th/Saturn) into the `STHIRA` slot
+  `tbl_Dim_KarakaRole` reserved since migration 103. No source found for the other 6 houses —
+  left unassigned, not guessed. `NaisargikaKarakaRepository.GetSthiraKarakas()` +
+  `verify-sthira-karaka` (row count, citation, cross-check against the independently-sourced
+  PVR Naisargika primary table on the houses where both agree). See `FEAT-KARAKA-03`.
 - **FEAT-HOUSE-04 · Baadhaka sthaana / baadhaka by rasi (PVR §13.3)** — Verified · 60% · Verify `verify-baadhaka`
   DB [ ] (computed, no rule table) · Core [x] · Verify [x] · Web [ ] · Docs [x] · Research: complete
   (`SRC_PVR_INTEGRATED` Table 31; Rahu/Ketu co-baadhaka rows deliberately diverge, see `pvr-coverage.md` Ch. 3)
-- **FEAT-HOUSE-05 · LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** — Planned · 0% (new 2026-09-22)
-  DB [ ] · Core [—] · Verify [ ] · Web [—] · Docs [x] · Research: complete
-  Reconciles `tbl_Dim_LifeArea` (migration 30) and `tbl_Dim_DivisionalSubject` (migration 38) —
-  same PVR ground, never cross-checked — and normalizes `DivisionalSubject.D1Foundation`'s
-  prose into `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail` rows, giving
-  chara-karaka roles the same shape. Feeds `FEAT-VARGA-02` and `FEAT-KARAKA-06`. Sequence
-  before `FEAT-HOUSE-03` (that one's blocked on a citation; this isn't). **Open, needs
-  rammyps:** Leg A/B reconciliation policy when they disagree. Design:
-  `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
-- **FEAT-HOUSE-06 · Sign/house-level benefic-malefic synthesis** — Planned · 0% (new 2026-09-22)
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial (no `SRC_*` citation,
-  synthesis note only)
-  No engine derives this today — `LagnaFunctionalNature` stops at the planet. Proposed method:
-  sign-lord functional nature (dominant) + occupants + graha dṛṣṭi + lord's dignity/condition
-  as a modifier. Needs a source pass before any schema work. Design:
+- **FEAT-HOUSE-05 · LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** — Verified · 80%
+  (2026-09-23 correction — was Planned·0%; most of the bridge already existed, undocumented)
+  DB [x] · Core [x] · Verify [x] · Web [—] · Docs [ ] · Research: complete
+  **This row's own premise was stale, found mid-build 2026-09-23:** migration 109 (2026-09-16)
+  had already built `tbl_Dim_InterpretiveFactor` + `tbl_Rule_InterpretiveFactorDetail` (real
+  typed FKs — `LifeAreaId`/`DivisionalSubjectCode`/`KarakaRoleId` columns, not the polymorphic
+  `ReferenceId` this row's own design doc proposed) and normalized all 11
+  `tbl_Dim_DivisionalSubject` rows' House/Planet/Varga facts — the design doc that proposed this
+  feature (written 2026-09-22) missed that 109 existed. `InterpretiveFactorDetailRepository` and
+  CLI `verify-interpretive-factors` already existed too. What was actually still missing (109's
+  own stated deferral): **Reconciliation policy decided 2026-09-23 (rammyps):** amend Leg A
+  (`tbl_Dim_LifeArea`, 10 of 20 rows) wording to match Leg B's narrower framing — done, migration
+  134. LifeArea VARGA facts (21 rows, WEALTH has both D2/D2-US) seeded into 109's table, same
+  migration; `verify-interpretive-factors` gained a LifeArea-coverage check. Still open, not
+  guessed: `CHARA_KARAKA_ROLE` (Leg D) stays unseeded — no source content exists to seed it from,
+  same gap 109 already flagged. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
+- **FEAT-HOUSE-06 · Sign/house-level benefic-malefic synthesis** — Done · 100% (built 2026-09-23)
+  DB [—] (deliberately none — live-only "hardcode + cite" pattern, same as `LagnaFunctionalNature`
+  itself) · Core [x] `HouseBeneficMaleficCalculator` (`workstream/cli`) · Verify [x]
+  `verify-house-benefic-malefic` · Web [ ] · Docs [x] · Research: complete, cited
+  `SRC_RAMAN_HTJH` p.14-15 (same passage `LagnaFunctionalNature` already carries).
+  Combines sign-lord functional nature (dominant input, via `LagnaFunctionalNature.For`) +
+  occupants + discrete graha dṛṣṭi landing on the house (new `RelationshipEngine.AspectsSign`,
+  reusing `FindAspects`' own aspect table so an empty house can still be tested), each counted
+  equally; lord dignity/combustion reported separately as a modifier, not folded into the count
+  — no blended numeric score, per the `DignityScore`/`RelationshipScore` precedent. Verdict is
+  Benefic/Malefic/Mixed/Neutral, never a tie-breaking guess. `verify-house-benefic-malefic`
+  recomputes for every D1 chart on file and checks house/sign/lord consistency, real occupancy,
+  no double-counting, and that the Verdict follows deterministically from its own counted lists
+  — all PASS. Web rendering not built this session (Web workstream out of scope). Design:
   `docs/research/domain/sign-benefic-malefic.md`.
 
 ## NAKSHATRA — workstream: cli
@@ -240,7 +274,7 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
 - **FEAT-RELATIONSHIP-03 · Combustion (Asta)** — Done · 100% · Verify `verify-schema`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
-- **FEAT-RELATIONSHIP-04 · Compound Maitrī / argala / sambandha** — In progress · 70% (2026-09-22 correction — was stale at Planned·0%) · Verify `verify-rules`
+- **FEAT-RELATIONSHIP-04 · Compound Maitrī / argala / sambandha** — In progress · 80% (2026-09-23 correction) · Verify `verify-rules`
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete (argala/virodhargala only)
   Argala/virodhargala built 2026-09-19: `tbl_Rule_Argala` (migration 127, `SRC_PVR_INTEGRATED`
   §10.5–10.6) + `ArgalaCalculator` + `tbl_Fact_Argala` (migration 128) +
@@ -250,11 +284,29 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   `BirthDetailDeletionService` — once `backfill-argala` had run, every RECALCULATE and
   person-delete threw `FK_Fact_Argala_ChartResult`. Fixed (`ArgalaFactRepository.DeleteByBirthDetailId`,
   wired as an optional dep in both services + both composition roots, matching
-  `KpSubLordChainRepository`'s pattern). Remaining: wire `ArgalaFactBuilder`'s *insert* side into
-  `ChartGenerationService` (fact table still needs manual `backfill-argala` after a rebuild);
-  career worked-example `CalculationNarrative`; Compound Maitrī —
-  `tbl_Rule_CompoundRelationship` (migration 24) exists but `DignityEngine.CombineToPanchadha`
-  doesn't read it; sambandha types not started. Detail: `argala-virodhargala-drishti-lifematters.md`.
+  `KpSubLordChainRepository`'s pattern). **Insert-side wired 2026-09-23:** `ArgalaFactBuilder`'s
+  output is now written on every live `GenerateAll`/`GenerateMissing`/`RecomputeAnalytics` call
+  (`ChartGenerationService.PersistAnalytics`, mirroring the `_kpSubLordChainRepo` block); no
+  longer needs a manual `backfill-argala` re-run after a rebuild. Found + fixed in the same pass:
+  the unfiltered `keyDetails` list also carries non-Graha special points (Arudha Lagna etc.) that
+  `ArgalaFactBuilder.BuildOccupancy` can't parse as a `PlanetName` — now filtered to
+  `PointKind == "Graha"` first, matching `backfill-argala`'s own SQL projection. Remaining: career
+  worked-example `CalculationNarrative`; sambandha types not started. **Compound Maitrī — not a
+  gap, corrected 2026-09-23:** `tbl_Rule_CompoundRelationship` (migration 24) exists as cited
+  reference data that `verify-rules` proves matches `DignityEngine.CombineToPanchadha`'s hardcoded
+  truth table — the engine deliberately doesn't read it live, same "hardcode + cite + verify
+  equivalence" pattern as `ArgalaCalculator`/`RasiDrishtiCalculator` (see those files' own doc
+  comments). Detail: `argala-virodhargala-drishti-lifematters.md`.
+- **FEAT-RELATIONSHIP-05 · Sphuta (longitude-based) Graha Dṛṣṭi strength** — Verified · 80%
+  (new 2026-09-23, found undocumented on `master`; Verify closed 2026-09-23) · Research: complete
+  (`SRC_PVR_INTEGRATED`)
+  DB [x] (`tbl_Fact_GrahaDrishtiStrengths`, migration 132 — Virupas + strength % per
+  aspecting/aspected pair, D1/D9/D10 only; distinct from the discrete whole-sign aspects already
+  in `tbl_Chart_Aspects`/`FEAT-RELATIONSHIP-02`) · Core [x] (`GrahaDrishtiStrengthRepository`,
+  wired live in `ChartGenerationService.PersistAnalytics`) · Verify [x] (`verify-graha-drishti` —
+  recomputes `GrahaDrishtiStrengthCalculator` independently from stored longitudes and
+  cross-checks every saved person's D1/D9/D10 rows, same shape as `verify-dispositor`) · Web [x]
+  (`GrahaDrishtiMatrix.razor`, `RasiDrishtiMatrix.razor`, Key Inference tab) · Docs [ ]
 
 ## KARAKA — workstream: cli
 
@@ -264,10 +316,19 @@ recomputed against them; treat the table above as stale until that pass runs.)*
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
   PVR Gulika/Maandi convention; `verify-upagrahas` passes all 21 charts (stored charts
   regenerated on the Lahiri default, FEAT-DATA-04).
-- **FEAT-KARAKA-03 · Sthira Kāraka** — Planned · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial (`SRC_RAMAN_HTJH`)
-- **FEAT-KARAKA-04 · Naisargika Kāraka (Sapta vs Aṣṭa — undecided)** — Planned · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: partial
+- **FEAT-KARAKA-03 · Sthira Kāraka** — In progress · 60% (2026-09-23 correction — was
+  Planned·0%) · Verify `verify-sthira-karaka`
+  DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [ ] · Research: complete for 6/12 houses
+  (`SRC_RAMAN_HTJH`), no source found for the other 6
+  Same build as `FEAT-HOUSE-03`'s Sthira Kāraka half — see that row for detail. Partial by
+  design, not by gap: only 6 of 12 houses have a Raman-confirmed Sthira Karaka role.
+- **FEAT-KARAKA-04 · Naisargika Kāraka** — Done · 100% (2026-09-23 correction — "Sapta vs Aṣṭa"
+  was never actually undecided in the data)
+  DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete
+  Migrations 086/103 already give all 9 grahas (7 classical + Rahu + Ketu as separate roles)
+  their own `NAISARGIKA` role in `tbl_Dim_KarakaRole`, and the 34-row Karakatwa grid already
+  includes Rahu/Ketu matters — confirmed 2026-09-23 as the intended scope, not a gap needing a
+  decision. Rendered live in `KarakaPolarWheel.razor` (`NaisargikaKarakaRepository.LoadActive().Primary`).
 - **FEAT-KARAKA-06 · Chara-karaka "Life Matters" panel** — Planned · 0% (new 2026-09-22)
   DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
   Closes `FEAT-KARAKA-01`'s `Web [ ]` gap — the panel from `res_charakarakas.md` §2. Depends
@@ -298,8 +359,17 @@ recomputed against them; treat the table above as stale until that pass runs.)*
 
 ## DISPOSITOR — workstream: cli
 
-- **FEAT-DISPOSITOR-01 · Dispositor chains / final dispositor / mutual reception** — Planned · 0%
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [ ] · Research: not started
+- **FEAT-DISPOSITOR-01 · Dispositor chains / final dispositor / mutual reception** — Verified · 80% (2026-09-23 correction — was stale at Planned·0%; Core/Web had already shipped undocumented, worktrees were behind master) · Verify `verify-dispositor`
+  DB [—] (deliberately live-only, same "hardcode, no fact table until something needs to
+  cross-reference it in SQL" pattern as Argala/RasiDrishti) · Core [x] (`DispositorEngine.cs` —
+  chain-following, self-disposed/mutual-reception/cycle termination, `DispositorEngineTests.cs`)
+  · Verify [x] (`verify-dispositor`, added 2026-09-23 — checks every saved person's D1 chart:
+  full chain coverage, no `MISSING_PLACEMENT`, first hop agrees with `ChartAnalyzer`'s
+  independently-stamped `SignLordPlanet`, `SELF_DISPOSED` chains terminate at a genuine fixed
+  point, `MUTUAL_RECEPTION` cycles are internally consistent) · Web [x] (`DispositorTable.razor`,
+  live calculator reading `ChartKeyDetail` rows, matching the `ArgalaTable` precedent) · Docs [ ]
+  · Research: not started (no citation needed — deterministic graph traversal over already-cited
+  sign-lord data, migration 116)
 
 ## STRENGTH — workstream: cli
 
@@ -322,13 +392,24 @@ recomputed against them; treat the table above as stale until that pass runs.)*
 
 ## ASHTAKAVARGA — workstream: cli
 
-- **FEAT-ASHTAKAVARGA-02 · Cross-varga bindu lookup + `AshtakavargaVargaCompareChart`** — Planned · 0% (new 2026-09-22)
-  DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x] · Research: partial
-  Read-side extension of `FEAT-ASHTAKAVARGA-01`, no second engine: look up the single natal
-  SAV/BAV bindu table against every rendered Dn chart's placements, plus a new stacked-bar
-  chart (By House / By Sign, % bindu share per varga, same shape as Key Inference 3.4
-  Amsabala's per-graha bar). **Open:** citation for cross-reference (working assumption) vs.
-  independent-recompute-per-varga. Design: `docs/research/domain/ashtakavarga-varga-extension.md`.
+- **FEAT-ASHTAKAVARGA-02 · Cross-varga application + `AshtakavargaVargaCompareChart`** —
+  Verified · 80% (2026-09-23 correction — the cross-varga application half was already shipped,
+  and via the opposite reading from what this row assumed) · Verify `verify-ashtakavarga`
+  DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [ ] · Research: complete (`SRC_PVR_INTEGRATED`
+  Example 39, p.155)
+  This row's premise was stale: `ChartGenerationService.PersistAnalytics` already materializes
+  Ashtakavarga independently for every chart type (reading (b) — recompute, not a D1
+  cross-reference lookup, reading (a)), and `AshtakavargaChart.razor` already has a live "Varga"
+  selector over it. Also wasn't actually uncited — P.V.R.'s *Integrated Approach* Example 39
+  states directly: "Ashtakavarga of divisional charts is prepared in the same manner as that of
+  rasi chart... we can find SAV of a divisional chart too," worked through PM A.B. Vajpayee's
+  D-10 career case study (Examples 39/101/108). **Decided 2026-09-23 (rammyps): keep the
+  shipped behavior**, now cited. `verify-ashtakavarga` Phase 6 (added same day) guards that D9's
+  persisted SAV is a genuine independent recompute, not a relabeled D1 copy. Remaining:
+  `AshtakavargaVargaCompareChart` (By House / By Sign stacked bar) is still unbuilt Web work —
+  its 3 open sub-questions decided 2026-09-23: unique varga codes per tier, one bar per scheme
+  tab, fixed Exalted→Great Enemy segment order. Design:
+  `docs/research/domain/ashtakavarga-varga-extension.md`.
 - **FEAT-ASHTAKAVARGA-01 · Bhinna / Sarva Ashtakavarga + Sodhya Piṇḍa** — Verified · 80% · Verify `verify-ashtakavarga`
   DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [x]
   Production `dbo` schema (migrations 074–078): `tbl_Rule_AshtakavargaContribution` (56-row

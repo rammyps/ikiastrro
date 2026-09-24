@@ -22,12 +22,15 @@
             @if (Active.Id is int personId)
             {
                 <nav class="ik-tabs" aria-label="Person sections">
-                    @* ALL CHARTS is the divisional-chart gallery. Karakas and special Lagna
-                       interpretation now live together as Step 4 inside KEY INFERENCE. NUMEROLOGY
-                       (docs/ui/components/numerology.md) is Cheiro's name-number method, computed
-                       live from the person's saved Name — no sub-steps, so it's plain text like
-                       HOME rather than the two-word stacked-span pill. *@
-                    <a href="@($"/charts/{personId}")" class="ik-headtab @TabClass("charts")"><span>ALL</span> <span>CHARTS</span></a>
+                    @* ALL CHARTS's own top-nav pill was removed (rammyps, 2026-09-24) — the
+                       divisional-chart gallery is now step 7 inside KEY INFERENCE
+                       (KeyInference.razor's AllChartsGrid tab), so a separate top-level link to
+                       /charts/{id} was a duplicate entry point. The route itself still exists
+                       (AllCharts.razor) for any deep link already pointing at it. Karakas and
+                       special Lagna interpretation live together as Step 4 inside KEY INFERENCE.
+                       NUMEROLOGY (docs/ui/components/numerology.md) is Cheiro's name-number
+                       method, computed live from the person's saved Name — no sub-steps, so it's
+                       plain text like HOME rather than the two-word stacked-span pill. *@
                     <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinf")"><span>KEY</span> <span>INFERENCE</span></a>
                     <a href="@($"/numerology/{personId}")" class="ik-headtab @TabClass("numerology")">NUMEROLOGY</a>
                 </nav>
@@ -49,42 +52,48 @@
         @if (Active is { Id: not null, Name: not null })
         {
             <div class="ik-band">
-                <div class="ik-band-inner">
-                    <div class="ik-person-wrap">
-                        <button type="button" class="ik-person" @onclick="TogglePersonMenu"
-                                aria-haspopup="listbox" aria-expanded="@_personMenuOpen" title="Switch person">
-                            <span class="ik-person-name">@Active.Name</span>
-                            <span class="ik-person-caret" aria-hidden="true">▾</span>
-                        </button>
-                        @if (_personMenuOpen)
-                        {
-                            <ul class="ik-person-menu" role="listbox">
-                                @if (OtherPeople.Count == 0)
-                                {
-                                    <li class="ik-person-menu-empty">No other saved people</li>
-                                }
-                                else
-                                {
-                                    @foreach (var p in OtherPeople)
+                <div class="ik-band-inner @(Active.HeaderExtra is not null ? "has-extra" : null)">
+                    @if (Active.HeaderExtra is not null)
+                    {
+                        @Active.HeaderExtra
+                    }
+                    <div class="ik-person-block">
+                        <div class="ik-person-wrap">
+                            <button type="button" class="ik-person" @onclick="TogglePersonMenu"
+                                    aria-haspopup="listbox" aria-expanded="@_personMenuOpen" title="Switch person">
+                                <span class="ik-person-name">@Active.Name</span>
+                                <span class="ik-person-caret" aria-hidden="true">▾</span>
+                            </button>
+                            @if (_personMenuOpen)
+                            {
+                                <ul class="ik-person-menu" role="listbox">
+                                    @if (OtherPeople.Count == 0)
                                     {
-                                        <li>
-                                            <button type="button" @onclick="() => GoToPerson(p.Id)">
-                                                <span class="ik-person-menu-name">@p.Name</span>
-                                                <span class="ik-person-menu-birth">@p.DateOfBirth.ToString("dd MMM yyyy")</span>
-                                            </button>
-                                        </li>
+                                        <li class="ik-person-menu-empty">No other saved people</li>
                                     }
-                                }
-                                <li class="ik-person-menu-all">
-                                    <button type="button" @onclick="GoToPicker">All saved people…</button>
-                                </li>
-                            </ul>
+                                    else
+                                    {
+                                        @foreach (var p in OtherPeople)
+                                        {
+                                            <li>
+                                                <button type="button" @onclick="() => GoToPerson(p.Id)">
+                                                    <span class="ik-person-menu-name">@p.Name</span>
+                                                    <span class="ik-person-menu-birth">@p.DateOfBirth.ToString("dd MMM yyyy")</span>
+                                                </button>
+                                            </li>
+                                        }
+                                    }
+                                    <li class="ik-person-menu-all">
+                                        <button type="button" @onclick="GoToPicker">All saved people…</button>
+                                    </li>
+                                </ul>
+                            }
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
+                        {
+                            <span class="ik-person-birth">@Active.BirthLine</span>
                         }
                     </div>
-                    @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
-                    {
-                        <span class="ik-person-birth">@Active.BirthLine</span>
-                    }
                 </div>
             </div>
             @if (_personMenuOpen)
@@ -156,9 +165,6 @@
         var here = key switch
         {
             "keyinf"  => p.Contains("/timing", StringComparison.Ordinal) || p.Contains("/key-inference", StringComparison.Ordinal),
-            "charts"  => p.StartsWith("/charts", StringComparison.Ordinal)
-                         && !p.Contains("/timing", StringComparison.Ordinal)
-                         && !p.Contains("/key-inference", StringComparison.Ordinal),
             "numerology" => p.StartsWith("/numerology", StringComparison.Ordinal),
             _ => false
         };

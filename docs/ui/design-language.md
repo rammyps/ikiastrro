@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-14
+last_updated: 2026-09-23
 workstream: ui
 togaf: C — UI standards
 ---
@@ -88,14 +88,16 @@ repeats it):
 ## Tabs
 
 **Decided 2026-09-14 (rammyps's directive), rolling out app-wide starting with Key
-Inference; revised same day to a single pill style at every level** — not MudBlazor's default
-text-plus-underline-slider look, and no longer split between a pill master rail and a
-filled-segment nested style:
+Inference; revised same day to a single pill style at every level; briefly flipped to a flat
+midnight/sunset look on 2026-09-23, then reverted the same evening back to sunset/midnight**
+— not MudBlazor's default text-plus-underline-slider look, and no longer split between a pill
+master rail and a filled-segment nested style:
 
-- **Active tab:** strong sunset-orange fill (`--tab-active-bg` = `--brand-sunset`) + midnight
-  text (`--tab-active-fg` = `--brand-midnight`).
-- **Inactive tab:** quiet cream fill (`--tab-inactive-bg` = a 22% `--brand-line`/`--brand-canvas`
-  mix) + midnight text (`--tab-inactive-fg` = `--brand-midnight`).
+- **Every tab, active or inactive:** sunset-orange fill (`--tab-active-bg`/`--tab-inactive-bg` =
+  `--brand-sunset`) + dark-navy text (`--tab-active-fg`/`--tab-inactive-fg` = `--brand-midnight`)
+  — one flat look, no colour swap for the selected tab (rammyps's directive, 2026-09-23 evening;
+  earlier that same day this was briefly midnight-fill/sunset-text, and before that active used
+  a sunset fill/midnight text and inactive a quiet-cream fill/midnight text).
 - Fully rounded pill shape (`border-radius: 999px`), not the earlier rounded-top "filled
   segment" look.
 - Tab text is always ALL CAPS in the markup itself (not a CSS `text-transform`, so labels like
@@ -103,7 +105,7 @@ filled-segment nested style:
 - The underline slider MudBlazor draws by default is redundant against a filled pill — hide it
   (`.mud-tab-slider { display: none; }`).
 
-Applies uniformly to the Key Inference master step rail (1. D1-TRANSIT / 2. ABOUT / 3. STRENGTH
+Applies uniformly to the Key Inference master step rail (1. NATAL CHARTS / 2. TRANSIT CHART / 3. STRENGTH
 / 4. SPL LAGNAS / 5. YOGAS / 6. VARGAS) **and** every nested tab strip beneath it (1.1/1.2,
 2.1/2.2, 3.1/3.2/3.3/3.4) — one tab style, not two. `KeyInference.razor.css`'s
 `.ki-tabs ::deep .mud-tab` rule is the base pill; `.ki-mastertabs ::deep .ki-master-button` only
@@ -133,9 +135,10 @@ sunset-fill selected state:
   `padding: 4-6px 10-14px` (vs a nav tab's `--font-size-control`/6-20px).
 - Positioned on the **right** of the card header, opposite the `<h2>` (and before any trailing
   stat like Sarvāṣṭakavarga's grand total) — never left-aligned under the heading.
-- A `<select>` that drives the same chart (SPL LAGNAS's divisional-chart picker) matches this
-  same navy/cream/caps look so it reads as part of the same control cluster as the toggle beside
-  it, not a separate form field.
+- A `<select>` that chooses or drives a chart (including Key Inference's Natal Chart dropdown
+  and SPL LAGNAS's divisional-chart picker) uses a dark-blue `--brand-midnight` surface with
+  cream `--brand-canvas` text. This navy/cream/caps look identifies chart-selection controls
+  consistently and keeps them visually distinct from ordinary data-entry form fields.
 
 Rationale: this reuses the app's own dark-navy brand color as a visual signal that a control
 "belongs to a chart" (part of that card's own display state) rather than to page navigation

@@ -1,0 +1,34 @@
+@using System.Globalization
+@using Ikiastrro.Data
+@* Key Inference "GENERAL DETAILS" — birth-moment Pañchāṅga (db/081's PanchangaRepository) plus
+   sunrise/sunset/Janma Ghatis. Distinct from the chart-view's LunarPhaseCard (Tithi/Pakṣa/
+   Elongation, Moon-centric); this card is the day-level almanac reading, Sun-and-Moon-together. *@
+@if (Row is null)
+{
+    <p class="pch-empty">Pañchāṅga not computed for this chart yet — run <code>recompute-panchanga</code>.</p>
+}
+else
+{
+    <dl class="pch">
+        <div><dt>Tithi</dt><dd>@Row.TithiName<span class="pch-sub">@Row.Paksha Pakṣa · @Row.TithiPercentRemaining.ToString("0", CultureInfo.InvariantCulture)% left</span></dd></div>
+        <div><dt>Karaṇa</dt><dd>@Row.KaranaName<span class="pch-sub">@Row.KaranaPercentRemaining.ToString("0", CultureInfo.InvariantCulture)% left</span></dd></div>
+        <div><dt>Nitya Yoga</dt><dd>@Row.NityaYogaName<span class="pch-sub">@(Row.NityaYogaMeaning ?? "—")</span></dd></div>
+        <div><dt>Weekday</dt><dd>@Row.VedicWeekdayName</dd></div>
+        <div><dt>Hora Lord</dt><dd>@Row.HoraLordName</dd></div>
+        <div><dt>Janma Ghaṭis</dt><dd>@Row.JanmaGhatis.ToString("0.00", CultureInfo.InvariantCulture)</dd></div>
+        <div><dt>Sunrise</dt><dd>@Local(Row.SunriseUtc)</dd></div>
+        <div><dt>Sunset</dt><dd>@Local(Row.SunsetUtc)</dd></div>
+        <div><dt>Birth</dt><dd>@(Row.IsNightBirth ? "Night" : "Day")</dd></div>
+    </dl>
+}
+
+@code {
+    [Parameter] public ChartPanchangaRow? Row { get; set; }
+
+    /// <summary>Sunrise/sunset are stored UTC; Row carries no offset of its own, so the caller
+    /// hands one in (the person's own birth UtcOffset) — same source KeyInference already parses
+    /// for the transit-selection clock.</summary>
+    [Parameter] public TimeSpan UtcOffset { get; set; }
+
+    private string Local(DateTime utc) => DateTime.SpecifyKind(utc, DateTimeKind.Utc).Add(UtcOffset).ToString("HH:mm", CultureInfo.InvariantCulture);
+}

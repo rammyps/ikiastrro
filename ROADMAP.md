@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-22
+last_updated: 2026-09-23
 ---
 
 # ikiastrro — Roadmap
@@ -45,22 +45,26 @@ Close the gap between verified engine logic and what the web app actually shows 
   2026-09-22). Depends on `FEAT-HOUSE-05`.
 - **Planetary-state (avastha) display** — `AgeState`, `WakefulnessState` · `FEAT-AVASTHA-01/02`
 - **Slow-planet transit history view** — 1930–2060 sign-transit timeline · `FEAT-TRANSIT-01`
-- **Ashtakavarga cross-varga extension + comparison chart** · `FEAT-ASHTAKAVARGA-02` (new
-  2026-09-22) — now unblocked, `FEAT-ASHTAKAVARGA-01`'s engine shipped (migrations 074–078;
-  `pvr-coverage.md` Ch.12 corrected 2026-09-22, was stale). Look up the existing natal
-  SAV/BAV bindu table against every rendered Dn chart's placements (read-side, no second
-  engine) plus a new `AshtakavargaVargaCompareChart` stacked bar, By House / By Sign toggle.
-  Design: `docs/research/domain/ashtakavarga-varga-extension.md`. **Open, needs rammyps:**
-  citation for the cross-reference (recommended) vs. independent-recompute-per-varga reading
-  — the note's working assumption is cross-reference; flag if a source for the other reading
-  exists.
+- ~~**Ashtakavarga cross-varga extension + comparison chart**~~ **Extension half done, closed
+  2026-09-23** · `FEAT-ASHTAKAVARGA-02` (new 2026-09-22) — this bullet's premise was stale in
+  the opposite direction from what it assumed: `ChartGenerationService.PersistAnalytics`
+  already independently recomputes Ashtakavarga per chart type (not a D1 cross-reference
+  lookup), and `AshtakavargaChart.razor` already has a live "Varga" selector over it. Also
+  wasn't actually uncited: P.V.R.'s *Integrated Approach* Example 39 (p.155) states directly
+  that this is the correct method, worked through PM A.B. Vajpayee's D-10 career case study.
+  **Decided 2026-09-23 (rammyps): keep the shipped behavior, now cited.**
+  `verify-ashtakavarga` Phase 6 guards the per-varga independence. Design:
+  `docs/research/domain/ashtakavarga-varga-extension.md`. Still open (Web-only, deferred):
+  `AshtakavargaVargaCompareChart` stacked bar — its 3 sub-questions decided 2026-09-23: dedupe
+  varga-code lists to unique codes, one stacked bar per scheme tab, fixed Exalted→Great Enemy
+  segment order. Moving to `masterproduct.md`.
 - ~~**Nakshatra Lord → Sub-Lord chain (L1–L7) surfacing + Rāśi/Nakṣatra combination**~~ **Done,
   closed 2026-09-22** · `FEAT-NAKSHATRA-02` — `PlanetPositionsTable` (d1 variant) shows a
   live-computed "Sub-Lord Chain (L2–L7)" column; the Web-generation gap
   (`tbl_Fact_KpSubLordChain` never populated for Web-created charts) is closed
   (`Ikiastrro.Web/Program.cs` registers `KpSubLordChainRepository`);
   `tvf_Chart_DashaLordRelationship`'s join extended to L2–L7 (migration 131). New Key Inference
-  tab "2.3 SIGN & NAKSHATRAS" (`RasiNakshatraTable`) surfaces `tbl_Rule_RasiNakshatraCombination`
+  tab "1.1 ABOUT SIGNS & NAKSHATRAS" (`RasiNakshatraTable`) surfaces `tbl_Rule_RasiNakshatraCombination`
   (migration 124, 36 rows) — one row per graha, expand-to-reveal the narrative fields. Both
   slices browser-verified. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
   Moving to `masterproduct.md` — this bucket only tracks what's still in flight.
@@ -80,14 +84,27 @@ Close the gap between verified engine logic and what the web app actually shows 
 
 Scoped, not started. Ordering set at the next ICE pass.
 
-- **Bhāva significations + Sthira Kāraka mapping** — Designed; migration 030 drafted · `FEAT-HOUSE-03`
-- **Sthira Kāraka / Naisargika Kāraka** — resolve Sapta vs Aṣṭa; needs a cited edition · `FEAT-KARAKA-03/04`
-- **Dispositor chains / final dispositor / mutual reception** · `FEAT-DISPOSITOR-01` — a
-  single-level building block landed 2026-09-18 (migration 116:
-  `vw_ChartPlanetInHouseInterpretation` now cross-references each placed graha's own
-  dispositor — sign lord — and that dispositor's house/sign/dignity), but chains (dispositor
-  of the dispositor, n-deep), final-dispositor resolution, and mutual reception detection are
-  still not built
+- ~~**Bhāva significations + Sthira Kāraka mapping**~~ **Done, closed 2026-09-23** ·
+  `FEAT-HOUSE-03`/`FEAT-KARAKA-03` — this bullet was stale on two counts: house significations
+  (`tbl_Rule_HouseSignification`, 12/12 houses) already shipped via migration 31, and the
+  "needs a cited edition" note for Sthira Kāraka was resolved by re-reading B.V. Raman's *How
+  to Judge a Horoscope*, which confirms 6 of the 12 house roles via 20+ case studies (the other
+  6 have no source — left unassigned). Migration 133 seeds the `STHIRA` slot
+  `tbl_Dim_KarakaRole` reserved since migration 103; `verify-sthira-karaka` cross-checks
+  agreement with the independently-sourced PVR Naisargika primary table. Moving to
+  `masterproduct.md`.
+- ~~**Naisargika Kāraka — Sapta vs Aṣṭa**~~ **Not actually undecided, corrected 2026-09-23** ·
+  `FEAT-KARAKA-04` — migrations 086/103 already give all 9 grahas (7 classical + Rahu + Ketu
+  separately) their own role; confirmed as the intended scope, not a live decision. Moving to
+  `masterproduct.md`.
+- ~~**Dispositor chains / final dispositor / mutual reception**~~ **Done, closed 2026-09-23**
+  · `FEAT-DISPOSITOR-01` — this bullet was stale: `DispositorEngine.cs` (chain-following,
+  final-dispositor resolution, mutual-reception/cycle detection) and a live `DispositorTable.razor`
+  had already shipped on `master`, just undocumented (the `workstream/cli`/`workstream/ui`
+  worktrees were behind). Deliberately live-only, no fact table — same pattern as Argala/RasiDrishti
+  until something needs to cross-reference it in SQL. Closed out with `verify-dispositor` CLI
+  coverage (checks every saved person's D1 chart against independently-stamped `SignLordPlanet`
+  and structural chain invariants). Moving to `masterproduct.md`.
 - **Compound Maitrī, sambandha** · `FEAT-RELATIONSHIP-04` — argala/virodhargala split out and
   built 2026-09-19: rule layer (`ArgalaCalculator` + `tbl_Rule_Argala`, migration 127), fact
   layer (`tbl_Fact_Argala` migration 128 + `ArgalaFactBuilder`/`ArgalaFactRepository` +
@@ -96,20 +113,25 @@ Scoped, not started. Ordering set at the next ICE pass.
   2026-09-22:** `tbl_Fact_Argala` had no delete-wiring at all, so once `backfill-argala` had run,
   every RECALCULATE and person-delete threw `FK_Fact_Argala_ChartResult` — fixed, matching
   `KpSubLordChainRepository`'s optional-dependency pattern in both `ChartGenerationService` and
-  `BirthDetailDeletionService`. Still open: `ArgalaFactBuilder`'s *insert* side not wired into
-  `ChartGenerationService` (the live recompute pipeline), so `tbl_Fact_Argala` still needs
-  `backfill-argala` re-run by hand after a rebuild; the career worked-example
-  `CalculationNarrative` not authored. Compound Maitrī data exists
-  (`tbl_Rule_CompoundRelationship`, migration 24) but `DignityEngine.CombineToPanchadha` still
-  doesn't read it (see dignity-pvr.md); sambandha not started
-- **LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge** · `FEAT-HOUSE-05` (new 2026-09-22) —
-  reconcile the two never-cross-checked PVR-sourced tables (`tbl_Dim_LifeArea` migration 30,
-  `tbl_Dim_DivisionalSubject` migration 38) and normalize `DivisionalSubject.D1Foundation`'s
-  prose into queryable `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail` rows,
-  giving chara-karaka roles (`tbl_Dim_KarakaRole`) the same shape. Feeds `FEAT-VARGA-02` and
-  `FEAT-KARAKA-06` below. Design: `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`.
-  Sequence before `FEAT-HOUSE-03` (Sthira Kāraka needs a cited edition first; this doesn't).
-  **Open, needs rammyps:** Leg A/B reconciliation policy when the two tables disagree.
+  `BirthDetailDeletionService`. **Insert-side wired 2026-09-23:** `ArgalaFactBuilder`'s output is
+  now written on every live `GenerateAll`/`GenerateMissing`/`RecomputeAnalytics` call, so
+  `tbl_Fact_Argala` no longer needs a manual `backfill-argala` re-run after a rebuild. Still open:
+  the career worked-example `CalculationNarrative`; sambandha not started. **Compound Maitrī —
+  not a gap:** `tbl_Rule_CompoundRelationship` (migration 24) is deliberately cited-but-not-read,
+  same pattern as `ArgalaCalculator`/`RasiDrishtiCalculator` — `verify-rules` already proves it
+  matches `DignityEngine.CombineToPanchadha`'s hardcoded truth table
+- ~~**LifeArea ↔ DivisionalSubject ↔ CharaKaraka bridge**~~ **Mostly done, closed 2026-09-23**
+  · `FEAT-HOUSE-05` (new 2026-09-22) — this bullet's own premise was stale: migration 109
+  (2026-09-16) had already built `tbl_Dim_InterpretiveFactor` / `tbl_Rule_InterpretiveFactorDetail`
+  and normalized all 11 `tbl_Dim_DivisionalSubject` rows into it, with a repository and CLI
+  `verify-interpretive-factors` already in place — the design doc proposing this feature
+  (written 2026-09-22) missed that 109 existed. What 109 had explicitly deferred: **Leg A/B
+  reconciliation, decided 2026-09-23 (rammyps):** amend Leg A (`tbl_Dim_LifeArea`, 10 of 20
+  rows) wording to match Leg B's narrower framing — done, migration 134, plus the missing
+  LifeArea VARGA facts (21 rows) seeded into 109's table. Design:
+  `docs/research/domain/lifearea-varga-charakaraka-synthesis.md`. Still open, not guessed:
+  Chara-karaka-role (Leg D) detail rows — no source content exists to seed them from. Moving to
+  `masterproduct.md`.
 
 ## Later
 
@@ -131,19 +153,23 @@ Acknowledged, deliberately deferred.
   A Language selector in Preferences. Broad i18n scope — see `docs/ui/MASTER.md` NFRs
 - **Runtime-reorderable tabs** — drag-to-reposition the header tabs / Key-Inference sub-tabs,
   order remembered per user. Deferred NFR — effort + rationale in `docs/ui/MASTER.md`
-- **Sign/house-level benefic-malefic synthesis** · `FEAT-HOUSE-06` (new 2026-09-22) — no
-  engine derives this today (`LagnaFunctionalNature` stops at the planet); a proposed method
-  exists (sign-lord functional nature + occupants + aspects + lord's condition) but needs a
-  source pass before any schema work, per the note's own caution. Design:
-  `docs/research/domain/sign-benefic-malefic.md`.
+- ~~**Sign/house-level benefic-malefic synthesis**~~ **Done, closed 2026-09-23** ·
+  `FEAT-HOUSE-06` — B.V. Raman's *How to Judge a Horoscope* "Considerations in Judging a
+  House" checklist (p.14-15, `SRC_RAMAN_HTJH`) — same passage `LagnaFunctionalNature` already
+  cites. Built `HouseBeneficMaleficCalculator` (`workstream/cli`): sign-lord functional nature
+  (dominant) + occupants + discrete graha dṛṣṭi (new `RelationshipEngine.AspectsSign`) + lord
+  dignity/combustion as a separate, non-voting modifier. Live-only, no new table — same pattern
+  as `LagnaFunctionalNature` itself. `verify-house-benefic-malefic` ALL PASS across every D1
+  chart on file. See `masterproduct.md` HOUSES.
 - **Data & Calculation Integrity surfacing** (new 2026-09-22) — birth-time sensitivity
   (±1/±2/±5/±10 min placement drift), rectification-status flag, ayanāṁśa/settings
   declaration shown per-reading. Genuinely new ground, no existing engine gap to close; no
   urgency signal yet. From Stage 01 of `docs/research/domain/vedic_reading_layers.md`.
-- **Nakshatra color scheme** — undecided, not just unbuilt: needs either a citation or an
-  explicit "treat as cosmetic like `TamilName`" call before any migration. Three candidate
-  bases (Tatva/5-color, ruling planet/9-color, an independent 27-color classical scheme) —
-  none sourced. **Open, needs rammyps.**
+- ~~**Nakshatra color scheme**~~ **Decided 2026-09-23 (rammyps):** ruling-planet / 9-color
+  basis — colored by each nakshatra's Vimshottari lord, reusing the app's existing planet-color
+  tokens. Treated as display/cosmetic, same call already made for `TamilName`; no classical
+  citation pursued. Stays a Web-only task (derivable purely from the already-stored
+  `NakshatraLordPlanet`, no new DB work) — not built this session, out of DB/CLI scope.
 - **Reading-layers "suggested additions"** — 5 ideas flagged unconfirmed by their own author,
   not triaged: rule-lifecycle log, cross-chart/synastry module, base-rate comparison in
   Validation, surfacing confidence/source-stratum to the end reader, the reverse muhūrta

@@ -11,6 +11,7 @@
 @inject IPlaceResolver PlaceResolver
 @inject DatabaseMaintenanceService DbMaintenanceService
 @inject AyanamsaRuleRepository AyanamsaRules
+@inject Microsoft.JSInterop.IJSRuntime JS
 
 <PageTitle>Saved Charts — ikiastrro</PageTitle>
 
@@ -253,6 +254,7 @@
         new DataTable<Row>.Column("", _ => 0, r => @<div class="row-actions">
             <EditIconButton Title="@($"Edit {r.Person.Name}")" OnClick="() => StartEdit(r)" />
             <DeleteIconButton Title="@($"Delete {r.Person.Name}")" OnClick="() => _pendingDelete = r" />
+            <PrintIconButton Title="@($"Print {r.Person.Name}'s charts")" OnClick="() => PrintPerson(r)" />
         </div>),
     };
 
@@ -291,6 +293,12 @@
     }
 
     private void ToggleMenu(string menu) => _openMenu = _openMenu == menu ? null : menu;
+
+    /// <summary>Opens that person's All Charts page in a new tab with `print=1`, which
+    /// auto-triggers window.print() once loaded (AllCharts.razor) — printing stays scoped to
+    /// one person's charts, same reasoning as AllChartsGrid's own Print button.</summary>
+    private Task PrintPerson(Row r) =>
+        JS.InvokeVoidAsync("open", $"/charts/{r.Person.Id}?print=1", "_blank").AsTask();
 
     private async Task HandleCsvSelected(InputFileChangeEventArgs e)
     {

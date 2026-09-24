@@ -24,8 +24,8 @@
 .av-fill { display: block; height: 100%; border-radius: 5px; background: var(--brand-sunset); }
 .av-value { text-align: right; font-variant-numeric: tabular-nums; }
 .av-table-scroll { overflow-x: auto; }
-.av table { width: 100%; border-collapse: collapse; min-width: 760px; font-size: .78rem; }
-.av th,.av td { padding: 9px 8px; border-bottom: 1px solid var(--brand-line); text-align: center; font-variant-numeric: tabular-nums; }
+.av table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: calc(var(--font-size-control) * 0.72); }
+.av th,.av td { padding: 6px 5px; border-bottom: 1px solid var(--brand-line); text-align: center; font-variant-numeric: tabular-nums; }
 .av th:first-child { text-align: left; padding-left: 16px; }
 .av thead th { color: var(--brand-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; }
 .av thead th span,.av thead th small { display: block; }

@@ -43,6 +43,15 @@ public static class RelationshipEngine
     };
 
     /// <summary>
+    /// Whether a graha sitting in <paramref name="aspectingSign"/> casts a discrete whole-sign
+    /// aspect onto <paramref name="targetSign"/> — same AspectOffsets table FindAspects uses,
+    /// exposed for callers (HouseBeneficMaleficCalculator) that need to test an arbitrary sign
+    /// rather than only occupied planet/Ascendant targets.
+    /// </summary>
+    public static bool AspectsSign(string aspectingPlanet, ZodiacName aspectingSign, ZodiacName targetSign) =>
+        AspectOffsets[aspectingPlanet].Any(offset => HouseEngine.GetHouseSign(aspectingSign, offset) == targetSign);
+
+    /// <summary>
     /// Conjunctions: pairs of the 9 grahas sharing the same sign in this chart. Ascendant excluded
     /// (not a graha). DegreeSeparation is only computed for D1 — see ConjunctionResult/ChartConjunction
     /// for why a varga chart's "same sign" can't be scored the same way.

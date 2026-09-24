@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-17
+last_updated: 2026-09-24
 workstream: ui
 component: SavedCharts
 route: /charts
@@ -9,7 +9,7 @@ togaf: C — component spec
 # Component — Saved Charts
 
 `SavedCharts.razor` at `/charts`. The people-management surface: the list of everyone
-in `dbo.tbl_BirthDetails`, per-row Edit / Delete, and Import / Export. Reads
+in `dbo.tbl_BirthDetails`, per-row Edit / Delete / Print, and Import / Export. Reads
 persisted rows only; the one write path that recomputes goes through
 `ChartGenerationService`.
 
@@ -28,6 +28,23 @@ a shared `gap` keeping both edges equal at any width — same "one page gutter, 
 bleed trick" shape as the rest of the app. `object-fit` changed `cover` → `contain` (matching
 `Home.razor.css`'s `.home-art` convention) so the art is never cropped.
 
+**2026-09-24 — Print removed from this page (header toolbar).** A page-wide Print button briefly
+lived in the header toolbar here (2026-09-23) and printed the whole saved-people list — not any
+one person's charts, which is what printing a chart actually means. Removed; printing moved to
+the "7. ALL CHARTS" gallery (`AllChartsGrid`, shared by `/charts/{id}` and Key Inference's own
+"7. ALL CHARTS" tab — see `key-inference.md`'s 2026-09-24 note). This page also had two native
+browser "Choose File" buttons showing unstyled beneath the header on this same build — a
+casualty of the same change: its CSS file's added print-button rule was missing a closing brace,
+and the file was truncated mid-rule at the end, which broke `.sp-hidden-inputs`' hiding rule
+along with the whole file. Both since fixed.
+
+**2026-09-23 (later) — Print reintroduced, per-row this time.** A `PrintIconButton` now sits in
+each row's actions cell, to the right of Delete. Unlike the removed header button, it stays
+scoped to one person: it opens `/charts/{id}?print=1` in a new tab (`window.open` via
+`PrintPerson`), and `AllCharts.razor` auto-fires `window.print()` on first render when
+`print=1` is present — same person-scoped printing the "7. ALL CHARTS" gallery already did,
+just reachable without leaving this list.
+
 ## The list
 
 `DataTable` — sortable, client-side, small lists. Columns: **Name** (link to
@@ -35,13 +52,16 @@ bleed trick" shape as the rest of the app. `object-fit` changed `cover` → `con
 Time of Birth · Place · **Status** (the built/not-built pill) · actions. The header
 row is filled sunset-orange; the table sits in a bordered, rounded card.
 
-**Actions cell — Edit then Delete** (`EditIconButton` before `DeleteIconButton`).
+**Actions cell — Edit, then Delete, then Print** (`EditIconButton`, `DeleteIconButton`,
+`PrintIconButton`, in that order).
 
 - **Delete** → `ConfirmDialog` → `BirthDetailDeletionService.DeleteBirthDetail`. The
   service clears **every** table with a NO_ACTION FK to `tbl_ChartResults` (chart-generic
   analytics + strength / bhava-bala / vargottama facts — the same set `GenerateAll`
   clears); a delete that still throws is caught and shown inline, never crashes the
   circuit (commit `b36b568`).
+- **Print** → opens `/charts/{id}?print=1` in a new tab, which auto-triggers `window.print()`
+  once that person's charts have rendered. No confirm dialog — printing isn't destructive.
 - **Edit** → hand-rolled modal (`.edit-box`, styled like `ConfirmDialog`) pre-filled with
   name / sex / DOB / TOB / city / country.
   - Name or sex only → `BirthDetailsRepository.Update` (no recompute).
