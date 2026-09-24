@@ -86,7 +86,7 @@ else
                     <th class="ppdt-fieldcol">Nak Lord</th>
                     @foreach (var col in Columns)
                     {
-                        <td>@(col.NakshatraLordPlanet ?? "—")</td>
+                        <td>@if (col.NakshatraLordPlanet is { } nakLord) { <PlanetChip Planet="@nakLord" /> } else { <span>—</span> }</td>
                     }
                 </tr>
                 <tr>

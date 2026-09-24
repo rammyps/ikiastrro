@@ -188,14 +188,19 @@ wrapper gets promoted, not its grandchildren.
 | Token family | Use |
 |---|---|
 | `--dignity-*` (7-tier green→red ramp) | classical dignity dots/labels |
-| `--dasha-*` (9-hue categorical, Vimśottari cycle order) | dasha lord swatches, life-weeks grid |
-| `--house-lagna` / `--house-moon` (+ `-fg`) | the two stacked house-number badges (from Lagna / from Moon) |
+| `--planet-*` (+ `-bg`, 9-hue categorical, PlanetChip glyph order) | **the one canonical 9-graha identity palette** — `PlanetChip` (nakshatra-lord badges included), `VargaView`/`PolarWheel`, `D1TemplateGrid` (via `--tmpl-planet-*` aliases in `SouthIndianTemplate.razor.css`) |
+| `--dasha-*` (9-hue categorical, Vimśottari cycle order) | dasha lord swatches, life-weeks grid. **Derived from `--planet-*`** via `color-mix(in srgb, var(--planet-x) 70%, var(--ink) 30%)` (2026-09-25) — not independent hex; a planet's dasha color and its identity color always share the same hue family now |
+| `--strength-fill` / `--strength-fill-soft` | Graha-Dṛṣṭi matrix's graded gradient fill / Rāśi-Dṛṣṭi matrix's flat boolean-aspect tint — both `color-mix(in srgb, var(--brand-sunset) N%, transparent)` |
+| `--house-lagna` / `--house-moon` (+ `-fg`) | the two stacked house-number badges (from Lagna / from Moon), `SouthIndianGrid_Detailed` |
+| `--house-sun` / `--house-micro-moon` (+ `-fg`) | `SouthIndianGrid_Micro`'s own house-badge pair — a genuinely separate "from Sun" counting axis, not a `--house-lagna` duplicate; kept additive per project_standards.md §3.3 |
+| `--ref-lagna` / `-arudha` / `-hora` / `-sree` / `-ghati` | `PolarGridLagnaSelect`'s 5 special-Lagna reference-point colors (promoted from a local `.pgls` selector to `tokens.css` 2026-09-25 — values unchanged) |
 | `--aspect-faint` | "aspected by" ghost chips |
 | `--vargottama` | `VargottamaStrip` lit-chip state |
 | `--wheel-ring` / `--wheel-tick` | `PolarWheel` ring + degree ticks |
 | `--brand-peach` / `--brand-canvas` / `--brand-midnight` / `--brand-sunset` / `--transit-paper` | `Natal_Transit_Comp_WheelChart` rings, spokes, glyphs (no namespaced `--ntw-*` set — reads brand tokens directly) |
 | `--cell-fill` / `--lagna-fill` / `--grid-stroke` / `--sign-text` | `SouthIndianGrid_Detailed` cell ground, Lagna cell, borders, labels |
-| `--tmpl-*` (+ `--tmpl-rashi-highlight`) | `D1TemplateGrid` light "chart card" palette |
+| `--tmpl-*` (+ `--tmpl-rashi-highlight`) | `D1TemplateGrid` light "chart card" palette. `--tmpl-planet-*`/`--tmpl-housemoon-*`/`--tmpl-lagna-text` are aliases of the app-wide `--planet-*`/`--house-moon`/`--house-lagna` tokens (2026-09-25); the dark-theme block keeps its own literal values (the template's standalone "🌙 Dark" toggle, the one documented exception to "no hard-coded hex") |
+| `--status-strong` / `-moderate` / `-weak` (+ `-bg`) | strength traffic light — `PlanetStrengthChart`/`HouseStrengthChart`, `PlanetaryStateTable` verdict pills, `AshtakavargaChart`'s Bhinnāṣṭavarga bands |
 | `--tab-active-bg` / `-fg`, `--tab-inactive-bg` / `-fg` | tab-strip fills — see "Tabs" above |
 | `--brand-sunrise` | table row-hover, every Key Inference table — see "Standard table format" above. Distinct from `--brand-peach`, which keeps its other uses |
 

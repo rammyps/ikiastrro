@@ -34,8 +34,8 @@
                     {
                         <td>@(row.Nakshatra ?? "—")</td>
                         <td class="mono">@(row.NakshatraPada?.ToString() ?? "—")</td>
-                        <td>@(row.NakshatraLordPlanet ?? "—")</td>
-                        <td>@(row.NakshatraSubLordPlanet ?? "—")</td>
+                        <td>@if (row.NakshatraLordPlanet is { } nakLord) { <PlanetChip Planet="@nakLord" /> } else { <span>—</span> }</td>
+                        <td>@if (row.NakshatraSubLordPlanet is { } subLord) { <PlanetChip Planet="@subLord" /> } else { <span>—</span> }</td>
                         <td class="mono">@(row.SubLordChainL2ToL7 ?? "—")</td>
                     }
                     <td>@ChartViewModel.DirectionLabel(row.IsRetrograde)</td>

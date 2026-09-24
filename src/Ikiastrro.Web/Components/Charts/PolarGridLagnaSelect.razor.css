@@ -1,4 +1,4 @@
-.pgls{color:var(--brand-midnight);--ref-lagna:#9f2f3f;--ref-arudha:#126b87;--ref-hora:#9a5b05;--ref-sree:#5c3fa3;--ref-ghati:#2d7a4a}
+.pgls{color:var(--brand-midnight)}
 .pgls-lagnas{display:flex;justify-content:center;gap:.85rem 1.75rem;margin:1rem auto 1.5rem;flex-wrap:wrap}
 /* Grid-display toggles (Upagrahas/Gra-Arudha/Spl Lagnas/HN-Moon/HN-Sun, 2026-09-17) — same
    checkbox-pill convention as .pgls-lagnas above, just one shared accent instead of a distinct

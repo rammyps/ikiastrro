@@ -9,9 +9,12 @@ One design language, everywhere. Full guide:
   (canvas `#FAF5EA`, midnight `#0F2041`, sunset `#F47A24`, Manrope). Primary actions:
   midnight fill, sunset text + border.
 - **Tokens, not raw values.** `wwwroot/css/tokens.css` holds the `--brand-*` set plus the
-  semantic astrology tokens (`--dignity-*`, `--dasha-*`, `--house-lagna`/`--house-moon`,
+  semantic astrology tokens (`--dignity-*`, `--planet-*`, `--dasha-*`, `--house-lagna`/`--house-moon`,
   `--wheel-*`, `--cell-fill`, …). Read with `var(--…)` — never a raw hex, never a CSS named
-  colour, never an inline `<style>` in `.razor` markup.
+  colour, never an inline `<style>` in `.razor` markup. `--planet-*` is the single canonical
+  9-graha color source (identity chips, nakshatra-lord badges, every South Indian-style grid);
+  `--dasha-*` is a `color-mix()` derivation of it, not an independent palette — see
+  design-language.md's token table before adding a new per-planet color anywhere.
 - **CSS isolation per component** (`ComponentName.razor.css`). Isolation is what makes bare
   `table` / `th` / `td` / `.cell` selectors safe inside a chart component.
 - **Chart diagrams stay hand-rolled** inline SVG / CSS grid (`SouthIndianGrid_Detailed`, `PolarWheel`,

@@ -31,6 +31,7 @@
 .av thead th { color: var(--brand-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; }
 .av thead th span,.av thead th small { display: block; }
 .av-high { background: var(--status-strong-bg); font-weight: 800; }
+.av-moderate { background: var(--status-moderate-bg); }
 .av-zero { color: var(--status-weak); font-weight: 800; }
 .av-sum { font-weight: 800; }
 .av-pinda { min-width: 520px !important; }

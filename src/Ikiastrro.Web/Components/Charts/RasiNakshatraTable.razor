@@ -14,7 +14,7 @@ else
         <table class="rnt">
             <thead>
                 <tr>
-                    <th>Graha</th><th>Sign</th><th>Nakshatra</th><th>Lord Relation</th><th>Combined Character</th>
+                    <th>Graha</th><th>Sign</th><th>Nakshatra</th><th>Nak&nbsp;Lord</th><th>Lord Relation</th><th>Combined Character</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,13 +30,14 @@ else
                         </td>
                         <td>@(row.Graha.Sign)</td>
                         <td>@(row.Graha.Nakshatra ?? "—")</td>
+                        <td>@if (row.Graha.NakshatraLordPlanet is { } nakLord) { <PlanetChip Planet="@nakLord" /> } else { <span>—</span> }</td>
                         <td>@(row.Combination?.LordRelation ?? "—")</td>
                         <td>@(row.Combination?.CombinedCharacter ?? "—")</td>
                     </tr>
                     @if (expanded)
                     {
                         <tr class="rnt-detail-row">
-                            <td colspan="5">
+                            <td colspan="6">
                                 @if (row.Combination is null)
                                 {
                                     <p class="rnt-detail-empty">No reference row found for this Sign/Nakshatra pair.</p>

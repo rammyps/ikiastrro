@@ -16,8 +16,8 @@
 .pst-inference > span { display: block; margin-top: 4px; }
 .pst-inference > span:first-child { margin-top: 0; }
 .pst-verdict { width: fit-content; padding: 2px 7px; border-radius: 999px; font-size: .78em; font-weight: 700; }
-.pst-verdict-supportive { background: #e6f4ec; color: #23663d; }
-.pst-verdict-adverse { background: #f9e8e5; color: #8b3a31; }
+.pst-verdict-supportive { background: var(--status-strong-bg); color: var(--status-strong); }
+.pst-verdict-adverse { background: var(--status-weak-bg); color: var(--status-weak); }
 .pst-verdict-mixed { background: var(--brand-sunrise); color: var(--brand-midnight); }
 .pst-verdict-neutral { background: var(--brand-surface); color: var(--brand-muted); }
 .pst-reading { min-width: 18rem; max-width: 30rem; line-height: 1.42; }

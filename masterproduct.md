@@ -503,6 +503,14 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
 
 - **FEAT-UI-01 · App shell + brand system (MudBlazor, `tokens.css`, shared header)** — Verified · 60%
   DB [—] · Core [—] · Verify [x] · Web [x] · Docs [ ]
+  2026-09-25: chart color-system unification — `--planet-*` is now the single canonical 9-graha
+  palette (retired `--tmpl-planet-*`'s duplicate hex in `SouthIndianTemplate.razor.css`, aliased
+  instead); `--dasha-*` is now a `color-mix()` derivation of `--planet-*` instead of an
+  independently hand-tuned set that had silently drifted off it; added nakshatra-lord `PlanetChip`
+  badges (`PlanetPositionsTable`, `PlanetPositionsD1Transposed`, `RasiNakshatraTable`); tokenized
+  the Graha/Rasi-Dṛṣṭi matrices' hardcoded fill color and `PlanetaryStateTable`'s hardcoded verdict
+  colors onto `--strength-fill*`/`--status-*`; added `AshtakavargaChart`'s missing moderate band;
+  promoted `PolarGridLagnaSelect`'s `--ref-*` palette into `tokens.css`.
 - **FEAT-UI-02 · Home / entry (`/`) — searchable name, saved people, inline Preferences + Add** — In progress · 40%
   DB [—] · Core [—] · Verify [x] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
   `wkstream_UI_v2` rebuild: MudBlazor shell; `MudAutocomplete` name search; Preferences

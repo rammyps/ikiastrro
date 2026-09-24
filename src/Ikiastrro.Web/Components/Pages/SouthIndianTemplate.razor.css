@@ -60,34 +60,40 @@
     /* House-from-Lagna / house-from-Moon text colors for D1TemplateGrid's point-triplet row —
        a dedicated pair (not reusing --tmpl-gold/--tmpl-navy) because those two roles don't both
        need to stay dark-on-light or light-on-dark together the way this text-on-cell-background
-       role does; conflating them made the Moon number unreadable in dark mode (2026-09-05 fix). */
-    --tmpl-lagna-text: #8c2f39;
+       role does; conflating them made the Moon number unreadable in dark mode (2026-09-05 fix).
+       --tmpl-lagna-text is a byte-identical match for tokens.css's --house-lagna (both #8c2f39)
+       so it's aliased (2026-09-25); --tmpl-moon-text's navy has no app-wide equivalent, stays
+       its own literal value. */
+    --tmpl-lagna-text: var(--house-lagna);
     --tmpl-moon-text: #1f3a5f;
 
     /* Per-cell house-number badge pair, next to each sign name (2026-09-05, rammyps's call) — from
        the Sun (copper, matches --tmpl-planet-sun) and from the Moon (gold, matches tokens.css's
        app-wide --house-moon), so the two axes read as distinct at a glance the same way
-       tokens.css's SouthIndianGrid_Detailed Lagna/Moon badges already do. */
-    --tmpl-housesun-bg: #a8531a;
-    --tmpl-housesun-fg: #fbeee7;
-    --tmpl-housemoon-bg: #c9932b;
-    --tmpl-housemoon-fg: #2a2118;
+       tokens.css's SouthIndianGrid_Detailed Lagna/Moon badges already do. This "from the Sun" axis
+       is a real, distinct counting axis from --house-lagna/SouthIndianGrid_Micro's --house-sun
+       (D1TemplateGrid.razor counts from SunSign, not AscendantSign) — not merged with either;
+       only the byte-identical hex duplication within this file is aliased away (2026-09-25). */
+    --tmpl-housesun-bg: var(--planet-sun);
+    --tmpl-housesun-fg: var(--house-lagna-fg);
+    --tmpl-housemoon-bg: var(--house-moon);
+    --tmpl-housemoon-fg: var(--house-moon-fg);
 
-    /* Planet identity colors, re-tuned for ~4.5:1+ contrast against --tmpl-paper above — same hue
-       family as tokens.css's --planet-* (dark-surface-tuned), just darkened/desaturated for a
-       light ground. Sun/Mars/Mercury/Venus/Saturn/Ketu darken their hue; Moon/Rahu (silver/smoke
-       grey identities) become a dark slate instead of trying to force a pale grey to read on
-       cream; Jupiter's gold becomes a dark mustard since pure yellow-on-cream has near-zero
-       contrast either direction. */
-    --tmpl-planet-sun: #a8531a;
-    --tmpl-planet-moon: #5b5f6b;
-    --tmpl-planet-mars: #a3271e;
-    --tmpl-planet-mercury: #2c7a3d;
-    --tmpl-planet-jupiter: #8a6a00;
-    --tmpl-planet-venus: #a13e78;
-    --tmpl-planet-saturn: #2c4f9e;
-    --tmpl-planet-rahu: #55586a;
-    --tmpl-planet-ketu: #7a4a22;
+    /* Planet identity colors — aliased straight to tokens.css's --planet-* (2026-09-25):
+       these were a byte-for-byte copy of the same 9 hex values (tokens.css's own comment even
+       says so — "the same values the chart template's --tmpl-planet-* already uses"), so there
+       is no reason for two independently-editable copies. tokens.css is now the one place these
+       9 hues are ever written; every var(--tmpl-planet-*) read in D1TemplateGrid.razor/.css is
+       unchanged and still resolves correctly through this alias. */
+    --tmpl-planet-sun: var(--planet-sun);
+    --tmpl-planet-moon: var(--planet-moon);
+    --tmpl-planet-mars: var(--planet-mars);
+    --tmpl-planet-mercury: var(--planet-mercury);
+    --tmpl-planet-jupiter: var(--planet-jupiter);
+    --tmpl-planet-venus: var(--planet-venus);
+    --tmpl-planet-saturn: var(--planet-saturn);
+    --tmpl-planet-rahu: var(--planet-rahu);
+    --tmpl-planet-ketu: var(--planet-ketu);
 
     background: var(--tmpl-paper);
     color: var(--tmpl-ink);

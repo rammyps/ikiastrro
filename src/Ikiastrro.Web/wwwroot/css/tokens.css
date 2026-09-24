@@ -90,20 +90,27 @@
     --aspect-faint: #b0a488;
 
     /* Vimshottari Dasha lord categorical palette (9 slots — one per graha), for the life-in-weeks
-       grid (Components/Pages/LifeWeeks.razor). Ordered to match the FIXED classical Mahadasha
-       cycle (Ketu -> Venus -> Sun -> Moon -> Mars -> Rahu -> Jupiter -> Saturn -> Mercury -> wraps
-       to Ketu) — same hue family as the prior dark-surface set, darkened/desaturated for this
-       parchment ground (same "color is a scan aid only, always paired with a text label" caveat
-       as before — re-validating 9-slot CVD separation is out of scope for this reskin). */
-    --dasha-ketu: #6a5cc9;
-    --dasha-venus: #b8481f;
-    --dasha-sun: #15764f;
-    --dasha-moon: #9c6800;
-    --dasha-mars: #a83f66;
-    --dasha-rahu: #2e6b2e;
-    --dasha-jupiter: #b34747;
-    --dasha-saturn: #2c5fb8;
-    --dasha-mercury: #8c5e1e;
+       grid (Components/Pages/LifeWeeks.razor) and the dasha timeline. Ordered to match the FIXED
+       classical Mahadasha cycle (Ketu -> Venus -> Sun -> Moon -> Mars -> Rahu -> Jupiter -> Saturn
+       -> Mercury -> wraps to Ketu) — same "color is a scan aid only, always paired with a text
+       label" caveat as before (re-validating 9-slot CVD separation is out of scope for this
+       reskin).
+       2026-09-25: derived from --planet-* via color-mix() instead of hand-picked independently —
+       the app previously had --dasha-* and --planet-* silently disagreeing on hue for the same
+       planet (e.g. Sun read green here, copper in --planet-sun). One systematic 30%-toward-ink
+       mix keeps the timeline's muted, calm-over-many-repeated-cells quality while guaranteeing
+       the hue family always matches that planet's own identity color everywhere else in the app.
+       Ratio is a starting point — nudge it live against the rendered timeline if it reads too
+       flat or too loud, but keep it a formula, not new hand-picked hex, so this can't drift again. */
+    --dasha-ketu: color-mix(in srgb, var(--planet-ketu) 70%, var(--ink) 30%);
+    --dasha-venus: color-mix(in srgb, var(--planet-venus) 70%, var(--ink) 30%);
+    --dasha-sun: color-mix(in srgb, var(--planet-sun) 70%, var(--ink) 30%);
+    --dasha-moon: color-mix(in srgb, var(--planet-moon) 70%, var(--ink) 30%);
+    --dasha-mars: color-mix(in srgb, var(--planet-mars) 70%, var(--ink) 30%);
+    --dasha-rahu: color-mix(in srgb, var(--planet-rahu) 70%, var(--ink) 30%);
+    --dasha-jupiter: color-mix(in srgb, var(--planet-jupiter) 70%, var(--ink) 30%);
+    --dasha-saturn: color-mix(in srgb, var(--planet-saturn) 70%, var(--ink) 30%);
+    --dasha-mercury: color-mix(in srgb, var(--planet-mercury) 70%, var(--ink) 30%);
 
     /* Planet identity palette (9 grahas), for PlanetChip / CombinedD1D9Grid — the same values the
        chart template's --tmpl-planet-* already uses, already tuned for ~4.5:1+ contrast against
@@ -140,6 +147,27 @@
     /* PolarWheel ring + degree ticks. */
     --wheel-ring: #a3763e;     /* = --paper-line */
     --wheel-tick: #8d7c62;     /* = --ink-faint */
+
+    /* Special-Lagna reference-point categorical palette (5 slots — Lagna/Arudha/Hora/Sree/Ghati),
+       for PolarGridLagnaSelect's wheel rings and checkboxes. Promoted here from a local .pgls
+       selector (2026-09-25, DESIGN.md: tokens live in tokens.css, not a component file) — values
+       unchanged. SouthIndianGrid_Micro.razor.css's var(--ref-lagna, var(--accent)) fallback still
+       works unchanged since :root custom properties inherit everywhere. Unrelated to --planet-*/
+       --dasha-*: these 5 reference-point types aren't grahas. */
+    --ref-lagna: #9f2f3f;
+    --ref-arudha: #126b87;
+    --ref-hora: #9a5b05;
+    --ref-sree: #5c3fa3;
+    --ref-ghati: #2d7a4a;
+
+    /* Graha/Rasi-Dṛṣṭi matrix cell fill (2026-09-25) — both matrices previously hardcoded their
+       own rgba(247,111,28,...), which wasn't even --brand-sunset's actual hex (#f47a24 vs the
+       hardcoded 247,111,28 = #f76f1c), a fourth near-duplicate orange. One real token, two
+       fixed alphas: the graded gradient fill graha-drishti's numeric strength uses, and a
+       flatter, lower-alpha highlight for rasi-drishti's boolean aspect (that data has no
+       percentage to grade — it should stay flat, just off the same base color now). */
+    --strength-fill: color-mix(in srgb, var(--brand-sunset) 25%, transparent);
+    --strength-fill-soft: color-mix(in srgb, var(--brand-sunset) 14%, transparent);
 
     /* Key Inference 3 "Strength" (PlanetStrengthChart / HouseStrengthChart) — a plain
        %/rūpas threshold band, not a classical placement judgment, so it reads better as a
