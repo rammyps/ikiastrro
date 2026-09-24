@@ -3,6 +3,7 @@
 @* Key Inference "GENERAL DETAILS" — birth-moment Pañchāṅga (db/081's PanchangaRepository) plus
    sunrise/sunset/Janma Ghatis. Distinct from the chart-view's LunarPhaseCard (Tithi/Pakṣa/
    Elongation, Moon-centric); this card is the day-level almanac reading, Sun-and-Moon-together. *@
+<section class="pch-card">
 @if (Row is null)
 {
     <p class="pch-empty">Pañchāṅga not computed for this chart yet — run <code>recompute-panchanga</code>.</p>
@@ -21,6 +22,7 @@ else
         <div><dt>Birth</dt><dd>@(Row.IsNightBirth ? "Night" : "Day")</dd></div>
     </dl>
 }
+</section>
 
 @code {
     [Parameter] public ChartPanchangaRow? Row { get; set; }

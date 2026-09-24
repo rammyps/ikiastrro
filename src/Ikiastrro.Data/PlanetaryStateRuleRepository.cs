@@ -21,9 +21,10 @@ public class PlanetaryStateRuleRepository
     }
 
     /// <summary>Every `tbl_Dim_PlanetaryState` row keyed by Id — resolves `PlanetaryStateFact`'s
-    /// AgeStateId/WakefulnessStateId/PostureStateId FKs to a display name/meaning for the Key
-    /// Inference "Planet States" table, across all three avastha systems (Baaladi/Jagradadi/
-    /// Sayanadi) in one lookup, unlike <see cref="GetRuleSet"/>'s per-system shape.</summary>
+    /// AgeStateId/WakefulnessStateId/PostureStateId FKs (and, via `tbl_Fact_PlanetaryStateFlag`, the
+    /// Deeptadi/Lajjitadi state ids) to a display name/meaning for the Key Inference "Planet States"
+    /// table, across all five avastha systems in one lookup, unlike <see cref="GetRuleSet"/>'s
+    /// per-system shape.</summary>
     public IReadOnlyDictionary<byte, PlanetaryStateRow> GetAllStates()
     {
         using var connection = _connectionFactory.CreateOpenConnection();
@@ -66,6 +67,24 @@ public class PlanetaryStateRuleRepository
         var postureStates = connection.Query<PlanetaryStateRow>(postureSql)
             .ToDictionary(r => r.SequenceOrder, r => r);
 
-        return new PlanetaryStateRuleSet(ruleSetId, ageBands, wakefulness, postureStates);
+        const string deeptadiSql = """
+            SELECT r.Id, r.RuleSetId, r.DignityStatus, r.AvasthaStateId, s.StateName
+            FROM dbo.tbl_Rule_DeeptadiState r
+            JOIN dbo.tbl_Dim_PlanetaryState s ON s.Id = r.AvasthaStateId
+            WHERE r.RuleSetId = @RuleSetId
+            """;
+        var deeptadiByDignity = connection.Query<DeeptadiStateRuleRow>(deeptadiSql, new { RuleSetId = ruleSetId })
+            .ToDictionary(r => r.DignityStatus, r => r);
+
+        // Vikala/Khala/Kopita (Deeptadi) and all 6 Lajjitadi states are direct predicates, not
+        // DignityStatus-keyed — just the named Dim vocabulary, same reasoning as Sayanaadi above.
+        const string deeptadiNamesSql = "SELECT Id, AvasthaSystem, StateName, SequenceOrder, Meaning FROM dbo.tbl_Dim_PlanetaryState WHERE AvasthaSystem = 'Deeptadi'";
+        var deeptadiStatesByName = connection.Query<PlanetaryStateRow>(deeptadiNamesSql).ToDictionary(r => r.StateName, r => r);
+
+        const string lajjitadiNamesSql = "SELECT Id, AvasthaSystem, StateName, SequenceOrder, Meaning FROM dbo.tbl_Dim_PlanetaryState WHERE AvasthaSystem = 'Lajjitadi'";
+        var lajjitadiStatesByName = connection.Query<PlanetaryStateRow>(lajjitadiNamesSql).ToDictionary(r => r.StateName, r => r);
+
+        return new PlanetaryStateRuleSet(
+            ruleSetId, ageBands, wakefulness, postureStates, deeptadiByDignity, deeptadiStatesByName, lajjitadiStatesByName);
     }
 }

@@ -20,16 +20,33 @@ public record AgeStateRuleRow(
 public record WakefulnessStateRuleRow(
     byte Id, byte RuleSetId, string DignityStatus, byte AvasthaStateId, string StateName);
 
+/// <summary>One row of dbo.tbl_Rule_DeeptadiState — maps a DignityStatus value to one of Dīptādi's
+/// 6 dignity-tier states (Deepta/Swastha/Mudita/Saanta/Deena/Duhkhita, PVR sec 15.4.3) under a given
+/// RuleSetId. PVR names only 6 tiers; this project's DignityStatus has 9 values, folded the same
+/// shape tbl_Rule_WakefulnessState already uses (Moolatrikona -> Swastha alongside Own Sign; Great
+/// Enemy/Debilitated -> Duhkhita alongside Enemy) — see the row's own CalculationNarrative.
+/// Dīptādi's other 3 states (Vikala/Khala/Kopita) are affliction flags, not dignity-tier, so they
+/// have no rule row here — DeeptadiStateCalculator computes them directly, same reasoning as
+/// Sayanaadi having no per-state rule row.</summary>
+public record DeeptadiStateRuleRow(
+    byte Id, byte RuleSetId, string DignityStatus, byte AvasthaStateId, string StateName);
+
 /// <summary>Everything a chart's planetary-state computation needs from the Rule/Dim layer for one
 /// RuleSetId — loaded once by PlanetaryStateRuleRepository, handed to PlanetaryStateComputer.
 /// <see cref="PostureStatesBySequence"/> is keyed by the Sayanaadi index (1-12,
 /// tbl_Dim_PlanetaryState.SequenceOrder) — no separate Rule row per state (unlike AgeState /
-/// WakefulnessState): PostureStateCalculator computes the index, this just names it.</summary>
+/// WakefulnessState): PostureStateCalculator computes the index, this just names it.
+/// <see cref="DeeptadiStatesByName"/> / <see cref="LajjitadiStatesByName"/> are the Dim vocabulary
+/// for those two systems keyed by StateName, for DeeptadiStateCalculator/LajjitadiStateCalculator to
+/// resolve their directly-computed (non-Rule-table) states.</summary>
 public record PlanetaryStateRuleSet(
     byte RuleSetId,
     IReadOnlyList<AgeStateRuleRow> AgeBands,
     IReadOnlyDictionary<string, WakefulnessStateRuleRow> WakefulnessByDignity,
-    IReadOnlyDictionary<byte, PlanetaryStateRow> PostureStatesBySequence);
+    IReadOnlyDictionary<byte, PlanetaryStateRow> PostureStatesBySequence,
+    IReadOnlyDictionary<string, DeeptadiStateRuleRow> DeeptadiByDignity,
+    IReadOnlyDictionary<string, PlanetaryStateRow> DeeptadiStatesByName,
+    IReadOnlyDictionary<string, PlanetaryStateRow> LajjitadiStatesByName);
 
 /// <summary>One row of dbo.tbl_Fact_PlanetaryState — the computed avastha states for one planet in
 /// one chart. Ascendant excluded. The age state is D1-only (needs within-sign degree); the
@@ -56,4 +73,16 @@ public class PlanetaryStateFact
     /// continuous within-sign degree (for the navamsa index) and the birth-moment Janma Ghatis,
     /// same D1-only reasoning as AgeStateId.</summary>
     public byte? PostureStateId { get; set; }
+
+    /// <summary>tbl_Dim_PlanetaryState Ids (AvasthaSystem = 'Deeptadi') matched for this planet —
+    /// 1 dignity tier plus 0-3 affliction flags (Vikala/Khala/Kopita), PVR sec 15.4.3. The book gives
+    /// no precedence between these, so every match is kept, not just one. Populated for every chart
+    /// type (dignity-based, like Wakefulness). Flattened into tbl_Fact_PlanetaryStateFlag rows at
+    /// persistence time — not itself a DB column.</summary>
+    public List<byte> DeeptadiStateIds { get; set; } = new();
+
+    /// <summary>tbl_Dim_PlanetaryState Ids (AvasthaSystem = 'Lajjitadi') matched for this planet —
+    /// 0-6 independent condition flags, PVR sec 15.4.3's unnamed 6-state group. Same
+    /// keep-every-match reasoning as <see cref="DeeptadiStateIds"/>.</summary>
+    public List<byte> LajjitadiStateIds { get; set; } = new();
 }
