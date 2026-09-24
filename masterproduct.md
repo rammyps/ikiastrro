@@ -387,6 +387,9 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   Remaining (CLI): compute the six Tribhāga/Varṣa/Māsa/Dina/Horā/Ayana Kālabala
   components; planetary-war adjustment; populate `MinimumRequiredRupas` + the Rashmi /
   Parāśara Iṣṭa/Kaṣṭa columns; a `verify-shadbala` mode against the benchmark.
+  2026-09-25: Planet/House Strength's rank badges now read the green/sunset-orange/red
+  Strong/Moderate/Weak convention (`docs/ui/design-language.md` "Rank/score badge convention"),
+  same thresholds as before, just newly colored.
 - **FEAT-STRENGTH-02 · Vimśopaka Bala + Vaiśeṣikāṃśa grades** — Planned · 15% · Research: partial
   DB [ ] · Core [ ] · Verify [ ] · Web [ ] · Docs [x]
   Prerequisite varga charts exist through the Shodashavarga set. Remaining: source the four
@@ -413,6 +416,10 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   its 3 open sub-questions decided 2026-09-23: unique varga codes per tier, one bar per scheme
   tab, fixed Exalted→Great Enemy segment order. Design:
   `docs/research/domain/ashtakavarga-varga-extension.md`.
+  2026-09-25: Sarvāṣṭavarga bar+value now bands green/sunset-orange/red by the cited SAV
+  &gt;30/25-30/&lt;25 threshold (`docs/research/domain/transit-events.md`); Bhinnāṣṭavarga's
+  existing 0/1-5/≥6 band recolored to match. Piṇḍa intentionally left unbanded — see
+  `docs/ui/design-language.md` "Rank/score badge convention" for why.
 - **FEAT-ASHTAKAVARGA-01 · Bhinna / Sarva Ashtakavarga + Sodhya Piṇḍa** — Verified · 80% · Verify `verify-ashtakavarga`
   DB [x] · Core [x] · Verify [x] · Web [ ] · Docs [x]
   Production `dbo` schema (migrations 074–078): `tbl_Rule_AshtakavargaContribution` (56-row
@@ -511,6 +518,12 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   the Graha/Rasi-Dṛṣṭi matrices' hardcoded fill color and `PlanetaryStateTable`'s hardcoded verdict
   colors onto `--strength-fill*`/`--status-*`; added `AshtakavargaChart`'s missing moderate band;
   promoted `PolarGridLagnaSelect`'s `--ref-*` palette into `tokens.css`.
+  2026-09-25 (same day, follow-up): fixed a pre-existing bug where no tab anywhere in Key
+  Inference ever showed an active-state color (`[aria-selected="true"]` never matched Blazor's
+  actual empty-string bool-attribute rendering); flipped the header nav's active state to
+  midnight-bg/sunset-text (`.ik-headtab.is-here`, MainLayout.razor.css); introduced the rank/
+  score badge convention (see `docs/ui/components/key-inference.md`'s 2026-09-25 entry and
+  `docs/ui/design-language.md` "Rank/score badge convention").
 - **FEAT-UI-02 · Home / entry (`/`) — searchable name, saved people, inline Preferences + Add** — In progress · 40%
   DB [—] · Core [—] · Verify [x] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
   `wkstream_UI_v2` rebuild: MudBlazor shell; `MudAutocomplete` name search; Preferences

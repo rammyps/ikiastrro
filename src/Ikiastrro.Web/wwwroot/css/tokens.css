@@ -175,7 +175,11 @@
        of this parchment palette for that reason). Shared by both step-3 components. */
     --status-strong: #1e8a4c;
     --status-strong-bg: #e3f5e9;
-    --status-moderate: #c9820a;
+    /* Moderate was an amber/gold (#c9820a); changed to the brand sunset-orange (2026-09-25,
+       rammyps's call) so a rank badge/rank-badge-style cell reads Strong/Moderate/Weak as
+       green/sunset-orange/red — the app's own accent color doing double duty as the "moderate"
+       signal instead of a fourth, unrelated hue. -bg stays its original pale amber tint. */
+    --status-moderate: var(--brand-sunset);
     --status-moderate-bg: #fdf1dc;
     --status-weak: #c23b34;
     --status-weak-bg: #fbe6e4;

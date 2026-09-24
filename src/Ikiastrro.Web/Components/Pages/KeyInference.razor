@@ -356,6 +356,9 @@ else
     @if (_masterTab == 2)
     {
         <div class="ki-panelbody" id="ki-panel-2" role="tabpanel" aria-labelledby="ki-tab-2">
+          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
+            @ChartColumn
+            <div class="ki-natal-detail">
             <div class="ki-subnav-wrap">
             <nav class="ki-subnav" role="tablist" aria-label="Strength details">
                 <button type="button" role="tab" id="ki-strength-tab-0" aria-selected="@(_strengthTab == 0)" aria-controls="ki-strength-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 0">PLANET STRENGTH</button>
@@ -412,6 +415,8 @@ else
                 }
             </div>
             </div>
+            </div>
+          </div>
         </div>
     }
 
@@ -425,6 +430,9 @@ else
     @if (_masterTab == 4)
     {
         <div class="ki-panelbody" id="ki-panel-4" role="tabpanel" aria-labelledby="ki-tab-4">
+          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
+            @ChartColumn
+            <div class="ki-natal-detail">
             <div class="ki-stephead">
                 <h1 class="ki-heading">YOGAS</h1>
             </div>
@@ -440,12 +448,17 @@ else
                 <YogaEvaluationTable Rows="_yogaEvaluations" LagnaLordPlanet="@LagnaLord" Interpretations="_interpretations"
                                      OnSaveInterpretation="SaveInterpretation" />
             }
+            </div>
+          </div>
         </div>
     }
 
     @if (_masterTab == 5)
     {
         <div class="ki-panelbody" id="ki-panel-5" role="tabpanel" aria-labelledby="ki-tab-5">
+          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
+            @ChartColumn
+            <div class="ki-natal-detail">
             @if (_amsabala.Count == 0)
             {
                 <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -456,6 +469,8 @@ else
             {
                 <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" />
             }
+            </div>
+          </div>
         </div>
     }
 
@@ -520,6 +535,34 @@ else
             </button>
         }
     </nav>;
+
+    /// <summary>The natal-chart toolbar (collapse/expand + chart picker) + grid, shared by every
+    /// master tab that should keep the chart visible on the left (STRENGTH/YOGAS/VARGAS —
+    /// rammyps, 2026-09-25) — same collapse state and chart-picker selection as NATAL CHARTS'
+    /// own inline copy, so switching tabs doesn't reset either. NATAL CHARTS keeps its own inline
+    /// markup (nested inside its `NatalChart is { } natalChart` guard alongside the sub-tabs)
+    /// rather than being refactored onto this fragment, to avoid touching already-shipped,
+    /// working structure for its own sake.</summary>
+    private RenderFragment ChartColumn => @<div class="ki-gridwrap">
+        <div class="ki-chart-toolbar">
+            <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
+                @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
+            </button>
+            <select class="ki-chart-picker" aria-label="Natal chart" value="@_natalChart" @onchange="OnNatalChartChanged">
+                @foreach (var chart in NatalChartOptions)
+                {
+                    <option value="@chart.ChartType">@chart.Label</option>
+                }
+            </select>
+        </div>
+        @if (!_natalChartCollapsed && NatalChart is { } chartForGrid)
+        {
+            <SouthIndianGrid_Detailed AscendantSign="@chartForGrid.AscendantSign" MoonSign="@chartForGrid.MoonSign" PlanetsBySign="PlanetsBySign(chartForGrid)" CenterTitle="@chartForGrid.ChartType">
+                <CenterMeta><b>Lagna</b> @Disp(chartForGrid.AscendantSign)</CenterMeta>
+            </SouthIndianGrid_Detailed>
+        }
+    </div>;
+
     private WorkspaceData? _data;
     private string? _transitError;
     private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();

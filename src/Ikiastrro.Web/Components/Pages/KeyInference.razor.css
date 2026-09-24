@@ -126,11 +126,16 @@
 }
 /* Inactive tabs are transparent (tokens.css --tab-inactive-bg), so a plain brightness filter
    has nothing to darken — hover instead tints in a faint peach so unselected pills still give
-   feedback; the active pill (already solid sunset) just brightens slightly instead. */
+   feedback; the active pill (already solid sunset) just brightens slightly instead.
+   Selector is bare [aria-selected], not [aria-selected="true"] (2026-09-25 fix): Blazor's bool
+   attribute binding (aria-selected="@(_activeTab == X)") never emits the literal string "true" —
+   it renders the attribute with an empty value when true and omits it entirely when false, the
+   same convention as disabled/checked. The ="true" selector never matched anything, so no tab
+   anywhere on this page — master or sub — ever showed an active-state color at all. */
 .ki-steptab:hover { background: var(--brand-peach); }
-.ki-steptab[aria-selected="true"]:hover { filter: brightness(0.96); background: var(--tab-active-bg); }
+.ki-steptab[aria-selected]:hover { filter: brightness(0.96); background: var(--tab-active-bg); }
 .ki-steptab:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 2px; }
-.ki-steptab[aria-selected="true"] {
+.ki-steptab[aria-selected] {
     background: var(--tab-active-bg);
     color: var(--tab-active-fg);
 }

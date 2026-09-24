@@ -200,9 +200,48 @@ wrapper gets promoted, not its grandchildren.
 | `--brand-peach` / `--brand-canvas` / `--brand-midnight` / `--brand-sunset` / `--transit-paper` | `Natal_Transit_Comp_WheelChart` rings, spokes, glyphs (no namespaced `--ntw-*` set — reads brand tokens directly) |
 | `--cell-fill` / `--lagna-fill` / `--grid-stroke` / `--sign-text` | `SouthIndianGrid_Detailed` cell ground, Lagna cell, borders, labels |
 | `--tmpl-*` (+ `--tmpl-rashi-highlight`) | `D1TemplateGrid` light "chart card" palette. `--tmpl-planet-*`/`--tmpl-housemoon-*`/`--tmpl-lagna-text` are aliases of the app-wide `--planet-*`/`--house-moon`/`--house-lagna` tokens (2026-09-25); the dark-theme block keeps its own literal values (the template's standalone "🌙 Dark" toggle, the one documented exception to "no hard-coded hex") |
-| `--status-strong` / `-moderate` / `-weak` (+ `-bg`) | strength traffic light — `PlanetStrengthChart`/`HouseStrengthChart`, `PlanetaryStateTable` verdict pills, `AshtakavargaChart`'s Bhinnāṣṭavarga bands |
+| `--status-strong` / `-moderate` / `-weak` (+ `-bg`) | strength traffic light — `PlanetStrengthChart`/`HouseStrengthChart` rank badges + status pills, `PlanetaryStateTable` verdict pills, `AshtakavargaChart`'s Sarvāṣṭavarga bars/Bhinnāṣṭavarga bands. `-moderate` is `var(--brand-sunset)` (2026-09-25, was an unrelated amber `#c9820a`) — see "Rank/score badge convention" below |
 | `--tab-active-bg` / `-fg`, `--tab-inactive-bg` / `-fg` | tab-strip fills — see "Tabs" above |
-| `--brand-sunrise` | table row-hover, every Key Inference table — see "Standard table format" above. Distinct from `--brand-peach`, which keeps its other uses |
+| `--brand-sunrise` | table row-hover, every Key Inference table (see "Standard table format" above) **and** the light text on a Strong/Weak rank badge's solid fill (see "Rank/score badge convention" below). Distinct from `--brand-peach`, which keeps its other uses |
+
+## Rank/score badge convention (2026-09-25, rammyps's call)
+
+Every place a table ranks or bands a numeric strength/score — `PlanetStrengthChart`/
+`HouseStrengthChart`'s rank badges, `AshtakavargaChart`'s Sarvāṣṭavarga bars+value and
+Bhinnāṣṭavarga cells — reads the same 3-tier scale:
+
+- **Strong** — solid `--status-strong` (green) fill, `--brand-sunrise` text.
+- **Moderate** — solid `--status-moderate` (= `--brand-sunset`) fill, `--brand-midnight` text
+  (readable on sunset-orange, the same pairing `--tab-active-bg`/`-fg` already uses).
+- **Weak** — solid `--status-weak` (red) fill, `--brand-sunrise` text.
+
+This is a *different* visual treatment from the pale-tint "status pill" next to it in the same
+row (`.psc-pill`/`PlanetaryStateTable`'s verdict pill: `-bg` fill + solid-color text) — a rank
+badge or score cell is a solid-fill circle/pill, a status label is a pale pill. Don't conflate
+the two components' CSS.
+
+Per-component thresholds (cite a source when one exists; don't invent one):
+
+- Planet/House Strength: ≥100%/80-99%/&lt;80% of minimum (already-cited Parāśari %-of-minimum
+  bands, see `PlanetStrengthChart.StatusOf`'s doc comment).
+- Sarvāṣṭavarga: &gt;30/25-30/&lt;25 total bindus — cited from
+  `docs/research/domain/transit-events.md`'s Ashtakavarga row.
+- Bhinnāṣṭavarga: 0/1-5/≥6 bindus for one recipient in one sign — presentation-only band, no
+  classical citation, same status this app's other presentation-only thresholds carry.
+- **Piṇḍa (Rāśi/Graha/Śodhya) is deliberately NOT banded** — those are multiplier/remainder
+  values used to locate a target nakshatra or sign (same transit-events.md citation), not
+  strength scores. Banding them would misrepresent what the number means; don't add one without
+  a real citation for what "strong Piṇḍa" is supposed to mean.
+
+**Specificity trap, learned the hard way building this**: a rank badge's own base rule
+(`.psc-rankbadge { background: var(--brand-peach); … }`) and its status-color rule
+(`.psc-status-strong { background: var(--status-strong); }`) are equal-specificity single-class
+selectors — CSS falls back to source order, so whichever is declared *later in the file* wins,
+regardless of which one you intended to win. `HouseStrengthChart` never had this bug (its base
+`.hsc-rankbadge` rule never set a `background`), but `PlanetStrengthChart`'s did. Fix/pattern to
+follow for any new badge like this: give the status override a compound selector
+(`.psc-rankbadge.psc-status-strong { background: …; }`), one class more specific than either
+rule alone, so it wins regardless of declaration order.
 
 ## Additive-change discipline (keeps a revert mechanical)
 

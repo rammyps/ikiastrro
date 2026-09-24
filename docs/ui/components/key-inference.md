@@ -388,4 +388,44 @@ live against a running instance before moving to the next):
 - **Tab palette reverted**: `--tab-active-bg`/`--tab-inactive-bg` back to `--brand-sunset`
   (orange) and `--tab-active-fg`/`--tab-inactive-fg` back to `--brand-midnight` (dark navy) — the
   midnight-fill/sunset-text flip from earlier the same day didn't stick; still one flat look for
+  every tab level in the app.
+
+- **Built (2026-09-25) — natal chart kept visible on Strength/Yogas/Vargas; tab active-state
+  color bug fixed; header nav palette flipped; rank/score badge convention introduced:**
+  - **Chart column extended past NATAL CHARTS**: the toolbar (collapse/expand + chart picker) +
+    `SouthIndianGrid_Detailed` that NATAL CHARTS already showed on the left is now also shown on
+    STRENGTH, YOGAS and VARGAS (rammyps's call — those three read the chart while it's on
+    screen too). Extracted into a shared `ChartColumn` `RenderFragment` in `KeyInference.razor`
+    (same `_natalChartCollapsed`/`_natalChart` state as NATAL CHARTS, so the collapse toggle and
+    chart-picker selection are shared, not reset per tab) and wrapped each of the three panels'
+    existing content in the same `.ki-natal-layout`/`.ki-gridwrap`/`.ki-natal-detail` grid NATAL
+    CHARTS already used. NATAL CHARTS' own inline copy was left untouched rather than refactored
+    onto the new fragment, to avoid touching already-shipped, working markup for its own sake.
+    TRANSIT CHARTS, SPL LAGNAS and ALL CHARTS were deliberately left alone (SPL LAGNAS already
+    has its own dedicated chart view; ALL CHARTS *is* a chart grid).
+  - **Real bug found and fixed: no tab anywhere on this page ever showed an active-state color.**
+    `.ki-steptab[aria-selected="true"]` never matched anything — Blazor's bool attribute binding
+    (`aria-selected="@(_activeTab == X)"`) renders the attribute with an *empty* value when true
+    and omits it entirely when false, the same convention as `disabled`/`checked`; it never emits
+    the literal string `"true"`. Selector changed to the bare `[aria-selected]` (presence check),
+    which is what Blazor's own serialization actually produces. This affected every master tab
+    and every sub-tab rail on the page, not something newly introduced — a pre-existing, silent
+    styling no-op since the tab strip was rewritten off MudTabs (2026-09-23 evening, above).
+  - **Header nav (`HOME`/`KEY INFERENCE`/`NUMEROLOGY`) active state flipped** (rammyps's call):
+    `.ik-headtab.is-here` in `MainLayout.razor.css` now reads `background: var(--brand-midnight)`
+    / `color: var(--brand-sunset)` — the inverse of the sub-tab rail's sunset-bg/midnight-text.
+    Distinct component/token from the `--tab-active-bg` flip-and-revert noted directly above this
+    entry — that one was the step-tab rail itself, which keeps its sunset-fill look; only the
+    outer header nav changed here.
+  - **Rank/score badge convention** (green/sunset-orange/red fills, sunrise-orange text on
+    Strong/Weak, midnight text on Moderate) applied to `PlanetStrengthChart`/`HouseStrengthChart`
+    rank badges, and `AshtakavargaChart`'s Sarvāṣṭavarga bar+value (cited `docs/research/domain/
+    transit-events.md` SAV &gt;30/25-30/&lt;25 threshold) and Bhinnāṣṭavarga cells (existing
+    presentation-only 0/1-5/≥6 bindu band, recolored). `--status-moderate` itself changed from an
+    unrelated amber `#c9820a` to `var(--brand-sunset)` in `tokens.css`, so every existing
+    `--status-moderate` consumer picked up the new color automatically. Piṇḍa (Rāśi/Graha/Śodhya)
+    was deliberately left unbanded — those are multiplier/remainder values used to locate a
+    target nakshatra/sign, not strength scores, and there's no cited threshold for what a "strong
+    Piṇḍa" would even mean. Full convention + the compound-selector specificity trap hit building
+    this: `docs/ui/design-language.md` "Rank/score badge convention."
   every tab, active or not, just the opposite colour pairing. See `design-language.md` "Tabs".

@@ -19,8 +19,8 @@
             {
                 <div class="av-bar-row">
                     <span class="av-sign"><b>@ShortSign(row.SignNumber)</b><small>H@(HouseNumber(row.SignNumber))</small></span>
-                    <span class="av-track"><span class="av-fill" style="width:@BarWidth(row.TotalBindus)%"></span></span>
-                    <b class="av-value">@row.TotalBindus</b>
+                    <span class="av-track"><span class="av-fill @SavBand(row.TotalBindus)" style="width:@BarWidth(row.TotalBindus)%"></span></span>
+                    <b class="av-value @SavBand(row.TotalBindus)">@row.TotalBindus</b>
                 </div>
             }
         </div>
@@ -95,6 +95,20 @@
         null => "",
         0 => "av-zero",
         >= 6 => "av-high",
+        _ => "av-moderate",
+    };
+
+    /// <summary>Sarvāṣṭavarga sign-total banding (2026-09-25) — the one Ashtakavarga threshold
+    /// with an actual classical citation on file: docs/research/domain/transit-events.md's
+    /// Ashtakavarga row ("SAV &gt;30 favorable and &lt;25 unfavorable"). 25-30 reads as the
+    /// moderate middle band, matching the same 3-color convention as the rank badges/Bhinnashtavarga
+    /// above. Deliberately NOT applied to the Piṇḍa table below — Rāśi/Graha/Śodhya Piṇḍa are
+    /// multiplier/remainder values used to locate a target nakshatra or sign (same source), not
+    /// strength scores, so there is no cited threshold to band them by.</summary>
+    private static string SavBand(int totalBindus) => totalBindus switch
+    {
+        > 30 => "av-high",
+        < 25 => "av-zero",
         _ => "av-moderate",
     };
 

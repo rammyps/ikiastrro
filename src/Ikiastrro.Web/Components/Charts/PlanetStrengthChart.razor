@@ -48,7 +48,7 @@
         var expanded = _expanded.Contains(row.Planet);
         <div class="psc-row-wrap">
             <button type="button" class="psc-row" @onclick="() => Toggle(row.Planet)" aria-expanded="@(expanded ? "true" : "false")">
-                <span class="psc-c-rank"><span class="psc-rankbadge">@rank</span></span>
+                <span class="psc-c-rank"><span class="psc-rankbadge @css">@rank</span></span>
                 <span class="psc-c-planet"><span class="psc-chevron @(expanded ? "psc-chevron-open" : "")">&#8250;</span>@row.Planet</span>
                 <span class="psc-c-bar">
                     @if (_mode == BarMode.Performance)

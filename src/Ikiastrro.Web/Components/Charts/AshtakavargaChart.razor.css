@@ -23,16 +23,36 @@
 .av-sign small, thead small { color: var(--brand-muted); font-size: .68rem; font-weight: 700; }
 .av-track { height: 22px; border-radius: 5px; background: var(--brand-line); overflow: hidden; }
 .av-fill { display: block; height: 100%; border-radius: 5px; background: var(--brand-sunset); }
-.av-value { text-align: right; font-variant-numeric: tabular-nums; }
+/* Sarvāṣṭavarga sign-total band (2026-09-25, cited SAV&gt;30/&lt;25 threshold — see SavBand's
+   doc comment): same green/sunset-orange/red + sunrise-on-strong/weak convention as the rank
+   badges and Bhinnāṣṭavarga cells above, applied to both the bar fill and its trailing number. */
+.av-fill.av-high { background: var(--status-strong); }
+.av-fill.av-moderate { background: var(--status-moderate); }
+.av-fill.av-zero { background: var(--status-weak); }
+.av-value {
+    display: inline-block;
+    min-width: 2.2em;
+    padding: 2px 6px;
+    border-radius: 999px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.av-value.av-high { background: var(--status-strong); color: var(--brand-sunrise); }
+.av-value.av-moderate { background: var(--status-moderate); color: var(--brand-midnight); }
+.av-value.av-zero { background: var(--status-weak); color: var(--brand-sunrise); }
 .av-table-scroll { overflow-x: auto; }
 .av table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: calc(var(--font-size-control) * 0.72); }
 .av th,.av td { padding: 6px 5px; border-bottom: 1px solid var(--brand-line); text-align: center; font-variant-numeric: tabular-nums; }
 .av th:first-child { text-align: left; padding-left: 16px; }
 .av thead th { color: var(--brand-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; }
 .av thead th span,.av thead th small { display: block; }
-.av-high { background: var(--status-strong-bg); font-weight: 800; }
-.av-moderate { background: var(--status-moderate-bg); }
-.av-zero { color: var(--status-weak); font-weight: 800; }
+/* Bhinnāṣṭavarga + Piṇḍa bindu bands (2026-09-25, rammyps's call) — same solid-fill,
+   sunrise-orange-for-strong/weak convention as PlanetStrengthChart/HouseStrengthChart's rank
+   badges: green/sunset-orange/red fills, sunrise-orange text on green/red, midnight text on the
+   sunset-orange moderate fill for contrast. Was pale-tint backgrounds with colored text only. */
+.av-high { background: var(--status-strong); color: var(--brand-sunrise); font-weight: 800; }
+.av-moderate { background: var(--status-moderate); color: var(--brand-midnight); font-weight: 800; }
+.av-zero { background: var(--status-weak); color: var(--brand-sunrise); font-weight: 800; }
 .av-sum { font-weight: 800; }
 .av-pinda { min-width: 520px !important; }
 @media (max-width: 620px) { .av-card-head { align-items: flex-start; } .av-bars { padding: 14px 10px; } .av-bar-row { grid-template-columns: 64px minmax(90px,1fr) 28px; gap: 7px; } }

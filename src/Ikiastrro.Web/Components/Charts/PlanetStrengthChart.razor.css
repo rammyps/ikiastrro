@@ -70,6 +70,23 @@
 .psc-status-weak { background: var(--status-weak); }
 .psc-status-none { background: var(--brand-line); }
 
+/* Rank-badge fill + text (2026-09-25, rammyps's call — same convention as HouseStrengthChart's
+   .hsc-rankbadge): the badge now reflects Strong/Moderate/Weak like the Status pill does, solid
+   fill instead of the plain peach-circle default. Strong/Weak read sunrise-orange text, Moderate
+   reads midnight (readable on sunset-orange). Compound selector — .psc-pill/.psc-dot (same
+   .psc-status-* classes) are untouched. */
+.psc-rankbadge.psc-status-strong,
+.psc-rankbadge.psc-status-moderate,
+.psc-rankbadge.psc-status-weak { border-color: transparent; }
+/* Compound selector, not the bare .psc-status-* rules above (2026-09-25 fix) — .psc-rankbadge's
+   own base rule below sets `background: var(--brand-peach)` and, at equal specificity, a later
+   same-specificity rule wins the cascade regardless of which was "meant" to apply; re-declaring
+   the background here with one extra class in the selector reliably outranks it. */
+.psc-rankbadge.psc-status-strong { background: var(--status-strong); color: var(--brand-sunrise); }
+.psc-rankbadge.psc-status-moderate { background: var(--status-moderate); color: var(--brand-midnight); }
+.psc-rankbadge.psc-status-weak { background: var(--status-weak); color: var(--brand-sunrise); }
+.psc-rankbadge.psc-status-weak { color: var(--brand-sunrise); }
+
 .psc-bala-sthana { background: var(--bala-sthana); }
 .psc-bala-dig { background: var(--bala-dig); }
 .psc-bala-kala { background: var(--bala-kala); }

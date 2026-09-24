@@ -71,6 +71,15 @@
 .hsc-status-moderate { background: var(--status-moderate); }
 .hsc-status-weak { background: var(--status-weak); }
 
+/* Rank-badge text (2026-09-25, rammyps's call): the solid-fill badge needs its own text color
+   per band, not the base .hsc-rankbadge white — strong/weak read sunrise-orange, moderate reads
+   midnight (readable on the now-sunset-orange moderate fill, matching the tab-active
+   sunset-bg/midnight-fg convention elsewhere in the app). Legend dots/other .hsc-status-*
+   consumers are unaffected (compound selector, badge-only). */
+.hsc-rankbadge.hsc-status-strong { color: var(--brand-sunrise); }
+.hsc-rankbadge.hsc-status-moderate { color: var(--brand-midnight); }
+.hsc-rankbadge.hsc-status-weak { color: var(--brand-sunrise); }
+
 .hsc-bala-bhavadhipati { background: var(--bala-bhavadhipati); }
 .hsc-bala-dig { background: var(--bala-dig); }
 .hsc-bala-drik { background: var(--bala-drik); }
