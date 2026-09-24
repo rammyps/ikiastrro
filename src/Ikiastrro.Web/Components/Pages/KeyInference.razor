@@ -72,20 +72,21 @@
    margin for the breathing room that heading used to provide. "4. SPL LAGNAS" never had a
    heading of its own beyond the embedded KarakaPolarWheel's own header.
    Where a step has sub-views, its own inner plain nav (same `.ki-steptab`/`.ki-steptab-sub`
-   pill, physically in the page body this time, not the band): Natal Charts uses a D1-default
-   chart selector and 1.1 General Details / 1.2 About Planets / 1.3 About Houses / 1.4 Aspected
-   (%) (_activeTab, restructured 2026-09-23 — 1.1 now combines the old 1.1 Overview + 1.2 Signs
-   & Nakshatras tables one after the other, renamed "General Details"; the old 1.4 About
-   Planets' Moon context (`LunarPhaseCard`) moved out of the tabs entirely into the chart view
-   itself (`.ki-chart-moonfacts`, under the SouthIndianGrid in `.ki-gridwrap`) so it's visible
-   regardless of which sub-tab is active — the separate Tithi/Pakṣa/Elongation/Birth/Moon
-   nakṣatra fact chips that used to sit below the card were then dropped outright (2026-09-23
-   evening, rammyps's call): Tithi/Pakṣa/Elongation already read off `LunarPhaseCard` itself
-   (kicker + phase heading + its own Elongation/Illumination/Pakṣa Bala `<dl>`), and Moon
-   nakṣatra already has a full-detail home in 1.1 General Details' Sign & Nakshatra Combination
-   table — the chips were pure duplication, not new information; the old 1.5 Relationships is
-   renamed "Aspected (%)"); Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/3.3 ASTHAVARGA.
-   Every tab text at every level is ALL CAPS.
+   pill, physically in the page body this time, not the band, single line at this level too as
+   of 2026-09-24 — see that class's own comment in the .css file): Natal Charts uses a
+   D1-default chart selector and 1.1 GENERAL / 1.2 ABOUT PLANETS / 1.3 ABOUT HOUSES & SIGN &
+   PLANET ASPECTS (_activeTab, reduced from 4 sub-tabs to 3 on 2026-09-24, rammyps's call — the
+   old 1.3 About Houses and 1.4 Aspected (%) panels are now one merged panel, House
+   lordship/Argala followed by Graha/Rāśi Dṛṣṭi/dispositors/conjunctions in one scroll). Moon
+   context (`LunarPhaseCard`) was pulled back out of the chart view the same day — no longer
+   sticky across every sub-tab — and now sits at the top of 1.2 About Planets, alongside the
+   rest of a planet's condition; "Birth Pañchāṅga" (`PanchangaCard`) stays at the top of
+   1.1 General, where it always was. Both cards render on the app's new dark "card" surface
+   (`--card-*` tokens in tokens.css) instead of the page's light parchment, so each reads as its
+   own distinct fact card rather than blending into the section beneath it — each is a
+   self-contained card shell now (no shared wrapper), so either can be reused standalone
+   elsewhere later. Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/3.3 ASHTAKAVARGA. Every
+   tab text at every level is ALL CAPS.
    2.2's exaltation-closeness bar + table read ChartViewModel.BuildExaltationRows (Core) over
    lc.KeyDetails; the Moon-context facts read ChartMoonContextRepository (vw_ChartMoonContext)
    separately, same "outside WorkspaceData" pattern as the Current Transit tab's Gochara/Dasha
@@ -153,45 +154,43 @@ else
                                     <CenterMeta><b>Lagna</b> @Disp(natalChart.AscendantSign)</CenterMeta>
                                 </SouthIndianGrid_Detailed>
                             }
-                            <div class="ki-chart-moonfacts">
-<h3 class="ki-sectionhead">Moon context</h3>
-                                @if (_moon is null)
-                                {
-                                    <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                                        Moon context not available for this chart yet — run <code>recompute-keydetails</code>.
-                                    </MudAlert>
-                                }
-                                else
-                                {
-                                    <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
-                                }
-                            </div>
                         </div>
                         <div class="ki-natal-detail ki-subnav-wrap">
                         <nav class="ki-subnav" role="tablist" aria-label="Natal chart details">
-                            <button type="button" role="tab" id="ki-natal-tab-0" aria-selected="@(_activeTab == 0)" aria-controls="ki-natal-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 0"><span>GENERAL</span><span>DETAILS</span></button>
-                            <button type="button" role="tab" id="ki-natal-tab-1" aria-selected="@(_activeTab == 1)" aria-controls="ki-natal-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 1"><span>ABOUT</span><span>PLANETS</span></button>
-                            <button type="button" role="tab" id="ki-natal-tab-2" aria-selected="@(_activeTab == 2)" aria-controls="ki-natal-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 2"><span>ABOUT</span><span>HOUSES</span></button>
-                            <button type="button" role="tab" id="ki-natal-tab-3" aria-selected="@(_activeTab == 3)" aria-controls="ki-natal-panel-3" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 3"><span>ASPECTED</span><span>(%)</span></button>
+                            <button type="button" role="tab" id="ki-natal-tab-0" aria-selected="@(_activeTab == 0)" aria-controls="ki-natal-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 0">GENERAL</button>
+                            <button type="button" role="tab" id="ki-natal-tab-1" aria-selected="@(_activeTab == 1)" aria-controls="ki-natal-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 1">ABOUT PLANETS</button>
+                            <button type="button" role="tab" id="ki-natal-tab-2" aria-selected="@(_activeTab == 2)" aria-controls="ki-natal-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 2">ABOUT HOUSES &amp; SIGN &amp; PLANET ASPECTS</button>
                         </nav>
                         <div class="ki-subpanels">
                             @if (_activeTab == 0)
                             {
                                 <div id="ki-natal-panel-0" role="tabpanel" aria-labelledby="ki-natal-tab-0">
-<h3 class="ki-sectionhead">Planet positions</h3>
+<h3 class="ki-sectionhead">Birth Pañchāṅga</h3>
+                    <PanchangaCard Row="_panchanga" UtcOffset="_utcOffset" />
+
+                    <h3 class="ki-sectionhead">Planet positions</h3>
                     <PlanetPositionsTable Rows="Rows(natalChart)" LagnaSign="@natalChart.AscendantSign" Variant="d1" ShowAnalysis="false" />
 
                     <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
-
-                    <h3 class="ki-sectionhead">Birth Pañchāṅga</h3>
-                    <PanchangaCard Row="_panchanga" UtcOffset="_utcOffset" />
                                 </div>
                             }
                             @if (_activeTab == 1)
                             {
                                 <div id="ki-natal-panel-1" role="tabpanel" aria-labelledby="ki-natal-tab-1">
-<h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
+<h3 class="ki-sectionhead">Moon context</h3>
+                    @if (_moon is null)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Moon context not available for this chart yet — run <code>recompute-keydetails</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
+                    }
+
+                    <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
                     <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
 
                     <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
@@ -210,12 +209,8 @@ else
 
                     <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
                     <ArgalaTable Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
-                                </div>
-                            }
-                            @if (_activeTab == 3)
-                            {
-                                <div id="ki-natal-panel-3" role="tabpanel" aria-labelledby="ki-natal-tab-3">
-<h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
+
+                    <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
                     <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="_natalChart" SelectedChartChanged="OnRelationshipChartChanged" />
 
                     @if (NatalChart is { } relationshipChart)
@@ -357,9 +352,9 @@ else
         <div class="ki-panelbody" id="ki-panel-2" role="tabpanel" aria-labelledby="ki-tab-2">
             <div class="ki-subnav-wrap">
             <nav class="ki-subnav" role="tablist" aria-label="Strength details">
-                <button type="button" role="tab" id="ki-strength-tab-0" aria-selected="@(_strengthTab == 0)" aria-controls="ki-strength-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 0"><span>PLANET</span><span>STRENGTH</span></button>
-                <button type="button" role="tab" id="ki-strength-tab-1" aria-selected="@(_strengthTab == 1)" aria-controls="ki-strength-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 1"><span>HOUSE</span><span>STRENGTH</span></button>
-                <button type="button" role="tab" id="ki-strength-tab-2" aria-selected="@(_strengthTab == 2)" aria-controls="ki-strength-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 2"><span>ASTHA-</span><span>VARGA</span></button>
+                <button type="button" role="tab" id="ki-strength-tab-0" aria-selected="@(_strengthTab == 0)" aria-controls="ki-strength-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 0">PLANET STRENGTH</button>
+                <button type="button" role="tab" id="ki-strength-tab-1" aria-selected="@(_strengthTab == 1)" aria-controls="ki-strength-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 1">HOUSE STRENGTH</button>
+                <button type="button" role="tab" id="ki-strength-tab-2" aria-selected="@(_strengthTab == 2)" aria-controls="ki-strength-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 2">ASHTAKAVARGA</button>
             </nav>
             <div class="ki-subpanels">
                 @if (_strengthTab == 0)
@@ -586,8 +581,7 @@ else
         if (Step is "1" or "natal" or "about") _masterTab = 0;
         if (Step is "overview" or "general" or "generaldetails" or "signs" or "nakshatras") { _masterTab = 0; _activeTab = 0; }
         if (Step is "planets") { _masterTab = 0; _activeTab = 1; }
-        if (Step is "houses") { _masterTab = 0; _activeTab = 2; }
-        if (Step is "relationships" or "aspected") { _masterTab = 0; _activeTab = 3; }
+        if (Step is "houses" or "relationships" or "aspected") { _masterTab = 0; _activeTab = 2; }
         if (Step is "2" or "transit") _masterTab = 1;
         if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
         if (Step is "5" or "yogas") _masterTab = 4;

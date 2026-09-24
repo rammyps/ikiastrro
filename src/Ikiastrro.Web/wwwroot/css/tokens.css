@@ -255,4 +255,14 @@ h1, h2, h3 {
     --tab-active-fg: var(--brand-midnight);
     --tab-inactive-bg: transparent;
     --tab-inactive-fg: var(--brand-midnight);
+
+    /* Dark "card" surface (rammyps, 2026-09-24) — for fact cards that should read as a distinct
+       card rather than blend into the page's parchment background (MoonAndPanchangaCard, and the
+       LunarPhaseCard/PanchangaCard nested inside it). Reuses the app's own midnight/canvas pair
+       (already proven as a dark-shell/light-text combo by .ki-chart-picker) instead of a new hue. */
+    --card-bg: var(--brand-midnight);
+    --card-bg-raised: #1c3566;
+    --card-fg: var(--brand-canvas);
+    --card-fg-muted: rgb(250 245 234 / 0.66);
+    --card-line: rgb(250 245 234 / 0.22);
 }
