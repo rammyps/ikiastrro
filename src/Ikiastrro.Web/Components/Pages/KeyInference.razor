@@ -27,6 +27,7 @@
 @inject Ikiastrro.Data.GrahaDrishtiStrengthRepository GrahaDrishtiStrengthRepo
 @inject Ikiastrro.Data.PlanetaryStateRepository PlanetaryStateRepo
 @inject Ikiastrro.Data.PlanetaryStateRuleRepository PlanetaryStateRuleRepo
+@inject Ikiastrro.Data.PostureStateInterpretationRepository PostureStateInterpretationRepo
 @inject Ikiastrro.Data.PanchangaRepository PanchangaRepo
 @inject ActivePerson Active
 
@@ -194,7 +195,8 @@ else
                     <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
 
                     <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
-                    <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames" />
+                    <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames"
+                                           PostureInterpretations="_postureInterpretations" />
                                 </div>
                             }
                             @if (_activeTab == 2)
@@ -541,6 +543,8 @@ else
     private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
     private IReadOnlyList<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact> _planetaryStates = Array.Empty<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact>();
     private IReadOnlyDictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow> _stateNames = new Dictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow>();
+    private IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), Ikiastrro.Data.PostureStateInterpretationRow> _postureInterpretations =
+        new Dictionary<(byte PlanetaryStateId, byte PlanetId), Ikiastrro.Data.PostureStateInterpretationRow>();
     private Ikiastrro.Data.ChartPanchangaRow? _panchanga;
     private TimeSpan _utcOffset = TransitSelection.IstOffset;
     private string _natalChart = "D1";
@@ -640,6 +644,8 @@ else
         // rows without needing D1's ChartResultId (LoadedChart doesn't carry one).
         _planetaryStates = PlanetaryStateRepo.GetByBirthDetailId(Id).Where(r => r.AgeStateId.HasValue).ToList();
         _stateNames = PlanetaryStateRuleRepo.GetAllStates();
+        var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
+        _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
         _panchanga = PanchangaRepo.GetByBirthDetailId(Id);
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)

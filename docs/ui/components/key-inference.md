@@ -323,8 +323,14 @@ Supersedes the "2026-09-23 — Natal/Transit navigation revision" section's sub-
     tables, one after the other in a single tab, instead of two separate tabs.
   - **1.2 ABOUT PLANETS** (moved up from 1.4) — the Moon-context fact chips (Tithi/Pakṣa/
     Elongation/Birth/Moon nakṣatra + `LunarPhaseCard`) that used to open this tab were pulled
-    out entirely; it's now just `PlanetDignityTable` under "Planets — dignity, kāraka,
-    exaltation". The Moon-context block moved to the **chart view** itself — a new
+    out entirely. It now contains `PlanetDignityTable` under "Planets — dignity, kāraka,
+    exaltation" followed by `PlanetaryStateTable`: Bālādi capacity + effect fraction,
+    Jāgradādi availability, and Śayanādi activity for all nine grahas. Every state shows its
+    Dim meaning; Śayanādi additionally resolves the source-grounded planet × state reading
+    from `tbl_Rule_PostureStateInterpretation` (108 rows), keeping conditional clauses and
+    `SRC_PVR_INTEGRATED` §15.4.4 provenance visible. The table explicitly treats the three
+    systems as independent lenses, not a composite score or deterministic prediction.
+    The Moon-context block moved to the **chart view** itself — a new
     `.ki-chart-moonfacts` block inside `.ki-gridwrap`, directly under the South-Indian grid —
     so it's visible under the chart no matter which sub-tab is open, instead of being one click
     away inside a single tab.

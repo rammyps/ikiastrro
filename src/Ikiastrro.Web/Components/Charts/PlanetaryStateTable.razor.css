@@ -2,11 +2,17 @@
    (docs/ui/design-language.md — standard table format). No min-width/nowrap on cells — state
    names are short and this table always sits well within the detail column's width, so it never
    needs its own scrollbar (rammyps, 2026-09-24: no-scroll directive applied to every table). */
+.pst-note { margin: 0 0 10px; padding: 10px 12px; border-left: 3px solid var(--brand-sunset); background: var(--brand-surface); color: var(--brand-muted); font-size: .82rem; line-height: 1.45; }
+.pst-note strong { color: var(--brand-midnight); }
 .pst-scroll { max-width: 100%; border: 1px solid var(--brand-line); border-radius: 10px; }
 .pst { width: 100%; table-layout: auto; border-collapse: collapse; font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; font-size: 1em; }
-.pst th, .pst td { text-align: left; vertical-align: middle; padding: 8px 7px; }
+.pst th, .pst td { text-align: left; vertical-align: top; padding: 8px 7px; }
 .pst th { color: var(--brand-midnight); font-weight: 700; border-bottom: 2px solid var(--brand-line); white-space: normal; }
 .pst td { color: var(--brand-midnight); border-bottom: 1px solid var(--brand-line); white-space: normal; }
 .pst tbody tr:last-child td { border-bottom: 0; }
 .pst tbody tr:hover td { background: var(--brand-sunrise); }
 .pst-meaning { display: block; margin-top: 2px; color: var(--brand-muted); font-size: .82em; }
+.pst-reading { min-width: 18rem; max-width: 30rem; line-height: 1.42; }
+.pst-condition, .pst-source { display: block; margin-top: 5px; font-size: .78em; }
+.pst-condition { color: var(--brand-midnight); }
+.pst-source { color: var(--brand-muted); letter-spacing: .01em; }

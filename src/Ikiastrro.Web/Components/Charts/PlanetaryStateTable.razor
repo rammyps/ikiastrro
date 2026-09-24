@@ -1,25 +1,50 @@
 @using Ikiastrro.Core.Engines.PlanetaryStates
+@using Ikiastrro.Data
 @* Key Inference "ABOUT PLANETS" — Bālādi/Jāgradādi/Śayanādi avasthas, one row per graha.
    D1-only: PlanetaryStateFact.AgeStateId/PostureStateId are populated for D1 alone
    (PlanetaryStateRepository's own doc comment), so filtering on AgeStateId.HasValue in the
    page (not here) is what already narrows Rows to the D1 chart before it reaches this table. *@
+<div class="pst-note">
+    <strong>Three independent lenses:</strong>
+    Bālādi describes effective capacity by degree, Jāgradādi describes availability by dignity,
+    and Śayanādi describes the planet's mode of activity. Interpretations are source summaries,
+    not deterministic predictions; weigh them with dignity, strength, houses and aspects.
+</div>
 <div class="pst-scroll">
     <table class="pst">
         <thead><tr>
-            <th>Planet</th><th>Bālādi<br />(age)</th><th>Jāgradādi<br />(wakefulness)</th><th>Śayanādi<br />(posture)</th>
+            <th>Planet</th><th>Bālādi<br />(capacity)</th><th>Jāgradādi<br />(availability)</th><th>Śayanādi<br />(activity)</th><th>Interpretation</th>
         </tr></thead>
         <tbody>
         @foreach (var r in Rows)
         {
             <tr>
                 <td>@r.Planet</td>
-                <td>@StateLabel(r.AgeStateId)@(r.AgeEffectFraction is { } f ? $" ({f:0%})" : null)</td>
-                <td>@StateLabel(r.WakefulnessStateId)</td>
                 <td>
-                    @StateLabel(r.PostureStateId)
-                    @if (PostureMeaning(r.PostureStateId) is { } meaning)
+                    <strong>@StateLabel(r.AgeStateId)@(r.AgeEffectFraction is { } f ? $" · {f:0.#%}" : null)</strong>
+                    @if (StateMeaning(r.AgeStateId) is { } ageMeaning) { <span class="pst-meaning">@ageMeaning</span> }
+                </td>
+                <td>
+                    <strong>@StateLabel(r.WakefulnessStateId)</strong>
+                    @if (StateMeaning(r.WakefulnessStateId) is { } wakeMeaning) { <span class="pst-meaning">@wakeMeaning</span> }
+                </td>
+                <td>
+                    <strong>@StateLabel(r.PostureStateId)</strong>
+                    @if (StateMeaning(r.PostureStateId) is { } postureMeaning) { <span class="pst-meaning">@postureMeaning</span> }
+                </td>
+                <td class="pst-reading">
+                    @if (Interpretation(r) is { } interpretation)
                     {
-                        <span class="pst-meaning">@meaning</span>
+                        <span>@interpretation.InterpretationText</span>
+                        @if (!string.IsNullOrWhiteSpace(interpretation.ConditionNotes))
+                        {
+                            <span class="pst-condition"><b>Conditional:</b> @interpretation.ConditionNotes</span>
+                        }
+                        <span class="pst-source">@interpretation.SourceRefCode · @interpretation.SourceLocator</span>
+                    }
+                    else
+                    {
+                        <span>—</span>
                     }
                 </td>
             </tr>
@@ -31,7 +56,13 @@
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<PlanetaryStateFact> Rows { get; set; } = Array.Empty<PlanetaryStateFact>();
     [Parameter, EditorRequired] public IReadOnlyDictionary<byte, PlanetaryStateRow> StateNames { get; set; } = new Dictionary<byte, PlanetaryStateRow>();
+    [Parameter, EditorRequired] public IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow> PostureInterpretations { get; set; } =
+        new Dictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow>();
 
     private string StateLabel(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.StateName : "—";
-    private string? PostureMeaning(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.Meaning : null;
+    private string? StateMeaning(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.Meaning : null;
+    private PostureStateInterpretationRow? Interpretation(PlanetaryStateFact row) =>
+        row.PostureStateId is { } stateId && row.PlanetId is { } planetId
+            ? PostureInterpretations.GetValueOrDefault((stateId, planetId))
+            : null;
 }

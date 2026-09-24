@@ -31,6 +31,7 @@ builder.Services.AddScoped<DashaPeriodsRepository>();
 builder.Services.AddScoped<SadeSatiRepository>();
 builder.Services.AddScoped<PlanetaryStateRuleRepository>();
 builder.Services.AddScoped<PlanetaryStateRepository>();
+builder.Services.AddScoped<PostureStateInterpretationRepository>();
 builder.Services.AddScoped<PlanetaryStrengthRepository>();
 builder.Services.AddScoped<BhavaStrengthRepository>();
 builder.Services.AddScoped<AshtakavargaRepository>();
