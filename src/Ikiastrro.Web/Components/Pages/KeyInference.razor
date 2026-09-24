@@ -546,9 +546,20 @@ else
     private string _natalChart = "D1";
     private bool _natalChartCollapsed;
     private LoadedChart? NatalChart => _data?.Charts.GetValueOrDefault(_natalChart);
+    /// <summary>D1, D2, D2-US, D3, D4 … D60 — numeric divisional order, not the plain string
+    /// order ("D1"/"D10"/"D11"/"D12"/"D16"/"D2"/"D2-US"/"D20"…) the old `OrderBy(ChartType)`
+    /// produced (rammyps, 2026-09-24). <see cref="DivisionalNumber"/> reads the digits straight
+    /// off ChartType rather than joining ChartTypeRow.DivisionalFactor — DisplayOrder in that
+    /// table is a life-significance ordering (D6 before D9 before D10), not a numeric one, so it
+    /// wouldn't produce this sequence either. ThenBy(ChartType) only breaks the D2/D2-US tie.</summary>
     private IEnumerable<LoadedChart> NatalChartOptions => _data?.Charts.Values
-        .OrderBy(c => c.ChartType == "D1" ? 0 : 1)
+        .OrderBy(c => DivisionalNumber(c.ChartType))
         .ThenBy(c => c.ChartType) ?? Enumerable.Empty<LoadedChart>();
+    private static int DivisionalNumber(string chartType)
+    {
+        var digits = new string(chartType.Skip(1).TakeWhile(char.IsDigit).ToArray());
+        return int.TryParse(digits, out var n) ? n : int.MaxValue;
+    }
     private void OnNatalChartChanged(ChangeEventArgs e) => _natalChart = e.Value?.ToString() ?? "D1";
     private Task OnRelationshipChartChanged(string chart) { _natalChart = chart; return Task.CompletedTask; }
 

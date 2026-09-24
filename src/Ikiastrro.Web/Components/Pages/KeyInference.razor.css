@@ -287,19 +287,25 @@
    Dark-navy surface + cream text (design-language.md "Chart controls" — the documented look for
    any <select> that chooses/drives a chart, matching SPL LAGNAS's own divisional-chart picker),
    not this page's ordinary form-field style. Sits to the right of EXPAND/COLLAPSE CHART
-   (rammyps, 2026-09-23) and sized to its content rather than stretching to fill the toolbar. */
+   (rammyps, 2026-09-23). Fixed width sized in `ch` to the longest chart label across every
+   entry in tbl_Dim_ChartType — "Hora (Uma Shambu) · D2-US" (db/ikiastrro.sql's D2-US row) is
+   the longest at 25 characters — so the box never truncates whichever chart is selected and
+   never resizes/jumps as the selection changes (rammyps, 2026-09-24: was `max-width: 130px`,
+   which cut every varga name off after "Rasi · D1"-length text). Options render in caps to
+   match every other tab/label in the app (`text-transform: uppercase` — the values themselves,
+   `LoadedChart.Label`, stay mixed-case for everywhere else that reads them). */
 .ki-chart-picker {
     flex: 0 0 auto;
     min-height: 32px;
     min-width: 0;
-    width: auto;
-    max-width: 130px;
+    width: 27ch;
     padding: 4px 8px;
     border: 1px solid var(--brand-line);
     border-radius: 8px;
     background: var(--brand-midnight);
     color: var(--brand-canvas);
     font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
 }
 .ki-chart-picker:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
 
