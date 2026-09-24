@@ -22,12 +22,15 @@
             @if (Active.Id is int personId)
             {
                 <nav class="ik-tabs" aria-label="Person sections">
-                    @* ALL CHARTS is the divisional-chart gallery. Karakas and special Lagna
-                       interpretation now live together as Step 4 inside KEY INFERENCE. NUMEROLOGY
-                       (docs/ui/components/numerology.md) is Cheiro's name-number method, computed
-                       live from the person's saved Name — no sub-steps, so it's plain text like
-                       HOME rather than the two-word stacked-span pill. *@
-                    <a href="@($"/charts/{personId}")" class="ik-headtab @TabClass("charts")"><span>ALL</span> <span>CHARTS</span></a>
+                    @* ALL CHARTS's own top-nav pill was removed (rammyps, 2026-09-24) — the
+                       divisional-chart gallery is now step 7 inside KEY INFERENCE
+                       (KeyInference.razor's AllChartsGrid tab), so a separate top-level link to
+                       /charts/{id} was a duplicate entry point. The route itself still exists
+                       (AllCharts.razor) for any deep link already pointing at it. Karakas and
+                       special Lagna interpretation live together as Step 4 inside KEY INFERENCE.
+                       NUMEROLOGY (docs/ui/components/numerology.md) is Cheiro's name-number
+                       method, computed live from the person's saved Name — no sub-steps, so it's
+                       plain text like HOME rather than the two-word stacked-span pill. *@
                     <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinf")"><span>KEY</span> <span>INFERENCE</span></a>
                     <a href="@($"/numerology/{personId}")" class="ik-headtab @TabClass("numerology")">NUMEROLOGY</a>
                 </nav>
@@ -162,9 +165,6 @@
         var here = key switch
         {
             "keyinf"  => p.Contains("/timing", StringComparison.Ordinal) || p.Contains("/key-inference", StringComparison.Ordinal),
-            "charts"  => p.StartsWith("/charts", StringComparison.Ordinal)
-                         && !p.Contains("/timing", StringComparison.Ordinal)
-                         && !p.Contains("/key-inference", StringComparison.Ordinal),
             "numerology" => p.StartsWith("/numerology", StringComparison.Ordinal),
             _ => false
         };
