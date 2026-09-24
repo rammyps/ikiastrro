@@ -1,19 +1,24 @@
 @using Ikiastrro.Core.Engines.PlanetaryStates
 @using Ikiastrro.Data
-@* Key Inference "ABOUT PLANETS" — Bālādi/Jāgradādi/Śayanādi avasthas, one row per graha.
-   D1-only: PlanetaryStateFact.AgeStateId/PostureStateId are populated for D1 alone
-   (PlanetaryStateRepository's own doc comment), so filtering on AgeStateId.HasValue in the
-   page (not here) is what already narrows Rows to the D1 chart before it reaches this table. *@
+@* Key Inference "ABOUT PLANETS" — Bālādi/Jāgradādi/Śayanādi/Dīptādi/Lajjitādi avasthas, one row
+   per graha. Bālādi/Śayanādi are D1-only: PlanetaryStateFact.AgeStateId/PostureStateId are
+   populated for D1 alone (PlanetaryStateRepository's own doc comment), so filtering on
+   AgeStateId.HasValue in the page (not here) is what already narrows Rows to the D1 chart before
+   it reaches this table — Dīptādi/Lajjitādi are computed for every chart type, but only D1's
+   rows ever reach this table anyway, same as Jāgradādi. *@
 <div class="pst-note">
-    <strong>Three independent lenses:</strong>
+    <strong>Five lenses, PVR sec 15.4.3 for the last two:</strong>
     Bālādi describes effective capacity by degree, Jāgradādi describes availability by dignity,
-    and Śayanādi describes the planet's mode of activity. Interpretations are source summaries,
-    not deterministic predictions; weigh them with dignity, strength, houses and aspects.
+    Śayanādi describes the planet's mode of activity, Dīptādi combines a dignity tier with up to
+    3 affliction flags (Vikala/Khala/Kopita), and Lajjitādi is 6 independent condition flags — the
+    book gives no precedence between simultaneous matches within Dīptādi or Lajjitādi, so every
+    match is kept. Interpretations are source summaries, not deterministic predictions; weigh
+    them with dignity, strength, houses and aspects.
 </div>
 <div class="pst-scroll">
     <table class="pst">
         <thead><tr>
-            <th>Planet</th><th>Bālādi<br />(capacity)</th><th>Jāgradādi<br />(availability)</th><th>Śayanādi<br />(activity)</th><th>Interpretation</th>
+            <th>Planet</th><th>Bālādi<br />(capacity)</th><th>Jāgradādi<br />(availability)</th><th>Śayanādi<br />(activity)</th><th>Dīptādi</th><th>Lajjitādi</th><th>Interpretation</th>
         </tr></thead>
         <tbody>
         @foreach (var r in Rows)
@@ -32,6 +37,8 @@
                     <strong>@StateLabel(r.PostureStateId)</strong>
                     @if (StateMeaning(r.PostureStateId) is { } postureMeaning) { <span class="pst-meaning">@postureMeaning</span> }
                 </td>
+                <td><strong>@StateNamesJoined(r.DeeptadiStateIds)</strong></td>
+                <td><strong>@StateNamesJoined(r.LajjitadiStateIds)</strong></td>
                 <td class="pst-reading">
                     @if (Interpretation(r) is { } interpretation)
                     {
@@ -61,6 +68,8 @@
 
     private string StateLabel(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.StateName : "—";
     private string? StateMeaning(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.Meaning : null;
+    private string StateNamesJoined(IReadOnlyList<byte> ids) =>
+        ids.Count == 0 ? "—" : string.Join(", ", ids.Select(id => StateLabel(id)));
     private PostureStateInterpretationRow? Interpretation(PlanetaryStateFact row) =>
         row.PostureStateId is { } stateId && row.PlanetId is { } planetId
             ? PostureInterpretations.GetValueOrDefault((stateId, planetId))
