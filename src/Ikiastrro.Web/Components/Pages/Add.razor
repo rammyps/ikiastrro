@@ -4,6 +4,7 @@
 @inject ChartGenerationService ChartGenerationService
 @inject IPlaceResolver PlaceResolver
 @inject NavigationManager Nav
+@inject ActivePerson Active
 
 <PageTitle>Add New Person — ikiastrro</PageTitle>
 
@@ -89,6 +90,12 @@
     private double? manualLatitude;
     private double? manualLongitude;
     private string? manualUtcOffset;
+
+    // Another person-list-style page (no {Id} route param), same as Home/Saved Charts — clear
+    // whatever the previously-open person left in the app bar (rammyps, 2026-09-25: same class
+    // of bug as the Saved Charts header fix, fixed preemptively here even though today this page
+    // is only ever reached via Home, which already clears first).
+    protected override void OnInitialized() => Active.Clear();
 
     private void CheckDuplicateName()
     {
