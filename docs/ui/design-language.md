@@ -88,15 +88,16 @@ repeats it):
 ## Tabs
 
 **Decided 2026-09-14 (rammyps's directive), rolling out app-wide starting with Key
-Inference; revised same day to a single pill style at every level; revised again 2026-09-23
-to a flat midnight/sunset look** — not MudBlazor's default text-plus-underline-slider look,
-and no longer split between a pill master rail and a filled-segment nested style:
+Inference; revised same day to a single pill style at every level; briefly flipped to a flat
+midnight/sunset look on 2026-09-23, then reverted the same evening back to sunset/midnight**
+— not MudBlazor's default text-plus-underline-slider look, and no longer split between a pill
+master rail and a filled-segment nested style:
 
-- **Every tab, active or inactive:** dark-navy fill (`--tab-active-bg`/`--tab-inactive-bg` =
-  `--brand-midnight`) + sunset-orange text (`--tab-active-fg`/`--tab-inactive-fg` =
-  `--brand-sunset`) — one flat look, no colour swap for the selected tab (rammyps's directive,
-  2026-09-23; previously active used a sunset fill/midnight text and inactive a quiet-cream
-  fill/midnight text).
+- **Every tab, active or inactive:** sunset-orange fill (`--tab-active-bg`/`--tab-inactive-bg` =
+  `--brand-sunset`) + dark-navy text (`--tab-active-fg`/`--tab-inactive-fg` = `--brand-midnight`)
+  — one flat look, no colour swap for the selected tab (rammyps's directive, 2026-09-23 evening;
+  earlier that same day this was briefly midnight-fill/sunset-text, and before that active used
+  a sunset fill/midnight text and inactive a quiet-cream fill/midnight text).
 - Fully rounded pill shape (`border-radius: 999px`), not the earlier rounded-top "filled
   segment" look.
 - Tab text is always ALL CAPS in the markup itself (not a CSS `text-transform`, so labels like

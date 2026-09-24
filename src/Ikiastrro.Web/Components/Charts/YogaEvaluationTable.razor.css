@@ -7,7 +7,7 @@
 /* Table format standardized onto "1.1 D1-Birth Chart"'s PlanetPositionsTable (.ppt) reference
    (docs/ui/design-language.md — standard table format, 2026-09-22). */
 .yg-table-scroll { overflow-x: auto; }
-.yg table { width: 100%; table-layout: auto; border-collapse: collapse; font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; font-size: 0.86em; }
+.yg table { width: 100%; table-layout: auto; border-collapse: collapse; font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; font-size: 1em; }
 .yg th, .yg td { text-align: left; vertical-align: top; }
 .yg th { padding: 9px 8px; color: var(--brand-midnight); font-weight: 700; border-bottom: 2px solid var(--brand-line); white-space: normal; position: sticky; top: 0; background: var(--brand-surface); }
 .yg td { padding: 8px 7px; border-bottom: 1px solid var(--brand-line); }

@@ -49,42 +49,48 @@
         @if (Active is { Id: not null, Name: not null })
         {
             <div class="ik-band">
-                <div class="ik-band-inner">
-                    <div class="ik-person-wrap">
-                        <button type="button" class="ik-person" @onclick="TogglePersonMenu"
-                                aria-haspopup="listbox" aria-expanded="@_personMenuOpen" title="Switch person">
-                            <span class="ik-person-name">@Active.Name</span>
-                            <span class="ik-person-caret" aria-hidden="true">▾</span>
-                        </button>
-                        @if (_personMenuOpen)
-                        {
-                            <ul class="ik-person-menu" role="listbox">
-                                @if (OtherPeople.Count == 0)
-                                {
-                                    <li class="ik-person-menu-empty">No other saved people</li>
-                                }
-                                else
-                                {
-                                    @foreach (var p in OtherPeople)
+                <div class="ik-band-inner @(Active.HeaderExtra is not null ? "has-extra" : null)">
+                    @if (Active.HeaderExtra is not null)
+                    {
+                        @Active.HeaderExtra
+                    }
+                    <div class="ik-person-block">
+                        <div class="ik-person-wrap">
+                            <button type="button" class="ik-person" @onclick="TogglePersonMenu"
+                                    aria-haspopup="listbox" aria-expanded="@_personMenuOpen" title="Switch person">
+                                <span class="ik-person-name">@Active.Name</span>
+                                <span class="ik-person-caret" aria-hidden="true">▾</span>
+                            </button>
+                            @if (_personMenuOpen)
+                            {
+                                <ul class="ik-person-menu" role="listbox">
+                                    @if (OtherPeople.Count == 0)
                                     {
-                                        <li>
-                                            <button type="button" @onclick="() => GoToPerson(p.Id)">
-                                                <span class="ik-person-menu-name">@p.Name</span>
-                                                <span class="ik-person-menu-birth">@p.DateOfBirth.ToString("dd MMM yyyy")</span>
-                                            </button>
-                                        </li>
+                                        <li class="ik-person-menu-empty">No other saved people</li>
                                     }
-                                }
-                                <li class="ik-person-menu-all">
-                                    <button type="button" @onclick="GoToPicker">All saved people…</button>
-                                </li>
-                            </ul>
+                                    else
+                                    {
+                                        @foreach (var p in OtherPeople)
+                                        {
+                                            <li>
+                                                <button type="button" @onclick="() => GoToPerson(p.Id)">
+                                                    <span class="ik-person-menu-name">@p.Name</span>
+                                                    <span class="ik-person-menu-birth">@p.DateOfBirth.ToString("dd MMM yyyy")</span>
+                                                </button>
+                                            </li>
+                                        }
+                                    }
+                                    <li class="ik-person-menu-all">
+                                        <button type="button" @onclick="GoToPicker">All saved people…</button>
+                                    </li>
+                                </ul>
+                            }
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
+                        {
+                            <span class="ik-person-birth">@Active.BirthLine</span>
                         }
                     </div>
-                    @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
-                    {
-                        <span class="ik-person-birth">@Active.BirthLine</span>
-                    }
                 </div>
             </div>
             @if (_personMenuOpen)
