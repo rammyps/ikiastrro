@@ -50,7 +50,9 @@
     border: 0;
     background: rgb(255 250 242 / 0.48);
     color: var(--brand-midnight);
-    font: 700 calc(var(--font-size-control) * 0.82) / 0.95 var(--font-interface);
+    /* Level 3 — Primary UI (docs/ui/design-language.md "Typography"): navigation is exactly
+       --font-size-control, not a bespoke multiplier of it. */
+    font: 700 var(--font-size-control) / 0.95 var(--font-interface);
     letter-spacing: 0.06em;
     text-decoration: none;
     white-space: nowrap;
@@ -71,7 +73,8 @@
     align-items: center;
     gap: 8px;
     color: var(--brand-midnight);
-    font: 700 calc(var(--font-size-control) * 0.78) / 1.1 var(--font-interface);
+    /* Level 4 — Heading (rammyps, 2026-09-24: "footer should be at Level4 font as well"). */
+    font: 700 var(--font-size-heading) / 1.1 var(--font-interface);
     letter-spacing: 0.01em;
 }
 
@@ -142,8 +145,14 @@
     padding: 0;
     cursor: pointer;
     color: var(--brand-midnight);
-    font: 700 calc(var(--font-size-control) * 1.15) / 1.1 var(--font-interface);
+    /* Level 4 — Heading (rammyps, 2026-09-24): the open person's name is the app bar's one
+       heading-weight element. ALL CAPS via text-transform, not the tab convention of caps in
+       the markup itself, since this is per-person data, not a fixed label — the accessible
+       name (@Active.Name) stays in its original case. The DOB/time/location line that used to
+       sit under it is gone (rammyps: "remove the 2nd line") — the app bar shows the name only. */
+    font: 700 var(--font-size-heading) / 1.1 var(--font-interface);
     letter-spacing: -0.01em;
+    text-transform: uppercase;
 }
 
 .ik-person:hover .ik-person-name {
@@ -154,11 +163,6 @@
 .ik-person-caret {
     font-size: 0.6em;
     color: var(--brand-sunset);
-}
-
-.ik-person-birth {
-    color: var(--brand-muted);
-    font: 500 calc(var(--font-size-control) * 0.85) / 1.2 var(--font-interface);
 }
 
 /* "Ramya ▾" now opens a real dropdown of the other saved people (rammyps) instead of just
@@ -198,7 +202,8 @@
     padding: 6px 8px;
     cursor: pointer;
     text-align: left;
-    font: 600 calc(var(--font-size-control) * 0.85) / 1.3 var(--font-interface);
+    /* Level 2 — Supporting: this row is table-like content (a name to pick), not primary UI. */
+    font: 600 var(--font-size-support) / 1.3 var(--font-interface);
     color: var(--brand-midnight);
 }
 
@@ -208,13 +213,14 @@
     flex: none;
     color: var(--brand-muted);
     font-weight: 500;
-    font-size: 0.85em;
+    /* Level 1 — Metadata: secondary detail alongside the row's name. */
+    font-size: var(--font-size-meta);
 }
 
 .ik-person-menu-empty {
     padding: 6px 8px;
     color: var(--brand-muted);
-    font: 500 calc(var(--font-size-control) * 0.8) / 1.3 var(--font-interface);
+    font: 500 var(--font-size-meta) / 1.3 var(--font-interface);
 }
 
 .ik-person-menu-all { border-top: 1px solid var(--brand-line); margin-top: 4px; padding-top: 4px; }
@@ -260,7 +266,9 @@
     flex-wrap: wrap;
     gap: 16px;
     color: var(--brand-midnight);
-    font: 600 var(--font-size-control) / 1.4 var(--font-interface);
+    /* Level 4 — Heading, every page (rammyps, 2026-09-24: "the footer should be at Level4 font
+       as well") — replaces the earlier Home-only exception below. */
+    font: 600 var(--font-size-heading) / 1.4 var(--font-interface);
 }
 
 .ik-footer .ik-brand { flex: none; }
@@ -273,13 +281,7 @@
     display: inline-block;
     text-align: center;
     text-wrap: balance;
-    /* Halved everywhere except Home (`.ik-footer.is-home`, MainLayout.razor's `CurrentPath ==
-       "/"` check) — rammyps, 2026-09-26: the dedication line should read as a quiet footer
-       credit on every chart/analysis page, but stay full-size on the landing page where it's
-       the only thing in the footer competing for attention. */
-    font-size: calc(var(--font-size-control) * 0.5);
 }
-.ik-footer.is-home .ik-footer-line { font-size: var(--font-size-control); }
 
 .ik-footer-by {
     font-size: 0.82em;

@@ -263,12 +263,30 @@ h1, h2, h3 {
     --brand-sunrise: #fcd7bd;
     --font-size-display: clamp(38px, 3.05vw, 53px);
     --font-size-tagline: clamp(20px, 2vw, 37px);
-    /* App-wide base size — every standardized table/tab/control reads off this one token via
-       calc(var(--font-size-control) * X) (docs/ui/design-language.md). Bumped from 19px
-       (rammyps, 2026-09-24: across-the-board legibility pass); table cell padding was trimmed
-       in the same pass so the larger text still fits every standardized table without a
-       horizontal scrollbar. */
-    --font-size-control: 21px;
+
+    /* Four-level type scale (rammyps, 2026-09-24 — docs/ui/design-language.md "Typography"),
+       16px = 100%, superseding the earlier standalone 21px bump ("across-the-board legibility
+       pass" the same day): dense chart/table screens read as one flat 21px block instead of a
+       scannable hierarchy, so the scale went back to 16px as Level 3 and got three explicit
+       siblings either side of it instead of one more ad hoc multiplier.
+       --font-size-control stays the name every existing calc(var(--font-size-control) * X)
+       rule in the app already reads off — renaming it would be a mechanical, high-risk sweep
+       across ~28 files for no visual gain — so it now IS Level 3 (100%, tabs/buttons/nav/
+       primary card values) rather than a separate "base" the levels multiply against. Every
+       component's existing calc() multiplier scales down proportionally with it; only the app
+       bar (MainLayout) and any new component reach for --font-size-meta/-support/-heading
+       directly, since those didn't exist as named tokens before this pass. */
+    --font-size-meta: 12px;     /* Level 1 — Metadata: 75%. Translations, secondary chart
+                                   details, card labels. Weight 400-500. */
+    --font-size-support: 14px;  /* Level 2 — Supporting: 87.5%. Table content, dates,
+                                   supplementary values. Weight 400. */
+    --font-size-control: 16px;  /* Level 3 — Primary UI: 100%. Tabs, buttons, navigation,
+                                   important card values. Weight 600. Every standardized
+                                   table/tab/control reads off this one token via
+                                   calc(var(--font-size-control) * X) (docs/ui/design-language.md). */
+    --font-size-heading: 20px;  /* Level 4 — Heading: 125%. "Birth Pañchāṅga," "Planet
+                                   Positions," the open person's name, the footer. Weight
+                                   600-700. */
 
     /* One content width + gutter run through the app bar, the band, every page and the
        footer (docs/ui/wkstream_UI_v2.md — "Navigation / Header bar"). */

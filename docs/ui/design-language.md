@@ -27,8 +27,40 @@ One language, everywhere. Detail on colours/type: [`brand.md`](brand.md).
 **Manrope everywhere**, inherited from `--font-interface`. Only the bundled 400, 500, 600,
 700 and 800 weights may be requested; do not use synthetic 750/850/900 weights. Dates,
 degrees, scores and periods use `font-variant-numeric: tabular-nums` rather than changing to
-a monospace family. Display hierarchy comes from the three `--font-size-*` tokens plus weight,
-spacing and colour—not a second typeface.
+a monospace family. Display hierarchy comes from the `--font-size-*` tokens plus weight,
+spacing and colour — not a second typeface.
+
+### Four-level type scale (2026-09-24, rammyps's directive)
+
+Every information-dense chart/table screen (Key Inference and everything shaped like it) uses
+one compact four-level scale, `16px = 100%`. Jumps stay small on purpose — a dense interface
+where navigation and data panels already compete for attention gets worse with a dramatic
+scale, not better:
+
+| Level | Name | % | Size | Token | Weight | Use |
+|---|---|---|---|---|---|---|
+| 1 | Metadata | 75% | 12px | `--font-size-meta` | 400–500 | Translations, secondary chart details, card labels |
+| 2 | Supporting | 87.5% | 14px | `--font-size-support` | 400 | Table content, dates, supplementary values |
+| 3 | Primary UI | 100% | 16px | `--font-size-control` | 600 | Tabs, buttons, navigation, important card values |
+| 4 | Heading | 125% | 20px | `--font-size-heading` | 600–700 | "Birth Pañchāṅga," "Planet Positions," the open person's name, the footer |
+
+All four tokens live in `tokens.css`. `--font-size-control` keeps its existing name and its
+existing role as the one token nearly every table/tab/control already reads off via
+`calc(var(--font-size-control) * X)` — it now simply **is** Level 3 (16px) rather than an
+independent base the four levels multiply against, so that whole existing multiplier chain
+across the app scales down with it automatically. `--font-size-meta` / `-support` / `-heading`
+are new siblings for the app bar and any component whose sizing needs to name a level directly
+instead of via a multiplier. This does not apply to `--font-size-display` / `--font-size-tagline`
+(Home's own hero/tagline clamp() sizes) — those are a separate, bigger "hero" tier, not part of
+this four-level scale.
+
+The app bar (`MainLayout.razor`) is the reference implementation: nav tabs (`.ik-headtab`) are
+Level 3, the open person's name (`.ik-person`) is Level 4 and rendered ALL CAPS via
+`text-transform` (it's per-person data, not a fixed label, so the markup keeps the name's
+original case for accessibility — see the Tabs section below for why that differs from a tab
+label's caps convention), and the footer (`.ik-footer-inner`, brand lockup included) is Level 4
+throughout. The person switcher dropdown's row name is Level 2, its birth-date detail and the
+empty-state message are Level 1.
 
 ## Tables — headers vs. horizontal scroll (implementation note)
 
@@ -156,14 +188,21 @@ left, and **SAVED / CHARTS** at the extreme right. All nav labels stack onto two
 **Header centre column and the brand lockup (revised 2026-09-26, rammyps's directive).** The
 Ganesha-icon + "Iki-Astrro" + tagline lockup (`.ik-brand`) no longer lives in the app bar at
 all — it moved to the footer's bottom-left, alongside the dedication line, on every screen. In
-its place, the header's centre column now shows the currently-open person's name/birth line
-(`.ik-appbar-person`, MainLayout.razor — reuses `.ik-person-block`, the same stacked
-name-over-DOB block Key Inference's old context band used) as soon as a person is opened;
-"the top where iki-astro used to be" is now the person's own identity, not the brand. On Home,
-before any person is opened, that centre column is simply empty. Downstream of this, the
-context band below the app bar (`.ik-band`) now renders only when a page supplies
+its place, the header's centre column now shows the currently-open person's name
+(`.ik-appbar-person`, MainLayout.razor — reuses `.ik-person-block`) as soon as a person is
+opened; "the top where iki-astro used to be" is now the person's own identity, not the brand.
+On Home, before any person is opened, that centre column is simply empty. Downstream of this,
+the context band below the app bar (`.ik-band`) now renders only when a page supplies
 `Active.HeaderExtra` (currently just Key Inference's master step rail) — it no longer has a
 "just the person name, centred" mode, since that content moved up into the app bar.
+
+**Name only, no DOB line (2026-09-24, rammyps's directive).** `.ik-person-block` used to stack
+the name over a `.ik-person-birth` DOB/time/location line; that second line is gone from the
+app bar (it's still shown per-row in the person-switcher dropdown, where it disambiguates
+between saved people). The name itself now renders ALL CAPS at Level 4 (see "Typography" above)
+via `text-transform: uppercase` on `.ik-person` — CSS transform rather than caps in the markup,
+because unlike a static tab label this is arbitrary per-person data and the accessible name
+(`@Active.Name`) should keep its real casing.
 
 **Implementation note — `::deep` through a MudBlazor component's `Class` parameter doesn't
 work.** Blazor's CSS-isolation scope attribute is only added to elements written literally in

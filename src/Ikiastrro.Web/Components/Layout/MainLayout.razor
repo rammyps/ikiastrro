@@ -70,10 +70,6 @@
                         </ul>
                     }
                 </div>
-                @if (!string.IsNullOrWhiteSpace(Active.BirthLine))
-                {
-                    <span class="ik-person-birth">@Active.BirthLine</span>
-                }
             </div>
         }
         <nav class="ik-header-save" aria-label="Saved charts">
@@ -97,7 +93,7 @@
         <div class="ik-page @(Active.HeaderExtra is not null ? "ik-page-tight-top" : null)">
             @Body
         </div>
-        <footer class="ik-footer @(CurrentPath == "/" ? "is-home" : null)">
+        <footer class="ik-footer">
             <div class="ik-footer-inner">
                 <span class="ik-brand">
                     <img src="/images/Ganesha-Icon.png" alt="" class="ik-brand-icon" />
