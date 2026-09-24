@@ -1,0 +1,37 @@
+@using Ikiastrro.Core.Engines.PlanetaryStates
+@* Key Inference "ABOUT PLANETS" — Bālādi/Jāgradādi/Śayanādi avasthas, one row per graha.
+   D1-only: PlanetaryStateFact.AgeStateId/PostureStateId are populated for D1 alone
+   (PlanetaryStateRepository's own doc comment), so filtering on AgeStateId.HasValue in the
+   page (not here) is what already narrows Rows to the D1 chart before it reaches this table. *@
+<div class="pst-scroll">
+    <table class="pst">
+        <thead><tr>
+            <th>Planet</th><th>Bālādi<br />(age)</th><th>Jāgradādi<br />(wakefulness)</th><th>Śayanādi<br />(posture)</th>
+        </tr></thead>
+        <tbody>
+        @foreach (var r in Rows)
+        {
+            <tr>
+                <td>@r.Planet</td>
+                <td>@StateLabel(r.AgeStateId)@(r.AgeEffectFraction is { } f ? $" ({f:0%})" : null)</td>
+                <td>@StateLabel(r.WakefulnessStateId)</td>
+                <td>
+                    @StateLabel(r.PostureStateId)
+                    @if (PostureMeaning(r.PostureStateId) is { } meaning)
+                    {
+                        <span class="pst-meaning">@meaning</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<PlanetaryStateFact> Rows { get; set; } = Array.Empty<PlanetaryStateFact>();
+    [Parameter, EditorRequired] public IReadOnlyDictionary<byte, PlanetaryStateRow> StateNames { get; set; } = new Dictionary<byte, PlanetaryStateRow>();
+
+    private string StateLabel(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.StateName : "—";
+    private string? PostureMeaning(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.Meaning : null;
+}
