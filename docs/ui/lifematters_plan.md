@@ -291,7 +291,10 @@ yet), so it remains the before-implementation contract for Phase 3A onward.
   case), golden SVG minted (`docs/artifacts/ui/SindHovGrid-sample.svg`, pending a human visual
   look per the plan's "a golden validates rendering, not behavior" note). See
   [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md).
-- Phase 3A: page shell, picker, Auto/D1/Manual lifecycle, and Steps panel.
+- Phase 3A (complete): page shell, picker, Auto/D1/Manual lifecycle, and Steps panel — built at
+  `Pages/LifeMatters.razor` (`/life-matters/{id}`), browser-verified against a real person (D1
+  and D9, one mapped and one deliberately unmapped Step). No bUnit page tests yet (tracked for
+  Phase 3C). Evidence cards are not built — that is 3B1-3B3, not this phase.
 - Phase 3B1: Argala/Avastha/Shadbala/Arudha plus house/planet condition.
 - Phase 3B2: relationships and filtered yogas.
 - Phase 3B3: explicit D1/Varga comparison, projected-point labels, and provenance.

@@ -1,0 +1,88 @@
+/* Phase 3A — docs/ui/components/specs_life_matters_page.md. Tokens only; Manrope only. Mirrors
+   AllCharts.razor.css's heading treatment. */
+
+.lm-heading {
+    margin: 4px 0 20px;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.lm-unavailable p { color: var(--brand-muted); }
+.lm-unavailable a { color: var(--brand-sunset); }
+
+.lm-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.lm-picker {
+    flex: 0 0 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.lm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: var(--font-size-support);
+    color: var(--brand-midnight);
+}
+
+.lm-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 480px;
+    overflow-y: auto;
+    border: 1px solid var(--brand-midnight);
+}
+
+.lm-step {
+    text-align: left;
+    padding: 8px 12px;
+    border: 0;
+    background: var(--brand-canvas);
+    color: var(--brand-midnight);
+    font: inherit;
+    font-size: var(--font-size-support);
+    cursor: pointer;
+}
+
+.lm-step:hover { background: var(--brand-peach); }
+.lm-step.is-selected { background: var(--brand-sunset); color: var(--brand-midnight); font-weight: 700; }
+.lm-step:focus-visible { outline: 3px solid var(--brand-sunset); outline-offset: -3px; }
+
+.lm-varga {
+    border: 1px solid var(--brand-midnight);
+    padding: 8px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    font-size: var(--font-size-support);
+}
+
+.lm-varga legend { font-weight: 700; padding: 0 4px; }
+
+.lm-chart {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lm-unstructured {
+    color: var(--brand-muted);
+    font-size: var(--font-size-support);
+    font-style: italic;
+}
+
+@media (max-width: 900px) {
+    .lm-layout { flex-direction: column; }
+    .lm-picker { flex-basis: auto; width: 100%; }
+}

@@ -2,8 +2,8 @@
 last_updated: 2026-09-25
 workstream: ui
 component: LifeMatters page
-route: /life-matters/{id} (proposed — see Route below)
-togaf: C — component spec (design, not yet built)
+route: /life-matters/{id}
+togaf: C — component spec (Phase 3A built)
 catalogued_in: chart-catalog.md
 ---
 
@@ -12,18 +12,27 @@ catalogued_in: chart-catalog.md
 Written for `lifematters_plan.md` Phase 0B, after Phase 1A (repositories:
 `LifeMatterReferenceRepository`, `DivisionalSubjectRepository`, `LifeMatterFocusRepository`,
 `KarakaMatterRepository`), Phase 1B (`LifeMatterFocusResolver`), and part of Phase 2
-(`SindHovGrid`, [`specs_sind_hov_grid.md`](specs_sind_hov_grid.md)) already landed — this spec is
-the orchestration contract those pieces feed into, not yet implemented itself (Phase 3A is next).
-Grounded in the actual repository/resolver shapes already built, not a speculative redesign of
-them.
+(`SindHovGrid`, [`specs_sind_hov_grid.md`](specs_sind_hov_grid.md)) already landed — this spec was
+the orchestration contract those pieces feed into. **Phase 3A is now built**
+(`src/Ikiastrro.Web/Components/Pages/LifeMatters.razor(.css)`) against this contract; sections
+below are annotated where the shipped page differs from or narrows the original design.
 
 ## Route
 
-No route was fixed in `lifematters_plan.md`. Proposed: **`/life-matters/{id}`**, matching the
-app's existing per-person top-level route pattern (`/charts/{id}`, `/key-inference/{id}`,
-`/numerology/{id}` — `docs/ui/MASTER.md` screen inventory). Needs a header nav pill alongside
-`ALL / CHARTS` · `KEY / INFERENCE` · `NUMEROLOGY`, following the shared filled-pill grammar
-(`docs/ui/MASTER.md` Navigation section). Confirm before Phase 3A.
+**Built as `/life-matters/{id}`**, matching the app's existing per-person top-level route pattern.
+The header nav is actually two pills today (`KEY INFERENCE`, `NUMEROLOGY` — `ALL CHARTS` was
+folded into Key Inference step 7 on 2026-09-24, per `MainLayout.razor`'s own comment; this spec's
+original "alongside ALL / CHARTS · KEY / INFERENCE · NUMEROLOGY" assumed the pre-2026-09-24 nav
+and was stale). `LIFE MATTERS` was added as a third pill between them, same two-word stacked-span
+style as `KEY INFERENCE`.
+
+**Gap found and fixed during the build, worth recording**: `LifeMatterReferenceRepository`,
+`DivisionalSubjectRepository`, `LifeMatterFocusRepository`, and `KarakaMatterRepository` were
+never registered in `Program.cs`'s DI container, despite this spec's header (written after Phase
+1A) describing them as "already landed." The classes existed and compiled, but the page would
+have thrown `InvalidOperationException` at first request — Phase 1A was never actually run
+end-to-end before this spec called it done. Registered now, alongside the existing
+`LifeAreaReferenceRepository` line.
 
 ## Layout
 
@@ -134,8 +143,12 @@ disclaimer (copy template in the research doc) renders once, persistently, not p
 ## Testing note
 
 `LifeMatterFocusResolverTests` and `SindHovGridTests` already cover their own units in isolation
-(Phase 1B/2 fixture testing, per the plan). This page's own tests (Phase 3A onward) need: Auto/D1/
-Manual lifecycle transitions, the no-Subject "retain last chart" fallback, drill-through URL
-construction (once Key Inference accepts it), and the full picker → Varga switch → Step selection
-→ chart highlight → table highlight chain for at least two LifeMatters plus one deliberately
-unmapped Step, per the plan's verification section.
+(Phase 1B/2 fixture testing, per the plan). This page has no bUnit test yet — **Gap, tracked for
+Phase 3C**. It was instead verified live in a browser (Ramakrishnan, person id 4) against the real
+dev DB: Category → Step selection, the "Inherent strengths and weaknesses" deliberately-unmapped
+Step showing "Relevant evidence not yet structured for this matter," Manual Varga switching to D9
+with correct house-from-Lagna recomputation, and Auto correctly retaining the last-displayed chart
+(D9) rather than blanking, since `tbl_Rule_LifeMatterSubject` has no seeded rows yet. No console
+errors, no failed requests. Still needed before Phase 3C sign-off: a bUnit suite for the
+lifecycle transitions above, drill-through URL construction (once Key Inference accepts it), and
+the same chain scripted as an automated (not just manual-browser) regression.

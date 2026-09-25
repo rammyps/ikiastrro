@@ -1,0 +1,256 @@
+@page "/life-matters/{Id:int}"
+@using Ikiastrro.Core.LifeMatters
+@using Ikiastrro.Core.Models
+@using Ikiastrro.Web.Components.Charts
+@using Ikiastrro.Web.Components.Workspace
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject ChartResultsRepository ChartResultsRepo
+@inject ChartKeyDetailsRepository ChartKeyDetailsRepo
+@inject ChartHouseLordsRepository ChartHouseLordsRepo
+@inject ChartHouseLordInterpretationRepository ChartHouseLordInterpretationRepo
+@inject ChartAspectsRepository ChartAspectsRepo
+@inject ChartConjunctionsRepository ChartConjunctionsRepo
+@inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
+@inject ChartTypeRepository ChartTypeRepo
+@inject LifeMatterReferenceRepository LifeMatterReferenceRepo
+@inject LifeMatterFocusRepository LifeMatterFocusRepo
+@inject KarakaMatterRepository KarakaMatterRepo
+@inject ActivePerson Active
+
+@* Phase 3A — docs/ui/lifematters_plan.md / docs/ui/components/specs_life_matters_page.md.
+   Page shell, Category/Step picker, and the Auto/D1/Manual Varga lifecycle. Evidence cards
+   (Phase 3B1-3B3) are not built yet — Subject/Focus rows are also still unseeded (migration
+   137's tables are empty pending audited population), so every Step resolves with Karaka data
+   only; the chart highlights nothing until Focus rows exist. That is the correct v1 state, not
+   a bug: "no row in tbl_Rule_LifeMatterFocus" means "focus not yet structured," not an error. *@
+
+<PageTitle>@(_data?.Person.Name ?? "Life Matters") · Life Matters</PageTitle>
+
+@if (_data is null)
+{
+    <section class="lm-unavailable" role="status">
+        <h1 class="lm-heading">LIFE MATTERS</h1>
+        <p>No saved charts found for that person.</p>
+        <a href="/">Choose a saved person</a>
+    </section>
+}
+else
+{
+    <h1 class="lm-heading">LIFE MATTERS</h1>
+
+    <div class="lm-layout">
+        <section class="lm-picker" aria-label="Category and Step">
+            <label class="lm-field">
+                <span>Category</span>
+                <select class="ki-chart-picker" value="@_selectedCategory" @onchange="OnCategoryChanged">
+                    @foreach (var c in _categories)
+                    {
+                        <option value="@c.CategoryCode">@c.CategoryName</option>
+                    }
+                </select>
+            </label>
+
+            <nav class="lm-steps" role="list" aria-label="Steps">
+                @foreach (var step in _steps)
+                {
+                    <button type="button" role="listitem"
+                            class="lm-step @(step.LifeMatterId == _selectedLifeMatterId ? "is-selected" : "")"
+                            @onclick="() => SelectStep(step.LifeMatterId)">
+                        @step.MatterText
+                    </button>
+                }
+            </nav>
+
+            <fieldset class="lm-varga">
+                <legend>Varga</legend>
+                <label><input type="radio" name="lm-varga" checked="@(_vargaMode == "Auto")" @onchange='() => SetVargaMode("Auto")' /> Auto</label>
+                <label><input type="radio" name="lm-varga" checked="@(_vargaMode == "D1")" @onchange='() => SetVargaMode("D1")' /> D1</label>
+                <label><input type="radio" name="lm-varga" checked="@(_vargaMode == "Manual")" @onchange='() => SetVargaMode("Manual")' /> Manual</label>
+                @if (_vargaMode == "Manual")
+                {
+                    <select class="ki-chart-picker" value="@_manualChartType" @onchange="OnManualChartChanged">
+                        @foreach (var chart in _data.Charts.Values.OrderBy(c => c.ChartType))
+                        {
+                            <option value="@chart.ChartType">@chart.Label</option>
+                        }
+                    </select>
+                }
+            </fieldset>
+        </section>
+
+        <section class="lm-chart" aria-label="Chart">
+            @{
+                var displayed = ResolveDisplayedChart();
+            }
+            @if (displayed is null)
+            {
+                <EmptyState Message="@($"{ResolveWantedChartType()} not generated for this person")" Cli="backfill-charts" />
+            }
+            else
+            {
+                <SindHovGrid AscendantSign="@displayed.AscendantSign"
+                             PlanetsBySign="PlanetsBySign(displayed)"
+                             SpecialPointsBySign="SpecialPointsBySign(displayed)"
+                             HouseFoci="HouseFoci(displayed)"
+                             SpecialPointFocusCodes="SpecialPointFocusCodes()"
+                             PinnedSign="_pinnedSign"
+                             PinnedSignChanged="s => _pinnedSign = s"
+                             CenterTitle="@(_selectedStep?.MatterText ?? "")"
+                             CenterNote="@displayed.ChartType" />
+            }
+            @if (_resolved is not null && !_resolved.IsFocusStructured)
+            {
+                <p class="lm-unstructured">Relevant evidence not yet structured for this matter.</p>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private const byte RuleSetId = 1;
+
+    private WorkspaceData? _data;
+    private IReadOnlyList<LifeMatterCategoryRow> _categories = [];
+    private string? _selectedCategory;
+    private IReadOnlyList<LifeMatterStepRow> _steps = [];
+    private int? _selectedLifeMatterId;
+    private LifeMatterStepRow? _selectedStep => _steps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
+
+    private IReadOnlyList<LifeMatterSubjectRule> _subjects = [];
+    private IReadOnlyList<LifeMatterKarakaRule> _karakas = [];
+    private IReadOnlyList<LifeMatterFocusRule> _foci = [];
+    private static readonly LifeMatterFocusResolver Resolver = new();
+    private ResolvedLifeMatterFocus? _resolved;
+
+    private string _vargaMode = "Auto";
+    private string? _manualChartType;
+    private string? _lastDisplayedChartType;
+    private string? _pinnedSign;
+
+    protected override void OnParametersSet()
+    {
+        _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
+            ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,
+            ChartMultiGrahaConjunctionRepo, ChartTypeRepo.GetAll());
+        if (_data is not null && !_data.Charts.ContainsKey("D1")) _data = null;
+
+        if (_data is null)
+        {
+            Active.Clear();
+            return;
+        }
+
+        var p = _data.Person;
+        Active.Set(Id, p.Name,
+            $"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
+        Active.SetHeaderExtra(null);
+
+        if (_categories.Count == 0)
+        {
+            _categories = LifeMatterReferenceRepo.GetCategories(RuleSetId);
+            _subjects = LifeMatterFocusRepo.GetSubjects(RuleSetId);
+            _foci = LifeMatterFocusRepo.GetFoci(RuleSetId);
+            _karakas = KarakaMatterRepo.GetForRuleSet(RuleSetId);
+            if (_categories.Count > 0)
+                OnCategorySelected(_categories[0].CategoryCode);
+        }
+    }
+
+    private void OnCategoryChanged(ChangeEventArgs e) => OnCategorySelected((string)e.Value!);
+
+    private void OnCategorySelected(string categoryCode)
+    {
+        _selectedCategory = categoryCode;
+        _steps = LifeMatterReferenceRepo.GetSteps(RuleSetId, categoryCode);
+        if (_steps.Count > 0)
+            SelectStep(_steps[0].LifeMatterId);
+        else
+            _selectedLifeMatterId = null;
+    }
+
+    // Clicking the already-selected Step keeps it selected (no-op, not a deselect) — the plan's
+    // "no meaningful blank state" rule, applied here at the Step level.
+    private void SelectStep(int lifeMatterId)
+    {
+        if (lifeMatterId == _selectedLifeMatterId) return;
+        _selectedLifeMatterId = lifeMatterId;
+        _resolved = Resolver.Resolve(RuleSetId, lifeMatterId, _subjects, _karakas, _foci);
+        _pinnedSign = null;
+    }
+
+    private void SetVargaMode(string mode) => _vargaMode = mode;
+
+    private void OnManualChartChanged(ChangeEventArgs e) => _manualChartType = (string)e.Value!;
+
+    // Auto follows the Step's Subject; D1 pins the foundation chart; Manual stays whatever the
+    // picker last chose. "if unmapped, retain the last chart — never blank."
+    private string ResolveWantedChartType() => _vargaMode switch
+    {
+        "D1" => "D1",
+        "Manual" => _manualChartType ?? _lastDisplayedChartType ?? "D1",
+        _ => _resolved?.Subject?.ChartTypeCode ?? (_lastDisplayedChartType ?? "D1")
+    };
+
+    private LoadedChart? ResolveDisplayedChart()
+    {
+        var wanted = ResolveWantedChartType();
+        if (_data!.Charts.TryGetValue(wanted, out var chart))
+        {
+            _lastDisplayedChartType = wanted;
+            return chart;
+        }
+
+        return null; // uncomputed Varga — the chart's existing empty state, not a fallback chart
+    }
+
+    private static IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> PlanetsBySign(LoadedChart chart) =>
+        chart.Grahas.Where(k => k.Planet != "Ascendant")
+            .GroupBy(k => k.Sign)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<GridPlanetGlyph>)g.Select(k => new GridPlanetGlyph(
+                k.Planet, ChartViewModel.DignityToken(k.DignityStatus),
+                k.IsRetrograde ?? false, k.IsCombust ?? false)).ToList());
+
+    // Scoped to Arudha padas only (canonical A1..A12/AL) — the codes LifeMatter Focus rows can
+    // actually target (LifeMatterFocusResolver.IsCanonicalSpecialPointCode). Special lagnas
+    // (HL/GL/SL/BL/PS) and Graha Arudhas are a full chart's job (SouthIndianGrid_Detailed/
+    // _Micro elsewhere), not this simplified grid's.
+    private static IReadOnlyDictionary<string, IReadOnlyList<string>> SpecialPointsBySign(LoadedChart chart) =>
+        chart.SpecialPoints.Where(k => k.PointKind == "Arudha")
+            .GroupBy(k => k.Sign)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(k => k.Planet).ToList());
+
+    private IReadOnlyList<SindHovHouseFocus> HouseFoci(LoadedChart chart) =>
+        (_resolved?.HouseAndSpecialPointFoci ?? [])
+            .Where(f => f.FocusKind == LifeMatterFocusKind.House)
+            .Select(f => (f, sign: ResolveReferenceSign(chart, f.ReferenceCode!)))
+            .Where(x => x.sign is not null)
+            .Select(x => new SindHovHouseFocus(x.sign!, x.f.HouseNumber!.Value))
+            .ToList();
+
+    private IReadOnlyList<string> SpecialPointFocusCodes() =>
+        (_resolved?.HouseAndSpecialPointFoci ?? [])
+            .Where(f => f.FocusKind == LifeMatterFocusKind.SpecialPoint)
+            .Select(f => f.SpecialPointCode!)
+            .ToList();
+
+    // Resolves a tbl_Dim_HouseReference ReferencePoint to a concrete sign in the CURRENTLY
+    // DISPLAYED chart. Only the references this project already computes and persists as real
+    // positions are resolvable in v1 (Lagna, Chandra/Ravi Lagna, and the three PVR special
+    // lagnas + Sree Lagna); Paaka Lagna, Karakamsa Lagna, and the seven Graha Lagnas are a later
+    // pass. An unresolvable reference silently drops that one focus row rather than throwing —
+    // consistent with "no row means focus not yet structured," applied per-reference instead of
+    // per-matter.
+    private static string? ResolveReferenceSign(LoadedChart chart, string referenceCode) => referenceCode switch
+    {
+        "LAGNA" => chart.AscendantSign,
+        "CHANDRA_LAGNA" => chart.MoonSign,
+        "RAVI_LAGNA" => chart.Grahas.FirstOrDefault(g => g.Planet == "Sun")?.Sign,
+        "ARUDHA_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "AL")?.Sign,
+        "HORA_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "HL")?.Sign,
+        "GHATI_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "GL")?.Sign,
+        "SREE_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "SL")?.Sign,
+        _ => null
+    };
+}

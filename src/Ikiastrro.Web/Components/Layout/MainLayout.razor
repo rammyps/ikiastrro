@@ -32,6 +32,7 @@
                        method, computed live from the person's saved Name — no sub-steps, so it's
                        plain text like HOME rather than the two-word stacked-span pill. *@
                     <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinf")"><span>KEY</span> <span>INFERENCE</span></a>
+                    <a href="@($"/life-matters/{personId}")" class="ik-headtab @TabClass("lifematters")"><span>LIFE</span> <span>MATTERS</span></a>
                     <a href="@($"/numerology/{personId}")" class="ik-headtab @TabClass("numerology")">NUMEROLOGY</a>
                 </nav>
             }
@@ -161,6 +162,7 @@
         var here = key switch
         {
             "keyinf"  => p.Contains("/timing", StringComparison.Ordinal) || p.Contains("/key-inference", StringComparison.Ordinal),
+            "lifematters" => p.StartsWith("/life-matters", StringComparison.Ordinal),
             "numerology" => p.StartsWith("/numerology", StringComparison.Ordinal),
             _ => false
         };
