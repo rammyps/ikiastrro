@@ -1,12 +1,12 @@
 ---
 last_updated: 2026-09-25
 status: approved
-phase: 0B
+phase: 1A/1B/2 (in progress; 0B specs retrofitted — see note below)
 ---
 
 # LifeMatters page & SIND-HOV-GRID — roadmap
 
-Revision 8. This plan incorporates the structural evidence-assembly review, its schema
+Revision 9. This plan incorporates the structural evidence-assembly review, its schema
 corrections, the LifeMatter Interpretation Contract, and the subsequent Subject/Focus,
 canonical-code, Contribution, Bhava Bala, query, drill-through, and safety corrections.
 
@@ -18,6 +18,14 @@ Claude's bounded research output for Phase 0B (A1–A12 citations, the UL/A12-vs
 proposed Subject/Focus mappings, plain-language copy, and the Key Inference read-path mapping) is
 in [`lifematters_claude_research.md`](lifematters_claude_research.md) — proposals for human audit,
 not implementation. Codex/ChatGPT owns the SQL/C#/Razor implementation this feeds into.
+
+**Out-of-order execution, noted for the record**: Codex built Phase 1A (repositories), Phase 1B
+(`LifeMatterFocusResolver`), and part of Phase 2 (`SindHovGrid`) before the Phase 0B specs
+existed. The two component specs — [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md)
+and [`specs_life_matters_page.md`](components/specs_life_matters_page.md) — were written
+afterward, documenting what was actually built (and flagging gaps against this plan, e.g. no
+Escape-key test, no golden SVG yet, the Arudha evidence-repository gap) rather than a clean
+before-implementation contract. Treat them as the live contract going forward.
 
 ## Goal and scope
 
@@ -254,24 +262,34 @@ changes. Phase 3C must record concrete query counts for initial load and Step sw
 ## Specification ownership
 
 - `docs/ui/lifematters_plan.md`: domain flow, data contract, phases, and decisions.
-- `docs/ui/components/specs_sind_hov_grid.md`: component API, rendering rules, interaction state.
-- `docs/ui/components/specs_life_matters_page.md`: page layout, orchestration, responsive rules,
-  and simplified-column projections.
+- [`docs/ui/components/specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md): component
+  API, rendering rules, interaction state.
+- [`docs/ui/components/specs_life_matters_page.md`](components/specs_life_matters_page.md): page
+  layout, orchestration, responsive rules, and simplified-column projections.
 
-The two component specs are written before implementation.
+Both written 2026-09-25 (Phase 0B). As noted above, implementation ran ahead of them for
+`SindHovGrid`/the resolver/repositories — `specs_sind_hov_grid.md` documents what was built and
+its gaps; `specs_life_matters_page.md` is still a forward design (the page itself isn't built
+yet), so it remains the before-implementation contract for Phase 3A onward.
 
 ## Phase sequence
 
 - Phase 0A (complete): repository/schema audit; real coverage counts by LifeArea,
   DivisionalSubject, and KarakaRole; migration-087 application/reference audit; taxonomy citation
   status. See [`lifematters_phase0a_audit.md`](lifematters_phase0a_audit.md).
-- Phase 0B: freeze terminology and write all three specifications, including the narrow v1 read
-  model and explicit deferral of judgment/timing.
-- Phase 1A: repositories for LifeMatterReference, DivisionalSubject, and KarakaMatter; create and
-  audit-populate the Subject and House/SpecialPoint Focus tables.
-- Phase 1B: pure, UI-independent `LifeMatterFocusResolver`, including unstructured-focus tests.
-- Phase 2: isolated fixture-tested SIND-HOV-GRID, including the state machine and house-to-sign
-  translation across at least D1 and D9.
+- Phase 0B (complete, retrofitted after 1A/1B/2 started — see note above): freeze terminology and
+  write all three specifications, including the narrow v1 read model and explicit deferral of
+  judgment/timing.
+- Phase 1A (schema + resolver built; audited seed population still pending): repositories for
+  LifeMatterReference, DivisionalSubject, and KarakaMatter — built. Subject/Focus tables
+  (migration 137) — built, deliberately empty; audited seed population from
+  `lifematters_claude_research.md`'s proposals is still pending.
+- Phase 1B (built): pure, UI-independent `LifeMatterFocusResolver`, including unstructured-focus
+  tests — built and tested (`LifeMatterFocusResolverTests.cs`).
+- Phase 2 (SindHovGrid built; golden SVG still pending): isolated fixture-tested SIND-HOV-GRID,
+  including the state machine and house-to-sign translation — built and tested
+  (`SindHovGridTests.cs`), see [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md) for
+  the two open gaps (Escape-key test, golden SVG).
 - Phase 3A: page shell, picker, Auto/D1/Manual lifecycle, and Steps panel.
 - Phase 3B1: Argala/Avastha/Shadbala/Arudha plus house/planet condition.
 - Phase 3B2: relationships and filtered yogas.

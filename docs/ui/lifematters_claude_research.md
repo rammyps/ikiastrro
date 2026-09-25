@@ -443,13 +443,71 @@ Key Inference → Strength for this house's Bhava Bala."* — a link, not a part
 `Weakly indicated` / `Substantially denied` / `Indeterminate`) are Phase 4 — this copy set
 intentionally has no v1 label for them; don't surface partial wording ahead of that phase.
 
-## Spec consistency, visual/accessibility review, regression review — blocked
+## Spec consistency, visual/accessibility review, regression review
 
-These three bounded-research items (plan's ownership-section list, items 6–8) require
-`specs_sind_hov_grid.md` and `specs_life_matters_page.md` to exist first (Phase 0B: "freeze
-terminology and write all three specifications," confirmed not yet written — see the Phase 0A
-audit). Doing them now would mean reviewing documents that don't exist yet. Deferred until Phase
-0B's specs are drafted; flagging here so they're tracked, not silently dropped.
+Unblocked — both component specs now exist (`specs_sind_hov_grid.md`, `specs_life_matters_page.md`,
+2026-09-25). Reviewed against the actual shipped code (`SindHovGrid.razor(.cs/.css)`,
+`SindHovGridTests.cs`, `LifeMatterFocusResolver.cs`), not just the specs' own prose, so this is
+independent verification, not a restatement.
+
+### Spec consistency — verified against source, no undocumented discrepancies
+
+Every behavior `specs_sind_hov_grid.md` claims was checked directly against
+`SindHovGrid.razor`/`.razor.cs`/`.razor.css` and holds exactly as described: Escape clears preview
+before pin (`OnGridKeyDown`), the non-color `.selection-mark` renders on `isRelevant || isPinned`,
+special-point props carry canonical codes only, and CSS uses only `--brand-*`/`--font-size-*`
+tokens (no `--wheel-*`/`--cell-*`/`--tmpl-*` reuse — `project_standards.md` §3.3 respected) plus a
+`prefers-reduced-motion` rule and the 720px breakpoint. Both flagged gaps are confirmed real, not
+overstated: `SindHovGridTests.cs` (91 lines, 5 tests) has no Escape-key case, and there is no
+`SindHovGrid` entry in `ChartSnapshotTests` — no golden SVG.
+
+The flagged `LifeMatterSignMath.ResolveHouseSign` (Web) / `LifeMatterFocusResolver.ResolveHouseSign`
+(Core) duplication is confirmed **cosmetic**, not a correctness risk: both call the identical
+`AstroMath.CountFromSignToSign(origin, sign) == houseNumber` search, just wrapped for a string vs.
+`ZodiacName` input. Collapsing to one is safe housekeeping, not urgent before Phase 3C.
+
+`specs_life_matters_page.md`'s read-path table was checked against the actual `src/Ikiastrro.Data`
+repositories. The Arudha gap is real — no repository or view exposes Arudha placements as queryable
+per-chart evidence; `SpecialPointLabels`/`GrahaArudhaLabels` are grid-render props, not a data read
+path. The Relationships row undersells what exists, one correction: `NaturalRelationshipRuleRepository`
+**does exist** (`src/Ikiastrro.Data/NaturalRelationshipRuleRepository.cs`) and already backs
+`DignityEngine`/`ShadbalaCalculator`/the Yoga evaluators — but only as an internal rule lookup
+(planet-pair friendship tier), never exposed as a standalone chart-evidence query. Whoever builds
+the Relationships card has a real repository to wrap, not a blank slate — worth stating precisely
+so it isn't rebuilt from scratch.
+
+### Accessibility review (code-level; no built page exists yet to click through)
+
+`SindHovGrid`'s ARIA structure is sound as shipped: `role="grid"` / `role="gridcell"`, a computed
+per-cell `aria-label` naming sign, house, occupants and special points, `aria-selected` tracking
+the pin, and keyboard operability via native `<button>` + Enter/Space + Escape handlers (no custom
+tabindex management needed since every cell is a real button). Selection is marked two independent
+ways (icon + inset border), satisfying "non-color indicator" even though the border is
+brand-sunset-colored. Nothing found to flag. A full a11y pass (screen-reader run, page-level
+landmark structure, disclosure semantics) has to wait for the LifeMatters page itself — Phase 3A —
+since a component in isolation can't be reviewed for page-level nav/landmark correctness.
+
+### Regression review — one real finding: `workstream/ui` is stale against `master`
+
+`git diff master..workstream/ui` on shared files turned up `tokens.css`, `MainLayout.razor(.css)`,
+`Add.razor`, `KeyInference.razor(.css)`, `SavedCharts.razor`, and `DataTable.razor.css` all showing
+as changed alongside the LifeMatters commits — first read as a possible scope violation (Codex
+touching shell/tokens, which `wkstream_UI_v2.md`'s workstream mechanics explicitly forbid). Checked
+`git merge-base workstream/ui master`: the branch point is `c211206`, and `master` has since gained
+four commits `workstream/ui` doesn't have (`b5d186d` four-level type scale, `eb3c789` all-caps
+headers/dropdowns, `f1db06a` Saved Charts header fix, `2e7fd15` Add-page `ActivePerson` clear).
+Every "changed" line in the diff is one of those four commits' effect disappearing when diffed the
+other direction — confirmed on `Add.razor` and `MainLayout.razor.css` directly, not assumed. **Not
+a Codex scope violation** — Codex's two commits (`d5bd1b5`, `8216b95`) don't touch any of those
+files themselves. But it is a real integration risk: merging `workstream/ui` to `master` today, or
+building Phase 3A on top of it without rebasing first, would silently reintroduce the pre-caps,
+single-font-scale CSS and drop the three other master-only fixes. **Rebase `workstream/ui` onto
+`master` before any further LifeMatters work lands**, per the recurring drift this project has
+already hit before (branch last rebased 2026-09-16).
+
+No regression risk found in `SindHovGrid` itself against `SouthIndianGrid_Detailed`/`_Micro` —
+it's CSS-isolated, shares no component file, and reuses only the existing `PlanetChip` component
+unmodified.
 
 ## Mapping Key Inference read paths to dossier ingredients
 

@@ -34,7 +34,7 @@ recomputes.
 | [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers (unchanged by the round-2 flow) |
 | [`components/chart-catalog.md`](components/chart-catalog.md) | **Chart-module catalogue** — every visual chart component (incl. `SouthIndianGrid_Detailed`, `Natal_Transit_Comp_WheelChart`), dasha module, UI table + helper, as `chart name / spec doc / linked files`; golden-snapshot flow + revert. Naming & versioning: [`../../project_standards.md`](../../project_standards.md) |
 | [`components/numerology.md`](components/numerology.md) | `/numerology/{id}` — Cheiro's name-number method, ported from the `ikinumero` prototype into ikiastrro's own stack (no EF Core/SQLite); computed live from the person's saved Name, nothing persisted |
-| [`lifematters_plan.md`](lifematters_plan.md) | LifeMatters evidence-assembly page + SIND-HOV-GRID — domain flow, data contract, phases, and decisions (Phase 0A complete: [`lifematters_phase0a_audit.md`](lifematters_phase0a_audit.md); Claude's bounded Phase 0B research: [`lifematters_claude_research.md`](lifematters_claude_research.md)) |
+| [`lifematters_plan.md`](lifematters_plan.md) | LifeMatters evidence-assembly page + SIND-HOV-GRID — domain flow, data contract, phases, and decisions (Phase 0A: [`lifematters_phase0a_audit.md`](lifematters_phase0a_audit.md); Claude's Phase 0B research: [`lifematters_claude_research.md`](lifematters_claude_research.md); component specs: [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md), [`specs_life_matters_page.md`](components/specs_life_matters_page.md)) |
 
 ## Screen inventory (live routes)
 

@@ -1,0 +1,141 @@
+---
+last_updated: 2026-09-25
+workstream: ui
+component: LifeMatters page
+route: /life-matters/{id} (proposed — see Route below)
+togaf: C — component spec (design, not yet built)
+catalogued_in: chart-catalog.md
+---
+
+# Specification — LifeMatters page
+
+Written for `lifematters_plan.md` Phase 0B, after Phase 1A (repositories:
+`LifeMatterReferenceRepository`, `DivisionalSubjectRepository`, `LifeMatterFocusRepository`,
+`KarakaMatterRepository`), Phase 1B (`LifeMatterFocusResolver`), and part of Phase 2
+(`SindHovGrid`, [`specs_sind_hov_grid.md`](specs_sind_hov_grid.md)) already landed — this spec is
+the orchestration contract those pieces feed into, not yet implemented itself (Phase 3A is next).
+Grounded in the actual repository/resolver shapes already built, not a speculative redesign of
+them.
+
+## Route
+
+No route was fixed in `lifematters_plan.md`. Proposed: **`/life-matters/{id}`**, matching the
+app's existing per-person top-level route pattern (`/charts/{id}`, `/key-inference/{id}`,
+`/numerology/{id}` — `docs/ui/MASTER.md` screen inventory). Needs a header nav pill alongside
+`ALL / CHARTS` · `KEY / INFERENCE` · `NUMEROLOGY`, following the shared filled-pill grammar
+(`docs/ui/MASTER.md` Navigation section). Confirm before Phase 3A.
+
+## Layout
+
+Three regions, left to right (stacks vertically under the sub-desktop breakpoint, below):
+
+1. **Picker** — Category (10, from `LifeMatterReferenceRepository.GetCategories`) → Step (96,
+   `GetSteps(ruleSetId, categoryCode)`), plus the Varga control (Auto / D1 / Manual — see below).
+2. **Chart** — one [`SindHovGrid`](specs_sind_hov_grid.md), fed the resolved Step's focus.
+3. **Evidence cards** — the simplified-column projections (below), stacked, each independently
+   loading/empty/error per the plan's explicit-states rule.
+
+## Orchestration
+
+One page-load snapshot query, per the plan's query/performance contract ("Use one page-load
+snapshot or bounded aggregate query, never a repository call per row"):
+
+1. On page load: `GetCategories` (10 rows), plus **all** active `LifeMatterFocusRepository.
+   GetSubjects`/`GetFoci` and `KarakaMatterRepository.GetForRuleSet` rows for the chart's
+   `RuleSetId` — these three repositories already return the *whole* rule set unfiltered by
+   LifeMatter (see their signatures), i.e. they're already shaped as bulk snapshot queries, not
+   per-row calls. Project client-side from there.
+2. Category select → `GetSteps(ruleSetId, categoryCode)` (cheap, already category-filtered
+   server-side).
+3. Step select → `LifeMatterFocusResolver.Resolve(ruleSetId, lifeMatterId, <the three snapshot
+   collections>)` — pure, synchronous, no additional query. Returns `ResolvedLifeMatterFocus`
+   with `IsFocusStructured` for the unstructured-focus explicit state.
+4. Varga resolution (Auto/D1/Manual, below) picks the chart; its `AscendantSign` and
+   `PlanetsBySign`/`SpecialPointsBySign` dictionaries — already the shape `SouthIndianGrid_
+   Detailed`/`_Micro` build from `ChartViewModel` today — are reused, not recomputed, for
+   `SindHovGrid`.
+5. `ResolvedLifeMatterFocus.HouseAndSpecialPointFoci` maps directly to `SindHovGrid`'s
+   `HouseFoci`/`SpecialPointFocusCodes` parameters: `FocusKind.House` rows → `SindHovHouseFocus
+   (ReferenceSign, HouseNumber)` (the plan's Focus schema stores a relative house number off a
+   `ReferencePoint`, not a sign — resolving `ReferencePoint` to a concrete sign for the *current*
+   chart, e.g. `LAGNA` → that chart's own Ascendant sign, is this step's job); `FocusKind.
+   SpecialPoint` rows → their `SpecialPointCode` directly.
+6. Cancellation/version token on Step change, per the plan — last-selection-wins, matching
+   `SindHovGrid`'s own last-hover-wins preview behavior one layer up.
+
+Phase 3C must record concrete query counts for initial load and Step switching, per the plan —
+not measurable until this orchestration exists to profile.
+
+## Varga control (Auto / D1 / Manual)
+
+- **Auto** (default): follows the Step's `Subject` (from `LifeMatterFocusResolver`'s
+  `ResolvedLifeMatterFocus.Subject.ChartTypeCode`). If `Subject` is `null` (no active mapping —
+  today, **31 of 96 `PVR_LIFE_MATTER` LifeMatters have no viable Subject mapping at all**, see
+  [`lifematters_claude_research.md`](../lifematters_claude_research.md)'s headline finding),
+  retain whatever chart was last displayed — never blank.
+- **D1**: pins the foundation chart regardless of Step.
+- **Manual**: the existing chart-type selector (already used elsewhere in the app), stays Manual
+  across Step changes until the user picks Auto or D1 again.
+
+Clicking the already-selected Step keeps it selected (no-op, not a deselect) — the fallback for
+any unresolvable state is D1/Rasi, never a blank chart.
+
+## Simplified-column projections
+
+Each card: natural ordering preserved, unions matches across multiple foci, explicit no-rows
+message, `Contribution` badge from `lifematters_claude_research.md`'s copy templates. Read paths
+from that doc's Key Inference mapping table:
+
+| Card | Focus | Read path | v1 status |
+|---|---|---|---|
+| Argala | house-focused | `ArgalaRuleRepository.GetArgalaSignificanceNotes` | ready |
+| Avastha | planet-focused | `PlanetaryStateRepository`, `PlanetaryStateRuleRepository`, `PostureStateInterpretationRepository` | ready |
+| Strength | planet-focused, **Shadbala only** | `PlanetaryStrengthRepository.GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId` | ready |
+| Arudha | house/special-point-focused | **gap** — no dedicated repository; today only rendered as grid labels (`SpecialPointLabels`/`GrahaArudhaLabels`) via `NaisargikaKarakaRepository`/`ArudhaCalculator` seeds, not a queryable evidence table. Needs a read path before this card can be built. | **blocked** |
+| House condition | lord, lord placement, occupants, aspects, conjunctions | `ChartHouseLordsRepository`, `ChartHouseLordInterpretationRepository`, `ChartAspectsRepository`, `ChartConjunctionsRepository`, `ChartMultiGrahaConjunctionRepository` | ready — **does not summarize Bhava Bala**, links to Key Inference instead (copy template in the research doc) |
+| Planet condition | dignity, functional nature, owned houses, combustion/retrograde, avastha, Shadbala | `ChartViewModel.BuildPlanetRows`/`BuildExaltationRows`, `GrahaDrishtiStrengthRepository`, `RasiNakshatraCombinationRepository`, `ChartMoonContextRepository` | ready |
+| Relationships | — | **unconfirmed** — likely `tbl_Rule_CompoundRelationship` (migration 24) plus the aspect/conjunction repositories above, but no dedicated repository was found in the Phase 0A audit | needs confirmation before build |
+| Relevant yogas (filtered) | — | `YogaEvaluationRepository.GetByBirthDetailId`, `InterpretationRepository.GetBySubjectType` | ready |
+| D1/Varga comparison | explicit `Confirms\|Modifies\|Contradicts\|Insufficient` | no engine yet — Phase 3B3, deferred | Phase 3B3 |
+| Contradictions/missing evidence | — | derived client-side from the cards above, no new repository | Phase 3B3 |
+| Provenance | source code/locator, RuleSet/version, calculation method, claim type | `SourceRefCode`/`RuleSetId` columns already on every rule table read above — surfaced, not separately queried | ready |
+
+Bhava Bala, Ashtakavarga, Amsabala cards are **Phase 4**, deliberately excluded from v1 despite
+their repositories (`BhavaStrengthRepository`, `AshtakavargaRepository`, `AmsabalaRepository`)
+already existing and being persisted — don't build these cards early just because the data is
+available.
+
+## Drill-through
+
+`/key-inference/{id}?step=about-houses&chart=D9&house=7` per the plan's example — **not supported
+by `KeyInference.razor` today** (Phase 0A audit: it only reads `step` via an if-chain, `about-
+houses` isn't a recognized value — only `houses` is — and there's no `chart=`/`house=` query
+param at all). Building this page's drill-through links is safe to do on schedule; wiring
+`KeyInference.razor` to receive them is separate, currently-unscheduled work that must land before
+the links are useful — flag this dependency explicitly in Phase 3B3 planning rather than
+discovering it at integration time.
+
+## Responsive rules
+
+Desktop: three-region layout above, side by side (chart region sized to `SindHovGrid`'s own
+480px max-width). Sub-desktop breakpoint: stack Picker → Chart → Evidence cards vertically,
+full-width, each evidence card individually collapsible (not required open) to keep the stack
+scannable on a phone-width viewport — a new rule for this page, since `SindHovGrid`'s own
+720px breakpoint only resizes the grid, it doesn't restack anything above it.
+
+## Explicit states
+
+Per the plan's required list, each with the copy from `lifematters_claude_research.md`:
+unknown chart ID, missing workspace/birth data, uncomputed Varga (reuse the chart's existing
+empty state), repository failure, unstructured focus (`!IsFocusStructured`), empty evidence card
+(per card), invalid route, rapid-selection race (last-selection-wins, silent). Page-level v1
+disclaimer (copy template in the research doc) renders once, persistently, not per card.
+
+## Testing note
+
+`LifeMatterFocusResolverTests` and `SindHovGridTests` already cover their own units in isolation
+(Phase 1B/2 fixture testing, per the plan). This page's own tests (Phase 3A onward) need: Auto/D1/
+Manual lifecycle transitions, the no-Subject "retain last chart" fallback, drill-through URL
+construction (once Key Inference accepts it), and the full picker → Varga switch → Step selection
+→ chart highlight → table highlight chain for at least two LifeMatters plus one deliberately
+unmapped Step, per the plan's verification section.
