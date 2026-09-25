@@ -1,4 +1,6 @@
 @page "/life-matters/{Id:int}"
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.PlanetaryStates
 @using Ikiastrro.Core.LifeMatters
 @using Ikiastrro.Core.Models
 @using Ikiastrro.Web.Components.Charts
@@ -15,14 +17,23 @@
 @inject LifeMatterReferenceRepository LifeMatterReferenceRepo
 @inject LifeMatterFocusRepository LifeMatterFocusRepo
 @inject KarakaMatterRepository KarakaMatterRepo
+@inject PlanetaryStateRepository PlanetaryStateRepo
+@inject PlanetaryStateRuleRepository PlanetaryStateRuleRepo
+@inject PostureStateInterpretationRepository PostureStateInterpretationRepo
+@inject PlanetaryStrengthRepository PlanetaryStrengthRepo
 @inject ActivePerson Active
 
-@* Phase 3A — docs/ui/lifematters_plan.md / docs/ui/components/specs_life_matters_page.md.
-   Page shell, Category/Step picker, and the Auto/D1/Manual Varga lifecycle. Evidence cards
-   (Phase 3B1-3B3) are not built yet — Subject/Focus rows are also still unseeded (migration
-   137's tables are empty pending audited population), so every Step resolves with Karaka data
-   only; the chart highlights nothing until Focus rows exist. That is the correct v1 state, not
-   a bug: "no row in tbl_Rule_LifeMatterFocus" means "focus not yet structured," not an error. *@
+@* Phase 3A/3B1 — docs/ui/lifematters_plan.md / docs/ui/components/specs_life_matters_page.md.
+   Page shell, Category/Step picker, Auto/D1/Manual Varga lifecycle, and the first evidence cards
+   (Planet condition, House condition). Subject/Focus rows are still unseeded (migration 137's
+   tables are empty pending audited population), so House condition always shows its explicit
+   no-rows state and Auto-Varga has nothing to follow yet — that is the correct v1 state, not a
+   bug: "no row in tbl_Rule_LifeMatterFocus" means "focus not yet structured," not an error.
+   Argala and Arudha cards are explicitly NOT built — Phase 0A only checked whether the two
+   existing repositories (ArgalaRuleRepository, NaisargikaKarakaRepository) could serve them, and
+   the build revealed neither actually can: tbl_Fact_Argala has no read path today (only
+   ArgalaFactRepository's write/delete for chart generation), and Arudha likewise has no
+   dedicated evidence repository (specs_life_matters_page.md's read-path table, corrected). *@
 
 <PageTitle>@(_data?.Person.Name ?? "Life Matters") · Life Matters</PageTitle>
 
@@ -37,6 +48,8 @@
 else
 {
     <h1 class="lm-heading">LIFE MATTERS</h1>
+    var displayed = ResolveDisplayedChart();
+
 
     <div class="lm-layout">
         <section class="lm-picker" aria-label="Category and Step">
@@ -79,9 +92,6 @@ else
         </section>
 
         <section class="lm-chart" aria-label="Chart">
-            @{
-                var displayed = ResolveDisplayedChart();
-            }
             @if (displayed is null)
             {
                 <EmptyState Message="@($"{ResolveWantedChartType()} not generated for this person")" Cli="backfill-charts" />
@@ -104,6 +114,74 @@ else
             }
         </section>
     </div>
+
+    <div class="lm-cards">
+        <section class="lm-card" aria-label="Planet condition">
+            <h2>Planet condition (Karakas)</h2>
+            @{ var karakaPlanets = KarakaPlanetRows(); }
+            @if (karakaPlanets.Count == 0)
+            {
+                <p class="lm-card-empty">No Karaka planet evidence for this matter.</p>
+            }
+            else
+            {
+                <p class="lm-card-note">D1 avastha and Ṣaḍbala — reused from Key Inference's own
+                    Planet-condition table (<code>PlanetaryStateTable</code>), scoped to this
+                    matter's Karaka planets only. Its "expression" verdict is Key Inference's own
+                    prior synthesis, not a new Contribution judgment for this matter.</p>
+                <PlanetaryStateTable Rows="karakaPlanets" StateNames="_stateNames"
+                                     PostureInterpretations="_postureInterpretations"
+                                     KeyDetails="D1KeyDetails" Strengths="_shadbala" />
+            }
+        </section>
+
+        <section class="lm-card" aria-label="House condition">
+            <h2>House condition</h2>
+            @{ var focusHouses = FocusHouseNumbersFromLagna(displayed); }
+            @if (displayed is null)
+            {
+                <p class="lm-card-empty">No chart displayed.</p>
+            }
+            else if (focusHouses.Count == 0)
+            {
+                <p class="lm-card-empty">No focused houses for this matter yet — House/SpecialPoint
+                    Focus rows are not seeded (migration 137).</p>
+            }
+            else
+            {
+                <table class="lm-house-table">
+                    <thead><tr><th>House</th><th>Sign</th><th>Lord</th><th>Lord placement</th><th>Occupants</th></tr></thead>
+                    <tbody>
+                    @foreach (var h in focusHouses)
+                    {
+                        var lord = displayed.HouseLords.FirstOrDefault(l => l.HouseNumber == h);
+                        var occupants = displayed.Grahas.Where(g => g.HouseNumberFromLagna == h).Select(g => g.Planet).ToList();
+                        <tr>
+                            <td>@h</td>
+                            <td>@lord?.HouseSign</td>
+                            <td>@lord?.LordPlanet</td>
+                            <td>@(lord is null ? "—" : $"{lord.LordPlacedInSign} (house {lord.LordPlacedInHouseFromLagna})")</td>
+                            <td>@(occupants.Count == 0 ? "no planets" : string.Join(", ", occupants))</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </section>
+
+        <section class="lm-card lm-card-blocked" aria-label="Argala">
+            <h2>Argala</h2>
+            <p class="lm-card-empty">Not available yet — no repository reads
+                <code>tbl_Fact_Argala</code> for display today (only write/delete, used by chart
+                generation). A read path is needed before this card can be built.</p>
+        </section>
+
+        <section class="lm-card lm-card-blocked" aria-label="Arudha">
+            <h2>Arudha</h2>
+            <p class="lm-card-empty">Not available yet — Arudha placements have no dedicated
+                evidence repository; today they are only rendered as chart-grid labels.</p>
+        </section>
+    </div>
 }
 
 @code {
@@ -123,6 +201,14 @@ else
     private IReadOnlyList<LifeMatterFocusRule> _foci = [];
     private static readonly LifeMatterFocusResolver Resolver = new();
     private ResolvedLifeMatterFocus? _resolved;
+
+    // Planet condition card — D1 avastha/Ṣaḍbala only, per PlanetaryStateFact's own gating
+    // (AgeStateId/PostureStateId are D1-only). Loaded once per person, not per Step/Varga.
+    private IReadOnlyList<PlanetaryStateFact> _planetaryStates = [];
+    private IReadOnlyDictionary<byte, PlanetaryStateRow> _stateNames = new Dictionary<byte, PlanetaryStateRow>();
+    private IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow> _postureInterpretations =
+        new Dictionary<(byte, byte), PostureStateInterpretationRow>();
+    private IReadOnlyList<ShadbalaSummaryRow> _shadbala = [];
 
     private string _vargaMode = "Auto";
     private string? _manualChartType;
@@ -153,6 +239,13 @@ else
             _subjects = LifeMatterFocusRepo.GetSubjects(RuleSetId);
             _foci = LifeMatterFocusRepo.GetFoci(RuleSetId);
             _karakas = KarakaMatterRepo.GetForRuleSet(RuleSetId);
+
+            _planetaryStates = PlanetaryStateRepo.GetByBirthDetailId(Id).Where(r => r.AgeStateId.HasValue).ToList();
+            _stateNames = PlanetaryStateRuleRepo.GetAllStates();
+            var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
+            _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
+            _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
+
             if (_categories.Count > 0)
                 OnCategorySelected(_categories[0].CategoryCode);
         }
@@ -253,4 +346,54 @@ else
         "SREE_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "SL")?.Sign,
         _ => null
     };
+
+    private IReadOnlyList<ChartKeyDetail> D1KeyDetails => _data!.Charts["D1"].KeyDetails;
+
+    // Planet condition card — D1 PlanetaryStateFact rows for this Step's Karaka planets only.
+    private IReadOnlyList<PlanetaryStateFact> KarakaPlanetRows()
+    {
+        if (_resolved is null || !_data!.Charts.TryGetValue("D1", out var d1)) return [];
+
+        var planets = _resolved.Karakas
+            .Select(k => ResolveKarakaPlanet(d1, k.KarakaCode))
+            .Where(p => p is not null)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return _planetaryStates.Where(r => planets.Contains(r.Planet)).ToList();
+    }
+
+    // KarakaMatterRepository.KarakaCode is "GRAHA_<PLANETNAME>" for a fixed graha or
+    // "KARAKA_<Code>" for a chara karaka (AK/AmK/BK/.../DK) — resolve the latter to whichever
+    // planet actually holds that rank in this person's D1 (ChartKeyDetail.CharaKaraka).
+    private static string? ResolveKarakaPlanet(LoadedChart d1, string karakaCode)
+    {
+        if (karakaCode.StartsWith("GRAHA_", StringComparison.Ordinal))
+        {
+            var planetName = karakaCode["GRAHA_".Length..];
+            return d1.Grahas.FirstOrDefault(g => string.Equals(g.Planet, planetName, StringComparison.OrdinalIgnoreCase))?.Planet;
+        }
+
+        if (karakaCode.StartsWith("KARAKA_", StringComparison.Ordinal))
+        {
+            var charaCode = karakaCode["KARAKA_".Length..];
+            return d1.Grahas.FirstOrDefault(g => string.Equals(g.CharaKaraka, charaCode, StringComparison.OrdinalIgnoreCase))?.Planet;
+        }
+
+        return null;
+    }
+
+    // House condition card — the resolved House-kind Focus rows' signs, translated to
+    // house-from-Lagna numbers for the currently displayed chart (ChartHouseLord/Grahas are
+    // always keyed by house-from-Lagna, never by sign).
+    private IReadOnlyList<int> FocusHouseNumbersFromLagna(LoadedChart? chart)
+    {
+        if (chart is null) return [];
+
+        var ascendant = Enum.Parse<ZodiacName>(chart.AscendantSign);
+        return HouseFoci(chart)
+            .Select(f => LifeMatterFocusResolver.ResolveHouseSign(Enum.Parse<ZodiacName>(f.ReferenceSign), f.HouseNumber))
+            .Select(sign => AstroMath.CountFromSignToSign(ascendant, sign))
+            .Distinct()
+            .ToList();
+    }
 }

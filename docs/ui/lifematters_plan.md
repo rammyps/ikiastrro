@@ -295,7 +295,12 @@ yet), so it remains the before-implementation contract for Phase 3A onward.
   `Pages/LifeMatters.razor` (`/life-matters/{id}`), browser-verified against a real person (D1
   and D9, one mapped and one deliberately unmapped Step). No bUnit page tests yet (tracked for
   Phase 3C). Evidence cards are not built — that is 3B1-3B3, not this phase.
-- Phase 3B1: Argala/Avastha/Shadbala/Arudha plus house/planet condition.
+- Phase 3B1 (partial): Avastha/Shadbala/planet condition built as one reused
+  `PlanetaryStateTable`, scoped to the Step's Karaka planets; house condition built (lord, lord
+  placement, occupants — not yet aspects/conjunctions), always empty pending Focus seed data.
+  Argala and Arudha are explicitly **blocked**, not built: neither has a read path over its facts
+  today (Argala's gap found during this build, correcting `specs_life_matters_page.md`'s and
+  `lifematters_claude_research.md`'s prior "ready" claim — see those docs).
 - Phase 3B2: relationships and filtered yogas.
 - Phase 3B3: explicit D1/Varga comparison, projected-point labels, and provenance.
 - Phase 3C: integration, visual, accessibility, viewport, regression, and measured query-count
