@@ -83,8 +83,9 @@ public sealed class ProductionYogaEngine : IYogaEngine
         var note = result.Notes ?? string.Empty;
         if (note.Contains("D9", StringComparison.OrdinalIgnoreCase)) return ["CHART_D9"];
         if (note.Contains("Vaiseshikamsa", StringComparison.OrdinalIgnoreCase)) return ["VAISESHIKAMSA"];
+        if (note.Contains("visual source adjudication", StringComparison.OrdinalIgnoreCase)) return ["SOURCE_ADJUDICATION"];
+        if (note.Contains("Shadbala threshold", StringComparison.OrdinalIgnoreCase)) return ["SHADBALA_THRESHOLD"];
         if (note.Contains("strength", StringComparison.OrdinalIgnoreCase)) return ["YOGA_STRENGTH_POLICY"];
-        if (EntryNumber(result.SourceVariantCode) >= 201) return ["PREDICATE_NOT_IMPLEMENTED"];
         return ["REQUIRED_CALCULATION_NOT_IMPLEMENTED"];
     }
 

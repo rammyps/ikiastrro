@@ -31,6 +31,19 @@ public sealed class ProductionYogaEngineTests
         Assert.All(rows, x => Assert.Equal("EVALUATED", x.Result.EvaluationStatus));
     }
 
+    [Fact]
+    public void SourceBlockedCombinationsReportSpecificMissingRequirements()
+    {
+        var rows = new ProductionYogaEngine().DetectDetailed(Bundle());
+        Assert.Equal(["SHADBALA_THRESHOLD"], Row(rows, "RAMAN_300_111").MissingRequirementCodes);
+        Assert.Equal(["SOURCE_ADJUDICATION"], Row(rows, "RAMAN_300_178").MissingRequirementCodes);
+        Assert.Equal(["SOURCE_ADJUDICATION"], Row(rows, "RAMAN_300_179").MissingRequirementCodes);
+        Assert.DoesNotContain(rows, x => x.MissingRequirementCodes.Contains("PREDICATE_NOT_IMPLEMENTED"));
+    }
+
+    private static UnifiedYogaEvaluation Row(IReadOnlyList<UnifiedYogaEvaluation> rows, string variant)
+        => rows.Single(x => x.Result.SourceVariantCode == variant);
+
     private static ChartBundle Bundle()
     {
         var planets = new[] { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu" }

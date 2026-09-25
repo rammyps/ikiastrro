@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-17
+last_updated: 2026-09-25
 ---
 
 # BV Raman's 300 Important Combinations — status & plan
@@ -7,8 +7,7 @@ last_updated: 2026-09-17
 **Canonical source:** B. V. Raman, *300 Important Combinations* — cited as
 `SRC_RAMAN_300_COMBINATIONS` (`docs/research/sources.md`; registered as a DJVU scan).
 **OCR text extract used for this pass:** `D:\@ClaudeSpace\BookExtracts\300-important-combinations_p1-352_draft.md`
-(not yet added to `sources.md`'s citation for `SRC_RAMAN_300_COMBINATIONS` — only the DJVU
-is listed there today; worth registering once this extract is relied on further). Every
+(registered in `sources.md` as a working extract subordinate to the DJVU scan). Every
 `SourceVariantCode` follows the `RAMAN_300_NNN` pattern with a `SourceLocator` of
 `combination NNN; printed p.X; scan p.Y`.
 
