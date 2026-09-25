@@ -1,0 +1,154 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="sind-hov-grid" role="grid" aria-label="@AriaLabel" @onkeydown="OnGridKeyDown">
+    @foreach (var cell in GridCells)
+    {
+        var isAscendant = cell.Sign == AscendantSign;
+        var house = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(AscendantSign), Enum.Parse<ZodiacName>(cell.Sign));
+        var isPinned = PinnedSign == cell.Sign;
+        var isPreview = _previewSign == cell.Sign;
+        var isRelevant = RelevantSigns.Contains(cell.Sign, StringComparer.Ordinal);
+        var glyphs = PlanetsBySign.TryGetValue(cell.Sign, out var planets) ? planets : [];
+        var points = SpecialPointsBySign.TryGetValue(cell.Sign, out var specialPoints) ? specialPoints : [];
+
+        <button type="button"
+                class="chart-cell @(isAscendant ? "ascendant" : "") @(isRelevant ? "relevant" : "") @(isPinned ? "pinned" : "") @(isPreview ? "preview" : "")"
+                style="grid-column:@cell.Column;grid-row:@cell.Row"
+                role="gridcell"
+                aria-label="@CellAriaLabel(cell.DisplayName, house, glyphs, points)"
+                aria-selected="@(isPinned ? "true" : "false")"
+                data-sign="@cell.Sign"
+                data-house="@house"
+                @onmouseenter="() => Preview(cell.Sign)"
+                @onmouseleave="ClearPreview"
+                @onfocus="() => Preview(cell.Sign)"
+                @onblur="ClearPreview"
+                @onclick="() => Pin(cell.Sign)"
+                @onkeydown="args => OnCellKeyDown(args, cell.Sign)">
+            <span class="sign-name">@cell.DisplayName</span>
+            <span class="house-number" title="House @house from this chart's Ascendant">@house</span>
+            @if (isAscendant)
+            {
+                <span class="lagna-label">LAGNA</span>
+            }
+            @if (isRelevant || isPinned)
+            {
+                <span class="selection-mark" aria-hidden="true">◆</span>
+            }
+            @if (points.Count > 0)
+            {
+                <span class="special-points">
+                    @foreach (var point in points)
+                    {
+                        <span class="special-point">@point</span>
+                    }
+                </span>
+            }
+            <span class="planets">
+                @foreach (var glyph in glyphs)
+                {
+                    <span class="planet"><PlanetChip Planet="@glyph.PlanetName" /></span>
+                }
+            </span>
+        </button>
+    }
+
+    <div class="chart-center" style="grid-column:2/4;grid-row:2/4">
+        <span class="center-title">@CenterTitle</span>
+        @if (!string.IsNullOrWhiteSpace(CenterNote))
+        {
+            <span class="center-note">@CenterNote</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> PlanetsBySign { get; set; }
+        = new Dictionary<string, IReadOnlyList<GridPlanetGlyph>>();
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> SpecialPointsBySign { get; set; }
+        = new Dictionary<string, IReadOnlyList<string>>();
+    [Parameter] public IReadOnlyList<SindHovHouseFocus> HouseFoci { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> SpecialPointFocusCodes { get; set; } = [];
+    [Parameter] public string? PinnedSign { get; set; }
+    [Parameter] public EventCallback<string?> PinnedSignChanged { get; set; }
+    [Parameter] public EventCallback<string?> PreviewSignChanged { get; set; }
+    [Parameter] public string CenterTitle { get; set; } = "";
+    [Parameter] public string? CenterNote { get; set; }
+    [Parameter] public string AriaLabel { get; set; } = "South Indian horoscope grid";
+
+    private string? _previewSign;
+
+    private IReadOnlySet<string> RelevantSigns
+    {
+        get
+        {
+            var signs = HouseFoci
+                .Select(focus => ResolveHouseSign(focus.ReferenceSign, focus.HouseNumber))
+                .ToHashSet(StringComparer.Ordinal);
+
+            foreach (var pair in SpecialPointsBySign)
+            {
+                if (pair.Value.Any(code => SpecialPointFocusCodes.Contains(code, StringComparer.Ordinal)))
+                    signs.Add(pair.Key);
+            }
+
+            return signs;
+        }
+    }
+
+    private static string ResolveHouseSign(string referenceSign, int houseNumber) =>
+        LifeMatterSignMath.ResolveHouseSign(referenceSign, houseNumber);
+
+    private async Task Preview(string sign)
+    {
+        _previewSign = sign;
+        await PreviewSignChanged.InvokeAsync(sign);
+    }
+
+    private async Task ClearPreview()
+    {
+        _previewSign = null;
+        await PreviewSignChanged.InvokeAsync(null);
+    }
+
+    private Task Pin(string sign) => PinnedSignChanged.InvokeAsync(sign);
+
+    private async Task OnCellKeyDown(KeyboardEventArgs args, string sign)
+    {
+        if (args.Key is "Enter" or " ")
+            await Pin(sign);
+    }
+
+    private async Task OnGridKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key != "Escape") return;
+
+        if (_previewSign is not null)
+            await ClearPreview();
+        else if (PinnedSign is not null)
+            await PinnedSignChanged.InvokeAsync(null);
+    }
+
+    private static string CellAriaLabel(
+        string sign,
+        int house,
+        IReadOnlyList<GridPlanetGlyph> planets,
+        IReadOnlyList<string> points)
+    {
+        var occupants = planets.Count == 0 ? "no planets" : string.Join(", ", planets.Select(x => x.PlanetName));
+        var special = points.Count == 0 ? "" : $"; special points {string.Join(", ", points)}";
+        return $"{sign}, house {house}; {occupants}{special}";
+    }
+
+    private static readonly (string Sign, string DisplayName, int Column, int Row)[] GridCells =
+    [
+        ("Pisces", "Pisces", 1, 1), ("Aries", "Aries", 2, 1),
+        ("Taurus", "Taurus", 3, 1), ("Gemini", "Gemini", 4, 1),
+        ("Aquarius", "Aquarius", 1, 2), ("Cancer", "Cancer", 4, 2),
+        ("Capricornus", "Capricorn", 1, 3), ("Leo", "Leo", 4, 3),
+        ("Sagittarius", "Sagittarius", 1, 4), ("Scorpio", "Scorpio", 2, 4),
+        ("Libra", "Libra", 3, 4), ("Virgo", "Virgo", 4, 4)
+    ];
+}

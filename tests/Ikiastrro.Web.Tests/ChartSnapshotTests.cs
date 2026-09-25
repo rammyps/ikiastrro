@@ -87,6 +87,25 @@ public class ChartSnapshotTests : BunitContext
     }
 
     [Fact]
+    public void SindHovGrid()
+    {
+        var cut = Render<Ikiastrro.Web.Components.Charts.SindHovGrid>(ps => ps
+            .Add(p => p.AscendantSign, "Aries")
+            .Add(p => p.PlanetsBySign, ChartFixture.GridGlyphs)
+            .Add(p => p.SpecialPointsBySign, new Dictionary<string, IReadOnlyList<string>>
+            {
+                ["Pisces"] = ["A12"]
+            })
+            .Add(p => p.HouseFoci, [new SindHovHouseFocus("Aries", 7)])
+            .Add(p => p.SpecialPointFocusCodes, ["A12"])
+            .Add(p => p.PinnedSign, "Libra")
+            .Add(p => p.CenterTitle, "Marriage and spouse")
+            .Add(p => p.CenterNote, "D1 · Rasi"));
+
+        cut.MatchesGolden(nameof(SindHovGrid));
+    }
+
+    [Fact]
     public void ChartFrame()
     {
         var cut = Render<ChartFrame>(ps => ps
