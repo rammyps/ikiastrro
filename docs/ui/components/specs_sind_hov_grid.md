@@ -59,9 +59,8 @@ chart itself.
 - **Click or Enter/Space pins**: `Pin(sign)` invokes `PinnedSignChanged`; `EnterAndSpace_
   PinKeyboardFocusedCell` covers both keys.
 - **Escape**: `OnGridKeyDown` clears preview first if one is active, otherwise clears the pin —
-  matches the plan's "Escape clears preview first, then the pin" exactly. **Gap**: no test
-  exercises this path yet (`SindHovGridTests` has no Escape case) — add one before Phase 3C
-  regression coverage is signed off.
+  matches the plan's "Escape clears preview first, then the pin" exactly, covered by
+  `Escape_ClearsPreviewFirstThenPin`.
 - **Touch tap**: no separate handler — the cell is a native `<button>`, so tap already fires the
   same click/`Pin` path. Correct by construction, not a gap.
 - **Non-color selection marker**: `.selection-mark` (◆) renders whenever a cell is `relevant` or
@@ -95,14 +94,15 @@ breakpoint at 720px (row height 92px → 76px) — satisfies the plan's "page sp
 define a sub-desktop stacked/scrollable breakpoint" at the component level; the page must still
 define its own layout breakpoint around the grid (card stacking), which is separate.
 
-**Gap**: no golden-SVG snapshot test yet (`ChartSnapshotTests` has no `SindHovGrid` case). The
-plan requires one before Phase 3C sign-off ("Add and visually review a golden SVG, recognizing
-that a golden validates rendering, not behavior").
+Golden SVG: `ChartSnapshotTests.SindHovGrid`, baseline at `docs/artifacts/ui/SindHovGrid-sample.svg`
+(per the plan's "Add and visually review a golden SVG, recognizing that a golden validates
+rendering, not behavior" — visual review still pending a human look, not just the diff passing).
 
 ## Files
 
 `src/Ikiastrro.Web/Components/Charts/SindHovGrid.razor` (+ `.razor.cs`, `.razor.css`) ·
 `SindHovGrid.razor.cs` also hosts `SindHovHouseFocus` and the static `LifeMatterSignMath.
-ResolveHouseSign` helper (duplicates `LifeMatterFocusResolver.ResolveHouseSign` in
-`Ikiastrro.Core` — same formula, two call sites; worth collapsing to one before Phase 3C so the
-resolver and the grid can't drift). Tests: `tests/Ikiastrro.Web.Tests/SindHovGridTests.cs`.
+ResolveHouseSign` helper, now a thin string-keyed wrapper over `LifeMatterFocusResolver.
+ResolveHouseSign` in `Ikiastrro.Core` — one formula, one call site. Tests:
+`tests/Ikiastrro.Web.Tests/SindHovGridTests.cs`; golden SVG at
+`docs/artifacts/ui/SindHovGrid-sample.svg`.

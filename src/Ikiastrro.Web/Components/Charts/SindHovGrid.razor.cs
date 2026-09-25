@@ -1,9 +1,15 @@
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.LifeMatters;
 
 namespace Ikiastrro.Web.Components.Charts;
 
 public sealed record SindHovHouseFocus(string ReferenceSign, int HouseNumber);
 
+/// <summary>
+/// String-keyed wrapper over <see cref="LifeMatterFocusResolver.ResolveHouseSign"/> — the grid
+/// works in sign names (its cells, parameters, and data-* attributes are all strings), while the
+/// resolver works in <see cref="ZodiacName"/>. Kept as one formula, one call site.
+/// </summary>
 public static class LifeMatterSignMath
 {
     public static string ResolveHouseSign(string referenceSign, int houseNumber)
@@ -11,11 +17,6 @@ public static class LifeMatterSignMath
         if (!Enum.TryParse<ZodiacName>(referenceSign, out var origin))
             throw new ArgumentException($"Unknown reference sign '{referenceSign}'.", nameof(referenceSign));
 
-        if (houseNumber is < 1 or > 12)
-            throw new ArgumentOutOfRangeException(nameof(houseNumber), houseNumber, "House number must be from 1 through 12.");
-
-        return Enum.GetValues<ZodiacName>()
-            .Single(sign => AstroMath.CountFromSignToSign(origin, sign) == houseNumber)
-            .ToString();
+        return LifeMatterFocusResolver.ResolveHouseSign(origin, houseNumber).ToString();
     }
 }

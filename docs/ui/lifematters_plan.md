@@ -286,10 +286,11 @@ yet), so it remains the before-implementation contract for Phase 3A onward.
   `lifematters_claude_research.md`'s proposals is still pending.
 - Phase 1B (built): pure, UI-independent `LifeMatterFocusResolver`, including unstructured-focus
   tests — built and tested (`LifeMatterFocusResolverTests.cs`).
-- Phase 2 (SindHovGrid built; golden SVG still pending): isolated fixture-tested SIND-HOV-GRID,
-  including the state machine and house-to-sign translation — built and tested
-  (`SindHovGridTests.cs`), see [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md) for
-  the two open gaps (Escape-key test, golden SVG).
+- Phase 2 (complete): isolated fixture-tested SIND-HOV-GRID, including the state machine and
+  house-to-sign translation — built and tested (`SindHovGridTests.cs`, including the Escape-key
+  case), golden SVG minted (`docs/artifacts/ui/SindHovGrid-sample.svg`, pending a human visual
+  look per the plan's "a golden validates rendering, not behavior" note). See
+  [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md).
 - Phase 3A: page shell, picker, Auto/D1/Manual lifecycle, and Steps panel.
 - Phase 3B1: Argala/Avastha/Shadbala/Arudha plus house/planet condition.
 - Phase 3B2: relationships and filtered yogas.
@@ -321,22 +322,23 @@ Follow `docs/ui/wkstream_UI_v2.md` and `STANDARDS.md` sections E.1/E.2. Claude r
 for the broader UI workstream and integration to `master`. LifeMatters is scoped inside the
 existing `workstream/ui` worktree — per `STANDARDS.md` WORKSTREAM-04/AGENT-02, a new feature is a
 new doc under an existing workstream, not a new branch/worktree (decided 2026-09-25; see
-`lifematters_phase0a_audit.md`). If Codex ownership beyond its current
-`src/Ikiastrro.Web/Components/Charts/**` scope is later agreed for LifeMatters' DB/Data/Core/
-chart-component work, that remains an explicit, named exception recorded in `wkstream_UI_v2.md`
-before Codex starts — not a silent override.
+`lifematters_phase0a_audit.md`).
+
+**Superseded 2026-09-25 (rammyps):** No Codex ownership for LifeMatters. Claude owns the full
+stack for this feature going forward — SQL/C#/Razor implementation included, not just the
+bounded research artifact described below. Phase 1A/1B/part-of-2 were already built by Codex
+before this decision (kept as-is, reviewed rather than redone); everything from here — closing
+the Phase 2 gaps, Phase 3A onward, and any corrective migrations — is Claude's directly, still
+on `workstream/ui`, still reviewed by the user before anything reaches `master`.
 
 Shared page files, shared documentation indexes, migration application, and final integration
-are single-writer resources. The user reviews both diffs before integration.
+remain single-writer resources; the user reviews diffs before integration.
 
-Claude's bounded research output is one disjoint artifact, not SQL/C#/Razor implementation or
-shared-index edits. It covers A1–A12 citations; UL/A12 versus A7; proposed Subject and Focus
-mappings; Karaka/InterpretiveFactor coverage discrepancies; plain-language labels and safe copy;
-spec consistency; visual/accessibility review; regression review; and mapping Key Inference read
-paths to dossier ingredients.
-
-End-to-end Codex ownership is possible only as a deliberate, named exception recorded in
-`wkstream_UI_v2.md` before work starts.
+Claude's bounded research (superseded above for implementation, kept as the record of what was
+produced under the earlier split) covered: A1–A12 citations; UL/A12 versus A7; proposed Subject
+and Focus mappings; Karaka/InterpretiveFactor coverage discrepancies; plain-language labels and
+safe copy; spec consistency; visual/accessibility review; regression review; and mapping Key
+Inference read paths to dossier ingredients — all in `lifematters_claude_research.md`.
 
 ## Approved decisions
 

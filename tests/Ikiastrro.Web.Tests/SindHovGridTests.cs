@@ -78,6 +78,29 @@ public sealed class SindHovGridTests : BunitContext
     }
 
     [Fact]
+    public void Escape_ClearsPreviewFirstThenPin()
+    {
+        string? preview = "unset";
+        string? pinned = "unset";
+        var cut = Render<SindHovGrid>(parameters => parameters
+            .Add(p => p.AscendantSign, "Aries")
+            .Add(p => p.PinnedSign, "Libra")
+            .Add(p => p.PreviewSignChanged, EventCallback.Factory.Create<string?>(this, v => preview = v))
+            .Add(p => p.PinnedSignChanged, EventCallback.Factory.Create<string?>(this, v => pinned = v)));
+
+        cut.Find("[data-sign='Taurus']").MouseEnter();
+        Assert.Equal("Taurus", preview);
+
+        var grid = cut.Find("[role='grid']");
+        grid.KeyDown(new KeyboardEventArgs { Key = "Escape" });
+        Assert.Null(preview);
+        Assert.Equal("unset", pinned);
+
+        grid.KeyDown(new KeyboardEventArgs { Key = "Escape" });
+        Assert.Null(pinned);
+    }
+
+    [Fact]
     public void EverySignCell_IsAKeyboardOperableGridCellWithNonColorMarker()
     {
         var cut = Render<SindHovGrid>(parameters => parameters
