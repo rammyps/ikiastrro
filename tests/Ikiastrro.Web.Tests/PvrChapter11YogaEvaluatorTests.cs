@@ -8,15 +8,54 @@ public sealed class PvrChapter11YogaEvaluatorTests
  private static readonly string[] Codes=
  [
   "YOGA_MAALA","YOGA_SUBHA","YOGA_ASUBHA","YOGA_GURU_MANGALA","YOGA_CHAMARA",
-  "YOGA_KHADGA","YOGA_LAGNAADHI","YOGA_SAARADA","YOGA_DHARMA_KARMADHIPATI"
+  "YOGA_KHADGA","YOGA_LAGNAADHI","YOGA_SAARADA","YOGA_DHARMA_KARMADHIPATI",
+  "YOGA_BASIC_RAJA","YOGA_HARI","YOGA_HARA","YOGA_BRAHMA_TRIMURTI","YOGA_PARIJATHA"
  ];
 
- [Fact]public void Tracks_All_Nine_P0_Codes()
+ [Fact]public void Tracks_All_Nine_P0_And_Five_Identity_Codes()
  {
   var r=PvrChapter11YogaEvaluator.Evaluate(Chart());
-  Assert.Equal(9,r.Count);
+  Assert.Equal(14,r.Count);
   Assert.Equal(Codes,r.Select(x=>x.YogaCode));
-  Assert.All(r,x=>{Assert.Equal("EVALUATED",x.EvaluationStatus);Assert.Equal("SRC_PVR_INTEGRATED",x.SourceRefCode);});
+  Assert.All(r,x=>Assert.Equal("SRC_PVR_INTEGRATED",x.SourceRefCode));
+  Assert.All(r.Take(13),x=>Assert.Equal("EVALUATED",x.EvaluationStatus));
+  Assert.Equal("NOT_EVALUATED",r[13].EvaluationStatus);
+ }
+
+ [Fact]public void Basic_Raja_Forms_For_Distinct_Kendra_And_Trine_Lords_In_Conjunction()
+ {
+  var c=Chart(P("Moon","Aries",1),P("Sun","Aries",1));
+  Assert.True(Result(c,"YOGA_BASIC_RAJA").Present);
+ }
+
+ [Fact]public void Hari_Forms_From_Second_Lord_When_All_Three_Relative_Signs_Hold_Benefics()
+ {
+  var c=Chart(P("Venus","Libra",7),P("Moon","Scorpio",8),P("Mercury","Virgo",6),P("Jupiter","Taurus",2));
+  Assert.True(Result(c,"YOGA_HARI").Present);
+ }
+
+ [Fact]public void Hara_Forms_From_Seventh_Lord_When_All_Three_Relative_Signs_Hold_Benefics()
+ {
+  var c=Chart(P("Venus","Aries",1),P("Moon","Cancer",4),P("Jupiter","Sagittarius",9),P("Mercury","Scorpio",8));
+  Assert.True(Result(c,"YOGA_HARA").Present);
+ }
+
+ [Fact]public void Brahma_Trimurti_Forms_From_Lagna_Lord_When_All_Three_Relative_Signs_Hold_Benefics()
+ {
+  var c=Chart(P("Mars","Aries",1),P("Moon","Cancer",4),P("Jupiter","Capricornus",10),P("Mercury","Aquarius",11));
+  Assert.True(Result(c,"YOGA_BRAHMA_TRIMURTI").Present);
+ }
+
+ [Fact]public void Kalpadruma_Is_Not_Evaluated_Without_D9()
+ {
+ Assert.Equal("NOT_EVALUATED",Result(Chart(P("Mars","Aries",1)),"YOGA_PARIJATHA").EvaluationStatus);
+ }
+
+ [Fact]public void Kalpadruma_Forms_When_All_Four_Links_Are_Strong()
+ {
+  var d1=Chart(P("Mars","Aries",1));
+  var d9=new ChartAnalysisInput("D9",ZodiacName.Aries,[P("Mars","Aries",1)]);
+  Assert.True(PvrChapter11YogaEvaluator.Evaluate(d1,d9).Single(x=>x.SourceVariantCode=="PVR_CH11_KALPADRUMA").Present);
  }
 
  [Fact]public void Maala_Forms_When_Three_Kendras_Hold_Natural_Benefics()

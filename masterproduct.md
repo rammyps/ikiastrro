@@ -446,7 +446,7 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
 
 ## YOGA — workstream: cli
 
-- **FEAT-YOGA-01 · Source-attributed Raman 1–300 + PVR yoga detection** — In progress · 65% · Research: active
+- **FEAT-YOGA-01 · Source-attributed Raman 1–300 + PVR yoga detection** — In progress · 75% · Research: active
   DB [x] (`tbl_Rule_Yoga` 146 rows, Type/Rule DB-backed since migration 079; `tbl_Fact_YogaInputEvaluations`
   covers 223 distinct `YogaCode`s per chart) · Core [x] (223 `YogaCode`s tracked, 146 with a
   real coded predicate — 77 are name-only stubs (61 Raman 201–300 tail, 14 Batch-Eight
@@ -457,12 +457,13 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   varga charts, dignity / conjunction / graha-aspect engines. Gaps: a source-qualified
   strong/weak policy over Ṣaḍbala thresholds; reusable waxing/waning/full-Moon
   classification; Vaiśeṣikāṃśa output; subject sex on `BirthDetails`; structured
-  missing-requirement codes per result. PVR chapter 11 cross-check (2026-09-13): ~87/98
-  (~89%) of PVR's individually-named yogas covered (shared Raman corpus); confirmed open —
-  Maalaa, Subha, Asubha, Guru-Mangala, Chamara, Khadga, Lagnaadhi, Saarada,
-  Dharma-Karmadhipati (`Vipareeta Raja` is done, dropped from this list); PVR's 58 further
-  *unnamed* numbered combinations (§11.7.3/11.8/11.9/11.10) have no per-item rows at all,
-  only 2 generic catch-alls. Full gap list + sequenced next steps: `yoga-corpus.md`.
+  missing-requirement codes per result. PVR Chapter 11 update (2026-09-25): migrations 137-138
+  add the source-variant/set/dependency layer, all 59 numbered entries, 18 Chara-Karaka tags,
+  and the completed Basic Raja, Hari, Hara, first Brahma/Trimurti and Kalpadruma/Parijata
+  predicates. Remaining source blockers: Daridra 10's Ashtakavarga house classification and
+  the damaged Pisces Dhana first alternative. Migrations 139/142 complete inventory coverage
+  for all 92 PVR variants currently emitted by the engine and expose variant-to-concept rule
+  resolution through `vw_YogaVariantRules`. Full inventory and next steps: `yoga-corpus.md`.
 
 ## TRANSIT — workstream: cli
 

@@ -18,7 +18,7 @@ public static class PvrChapter11YogaEvaluator
     private static readonly int[] Kendra = [1, 4, 7, 10];
     private static readonly int[] KendraTrikona = [1, 4, 5, 7, 9, 10];
 
-    public static IReadOnlyList<ContextualYogaResult> Evaluate(ChartAnalysisInput d1) =>
+    public static IReadOnlyList<ContextualYogaResult> Evaluate(ChartAnalysisInput d1, ChartAnalysisInput? d9 = null) =>
     [
         Row("YOGA_MAALA", Maala(d1), "PVR_CH11_MAALA", "ch.11 §11.5.2 Dala Yogas; printed pp.119-120",
             "Maalaa Yoga: 3 of the 4 kendras occupied by natural benefics. A malefic also present in one of those kendras weakens, but per PVR's own wording does not negate, the yoga."),
@@ -38,6 +38,18 @@ public static class PvrChapter11YogaEvaluator
             "Saarada Yoga: 10th lord in the 5th, Mercury in a kendra, Sun in Leo (own sign = strong), Mercury or Jupiter in a trine from Moon, and Mars in the 11th."),
         Row("YOGA_DHARMA_KARMADHIPATI", DharmaKarmadhipati(d1), "PVR_CH11_DHARMA_KARMADHIPATI", "ch.11 §11.7.1; printed p.134",
             "Dharma-Karmadhipati Yoga: the special case of Basic Raaja Yoga formed by the 9th and 10th lords — conjunction, mutual graha drishti, or parivartana (exchange)."),
+        Row("YOGA_BASIC_RAJA", BasicRaja(d1), "PVR_CH11_BASIC_RAJA", "ch.11 §11.7.1; printed pp.133-134",
+            "Basic Raaja Yoga: a distinct kendra lord and trikona lord are conjoined, mutually aspect each other, or exchange signs; Lagna counts as both kendra and trikona."),
+        Row("YOGA_HARI", Hari(d1), "PVR_CH11_HARI", "ch.11 §11.6; printed p.129",
+            "Hari Yoga: natural benefics occupy the 2nd, 12th and 8th signs counted from the 2nd lord."),
+        Row("YOGA_HARA", Hara(d1), "PVR_CH11_HARA", "ch.11 §11.6; printed p.129",
+            "Hara Yoga: natural benefics occupy the 4th, 9th and 8th signs counted from the 7th lord."),
+        Row("YOGA_BRAHMA_TRIMURTI", BrahmaTrimurti(d1), "PVR_CH11_BRAHMA_TRIMURTI", "ch.11 §11.6; printed pp.129-130",
+            "Brahma (Trimurti) Yoga: natural benefics occupy the 4th, 10th and 11th signs counted from the Lagna lord; distinct from PVR's second Brahma variation."),
+        d9 is null
+            ? Missing("YOGA_PARIJATHA", "PVR_CH11_KALPADRUMA", "ch.11 §11.6; printed pp.127-129", "D9 is required to identify the Navamsa dispositor in PVR's four-link Kalpadruma definition.")
+            : Row("YOGA_PARIJATHA", Kalpadruma(d1, d9), "PVR_CH11_KALPADRUMA", "ch.11 §11.6; printed pp.127-129",
+                "Kalpadruma (Parijata) Yoga: Lagna lord, its dispositor, that planet's Rasi dispositor and its Navamsa dispositor are each in a kendra, trikona or exaltation sign in D1."),
     ];
 
     // Maalaa Yoga: "If three quadrants are occupied by natural benefics, this yoga is formed."
@@ -108,6 +120,36 @@ public static class PvrChapter11YogaEvaluator
     // mutual graha drishti, or parivartana (exchange) per §11.7.1's 3-way "association" definition.
     private static bool DharmaKarmadhipati(ChartAnalysisInput c) => RajaAssociation(c, Lord(c, 9), Lord(c, 10));
 
+    private static bool BasicRaja(ChartAnalysisInput c)
+    {
+        var kendras = new[] { 1, 4, 7, 10 }.Select(h => Lord(c, h)).Distinct();
+        var trines = new[] { 1, 5, 9 }.Select(h => Lord(c, h)).Distinct();
+        return kendras.Any(k => trines.Any(t => k != t && RajaAssociation(c, k, t)));
+    }
+
+    private static bool Hari(ChartAnalysisInput c) => BeneficsFillFrom(c, Lord(c, 2), 2, 12, 8);
+    private static bool Hara(ChartAnalysisInput c) => BeneficsFillFrom(c, Lord(c, 7), 4, 9, 8);
+    private static bool BrahmaTrimurti(ChartAnalysisInput c) => BeneficsFillFrom(c, Lord(c, 1), 4, 10, 11);
+
+    private static bool BeneficsFillFrom(ChartAnalysisInput c, PlanetName reference, params int[] distances)
+    {
+        var origin = Find(c, reference);
+        return origin is not null && distances.All(d => OccupiedBySign(c, RelativeSign(origin.Sign, d), B));
+    }
+
+    private static bool Kalpadruma(ChartAnalysisInput d1, ChartAnalysisInput d9)
+    {
+        var lagnaLord = Lord(d1, 1);
+        var lagnaLordPosition = Find(d1, lagnaLord); if (lagnaLordPosition is null) return false;
+        var firstDispositor = SignLord(lagnaLordPosition.Sign);
+        var firstPosition = Find(d1, firstDispositor); if (firstPosition is null) return false;
+        var rasiDispositor = SignLord(firstPosition.Sign);
+        var firstInD9 = Find(d9, firstDispositor); if (firstInD9 is null) return false;
+        var navamsaDispositor = SignLord(firstInD9.Sign);
+        return new[] { lagnaLord, firstDispositor, rasiDispositor, navamsaDispositor }
+            .All(p => Find(d1, p) is { } x && (KendraTrikona.Contains(x.HouseNumber) || Dignity(d1, p) == "EXALTED"));
+    }
+
     private static bool RajaAssociation(ChartAnalysisInput c, PlanetName a, PlanetName b)
     {
         var pa = Find(c, a); var pb = Find(c, b);
@@ -121,6 +163,8 @@ public static class PvrChapter11YogaEvaluator
 
     private static bool OccupiedBy(ChartAnalysisInput c, int house, PlanetName[] set) =>
         c.Planets.Any(p => Enum.TryParse<PlanetName>(p.Planet, out var pn) && set.Contains(pn) && p.HouseNumber == house);
+    private static bool OccupiedBySign(ChartAnalysisInput c, string sign, PlanetName[] set) =>
+        c.Planets.Any(p => Enum.TryParse<PlanetName>(p.Planet, out var pn) && set.Contains(pn) && p.Sign == sign);
     private static bool Influenced(ChartAnalysisInput c, PlanetName target, PlanetName source) =>
         Find(c, target) is { } x && Find(c, source) is { } y && (x.Sign == y.Sign || Aspects(source, y.Sign, x.Sign));
     private static bool InfluencesSign(ChartAnalysisInput c, PlanetName source, string sign) =>
@@ -134,6 +178,8 @@ public static class PvrChapter11YogaEvaluator
         a is null || b is null ? 0 : (((int)Enum.Parse<ZodiacName>(b) - (int)Enum.Parse<ZodiacName>(a) + 12) % 12) + 1;
     private static int HouseDistance(int a, int b) => ((a - b + 12) % 12) + 1;
     private static string HouseSign(ChartAnalysisInput c, int h) => HouseEngine.GetHouseSign(c.AscendantSign, h).ToString();
+    private static string RelativeSign(string sign, int distance) => ((ZodiacName)(((int)Enum.Parse<ZodiacName>(sign) + distance - 1) % 12)).ToString();
+    private static PlanetName SignLord(string sign) => Enum.Parse<PlanetName>(HouseEngine.GetSignLord(Enum.Parse<ZodiacName>(sign)));
     private static string Dignity(ChartAnalysisInput c, PlanetName p)
     {
         var x = Find(c, p); if (x is null) return "MISSING";
@@ -144,4 +190,6 @@ public static class PvrChapter11YogaEvaluator
     private static PlanetPosition? Find(ChartAnalysisInput c, PlanetName p) => c.Planets.SingleOrDefault(x => x.Planet == p.ToString());
     private static ContextualYogaResult Row(string code, bool present, string variant, string locator, string notes) =>
         new(code, present, "EVALUATED", "SRC_PVR_INTEGRATED", variant, locator, notes);
+    private static ContextualYogaResult Missing(string code, string variant, string locator, string notes) =>
+        new(code, null, "NOT_EVALUATED", "SRC_PVR_INTEGRATED", variant, locator, notes);
 }

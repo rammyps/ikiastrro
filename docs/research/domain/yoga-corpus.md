@@ -1,8 +1,87 @@
 ---
-last_updated: 2026-09-13
+last_updated: 2026-09-25
 ---
 
 # Yoga corpus expansion beyond Raman's 300
+
+## PVR Chapter 11 canonical inventory and subdivision plan
+
+The raw extract (`D:\@ClaudeSpace\BookExtracts\pvr-integrated-approach-raw.txt`, lines
+4297-5492) contains **98 named yoga headings** plus **59 numbered combinations**:
+18 advanced Raja, 15 Raja Sambandha, 13 Dhana (one general principle plus twelve
+lagna-specific rules), and 13 Daridra. The older "~98 named yogas" is a concept-level
+estimate, not a sufficient implementation ledger: aliases, alternate definitions, and
+same-name/different-formation cases must remain explicit source variants.
+
+### Named sets as printed
+
+| PVR set | Count | Names |
+|---|---:|---|
+| Ravi | 4 | Vesi; Vosi; Ubhayachara; Budha-Aaditya (Nipuna) |
+| Chandra | 6 | Sunapha; Anapha; Duradhara; Kemadruma; Chandra-Mangala; Adhi |
+| Pancha Mahapurusha | 5 | Ruchaka; Bhadra; Sasa; Malavya; Hamsa |
+| Nabhasa / Aasraya | 3 | Rajju; Musala; Nala |
+| Nabhasa / Dala | 2 | Maala; Sarpa |
+| Nabhasa / Aakriti | 20 | Gadaa; Sakata; Sringaataka; Vihanga; Hala; Vajra; Yava; Kamala; Vaapi; Yoopa; Sara; Sakti; Danda; Naukaa; Koota; Chatra; Chaapa; Ardha Chandra; Chakra; Samudra |
+| Nabhasa / Sankhya | 7 | Veenaa; Daama; Paasa; Kedaara; Soola; Yuga; Gola |
+| Other Popular | 48 | Subha; Asubha; Gaja-Kesari; Guru-Mangala; Amala; Parvata; Kaahala; Chaamara; Sankha; Bheri; Mridanga; Sreenaatha; Matsya; Koorma; Khadga; Kusuma; Kalaanidhi; Kalpadruma; Lagnaadhi; Hari; Hara; Brahma; Vishnu; Siva; Trilochana; Gouri; Chandikaa; Lakshmi; Saarada; Bhaarathi; Saraswathi; Amsaavatara; Devendra; Indra; Ravi; Bhaaskara; Kulavardhana; Vasumati; Gandharva; Go; Vidyut; Chapa; Pushkala; Makuta; Jaya; Harsha; Sarala; Vimala |
+| Named Raja | 3 | Basic Raja; Dharma-Karmadhipati; Vipareeta Raja |
+
+### Numbered sets and engine identity
+
+| Set code | Section | Rows | Engine identity |
+|---|---|---:|---|
+| `PVR_RAJA_ADVANCED` | §11.7.3 | 18 | `YOGA_RAJA_ADVANCED`; `PVR_CH11_RAJA_ADV_01..18` |
+| `PVR_RAJA_SAMBANDHA` | §11.8 | 15 | `YOGA_RAJA_SAMBANDHA`; `PVR_CH11_RAJA_SAMBANDHA_01..15` |
+| `PVR_DHANA` | §11.9 | 13 | `YOGA_DHANA`; basic plus twelve lagna variants |
+| `PVR_DARIDRA` | §11.10 | 13 | `YOGA_DARIDRA`; `PVR_CH11_DARIDRA_01..13` |
+
+Daridra 10 remains `NOT_EVALUATED`: it requires PVR's forward-referenced Ashtakavarga
+benefic/malefic-house classification. Pisces Dhana is `PARTIAL`: the printed/extracted first
+alternative names Moon in both the 5th and 11th, so only its unambiguous second alternative
+is coded.
+
+### Chara Karaka subset
+
+Eighteen numbered rules explicitly depend on Chara Karakas:
+
+- Advanced Raja 01-05 use AK and, in 01-02, PK.
+- Raja Sambandha 01, 03-12, 14-15 use AK and/or AmK; only 02 and 13 contain no Chara
+  Karaka condition.
+
+They must be filterable as a subdivision rather than hidden inside Raja umbrella codes.
+Migration 137 tags `CHARA_KARAKA` plus the specific `AK`, `AMK`, and `PK` anchors.
+
+### Subdivision axes
+
+Each source variant needs orthogonal classifications for: (1) book set and Nabhasa subset;
+(2) computational dependency; (3) reference anchor such as Sun, Moon, Lagna, AK, AmK, PK,
+AL, A7, A9, HL or GL; (4) evaluation scope; (5) rule role — formation, qualification,
+cancellation, magnitude, effectiveness or outcome; and (6) identity relationship —
+independent, alias, source variant, alternate predicate, umbrella or qualification.
+Advanced Raja 18 is an effectiveness modifier, not a peer formation.
+
+### Implementation sequence
+
+1. Migration 137: yoga-set hierarchy, source-variant inventory and dependency/anchor tags;
+   seed the 9 named PVR additions and all 59 numbered entries; tag all 18 Chara Karaka rules.
+   Migration 139 backfills the 18 original PVR variants plus Vipareeta Raja, so every
+   currently emitted PVR engine variant has an inventory row.
+   `tbl_Rule_Yoga` remains concept-level (its unique key allows one row per YogaCode/source),
+   while `tbl_Rule_YogaVariant` owns individual source predicates. Migration 142 exposes both
+   through `vw_YogaVariantRules`. Migrations 140-141 are retained as historical no-op markers:
+   their attempted inserts were atomically rejected and only their legacy ledger rows landed.
+2. Resolve identity: Basic Raja; independent Hari/Hara; PVR's first Brahma formation versus
+   the existing second form; Kalpadruma/Parijata; Nipuna/Budha-Aaditya; Nabhasa Chaapa versus
+   Popular Chapa; named Ravi versus the Ravi set; lunar Sakata versus Nabhasa Sakata.
+3. Complete predicates, Daridra 10 after its Ashtakavarga source, and the damaged Pisces
+   Dhana alternative from a clean scan.
+4. Model Raja magnitude separately: closeness, affliction, combustion, dignity, avastha and
+   Dasavarga Amsabala.
+5. Add positive/broken-condition tests for every Chara Karaka rule, including Rahu-as-AK,
+   missing-karaka, dispositor, AL/A9, special-Lagna and multi-varga cases.
+6. Group the UI by book set, allow dependency filters, and report inventory coverage
+   separately from present/absent chart results.
 
 Additions in this document use the `OTHERS` source corpus unless a definition is
 specifically sourced to P. V. R. Narasimha Rao, in which case it uses
@@ -39,13 +118,12 @@ As of 2026-09-17, the 9 confirmed-gap P0 formations are also implemented (see "R
 PVR additions" below), bringing PVR's named-yoga coverage to **~96/98 (~98%)**. The same day,
 all 59 of PVR's unnamed numbered combinations (§11.7.3/11.8/11.9/11.10) were also transcribed
 (see "Unnamed numbered combinations" below) — between the named-yoga and numbered-combination
-work, chapter 11 of `SRC_PVR_INTEGRATED` is now fully transcribed except the 4 P1 identity/alias
-cases and 1 genuinely source-blocked Daridra item.
+work, chapter 11 of `SRC_PVR_INTEGRATED` is now transcribed. The P1 identity/alias cases were
+closed on 2026-09-25; one Daridra item remains source-blocked and the Pisces Dhana first
+alternative remains partial because its printed/extracted planet name is damaged.
 
-The 58 unnamed numbered combinations (§11.7.3/11.8/11.9/11.10) have **no per-rule
-transcription at all** — only two generic catch-alls exist (`YOGA_DHANA`, `YOGA_DARIDRA`,
-each covering "multiple classical forms" as one summarized predicate, not PVR's specific
-per-item list).
+The 59 numbered combinations (§11.7.3/11.8/11.9/11.10) now have individual engine results
+and migration-137 inventory rows; the umbrella YogaCodes remain grouping identities only.
 
 ## Recommended PVR additions
 
@@ -75,16 +153,16 @@ closure" below for notes on the two predicates that needed a specific reading ch
   code, since the reckoning point and house set both differ.
 - **`YOGA_DHARMA_KARMADHIPATI`** reuses §11.7.1's own 3-way "association" definition (conjunction,
   mutual graha drishti, or parivartana/exchange) applied to the 9th and 10th lords specifically.
-  The general `RajaAssociation` helper this introduced is the natural base for `YOGA_BASIC_RAJA`
-  (P1, still open) — apply it to any quadrant/trine lord pair rather than re-deriving it.
+  The same `RajaAssociation` helper now powers completed `YOGA_BASIC_RAJA` across every
+  distinct quadrant/trine lord pair.
 - **`YOGA_CHAMARA`** implements both of PVR's stated alternate forms (lagna-lord exaltation +
   Jupiter aspect, OR two benefics joined in 7th/9th/10th) as an OR, matching the Definition's own
   "or" wording — no reading ambiguity here, unlike several Raman combos in `bvyoga.md`.
-| P1 | `YOGA_BASIC_RAJA` | §11.7.1, pp.133–134 | Compare with Raman 245–263 | Any chart, lord association |
-| P1 | `YOGA_HARI` | §11.6, p.129 | PVR split of Raman 51A; currently only exists merged into `YOGA_HARIHARA_BRAHMA` | D1 |
-| P1 | `YOGA_HARA` | §11.6, p.129 | PVR split of Raman 51B; currently only exists merged into `YOGA_HARIHARA_BRAHMA` | D1 |
-| P1 | `YOGA_BRAHMA_TRIMURTI` | §11.6, p.129 | PVR split of Raman 51C; not the already-implemented `YOGA_BRAHMA` (that code is PVR's separate *second* Brahma-yoga variant, §11.6 note (2)) | D1 |
-| P1 | existing `YOGA_PARIJATHA` | §11.6, pp.127–129 | Kalpadruma/Parijata synonym; add variant, not concept | D1+D9 |
+| **DONE** | `YOGA_BASIC_RAJA` | §11.7.1, pp.133–134 | General kendra/trikona association | D1 |
+| **DONE** | `YOGA_HARI` | §11.6, p.129 | Split from Raman's combined concept | D1 |
+| **DONE** | `YOGA_HARA` | §11.6, p.129 | Split from Raman's combined concept | D1 |
+| **DONE** | `YOGA_BRAHMA_TRIMURTI` | §11.6, pp.129–130 | First Brahma/Trimurti form; distinct from existing `YOGA_BRAHMA` | D1 |
+| **DONE** | existing `YOGA_PARIJATHA` | §11.6, pp.127–129 | `PVR_CH11_KALPADRUMA` alias/source variant | D1+D9 |
 
 ## Additional PVR variants
 
@@ -148,11 +226,12 @@ Notes on the build:
 1. ~~**Implement the 9 open P0 PVR additions**~~ **DONE 2026-09-17** — `YOGA_MAALA`,
    `YOGA_SUBHA`, `YOGA_ASUBHA`, `YOGA_GURU_MANGALA`, `YOGA_CHAMARA`, `YOGA_KHADGA`,
    `YOGA_LAGNAADHI`, `YOGA_SAARADA`, `YOGA_DHARMA_KARMADHIPATI` — see "P0 closure notes" above.
-2. **Resolve the 4 P1 identity/alias cases** (next up): split `YOGA_HARI`/`YOGA_HARA` out of
+2. ~~**Resolve the P1 identity/alias cases**~~ **DONE 2026-09-25**: split `YOGA_HARI`/`YOGA_HARA` out of
    `YOGA_HARIHARA_BRAHMA`, add `YOGA_BRAHMA_TRIMURTI` (distinct from the existing
    `YOGA_BRAHMA`), evaluate `YOGA_BASIC_RAJA` against Raman 245–263 (reuse the `RajaAssociation`
    helper introduced for `YOGA_DHARMA_KARMADHIPATI`), add the Kalpadruma/Parijata variant row
-   onto existing `YOGA_PARIJATHA`.
+   onto existing `YOGA_PARIJATHA`. Implemented in `PvrChapter11YogaEvaluator` and registered
+   by migration 138; Kalpadruma correctly requires D9 and is `NOT_EVALUATED` when D9 is absent.
 3. ~~**Transcribe the 58 unnamed numbered combinations**~~ **DONE 2026-09-17** (actually 59 —
    see the "Unnamed numbered combinations" section above for the per-block breakdown).
 4. Prepare applicability rows for all of the above but defer database application until

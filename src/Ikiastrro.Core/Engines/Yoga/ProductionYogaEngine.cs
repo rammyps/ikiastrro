@@ -54,7 +54,7 @@ public sealed class ProductionYogaEngine : IYogaEngine
         foreach (var x in RamanProgenyYogaEvaluator.Evaluate(bundle)) Add(x);
         foreach (var x in RamanRajaYogaEvaluator.Evaluate(bundle)) Add(x);
         foreach (var x in RamanAfflictionYogaEvaluator.Evaluate(bundle)) Add(x);
-        foreach (var x in PvrChapter11YogaEvaluator.Evaluate(d1)) Add(x);
+        foreach (var x in PvrChapter11YogaEvaluator.Evaluate(d1, d9)) Add(x);
         foreach (var x in PvrChapter11NumberedYogaEvaluator.Evaluate(bundle)) Add(x);
         foreach (var x in HoroscopeExplorerGapYogaEvaluator.Evaluate(d1)) Add(x);
         foreach (var x in RamanFinalHundredCatalog.Entries()) Add(x);
