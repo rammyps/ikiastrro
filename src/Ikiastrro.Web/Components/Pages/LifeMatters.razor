@@ -71,7 +71,8 @@ else
                     <button type="button" role="listitem"
                             class="lm-step @(step.LifeMatterId == _selectedLifeMatterId ? "is-selected" : "")"
                             @onclick="() => SelectStep(step.LifeMatterId)">
-                        @step.MatterText
+                        <span class="lm-step-text">@step.MatterText</span>
+                        <span class="lm-step-varga">@step.PrimaryChartsText</span>
                     </button>
                 }
             </nav>

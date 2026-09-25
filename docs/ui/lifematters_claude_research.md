@@ -198,7 +198,7 @@ special point.
 | MARRIAGE_SPOUSE_02 | Spouse | D9 | MARRIAGE_RELATIONSHIPS | House(LAGNA,7) |
 | MARRIAGE_SPOUSE_03 | Marital happiness | D9 | MARRIAGE_RELATIONSHIPS | House(LAGNA,7) |
 | MARRIAGE_SPOUSE_04 | Interaction with others | D9 | MARRIAGE_RELATIONSHIPS | House(LAGNA,7) |
-| MARRIAGE_SPOUSE_05 | Sexual / bed pleasures | D9/D16 | AMBIGUOUS compound; MARRIAGE_RELATIONSHIPS or VEHICLES_COMFORTS | House(LAGNA,12) |
+| MARRIAGE_SPOUSE_05 | Sexual / bed pleasures | D9/D16 | **Resolved (`lifematters_plan.md` decision 9): MARRIAGE_RELATIONSHIPS** — stays inside its own category's theme rather than VEHICLES_COMFORTS | House(LAGNA,12) |
 | MARRIAGE_SPOUSE_06 | Public manifestation of marriage | D9/D1 | AMBIGUOUS compound; MARRIAGE_RELATIONSHIPS plausible for D9 half | **SpecialPoint A12** — per the plan's UL/A12 canonicalization, store `A12`, not a 7th-house row and not `UL`. This is the row whose narrative text still says "arudha of the 7th" (migration-087 bug; see the Phase 0A audit) — the focus proposal here is already corrected. |
 | MARRIAGE_SPOUSE_07 | Individual spouse-role | D9 | MARRIAGE_RELATIONSHIPS | House(LAGNA,7) — `HouseFromKarakaText` ('DK himself') is a Planet/Karaka-source concern via `tbl_Rule_KarakaMatter`, not this Focus table |
 
@@ -211,7 +211,7 @@ special point.
 | CHILDREN_03 | Conception / union | D7 | CHILDREN_PROGENY | House(LAGNA,7) |
 | CHILDREN_04 | Fortune of children | D7 | CHILDREN_PROGENY | House(LAGNA,9) |
 | CHILDREN_05 | Gains or fulfilment through children | D7 | CHILDREN_PROGENY | House(LAGNA,11) |
-| CHILDREN_06 | Grandchildren | D7 | CHILDREN_PROGENY | **UNCLEAR** — `'9th from 5th'` is a house-from-house derived reference; the Focus schema (one `ReferencePoint` + one `HouseNumber`) can't express chained derivation directly. 9th-from-5th resolves to the 1st house from Lagna arithmetically, but storing `House(LAGNA,1)` loses the "derived from the 5th" provenance. Needs a project decision before Phase 1A: either extend the schema for derived references, or store the flattened result with an explanatory note. |
+| CHILDREN_06 | Grandchildren | D7 | CHILDREN_PROGENY | **Resolved (`lifematters_plan.md` decision 11): `House(LAGNA,1)`** — the flattened arithmetic result of the `'9th from 5th'` derived reference, with the derivation itself preserved in the seed row's own note rather than a schema extension. |
 
 **CAREER_STATUS** — clean match to `CAREER_STATUS` (D10) except rows 9–10.
 
@@ -255,7 +255,7 @@ special point.
 | TROUBLE_LOSS_06 | Sudden trouble | D8 | NO MATCH | House(LAGNA,8) |
 | TROUBLE_LOSS_07 | Longevity | D1/D8 | NO MATCH; AMBIGUOUS compound chart | House(LAGNA,8) |
 | TROUBLE_LOSS_08 | General troubles | D8/D30 | NO MATCH; AMBIGUOUS compound chart | House(LAGNA,8) |
-| TROUBLE_LOSS_09 | Loss | 'Relevant varga' | AMBIGUOUS — no literal chart code given at all in the source text | House(LAGNA,12) |
+| TROUBLE_LOSS_09 | Loss | 'Relevant varga' | **Resolved (`lifematters_plan.md` decision 9): NO MATCH** — no literal chart code given at all in the source text, so no Subject can be inferred; Focus still seeds independently | House(LAGNA,12) |
 | TROUBLE_LOSS_10 | Hospitalization / confinement | D6/D30 | NO MATCH; AMBIGUOUS compound chart | House(LAGNA,12) |
 | TROUBLE_LOSS_11 | Destruction / death | D11 | NO MATCH | House(LAGNA,8) |
 | TROUBLE_LOSS_12 | Occult knowledge | D8/D20 | NO MATCH; AMBIGUOUS compound chart | House(LAGNA,8) |
@@ -271,6 +271,12 @@ row. Subject mapping is far weaker here — these are single-house natural corre
 matched to any specific Varga, so a "clean" Subject match only exists where a DivisionalSubject's
 own cited house number coincides *and* the theme agrees; a same-house-different-theme coincidence
 is flagged AMBIGUOUS or NO MATCH rather than accepted.
+
+**Resolved (`lifematters_plan.md` decision 10): Subject is never seeded for this batch, clean
+matches included.** Even the rows below marked with a clean-looking Subject name (WEALTH,
+SIBLINGS_COURAGE, PROPERTY_RESIDENCE, CAREER_STATUS) are a generic natural-house correspondence,
+not a claim about a specific divisional chart — seeding a Subject row here would overstate what
+the source actually says. Only Focus seeds from this batch, uniformly.
 
 | House | Matter(s) at this house | Subject proposal |
 |---|---|---|

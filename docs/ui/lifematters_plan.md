@@ -363,4 +363,17 @@ Inference read paths to dossier ingredients — all in `lifematters_claude_resea
 6. Canonical special-point codes only; UL displays over stored A12.
 7. Contribution defaults to `NotEvaluated` without a sourced rule.
 8. Claude remains UI primary; Codex receives only a declared, scoped feature worktree.
+9. Compound/ambiguous `PrimaryChartsText` (e.g. `"D2/D6"`) resolves Subject to whichever half
+   already has a matching `DivisionalSubject`, when exactly one does — never guessed when neither
+   or both plausibly match. `MARRIAGE_SPOUSE_05` ("Sexual / bed pleasures," D9/D16) resolves to
+   `MARRIAGE_RELATIONSHIPS`, staying inside its own category's theme rather than
+   `VEHICLES_COMFORTS`. `TROUBLE_LOSS_09` ("Loss," cited only as `'Relevant varga'`, no literal
+   chart code) resolves to `NO MATCH` for Subject; its Focus row still seeds independently.
+10. The 32-row `PVR_KARAKATWA_GRID` batch seeds Focus only, never Subject. These are single-house
+    natural correspondences with no Varga in PVR's own text — forcing a same-house thematic
+    Subject match would manufacture precision the source doesn't have. Focus stays unambiguous:
+    `House(LAGNA, HouseNumber)` for all 32.
+11. A derived reference the Focus schema can't express directly (`CHILDREN_06`, `'9th from 5th'`)
+    seeds its arithmetically-flattened result (`House(LAGNA, 1)`) with the derivation preserved in
+    the row's own `SourceRefCode`/note, rather than extending the schema for one row.
 

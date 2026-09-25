@@ -40,6 +40,10 @@ Three regions, left to right (stacks vertically under the sub-desktop breakpoint
 
 1. **Picker** — Category (10, from `LifeMatterReferenceRepository.GetCategories`) → Step (96,
    `GetSteps(ruleSetId, categoryCode)`), plus the Varga control (Auto / D1 / Manual — see below).
+   Each Step row also shows its `PrimaryChartsText` (e.g. "D1", "D6/D8") as a small muted tag —
+   already-seeded data (migration 087), displayed verbatim including the compound/free-text
+   values, distinct from and always known even for the Steps the Subject/Focus mapping below
+   can't resolve.
 2. **Chart** — one [`SindHovGrid`](specs_sind_hov_grid.md), fed the resolved Step's focus.
 3. **Evidence cards** — the simplified-column projections (below), stacked, each independently
    loading/empty/error per the plan's explicit-states rule.

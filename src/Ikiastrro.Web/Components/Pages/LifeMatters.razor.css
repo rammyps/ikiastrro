@@ -43,6 +43,10 @@
 }
 
 .lm-step {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
     text-align: left;
     padding: 8px 12px;
     border: 0;
@@ -56,6 +60,10 @@
 .lm-step:hover { background: var(--brand-peach); }
 .lm-step.is-selected { background: var(--brand-sunset); color: var(--brand-midnight); font-weight: 700; }
 .lm-step:focus-visible { outline: 3px solid var(--brand-sunset); outline-offset: -3px; }
+
+.lm-step-text { flex: 1 1 auto; }
+.lm-step-varga { flex: 0 0 auto; color: var(--brand-muted); font-size: var(--font-size-meta); white-space: nowrap; }
+.lm-step.is-selected .lm-step-varga { color: inherit; opacity: 0.75; }
 
 .lm-varga {
     border: 1px solid var(--brand-midnight);
