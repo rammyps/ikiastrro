@@ -1,5 +1,6 @@
 @page "/life-matters/{Id:int}"
 @using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Dignity
 @using Ikiastrro.Core.Engines.PlanetaryStates
 @using Ikiastrro.Core.LifeMatters
 @using Ikiastrro.Core.Models
@@ -21,6 +22,7 @@
 @inject PlanetaryStateRuleRepository PlanetaryStateRuleRepo
 @inject PostureStateInterpretationRepository PostureStateInterpretationRepo
 @inject PlanetaryStrengthRepository PlanetaryStrengthRepo
+@inject YogaEvaluationRepository YogaEvaluationRepo
 @inject ActivePerson Active
 
 @* Phase 3A/3B1 — docs/ui/lifematters_plan.md / docs/ui/components/specs_life_matters_page.md.
@@ -169,6 +171,59 @@ else
             }
         </section>
 
+        <section class="lm-card" aria-label="Relationships">
+            <h2>Relationships (Karakas)</h2>
+            @{ var relationships = KarakaRelationships(displayed); }
+            @if (displayed is null)
+            {
+                <p class="lm-card-empty">No chart displayed.</p>
+            }
+            else if (relationships.Count == 0)
+            {
+                <p class="lm-card-empty">Fewer than two Karaka planets to relate for this matter.</p>
+            }
+            else
+            {
+                <p class="lm-card-note">Compound relationship (Naisargika + Tatkalika, PVR's five-tier
+                    scale) between this matter's Karaka planets, in the currently displayed chart —
+                    <code>DignityEngine.EvaluatePairRelationship</code>, the same computation
+                    dignity/avastha/Ṣaḍbala already use, not a new rule.</p>
+                <table class="lm-house-table">
+                    <thead><tr><th>Planet</th><th>Planet</th><th>Relationship</th></tr></thead>
+                    <tbody>
+                    @foreach (var (a, b, rel) in relationships)
+                    {
+                        <tr><td>@a</td><td>@b</td><td>@(rel ?? "—")</td></tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </section>
+
+        <section class="lm-card" aria-label="Yogas">
+            <h2>Yogas</h2>
+            @if (_yogas.Count == 0)
+            {
+                <p class="lm-card-empty">No yogas evaluated as present in this chart.</p>
+            }
+            else
+            {
+                <p class="lm-card-note">Not yet filtered by relevance to this matter — no yoga row
+                    carries the planets/houses it involves in a structured way today (only free-text
+                    <code>YogaRule</code>/<code>Notes</code>), so this lists every yoga present in the
+                    chart. Narrowing to this matter's Karakas/Focus needs that structured data first.</p>
+                <table class="lm-house-table">
+                    <thead><tr><th>Source</th><th>Yoga</th><th>Type</th><th>Rule</th></tr></thead>
+                    <tbody>
+                    @foreach (var y in _yogas)
+                    {
+                        <tr><td>@y.SourceRefCode</td><td>@y.YogaCode</td><td>@y.YogaTypeCode</td><td>@y.YogaRule</td></tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </section>
+
         <section class="lm-card lm-card-blocked" aria-label="Argala">
             <h2>Argala</h2>
             <p class="lm-card-empty">Not available yet — no repository reads
@@ -210,6 +265,10 @@ else
         new Dictionary<(byte, byte), PostureStateInterpretationRow>();
     private IReadOnlyList<ShadbalaSummaryRow> _shadbala = [];
 
+    // Yogas card — every yoga evaluated Present in this person's chart. Not filtered by
+    // relevance to the selected matter; see the card's own note for why.
+    private IReadOnlyList<YogaEvaluationRow> _yogas = [];
+
     private string _vargaMode = "Auto";
     private string? _manualChartType;
     private string? _lastDisplayedChartType;
@@ -245,6 +304,7 @@ else
             var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
             _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
             _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
+            _yogas = YogaEvaluationRepo.GetByBirthDetailId(Id).Where(y => y.Present == true).ToList();
 
             if (_categories.Count > 0)
                 OnCategorySelected(_categories[0].CategoryCode);
@@ -354,29 +414,56 @@ else
     {
         if (_resolved is null || !_data!.Charts.TryGetValue("D1", out var d1)) return [];
 
-        var planets = _resolved.Karakas
-            .Select(k => ResolveKarakaPlanet(d1, k.KarakaCode))
-            .Where(p => p is not null)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
+        var planets = ResolveKarakaPlanetNames(d1);
         return _planetaryStates.Where(r => planets.Contains(r.Planet)).ToList();
     }
 
+    // Relationships card — compound (Naisargika + Tatkalika) relationship between every pair of
+    // this Step's Karaka planets, using the CURRENTLY DISPLAYED chart's sign placements (unlike
+    // avastha/Shadbala, relationship is chart/varga-specific, not D1-only).
+    private IReadOnlyList<(string PlanetA, string PlanetB, string? Relationship)> KarakaRelationships(LoadedChart? chart)
+    {
+        if (chart is null) return [];
+
+        var planets = ResolveKarakaPlanetNames(chart).ToList();
+        var pairs = new List<(string, string, string?)>();
+        for (var i = 0; i < planets.Count; i++)
+        for (var j = i + 1; j < planets.Count; j++)
+        {
+            var signA = chart.Grahas.FirstOrDefault(g => g.Planet == planets[i])?.Sign;
+            var signB = chart.Grahas.FirstOrDefault(g => g.Planet == planets[j])?.Sign;
+            if (signA is null || signB is null) continue;
+
+            var relationship = DignityEngine.EvaluatePairRelationship(
+                planets[i], planets[j], Enum.Parse<ZodiacName>(signA), Enum.Parse<ZodiacName>(signB));
+            pairs.Add((planets[i], planets[j], relationship));
+        }
+
+        return pairs;
+    }
+
     // KarakaMatterRepository.KarakaCode is "GRAHA_<PLANETNAME>" for a fixed graha or
-    // "KARAKA_<Code>" for a chara karaka (AK/AmK/BK/.../DK) — resolve the latter to whichever
-    // planet actually holds that rank in this person's D1 (ChartKeyDetail.CharaKaraka).
-    private static string? ResolveKarakaPlanet(LoadedChart d1, string karakaCode)
+    // "KARAKA_<Code>" for a chara karaka (AK/AmK/BK/.../DK). Chara karaka rank is D1-derived but
+    // carried onto every chart's own ChartKeyDetail.CharaKaraka (same doc comment as that field),
+    // so this resolves correctly against whichever chart is passed in, not only D1.
+    private IReadOnlySet<string> ResolveKarakaPlanetNames(LoadedChart chart) =>
+        (_resolved?.Karakas ?? [])
+            .Select(k => ResolveKarakaPlanet(chart, k.KarakaCode))
+            .Where(p => p is not null)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase)!;
+
+    private static string? ResolveKarakaPlanet(LoadedChart chart, string karakaCode)
     {
         if (karakaCode.StartsWith("GRAHA_", StringComparison.Ordinal))
         {
             var planetName = karakaCode["GRAHA_".Length..];
-            return d1.Grahas.FirstOrDefault(g => string.Equals(g.Planet, planetName, StringComparison.OrdinalIgnoreCase))?.Planet;
+            return chart.Grahas.FirstOrDefault(g => string.Equals(g.Planet, planetName, StringComparison.OrdinalIgnoreCase))?.Planet;
         }
 
         if (karakaCode.StartsWith("KARAKA_", StringComparison.Ordinal))
         {
             var charaCode = karakaCode["KARAKA_".Length..];
-            return d1.Grahas.FirstOrDefault(g => string.Equals(g.CharaKaraka, charaCode, StringComparison.OrdinalIgnoreCase))?.Planet;
+            return chart.Grahas.FirstOrDefault(g => string.Equals(g.CharaKaraka, charaCode, StringComparison.OrdinalIgnoreCase))?.Planet;
         }
 
         return null;

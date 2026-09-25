@@ -301,7 +301,12 @@ yet), so it remains the before-implementation contract for Phase 3A onward.
   Argala and Arudha are explicitly **blocked**, not built: neither has a read path over its facts
   today (Argala's gap found during this build, correcting `specs_life_matters_page.md`'s and
   `lifematters_claude_research.md`'s prior "ready" claim — see those docs).
-- Phase 3B2: relationships and filtered yogas.
+- Phase 3B2 (complete, yogas narrowed): Relationships built via `DignityEngine.
+  EvaluatePairRelationship` (no repository needed — a reused Core computation) between every pair
+  of the Step's Karaka planets. Yogas built but **not filtered by matter relevance** — no yoga row
+  carries structured planet/house involvement today (only free-text `YogaRule`/`Notes`), so v1
+  lists every yoga present in the chart, labeled as unfiltered rather than faking a text-match
+  filter. See [`specs_life_matters_page.md`](components/specs_life_matters_page.md).
 - Phase 3B3: explicit D1/Varga comparison, projected-point labels, and provenance.
 - Phase 3C: integration, visual, accessibility, viewport, regression, and measured query-count
   verification.
