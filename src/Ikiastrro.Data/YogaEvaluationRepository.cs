@@ -4,7 +4,9 @@ namespace Ikiastrro.Data;
 
 public sealed record YogaEvaluationRow(
     string SourceRefCode, string YogaCode, bool? Present, string EvaluationStatus,
-    string? YogaTypeCode, string? YogaRule, string? Notes);
+    string? YogaTypeCode, string? YogaRule, string? Notes,
+    string SourceVariantCode = "", string? SourceLocator = null,
+    string? YogaSetCode = null, string? YogaSetName = null, string? VariantDisplayName = null);
 
 /// <summary>
 /// Typed read over vw_ChartYogaEvaluations (source-attributed yoga presence/absence,
@@ -23,7 +25,8 @@ public sealed class YogaEvaluationRepository
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         return connection.Query<YogaEvaluationRow>("""
-            SELECT SourceRefCode, YogaCode, Present, EvaluationStatus, YogaTypeCode, YogaRule, Notes
+            SELECT SourceRefCode, SourceVariantCode, SourceLocator, YogaCode, Present, EvaluationStatus,
+                   YogaTypeCode, YogaRule, Notes, YogaSetCode, YogaSetName, VariantDisplayName
             FROM dbo.vw_ChartYogaEvaluations
             WHERE BirthDetailId = @birthDetailId
             ORDER BY SourceRefCode, YogaCode

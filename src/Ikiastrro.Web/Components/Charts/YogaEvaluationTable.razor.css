@@ -3,6 +3,15 @@
 .yg-card-head { padding: 14px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-peach); }
 .yg-card-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; }
 .yg-card-head p { margin: 3px 0 0; color: var(--brand-muted); font-size: .78rem; }
+.yg-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding: 10px 16px; border-bottom: 1px solid var(--brand-line); }
+.yg-controls label { display: grid; gap: 4px; color: var(--brand-muted); font-size: .74rem; }
+.yg-controls input[type="search"] { min-width: min(320px, 70vw); padding: 7px 9px; border: 1px solid var(--brand-line); border-radius: 8px; font: inherit; }
+.yg-controls .yg-toggle { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-bottom: 7px; }
+.yg code { font-size: .72rem; white-space: nowrap; }
+.yg-status { display: inline-flex; padding: 2px 7px; border-radius: 999px; font-size: .7rem; font-weight: 700; }
+.yg-status-present { background: #e3f4e8; color: #176536; }
+.yg-status-absent { background: #f1f2f3; color: var(--brand-muted); }
+.yg-status-pending { background: #fff2cc; color: #795b00; }
 .yg-empty { margin: 0; padding: 18px 16px; color: var(--brand-muted); font-size: .85rem; }
 /* Table format standardized onto "1.1 D1-Birth Chart"'s PlanetPositionsTable (.ppt) reference
    (docs/ui/design-language.md — standard table format, 2026-09-22). */

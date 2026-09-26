@@ -1,5 +1,6 @@
 ---
-last_updated: 2026-09-18
+last_updated: 2026-09-27
+reflects: variant-aware yoga UI and LifeMatter prioritization through migrations 148-149
 workstream: ui
 component: YogaEvaluationTable
 route: /key-inference/{id} — step 5 · Yogas
@@ -16,7 +17,36 @@ path ([`../../architecture/domain-contracts.md`](../../architecture/domain-contr
 one exception is the Interpretation column (2026-09-18), which is editorial content, not a
 calculation, and is genuinely editable in the UI (see below).
 
-## As-built (2026-09-18)
+## As-built (updated 2026-09-27)
+
+Migration 148 and the current component replace concept-level deduplication with a
+source-variant view. Every returned `SourceVariantCode` is a separate row, so numbered BVR
+and PVR formations remain independently reviewable. The toolbar provides text search and a
+Show all toggle; by default, present variants are emphasized while catalog/evaluation totals
+remain visible in the header.
+
+The table now renders Set, Yoga, Variant, Status, Rule, Interpretation and Source. Set comes
+from `YogaSetCode`/`YogaSetName`; Variant uses `VariantDisplayName` with
+`SourceVariantCode` as its stable fallback. Status distinguishes Present, Evaluated,
+Partial and Not evaluated rather than collapsing those states into one concept row.
+
+Interpretations resolve in this order: exact source variant, source-level override, then
+generic concept text. Saves include `SourceVariantCode`, which prevents an interpretation
+for one numbered Dhana/Daridra/Raja formation from leaking into another.
+
+Migration 149 adds the related seven-path LifeMatter prioritization model. Each yoga variant
+has seven ranked `tbl_Rule_YogaLifeMatterPath` rows, each directly referencing
+`tbl_Rule_LifeMatterFocus`. `vw_YogaLifeMatter7x7` exposes Area and SA1-SA6; generated rows
+start as `PROPOSED` and can be promoted to `REVIEWED` or `VERIFIED` after source review.
+
+### Coverage snapshot
+
+- 411 active source variants across 235 concepts.
+- 2,877 proposed yoga-to-LifeMatter paths: exactly seven for every active variant.
+- 406 evaluated, 2 partial and 3 not evaluated variants at the implementation snapshot.
+- Matrix scores are research/UI ordering signals, not claims of predictive validity.
+
+## Original as-built state (2026-09-18)
 
 One table, "Yogas Present": every `YogaCode` that matched, deduplicated (see below), Type +
 Yoga + Rule + Interpretation + Source columns, sorted Type-first.

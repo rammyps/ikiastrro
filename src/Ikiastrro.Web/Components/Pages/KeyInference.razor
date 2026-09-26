@@ -626,7 +626,7 @@ else
         _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
 
     private void SaveInterpretation(YogaEvaluationTable.InterpretationEditRequest request) =>
-        InterpretationRepo.Upsert(1, "YOGA", request.SubjectCode, request.SourceRefCode, request.StandardText, request.ShortText);
+        InterpretationRepo.Upsert(1, "YOGA", request.SubjectCode, request.SourceRefCode, request.StandardText, request.ShortText, request.SourceVariantCode);
 
     private static readonly string[] SignById =
         { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
