@@ -89,19 +89,44 @@ else
    .Select(d=>new PolarGridLagnaSelect.ReferencePoint(d.ReferenceCode,d.ReferenceCode=="LAGNA"?"Sign Lagna":d.ReferenceName,d.ReferenceCode=="LAGNA"?c.AscendantSign:points[d.Abbreviation!])).ToList();
  }
 
- /// <summary>All 4 special lagnas (BL/HL/GL/SL — tbl_Dim_SpecialLagnas) with their computed
- /// position (tbl_Chart_KeyDetails, PointKind='SpecialLagna') and classical signification
- /// (tbl_Dim_HouseReference.Perspective, PVR sec 7.3). Unlike <see cref="BuildReferencePoints"/>
- /// (which only marks Hora/Sree/Ghati on the wheel diagram — Bhaava is PVR "for completeness"
- /// only), this table surfaces all four, previously computed but never shown anywhere.</summary>
- private static IReadOnlyList<SpecialLagnaRow> BuildSpecialLagnaRows(LoadedChart c,IReadOnlyList<LagnaReferenceRow> definitions)
+ /// <summary>All 6 special lagnas — the 4 persisted ones (BL/HL/GL/SL — tbl_Dim_SpecialLagnas,
+ /// tbl_Chart_KeyDetails PointKind='SpecialLagna') plus Paaka Lagna and Karakamsa Lagna, which
+ /// have no persisted point at all (LifeMatters.razor's ResolveReferenceSign established the same
+ /// "no persisted point needed" reasoning, 2026-09-25): Paaka Lagna is just the D1 Lagna lord's
+ /// own placement in whichever chart <paramref name="c"/> is selected, and Karakamsa Lagna is
+ /// always the Atmakaraka's D9 placement specifically — never the selected chart — which is why
+ /// its AppliesInVarga='Navamsa' row only survives the varga filter below when c is D9 anyway.
+ /// Classical signification: tbl_Dim_HouseReference.Perspective, PVR sec 7.3. Unlike
+ /// <see cref="BuildReferencePoints"/> (which only marks Hora/Sree/Ghati on the wheel diagram —
+ /// Bhaava is PVR "for completeness" only, and Paaka/Karakamsa aren't wheel points at all), this
+ /// table surfaces every one of them, several previously computed but never shown anywhere.</summary>
+ private IReadOnlyList<SpecialLagnaRow> BuildSpecialLagnaRows(LoadedChart c,IReadOnlyList<LagnaReferenceRow> definitions)
  {
   var points=c.SpecialPoints.Where(p=>p.PointKind=="SpecialLagna").ToDictionary(p=>p.Planet,StringComparer.OrdinalIgnoreCase);
-  return definitions.Where(d=>d.Abbreviation is not null&&points.ContainsKey(d.Abbreviation))
+  return definitions.Where(d=>d.Abbreviation is not null&&points.ContainsKey(d.Abbreviation)||d.ReferenceCode is "PAAKA_LAGNA" or "KARAKAMSA_LAGNA")
    .Where(d=>d.AppliesInVarga=="Any"||d.AppliesInVarga=="Rasi"&&c.ChartType=="D1"||d.AppliesInVarga=="Navamsa"&&c.ChartType=="D9")
    .OrderBy(d=>d.SortOrder)
-   .Select(d=>{var p=points[d.Abbreviation!];return new SpecialLagnaRow(d.Abbreviation!,d.ReferenceName,p.Sign,p.HouseNumberFromLagna,p.DegreesInSignDisplay??"—",d.Perspective);})
+   .Select(d=>d.ReferenceCode switch
+   {
+    "PAAKA_LAGNA" => PaakaLagnaRow(d,c),
+    "KARAKAMSA_LAGNA" => KarakamsaLagnaRow(d),
+    _ => PersistedSpecialLagnaRow(d,points[d.Abbreviation!]),
+   })
+   .Where(r=>r is not null).Select(r=>r!)
    .ToList();
+ }
+ private static SpecialLagnaRow PersistedSpecialLagnaRow(LagnaReferenceRow d,Ikiastrro.Core.Models.ChartKeyDetail p) =>
+  new(d.Abbreviation!,d.ReferenceName,p.Sign,p.HouseNumberFromLagna,p.DegreesInSignDisplay??"—",d.Perspective);
+ private SpecialLagnaRow? PaakaLagnaRow(LagnaReferenceRow d,LoadedChart c)
+ {
+  var lagnaLord=_data!.Charts["D1"].HouseLords.FirstOrDefault(h=>h.HouseNumber==1)?.LordPlanet;
+  var g=lagnaLord is null?null:c.Grahas.FirstOrDefault(k=>k.Planet==lagnaLord);
+  return g is null?null:new SpecialLagnaRow("PL",d.ReferenceName,g.Sign,g.HouseNumberFromLagna,g.DegreesInSignDisplay??"—",d.Perspective);
+ }
+ private SpecialLagnaRow? KarakamsaLagnaRow(LagnaReferenceRow d)
+ {
+  var g=_data!.Charts.TryGetValue("D9",out var d9)?d9.Grahas.FirstOrDefault(k=>k.CharaKaraka=="AK"):null;
+  return g is null?null:new SpecialLagnaRow("KL",d.ReferenceName,g.Sign,g.HouseNumberFromLagna,g.DegreesInSignDisplay??"—",d.Perspective);
  }
  private sealed record SpecialLagnaRow(string Code,string Name,string Sign,int House,string Degree,string Signifies);
 }

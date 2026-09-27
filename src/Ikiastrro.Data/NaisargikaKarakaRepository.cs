@@ -73,7 +73,7 @@ public sealed class NaisargikaKarakaRepository(SqlConnectionFactory factory)
             SELECT r.ReferenceCode, r.ReferenceName, COALESCE(l.Abbreviation, CASE WHEN r.ReferenceCode = 'ARUDHA_LAGNA' THEN 'AL' END) AS Abbreviation, r.Perspective, r.AppliesInVarga, CAST(r.SortOrder AS INT) AS SortOrder
             FROM dbo.tbl_Dim_HouseReference r
             LEFT JOIN dbo.tbl_Dim_SpecialLagnas l ON l.Id = r.BasisSpecialLagnaId
-            WHERE r.IsActive = 1 AND (r.ReferenceCode IN ('LAGNA', 'ARUDHA_LAGNA') OR r.BasisKind = 'SpecialLagna')
+            WHERE r.IsActive = 1 AND (r.ReferenceCode IN ('LAGNA', 'ARUDHA_LAGNA', 'PAAKA_LAGNA', 'KARAKAMSA_LAGNA') OR r.BasisKind = 'SpecialLagna')
             ORDER BY r.SortOrder
             """).ToList();
         return new(primary, details, lifeMatters, houses, signs, relationships, references);
