@@ -31,8 +31,8 @@ public sealed class YogaEvaluationRepository
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         return connection.Query<YogaEvaluationRow>("""
-            SELECT SourceRefCode, SourceVariantCode, SourceLocator, YogaCode, Present, EvaluationStatus,
-                   YogaTypeCode, YogaRule, Notes, YogaSetCode, YogaSetName, VariantDisplayName
+            SELECT SourceRefCode, YogaCode, Present, EvaluationStatus, YogaTypeCode, YogaRule, Notes,
+                   SourceVariantCode, SourceLocator, YogaSetCode, YogaSetName, VariantDisplayName
             FROM dbo.vw_ChartYogaEvaluations
             WHERE BirthDetailId = @birthDetailId
             ORDER BY SourceRefCode, YogaCode
