@@ -67,7 +67,7 @@ builder.Services.AddScoped<BirthDetailDeletionService>();
 builder.Services.AddScoped<BirthDetailsCsvService>();
 builder.Services.AddScoped<JkdInterchangeService>();
 builder.Services.AddScoped<DatabaseMaintenanceService>();
-builder.Services.AddScoped<IPlaceResolver, NominatimPlaceResolver>();
+builder.Services.AddScoped<IPlaceResolver>(_ => new KnownPlaceResolver(new NominatimPlaceResolver()));
 
 // v2 shell — the person currently opened; read by MainLayout for the header tabs + band.
 builder.Services.AddScoped<Ikiastrro.Web.Components.ActivePerson>();

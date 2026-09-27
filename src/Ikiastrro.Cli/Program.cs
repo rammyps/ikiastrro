@@ -2889,7 +2889,7 @@ string utcOffset, ianaTimeZoneId;
 Console.WriteLine($"\nResolving location \"{placeCity}, {placeCountry}\"...");
 try
 {
-    IPlaceResolver resolver = new NominatimPlaceResolver();
+    IPlaceResolver resolver = new KnownPlaceResolver(new NominatimPlaceResolver());
     var resolved = await resolver.ResolveAsync(placeCity, placeCountry, dateOfBirth);
     latitude = resolved.Latitude;
     longitude = resolved.Longitude;
