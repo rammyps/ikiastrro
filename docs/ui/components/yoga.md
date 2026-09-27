@@ -1,6 +1,6 @@
 ---
 last_updated: 2026-09-27
-reflects: variant-aware yoga UI and LifeMatter prioritization through migrations 148-149
+reflects: variant-aware yoga UI with expandable LifeMatter 7x7 paths through migrations 148-149
 workstream: ui
 component: YogaEvaluationTable
 route: /key-inference/{id} — step 5 · Yogas
@@ -25,10 +25,11 @@ and PVR formations remain independently reviewable. The toolbar provides text se
 Show all toggle; by default, present variants are emphasized while catalog/evaluation totals
 remain visible in the header.
 
-The table now renders Set, Yoga, Variant, Status, Rule, Interpretation and Source. Set comes
-from `YogaSetCode`/`YogaSetName`; Variant uses `VariantDisplayName` with
+The table now renders Set, Yoga, Variant, Status, Rule, Interpretation, Life matters and
+Source. Set comes from `YogaSetCode`/`YogaSetName`; Variant uses `VariantDisplayName` with
 `SourceVariantCode` as its stable fallback. Status distinguishes Present, Evaluated,
 Partial and Not evaluated rather than collapsing those states into one concept row.
+Life matters expands into seven ranked paths with Area/SA1, SA2-SA6 and review status.
 
 Interpretations resolve in this order: exact source variant, source-level override, then
 generic concept text. Saves include `SourceVariantCode`, which prevents an interpretation
@@ -38,6 +39,8 @@ Migration 149 adds the related seven-path LifeMatter prioritization model. Each 
 has seven ranked `tbl_Rule_YogaLifeMatterPath` rows, each directly referencing
 `tbl_Rule_LifeMatterFocus`. `vw_YogaLifeMatter7x7` exposes Area and SA1-SA6; generated rows
 start as `PROPOSED` and can be promoted to `REVIEWED` or `VERIFIED` after source review.
+`YogaEvaluationRepository.GetLifeMatterPathsByBirthDetailId` joins the matrix to the chart's
+evaluated variants and `KeyInference` passes the typed rows to the component.
 
 ### Coverage snapshot
 
@@ -116,6 +119,7 @@ the shared `EditIconButton`/`ConfirmDialog` components (`Components/Shared`), sa
 `tests/Ikiastrro.Web.Tests` — `YogaEvaluationTableTests` (bUnit): Notes/Lagna-lord render only
 when present, Interpretation resolves source-specific-then-generic, and the edit → confirm →
 save flow round-trips through `OnSaveInterpretation` without touching a repository (the
-component takes no DB dependency, so this is a pure presentational test). No regression in
+component takes no DB dependency, so this is a pure presentational test). The matrix test
+verifies seven ranked paths bind only to their matching source variant and expose SA6. No regression in
 `verify-*` (evaluation itself is still read-only). Counts reconciled against the yoga engine's
 own CLI output.

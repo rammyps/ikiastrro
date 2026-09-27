@@ -100,4 +100,28 @@ public sealed class YogaEvaluationTableTests : BunitContext
         // Optimistic local update shows the new text immediately, without waiting on the page to re-fetch.
         Assert.Contains("A conservative interpretation.", cut.Markup);
     }
+
+    [Fact]
+    public void RendersSevenRankedLifeMatterPathsForTheMatchingVariant()
+    {
+        var rows = new[]
+        {
+            new YogaEvaluationRow("SRC_PVR_INTEGRATED", "YOGA_DHANA", true, "EVALUATED", "LAGNA",
+                "Wealth combination", null, "PVR_CH11_DHANA_ARIES")
+        };
+        var paths = Enumerable.Range(1, 7).Select(rank => new YogaLifeMatterPathRow(
+            "SRC_PVR_INTEGRATED", "PVR_CH11_DHANA_ARIES", "YOGA_DHANA", (byte)rank,
+            "Wealth and financial matters", $"Wealth path {rank}", "Wealth", "House",
+            "LAGNA", "House 2", "Jupiter", .8m - rank / 100m, "PROPOSED")).ToArray();
+
+        var cut = Render<YogaEvaluationTable>(p => p
+            .Add(x => x.Rows, rows)
+            .Add(x => x.LifeMatterPaths, paths));
+
+        Assert.Contains("7 ranked paths", cut.Markup);
+        Assert.Equal(7, cut.FindAll(".yg-path").Count);
+        Assert.Contains("Wealth path 1", cut.Markup);
+        Assert.Contains("Jupiter", cut.Markup);
+        Assert.DoesNotContain("Wealth path 8", cut.Markup);
+    }
 }

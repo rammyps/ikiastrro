@@ -1,8 +1,8 @@
 ---
-last_updated: 2026-09-16
+last_updated: 2026-09-27
 workstream: database
 togaf: C — Data Architecture
-reflects: UI table components as of master @ b6603ba + the planned Key Inference 6-step flow (round 2, mockup only); Yoga Type/Rule DB-backed as of db/079; Ashtakavarga live as of b6603ba; YogaEvaluationRepository + Amsabala fact layer (db/101) added, repositories ready, UI pending
+reflects: yoga source-variant UI and LifeMatter 7x7 matrix through migrations 148-149
 ---
 
 # Database — view catalogue (UI table ⇄ view binding)
@@ -60,7 +60,7 @@ read-only, no recompute.
 | 3 · Strength | `vw_ChartShadbala` (%-of-minimum/composition bar inline in 3.1's table) | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` (3.1) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (3.2) | `PlanetaryStrengthRepository`/`BhavaStrengthRepository` (new `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`, `PlanetStrengthChart`/`HouseStrengthChart`) | built 2026-09-14; first UI consumer of both views outside `AstrologerEvidenceRepository`'s generic dynamic-row dump |
 | 4 · Planet-Chart | derived: Vaiśeṣikāṁśa stacked bar, from `tbl_Chart_KeyDetails.DignityStatus` over 16 vargas | `tbl_Chart_KeyDetails.Sign` across the 16 divisional `ChartType`s (Ṣoḍaśavarga grid) | `ChartKeyDetailsRepository` | Vargottama (`tbl_Fact_Vargottama`) + Varga-Dignity highlights are inline tags, not tables |
 | 5 · Ashtakavarga | `vw_ChartAshtakavarga` (SAV bar) | `vw_ChartAshtakavarga` (BAV grid) + `tbl_Fact_AshtakavargaPinda` (Piṇḍa) | `AshtakavargaRepository` (read + write, merged onto `master` `b6603ba` 2026-09-16) | live — `verify-ashtakavarga` all-pass; every saved person backfilled via `recompute-keydetails` |
-| 6 · Yoga | `vw_ChartYogaEvaluations` aggregate (coverage donut) | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) | `YogaEvaluationRepository` (new, typed `GetByBirthDetailId`, 2026-09-16) — previously only `AstrologerEvidenceRepository`'s generic dynamic-row query | **Type** (`YogaTypeCode`) + **Rule** (`YogaRule`) are DB-backed as of `db/079` — `tbl_Rule_Yoga.FormationFamilyCode`/`ShortFormationRule`, one row per YogaCode, left-joined in; `SourceVariantCode` dropped from display. Data already live (compute wired into `ChartGenerationService` since before this pass); repository built, UI tab still pending (Key Inference Phase 2) |
+| 5 · Yoga | `YogaEvaluationTable` | `vw_ChartYogaEvaluations` + `vw_YogaLifeMatter7x7` | `YogaEvaluationRepository.GetByBirthDetailId` + `GetLifeMatterPathsByBirthDetailId` | Source-variant rows expose Set/Yoga/Variant/Status/Rule/Interpretation/Source; expandable Life matters renders seven ranked Area→SA1→…→SA6 paths per variant. Migrations `148`–`149`; UI live in Key Inference. |
 | 3.4 · Amsabala | — | `vw_ChartAmsabala` (per-planet named amsa across 4 varga-group schemes) | `AmsabalaRepository` (new, `db/101`, 2026-09-16) | Distinct from Vimśopaka Bala (`tbl_Rule_VimsopakaWeight`, still empty/reserved — PVR never publishes its numeric weight table, a separate open sourcing gap). Amsabala is the amsa-naming layer only, verified against PVR's worked Example 27 in `AmsabalaCalculatorTests`. Every saved person backfilled via `recompute-keydetails`; UI sub-tab pending (Key Inference Phase 2) |
 
 `Chara Karaka` (`tbl_Chart_KeyDetails.CharaKaraka`, D1) moved from its own sub-tab into the

@@ -8,6 +8,12 @@ public sealed record YogaEvaluationRow(
     string SourceVariantCode = "", string? SourceLocator = null,
     string? YogaSetCode = null, string? YogaSetName = null, string? VariantDisplayName = null);
 
+public sealed record YogaLifeMatterPathRow(
+    string SourceRefCode, string SourceVariantCode, string YogaCode, byte PathRank,
+    string Area, string SubArea1, string SubArea2, string SubArea3,
+    string SubArea4, string SubArea5, string SubArea6,
+    decimal RelevanceScore, string ReviewStatusCode);
+
 /// <summary>
 /// Typed read over vw_ChartYogaEvaluations (source-attributed yoga presence/absence,
 /// db/053 + db/079's YogaTypeCode/YogaRule columns). Previously only reachable through
@@ -30,6 +36,23 @@ public sealed class YogaEvaluationRepository
             FROM dbo.vw_ChartYogaEvaluations
             WHERE BirthDetailId = @birthDetailId
             ORDER BY SourceRefCode, YogaCode
+            """, new { birthDetailId }).ToList();
+    }
+
+    public IReadOnlyList<YogaLifeMatterPathRow> GetLifeMatterPathsByBirthDetailId(int birthDetailId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        return connection.Query<YogaLifeMatterPathRow>("""
+            SELECT DISTINCT m.SourceRefCode, m.SourceVariantCode, m.YogaCode, m.PathRank,
+                   m.Area, m.SubArea1, m.SubArea2, m.SubArea3, m.SubArea4, m.SubArea5, m.SubArea6,
+                   m.RelevanceScore, m.ReviewStatusCode
+            FROM dbo.vw_YogaLifeMatter7x7 m
+            JOIN dbo.vw_ChartYogaEvaluations y
+              ON y.RuleSetId = m.RuleSetId
+             AND y.SourceRefCode = m.SourceRefCode
+             AND y.SourceVariantCode = m.SourceVariantCode
+            WHERE y.BirthDetailId = @birthDetailId
+            ORDER BY m.SourceRefCode, m.SourceVariantCode, m.PathRank
             """, new { birthDetailId }).ToList();
     }
 }

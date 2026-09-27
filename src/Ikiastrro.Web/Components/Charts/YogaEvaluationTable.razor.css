@@ -27,7 +27,25 @@
 .yg-notes { margin-top: 4px; color: var(--brand-muted); font-size: .74rem; }
 .yg-interp { display: flex; align-items: flex-start; gap: 6px; max-width: 260px; }
 .yg-interp-empty { color: var(--brand-muted); }
+.yg-matters { min-width: 190px; }
+.yg-matters summary { color: var(--brand-midnight); font-weight: 700; cursor: pointer; white-space: nowrap; }
+.yg-matrix { width: min(560px, 76vw); margin-top: 8px; display: grid; gap: 7px; }
+.yg-path { display: grid; grid-template-columns: 24px minmax(135px, .8fr) minmax(230px, 1.4fr); gap: 8px; padding: 8px; border: 1px solid var(--brand-line); border-radius: 8px; background: var(--brand-surface); }
+.yg-path-rank { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--brand-peach); font-weight: 800; font-size: .72rem; }
+.yg-path strong, .yg-path span, .yg-path small { display: block; }
+.yg-path strong { font-size: .76rem; }
+.yg-path span { margin-top: 2px; color: var(--brand-midnight); font-size: .73rem; }
+.yg-path small { margin-top: 3px; color: var(--brand-muted); font-size: .65rem; text-transform: uppercase; letter-spacing: .04em; }
+.yg-path dl { margin: 0; display: grid; gap: 2px; }
+.yg-path dl div { display: grid; grid-template-columns: 28px 1fr; gap: 4px; }
+.yg-path dt { color: var(--brand-muted); font-size: .65rem; font-weight: 700; }
+.yg-path dd { margin: 0; font-size: .68rem; }
 @media (max-width: 620px) { .yg-card-head { padding: 12px; } }
+@media (max-width: 760px) {
+    .yg-matrix { width: min(420px, 82vw); }
+    .yg-path { grid-template-columns: 24px 1fr; }
+    .yg-path dl { grid-column: 2; }
+}
 
 .yg-edit-backdrop {
     position: fixed; inset: 0; background: rgba(20, 16, 12, .45);
