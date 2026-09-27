@@ -366,14 +366,35 @@ else
                 k.Planet, ChartViewModel.DignityToken(k.DignityStatus),
                 k.IsRetrograde ?? false, k.IsCombust ?? false)).ToList());
 
-    // Scoped to Arudha padas only (canonical A1..A12/AL) — the codes LifeMatter Focus rows can
-    // actually target (LifeMatterFocusResolver.IsCanonicalSpecialPointCode). Special lagnas
-    // (HL/GL/SL/BL/PS) and Graha Arudhas are a full chart's job (SouthIndianGrid_Detailed/
-    // _Micro elsewhere), not this simplified grid's.
-    private static IReadOnlyDictionary<string, IReadOnlyList<string>> SpecialPointsBySign(LoadedChart chart) =>
-        chart.SpecialPoints.Where(k => k.PointKind == "Arudha")
+    // Scoped to Arudha padas (canonical A1..A12/AL) plus, when a Step's own Focus targets it, the
+    // one resolved "GA_AK" Graha Arudha point (LifeMatterFocusResolver.IsCanonicalSpecialPointCode)
+    // — SELF_IDENTITY_04 "what I think of the world" (2026-09-25). Special lagnas (HL/GL/SL/BL/PS)
+    // and the other 8 Graha Arudhas stay a full chart's job (SouthIndianGrid_Detailed/_Micro
+    // elsewhere), not this simplified grid's — only the single graha a Step actually asks for.
+    private IReadOnlyDictionary<string, IReadOnlyList<string>> SpecialPointsBySign(LoadedChart chart)
+    {
+        var bySign = chart.SpecialPoints.Where(k => k.PointKind == "Arudha")
             .GroupBy(k => k.Sign)
             .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(k => k.Planet).ToList());
+
+        if (!SpecialPointFocusCodes().Contains("GA_AK", StringComparer.Ordinal))
+            return bySign;
+
+        var akPlanet = chart.Grahas.FirstOrDefault(g => g.CharaKaraka == "AK")?.Planet;
+        var gaPoint = akPlanet is null
+            ? null
+            : chart.SpecialPoints.FirstOrDefault(p => p.PointKind == "GrahaArudha" && p.Planet == $"GA_{akPlanet}");
+        if (gaPoint is null)
+            return bySign;
+
+        // Drawn as the literal "GA_AK" code (matching SindHovGrid's plain "AL"/"A5" convention),
+        // not the resolved planet — keeping it identical to the Focus row's own SpecialPointCode
+        // is what lets SindHovGrid's own SpecialPointFocusCodes.Contains(...) highlight match.
+        var merged = new Dictionary<string, IReadOnlyList<string>>(bySign);
+        var existing = merged.TryGetValue(gaPoint.Sign, out var codes) ? codes : Array.Empty<string>();
+        merged[gaPoint.Sign] = existing.Append("GA_AK").ToList();
+        return merged;
+    }
 
     private IReadOnlyList<SindHovHouseFocus> HouseFoci(LoadedChart chart) =>
         (_resolved?.HouseAndSpecialPointFoci ?? [])
@@ -390,13 +411,20 @@ else
             .ToList();
 
     // Resolves a tbl_Dim_HouseReference ReferencePoint to a concrete sign in the CURRENTLY
-    // DISPLAYED chart. Only the references this project already computes and persists as real
-    // positions are resolvable in v1 (Lagna, Chandra/Ravi Lagna, and the three PVR special
-    // lagnas + Sree Lagna); Paaka Lagna, Karakamsa Lagna, and the seven Graha Lagnas are a later
-    // pass. An unresolvable reference silently drops that one focus row rather than throwing —
-    // consistent with "no row means focus not yet structured," applied per-reference instead of
-    // per-matter.
-    private static string? ResolveReferenceSign(LoadedChart chart, string referenceCode) => referenceCode switch
+    // DISPLAYED chart. "Planet"-basis references (Chandra/Ravi Lagna, the 7 Graha Lagnas, db/32)
+    // need no persisted SpecialPoint at all — they're just that graha's own already-known
+    // position, same as KarakaPolarWheel never asked for them as points either (confirmed
+    // 2026-09-25: neither table nor any chart-fact expects a Paaka/Karakamsa/Graha-Lagna degree,
+    // only a sign lookup). Paaka Lagna ("LagnaLord" basis, PVR sec 7.3.5) is one indirection
+    // further: the sign of WHOEVER rules D1's own Lagna (fixed per person), read in whichever
+    // chart is displayed - same "special lagnas are reference points projected into every varga"
+    // convention (pvr-coverage.md ch.7) the others already use. Karakamsa Lagna ("KarakaInVarga"
+    // basis, PVR sec 7.3.6) is the one genuine exception: by definition it's always the
+    // Atmakaraka's sign IN D9 specifically, never the displayed chart - hence the explicit
+    // `_data!.Charts["D9"]` lookup instead of `chart`. An unresolvable reference silently drops
+    // that one focus row rather than throwing - consistent with "no row means focus not yet
+    // structured," applied per-reference instead of per-matter.
+    private string? ResolveReferenceSign(LoadedChart chart, string referenceCode) => referenceCode switch
     {
         "LAGNA" => chart.AscendantSign,
         "CHANDRA_LAGNA" => chart.MoonSign,
@@ -405,8 +433,21 @@ else
         "HORA_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "HL")?.Sign,
         "GHATI_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "GL")?.Sign,
         "SREE_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "SL")?.Sign,
+        "PAAKA_LAGNA" => ResolvePaakaLagnaSign(chart),
+        "KARAKAMSA_LAGNA" => ResolveKarakamsaLagnaSign(),
+        var code when code.StartsWith("GRAHA_LAGNA_", StringComparison.Ordinal) =>
+            chart.Grahas.FirstOrDefault(g => string.Equals(g.Planet, code["GRAHA_LAGNA_".Length..], StringComparison.OrdinalIgnoreCase))?.Sign,
         _ => null
     };
+
+    private string? ResolvePaakaLagnaSign(LoadedChart chart)
+    {
+        var lagnaLord = _data!.Charts["D1"].HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
+        return lagnaLord is null ? null : chart.Grahas.FirstOrDefault(g => g.Planet == lagnaLord)?.Sign;
+    }
+
+    private string? ResolveKarakamsaLagnaSign() =>
+        _data!.Charts.TryGetValue("D9", out var d9) ? d9.Grahas.FirstOrDefault(g => g.CharaKaraka == "AK")?.Sign : null;
 
     private IReadOnlyList<ChartKeyDetail> D1KeyDetails => _data!.Charts["D1"].KeyDetails;
 

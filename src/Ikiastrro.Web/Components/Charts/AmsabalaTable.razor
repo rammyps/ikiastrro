@@ -71,8 +71,8 @@
                                     <tbody>
                                         @foreach (var lordRow in VargaLords(r.PlanetCode))
                                         {
-                                            <tr>
-                                                <th>@lordRow.ChartType</th>
+                                            <tr class="@(lordRow.ChartType.Equals(SelectedChart, StringComparison.OrdinalIgnoreCase) ? "is-selected-chart" : null)">
+                                                <th><button type="button" class="am-lord-chart" title="Show @lordRow.ChartType on the chart above" @onclick="() => SelectChart(lordRow.ChartType)">@lordRow.ChartType</button></th>
                                                 <td>@Disp(lordRow.Sign)</td>
                                                 <td>@(lordRow.Lord ?? "—")</td>
                                                 <td>@(lordRow.DignityStatus ?? "—")</td>
@@ -101,6 +101,22 @@
     [Parameter, EditorRequired] public IReadOnlyList<AmsabalaGroupMember> Groups { get; set; } = Array.Empty<AmsabalaGroupMember>();
     [Parameter, EditorRequired] public IReadOnlyList<VargottamaRow> Vargottama { get; set; } = Array.Empty<VargottamaRow>();
     [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
+
+    /// <summary>Two-way bound to the caller's own chart picker (KeyInference's
+    /// `_natalChart`/`ChartColumn`, same convention AshtakavargaChart established 2026-09-25):
+    /// clicking a Varga row in the expanded detail table below moves the chart shown on the left
+    /// to that divisional chart. Previously this table only ever displayed data — clicking a row
+    /// did nothing beyond toggling the expand/collapse (rammyps, 2026-09-25: "click D6 while
+    /// viewing D24 and the chart doesn't change").</summary>
+    [Parameter] public string SelectedChart { get; set; } = "D1";
+    [Parameter] public EventCallback<string> SelectedChartChanged { get; set; }
+
+    private async Task SelectChart(string chartType)
+    {
+        if (chartType.Equals(SelectedChart, StringComparison.OrdinalIgnoreCase)) return;
+        SelectedChart = chartType;
+        await SelectedChartChanged.InvokeAsync(chartType);
+    }
 
     private static readonly string[] PlanetOrder = { "SUN", "MOON", "MARS", "MERCURY", "JUPITER", "VENUS", "SATURN" };
     private static readonly string[] SchemeOrder = { "VARGOTTAMA", "SHADVARGA", "SAPTAVARGA", "DASAVARGA", "SHODASAVARGA" };

@@ -47,6 +47,12 @@
 .am-detail-table th, .am-detail-table td { padding: 6px 8px; border-bottom: 1px solid var(--brand-line); text-align: left; }
 .am-detail-table thead th { color: var(--brand-muted); font-size: .66rem; text-transform: uppercase; letter-spacing: .03em; }
 .am-detail-table td.mono { font-variant-numeric: tabular-nums; }
+/* Varga-row -> chart-picker link (2026-09-25): each row's chart-type cell is a button that moves
+   the chart shown to the left of this table (same convention as AshtakavargaChart's own picker). */
+.am-lord-chart { all: unset; cursor: pointer; font-weight: 700; border-bottom: 1px dotted var(--brand-muted); }
+.am-lord-chart:hover { color: var(--brand-sunset); border-bottom-color: var(--brand-sunset); }
+.am-detail-table tr.is-selected-chart { background: var(--brand-peach); }
+.am-detail-table tr.is-selected-chart .am-lord-chart { border-bottom-style: solid; }
 .am-key { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: 0; padding: 10px 16px 16px; color: var(--brand-muted); font-size: .72rem; }
 .am-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
 @media (max-width: 620px) { .am-summary { grid-template-columns: 76px 1fr; grid-template-areas: "planet value" "stack stack"; gap: 6px 7px; padding: 9px 10px; } .am-bar-planet { grid-area: planet; } .am-stack { grid-area: stack; } .am-bar-value { grid-area: value; } .am-chevron { display: none; } .am-detail { padding: 0 10px 12px; } }

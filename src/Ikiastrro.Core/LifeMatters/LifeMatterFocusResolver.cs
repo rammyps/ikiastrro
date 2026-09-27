@@ -130,6 +130,14 @@ public sealed class LifeMatterFocusResolver
         if (code == "AL")
             return true;
 
+        // "GA_AK" - a dynamic sentinel, not a fixed graha: resolves per-person at render time to
+        // whichever planet is that chart's own Atmakaraka, then that planet's own GA_<Planet>
+        // Graha Arudha point (see LifeMatters.razor's SpecialPointsBySign). Unlike CharaKarakaCode
+        // on the older tbl_Rule_LifeMatterReference table, tbl_Rule_LifeMatterFocus has no
+        // separate "varies by person" column, so the sentinel lives directly in SpecialPointCode.
+        if (code == "GA_AK")
+            return true;
+
         return code.Length is 2 or 3 &&
                code[0] == 'A' &&
                int.TryParse(code.AsSpan(1), out var house) &&
