@@ -36,8 +36,7 @@ public class PlanetPosition
     /// The planet's longitude remapped into this varga's own 0-360° space (see
     /// <see cref="Astro.AstroMath.GetVargaLongitude"/>), e.g. Navamsa total longitude for D9. Null for
     /// D1 (there's no remapping — <see cref="NirayanaLongitudeDegrees"/> already IS the varga
-    /// longitude). Used by ChartAnalyzer to evaluate combustion relative to this varga's own zodiac
-    /// rather than borrowing the D1 (real) distance to the Sun (2026-08-28 fix).
+    /// longitude). Not used for combustion — that is always evaluated on real longitudes (2026-09-28).
     /// </summary>
     public double? VargaLongitudeDegrees { get; set; }
 

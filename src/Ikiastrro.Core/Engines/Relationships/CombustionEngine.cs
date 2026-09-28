@@ -17,12 +17,9 @@ public record CombustionResult(bool IsCombust, decimal DistanceFromSunDegrees, d
 /// points with no physical orb-of-the-Sun concept in standard Parashari texts, same convention
 /// DignityEngine already applies to their more limited dignity treatment.
 ///
-/// Distance is computed from whichever longitude ChartAnalyzer passes in — the real (D1)
-/// NirayanaLongitudeDegrees for a D1 row, or the varga-remapped VargaLongitudeDegrees for a D9 (or
-/// other divisional) row — so combustion is evaluated within each chart type's own zodiac rather
-/// than a D9 row silently inheriting its D1 counterpart's distance (2026-08-28 fix). This class
-/// itself is longitude-space-agnostic: it just measures separation and applies the orb, whatever
-/// space the two longitudes it's given belong to.
+/// ChartAnalyzer always passes real (D1) NirayanaLongitudeDegrees, for every chart type, so a varga
+/// row inherits its D1 combustion — combustion is astronomical, not a varga-space relationship
+/// (per-varga evaluation from VargaLongitudeDegrees was tried 2026-08-28 and reverted 2026-09-28).
 /// </summary>
 public static class CombustionEngine
 {

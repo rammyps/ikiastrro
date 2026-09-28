@@ -36,15 +36,14 @@ public static class ChartAnalyzer
         var moonSign = Enum.Parse<ZodiacName>(input.Planets.First(p => p.Planet == "Moon").Sign);
         var sunPlanet = input.Planets.First(p => p.Planet == "Sun");
 
-        // Combustion must be evaluated within the chart type actually being analyzed: D1 uses the
-        // Sun's real longitude, but a varga chart (D9, ...) uses the Sun's longitude remapped into
-        // that varga's own 0-360° space — otherwise every varga silently reuses the D1 distance
-        // instead of computing its own (2026-08-28 fix; see VargaLongitudeDegrees on PlanetPosition).
-        var sunCombustionLongitude = isRasiChart
-            ? sunPlanet.NirayanaLongitudeDegrees
-                ?? throw new InvalidOperationException("Chart data for Sun is missing NirayanaLongitudeDegrees.")
-            : sunPlanet.VargaLongitudeDegrees
-                ?? throw new InvalidOperationException($"Chart data for Sun is missing VargaLongitudeDegrees for chart type '{input.ChartType}'.");
+        // Combustion (Asta) is a physical event — the planet lost in the Sun's glare in the real sky —
+        // so it is always evaluated from real (D1) longitudes, and every varga row inherits its D1
+        // result. The earlier (2026-08-28) per-varga evaluation on VargaLongitudeDegrees was wrong
+        // twice over: an N-fold stretched orb has no astronomical meaning, and for non-linear vargas
+        // (D10's odd/even start, D6, D60, ...) that longitude doesn't even match the displayed sign —
+        // GowriShankarC's D10 Venus (Aries) came out "combust" by a Sun in Libra (fixed 2026-09-28).
+        var sunCombustionLongitude = sunPlanet.NirayanaLongitudeDegrees
+            ?? throw new InvalidOperationException("Chart data for Sun is missing NirayanaLongitudeDegrees.");
 
         // All classical planets' current signs, needed by DignityEngine to locate a sign-lord's own
         // position for Panchadha Maitri (temporary friendship depends on where the lord itself sits).
@@ -84,12 +83,8 @@ public static class ChartAnalyzer
             var nakshatraSubLordPlanet = nak.SubLordPlanet;
 
             // Combustion only applies to 6 of the 9 planets (not Sun/Rahu/Ketu) and not the Ascendant.
-            // Same chart-type-relative longitude choice as sunCombustionLongitude above — D1 uses the
-            // real longitude, a varga chart uses its own remapped longitude.
-            var combustionLongitude = isRasiChart
-                ? nirayanaLongitude
-                : planet.VargaLongitudeDegrees
-                    ?? throw new InvalidOperationException($"Chart data for {planet.Planet} is missing VargaLongitudeDegrees for chart type '{input.ChartType}'.");
+            // Real longitude for every chart type — see sunCombustionLongitude above.
+            var combustionLongitude = nirayanaLongitude;
             var combustion = CombustionEngine.IsApplicable(planet.Planet)
                 ? CombustionEngine.Evaluate(planet.Planet, combustionLongitude, sunCombustionLongitude, planet.IsRetrograde)
                 : null;
