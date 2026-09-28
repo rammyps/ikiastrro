@@ -502,13 +502,15 @@ else
     /// from earlier that day were dropped); labels shortened 2026-09-26 ("NATAL CHARTS"/
     /// "TRANSIT CHARTS" -> "NATAL"/"TRANSIT" — the rail reads as steps of one flow, not a list
     /// of noun phrases, so the repeated "CHARTS" was redundant with "ALL CHARTS" already
-    /// present). Because this fragment's markup physically renders inside MainLayout's tree, a
-    /// click there re-renders MainLayout automatically (whoever owns the triggering DOM event
-    /// gets re-rendered), which is enough to repaint the pills' active state; it does NOT also
-    /// re-render this page's own body (the `@if (_masterTab == N)` panels below), so
-    /// <see cref="SelectMaster"/> calls <c>StateHasChanged()</c> explicitly — same
-    /// cross-component pattern <c>ActivePerson.Changed</c>/<c>MainLayout</c> already uses,
-    /// just in the other direction.</summary>
+    /// present). The fragment's markup physically renders inside MainLayout's tree, but its
+    /// <c>@onclick</c> handlers are bound to THIS page (Blazor ties an event callback to the
+    /// component whose .razor file declares it), so a click re-renders only this page's body —
+    /// never MainLayout. That's why the pills' active color used to lag until something else
+    /// re-rendered the layout (e.g. clicking KEY INFERENCE in the app bar again, 2026-09-28
+    /// fix). <see cref="SelectMaster"/> therefore re-hands the rail via
+    /// <c>Active.SetHeaderExtra</c>, whose <c>Changed</c> event makes MainLayout re-render and
+    /// repaint the pills, and also calls <c>StateHasChanged()</c> for this page's own
+    /// <c>@if (_masterTab == N)</c> panels.</summary>
     private static readonly string[] MasterSteps =
     {
         "NATAL",
@@ -524,6 +526,7 @@ else
     {
         if (_masterTab == index) return;
         _masterTab = index;
+        Active.SetHeaderExtra(MasterNav); // repaint the rail's pills in MainLayout
         StateHasChanged();
     }
 
