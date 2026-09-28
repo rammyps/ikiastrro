@@ -8,15 +8,15 @@
 
     @for (var i = 0; i < 27; i++)
     {
-        <path d="@AnnularSector(i * (360d / 27d), (i + 1) * (360d / 27d), 208, 274)"
+        <path d="@AnnularSector(Rotate(i * (360d / 27d)), Rotate((i + 1) * (360d / 27d)), 208, 274)"
               class="@(i % 2 == 0 ? "ntw-nak-sector ntw-nak-sector-orange" : "ntw-nak-sector ntw-nak-sector-blue")" />
     }
 
     @for (var i = 0; i < 27; i++)
     {
         var longitude = i * (360d / 27d);
-        var (x1, y1) = Xy(longitude, 208);
-        var (x2, y2) = Xy(longitude, 274);
+        var (x1, y1) = Xy(Rotate(longitude), 208);
+        var (x2, y2) = Xy(Rotate(longitude), 274);
         <line x1="@F(x1)" y1="@F(y1)" x2="@F(x2)" y2="@F(y2)" class="ntw-nak-boundary" />
     }
 
@@ -25,8 +25,8 @@
         var longitude = i * (360d / 108d);
         var inner = i % 9 == 0 ? 208d : 274d;
         var widthClass = i % 9 == 0 ? "ntw-sign-line" : i % 4 == 0 ? "ntw-nak-line" : "ntw-pada-line";
-        var (x1, y1) = Xy(longitude, inner);
-        var (x2, y2) = Xy(longitude, 338);
+        var (x1, y1) = Xy(Rotate(longitude), inner);
+        var (x2, y2) = Xy(Rotate(longitude), 338);
         <line x1="@F(x1)" y1="@F(y1)" x2="@F(x2)" y2="@F(y2)" class="@widthClass" />
     }
 
@@ -47,7 +47,7 @@
 
     @for (var i = 0; i < Nakshatras.Length; i++)
     {
-        var (x, y) = Xy(i * (360d / 27d) + (360d / 54d), 242);
+        var (x, y) = Xy(Rotate(i * (360d / 27d) + (360d / 54d)), 242);
         <g><text x="@F(x)" y="@F(y)" class="ntw-nak-name">@Nakshatras[i]</text></g>
     }
 
