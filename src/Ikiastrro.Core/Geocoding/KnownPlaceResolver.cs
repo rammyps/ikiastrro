@@ -35,6 +35,8 @@ public class KnownPlaceResolver : IPlaceResolver
         // OSM node 245587589 — Thanjavur, 613001
         new("Thanjavur", "India", 10.7860267, 79.1381497, "Asia/Kolkata"),
         new("Tanjore", "India", 10.7860267, 79.1381497, "Asia/Kolkata"),
+        // OSM node 245589617 — Ariyalur (town), 621704
+        new("Ariyalur", "India", 11.1357708, 79.0723203, "Asia/Kolkata"),
         // OSM node 245588875 — Kumbakonam, 612001
         new("Kumbakonam", "India", 10.9604108, 79.3820861, "Asia/Kolkata"),
         // OSM node 2271360789 — Mayiladuthurai, 609129
