@@ -144,10 +144,22 @@
 
     private void ClosePersonMenu() => _personMenuOpen = false;
 
+    // Switching person keeps you where you are (rammyps, 2026-09-29): on LIFE MATTERS you land
+    // on the new person's LIFE MATTERS, on KEY INFERENCE on theirs, and so on — only the person
+    // id in the route changes. Same route ⇒ Blazor reuses the page instance, so each page's
+    // OnParametersSet reloads the new person's data while in-page state (Key Inference's step,
+    // Life Matters' area/question) is kept. The ?step= query is dropped on purpose: it would
+    // otherwise snap Key Inference back to the step the URL was first opened with.
+    private static readonly System.Text.RegularExpressions.Regex PersonRoute =
+        new(@"^/(key-inference|life-matters|numerology|charts)/\d+(?=/|$)");
+
     private void GoToPerson(int id)
     {
         _personMenuOpen = false;
-        Nav.NavigateTo($"/key-inference/{id}");
+        var m = PersonRoute.Match(CurrentPath);
+        Nav.NavigateTo(m.Success
+            ? $"/{m.Groups[1].Value}/{id}{CurrentPath[m.Length..]}"
+            : $"/key-inference/{id}");
     }
 
     private void GoToPicker()
