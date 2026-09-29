@@ -202,23 +202,33 @@ else
         </section>
 
         <section class="lm-card" aria-label="Yogas">
-            <h2>Yogas</h2>
-            @if (_yogas.Count == 0)
+            <h2>Relevant yogas</h2>
+            @if (_selectedStep is null)
             {
-                <p class="lm-card-empty">No yogas evaluated as present in this chart.</p>
+                <p class="lm-card-empty">Choose a Life Matter step to see its relevant yogas.</p>
+            }
+            else if (RelevantYogas.Count == 0)
+            {
+                <p class="lm-card-empty">No present yogas are mapped to this Life Matter.</p>
             }
             else
             {
-                <p class="lm-card-note">Not yet filtered by relevance to this matter — no yoga row
-                    carries the planets/houses it involves in a structured way today (only free-text
-                    <code>YogaRule</code>/<code>Notes</code>), so this lists every yoga present in the
-                    chart. Narrowing to this matter's Karakas/Focus needs that structured data first.</p>
+                <p class="lm-card-note">Filtered to source variants mapped to
+                    <strong>@_selectedStep.MatterText</strong> by the ranked Yoga × LifeMatter matrix.
+                    Matrix paths remain proposed until source review promotes them.</p>
                 <table class="lm-house-table">
-                    <thead><tr><th>Source</th><th>Yoga</th><th>Type</th><th>Rule</th></tr></thead>
+                    <thead><tr><th>Rank</th><th>Source</th><th>Yoga</th><th>Type</th><th>Rule</th><th>Review</th></tr></thead>
                     <tbody>
-                    @foreach (var y in _yogas)
+                    @foreach (var item in RelevantYogas)
                     {
-                        <tr><td>@y.SourceRefCode</td><td>@y.YogaCode</td><td>@y.YogaTypeCode</td><td>@y.YogaRule</td></tr>
+                        <tr>
+                            <td>@item.Path.PathRank</td>
+                            <td>@item.Yoga.SourceRefCode</td>
+                            <td>@item.Yoga.YogaCode</td>
+                            <td>@item.Yoga.YogaTypeCode</td>
+                            <td>@item.Yoga.YogaRule</td>
+                            <td>@item.Path.ReviewStatusCode</td>
+                        </tr>
                     }
                     </tbody>
                 </table>
@@ -266,9 +276,31 @@ else
         new Dictionary<(byte, byte), PostureStateInterpretationRow>();
     private IReadOnlyList<ShadbalaSummaryRow> _shadbala = [];
 
-    // Yogas card — every yoga evaluated Present in this person's chart. Not filtered by
-    // relevance to the selected matter; see the card's own note for why.
+    // Yoga rows and the ranked Yoga × LifeMatter matrix are loaded once per person. The selected
+    // Step filters by exact source-variant identity, so similarly named variants cannot leak in.
     private IReadOnlyList<YogaEvaluationRow> _yogas = [];
+    private IReadOnlyList<YogaLifeMatterPathRow> _yogaLifeMatterPaths = [];
+
+    private IReadOnlyList<(YogaEvaluationRow Yoga, YogaLifeMatterPathRow Path)> RelevantYogas
+    {
+        get
+        {
+            if (_selectedStep is null) return [];
+
+            var paths = _yogaLifeMatterPaths
+                .Where(p => string.Equals(p.SubArea1, _selectedStep.MatterText, StringComparison.OrdinalIgnoreCase))
+                .GroupBy(p => (p.SourceRefCode, p.SourceVariantCode))
+                .ToDictionary(g => g.Key, g => g.OrderBy(p => p.PathRank).First());
+
+            return _yogas
+                .Where(y => paths.ContainsKey((y.SourceRefCode, y.SourceVariantCode)))
+                .Select(y => (Yoga: y, Path: paths[(y.SourceRefCode, y.SourceVariantCode)]))
+                .OrderBy(x => x.Path.PathRank)
+                .ThenByDescending(x => x.Path.RelevanceScore)
+                .ThenBy(x => x.Yoga.YogaCode)
+                .ToList();
+        }
+    }
 
     private string _vargaMode = "Auto";
     private string? _manualChartType;
@@ -306,6 +338,7 @@ else
             _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
             _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
             _yogas = YogaEvaluationRepo.GetByBirthDetailId(Id).Where(y => y.Present == true).ToList();
+            _yogaLifeMatterPaths = YogaEvaluationRepo.GetLifeMatterPathsByBirthDetailId(Id);
 
             if (_categories.Count > 0)
                 OnCategorySelected(_categories[0].CategoryCode);

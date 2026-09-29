@@ -27,12 +27,11 @@
         {
             <div class="yg-table-scroll">
                 <table>
-                    <thead><tr><th>Set</th><th>Yoga</th><th>Variant</th><th>Status</th><th>Rule</th><th>Interpretation</th><th>Life matters</th><th>Source</th></tr></thead>
+                    <thead><tr><th>Set</th><th>Yoga</th><th>Variant</th><th>Status</th><th>Rule</th><th>Interpretation</th><th>Source</th></tr></thead>
                     <tbody>
                         @foreach (var r in DisplayRows)
                         {
                             var interp = Resolve(r);
-                            var paths = PathsFor(r);
                             <tr>
                                 <td>@(r.YogaSetName ?? r.YogaTypeCode ?? "—")</td>
                                 <td>@DisplayYoga(r.YogaCode)</td>
@@ -60,38 +59,6 @@
                                     }
                                     <EditIconButton Title="@($"Edit interpretation for {DisplayYoga(r.YogaCode)} ({DisplaySource(r.SourceRefCode)})")"
                                                      OnClick="() => StartEdit(r, interp)" />
-                                </td>
-                                <td class="yg-matters">
-                                    @if (paths.Count == 0)
-                                    {
-                                        <span class="yg-interp-empty">—</span>
-                                    }
-                                    else
-                                    {
-                                        <details>
-                                            <summary>@paths.Count ranked paths</summary>
-                                            <div class="yg-matrix" role="table" aria-label="LifeMatter paths for @r.SourceVariantCode">
-                                                @foreach (var path in paths)
-                                                {
-                                                    <div class="yg-path" role="row">
-                                                        <div class="yg-path-rank" title="Relevance @path.RelevanceScore.ToString("0.000")">@path.PathRank</div>
-                                                        <div>
-                                                            <strong>@path.Area</strong>
-                                                            <span>@path.SubArea1</span>
-                                                            <small>@path.ReviewStatusCode.ToLowerInvariant()</small>
-                                                        </div>
-                                                        <dl>
-                                                            <div><dt>SA2</dt><dd>@path.SubArea2</dd></div>
-                                                            <div><dt>SA3</dt><dd>@path.SubArea3</dd></div>
-                                                            <div><dt>SA4</dt><dd>@path.SubArea4</dd></div>
-                                                            <div><dt>SA5</dt><dd>@path.SubArea5</dd></div>
-                                                            <div><dt>SA6</dt><dd>@path.SubArea6</dd></div>
-                                                        </dl>
-                                                    </div>
-                                                }
-                                            </div>
-                                        </details>
-                                    }
                                 </td>
                                 <td class="yg-source">
                                     <div>@DisplaySource(r.SourceRefCode)</div>
@@ -141,7 +108,6 @@
 
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<YogaEvaluationRow> Rows { get; set; } = Array.Empty<YogaEvaluationRow>();
-    [Parameter] public IReadOnlyList<YogaLifeMatterPathRow> LifeMatterPaths { get; set; } = Array.Empty<YogaLifeMatterPathRow>();
     [Parameter] public string? LagnaLordPlanet { get; set; }
     [Parameter] public IReadOnlyList<InterpretationRow> Interpretations { get; set; } = Array.Empty<InterpretationRow>();
     [Parameter] public EventCallback<InterpretationEditRequest> OnSaveInterpretation { get; set; }
@@ -188,11 +154,6 @@
 
     private static string DisplaySource(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(
         code.Replace("SRC_", "", StringComparison.OrdinalIgnoreCase).Replace('_', ' ').ToLowerInvariant());
-
-    private IReadOnlyList<YogaLifeMatterPathRow> PathsFor(YogaEvaluationRow row) => LifeMatterPaths
-        .Where(p => p.SourceRefCode == row.SourceRefCode && p.SourceVariantCode == row.SourceVariantCode)
-        .OrderBy(p => p.PathRank)
-        .ToList();
 
     // Locally-saved edits take precedence over what the page passed in via Interpretations, so a
     // save shows immediately without waiting on the parent page to re-fetch and re-render.
