@@ -5,11 +5,11 @@ using Ikiastrro.Core.Models;
 namespace Ikiastrro.Core.Engines.Karakas;
 
 /// <summary>Computes every special point's D1 longitude for a person: AL + the 12 Bhava
-/// Arudhas (A2–A12), all 9 Graha Arudhas (GA_Sun..GA_Ketu), all 4 special lagnas (Bhaava/Hora/
-/// Ghati/Sree — tbl_Dim_SpecialLagnas, db/28, all built as of 2026-09-13), Punya Saham (PS —
-/// PVR sec 28.8 Table 74, migration 111), and all eleven upagrahas when rules are supplied.
-/// The compatibility API without rules returns only Gulika/Maandi. Points are projected into
-/// every varga by SpecialPointProjector.</summary>
+/// Arudhas (A2–A12), all 9 Graha Arudhas (GA_Sun..GA_Ketu), all 6 special lagnas (Bhaava/Hora/
+/// Ghati/Sree — tbl_Dim_SpecialLagnas, db/28, built 2026-09-13 — plus Indu/Pranapada, db/150),
+/// Punya Saham (PS — PVR sec 28.8 Table 74, migration 111), and all eleven upagrahas when rules
+/// are supplied. The compatibility API without rules returns only Gulika/Maandi. Points are
+/// projected into every varga by SpecialPointProjector.</summary>
 public static class SpecialPointCalculator
 {
     public static IReadOnlyList<SpecialPointSeed> ComputeSeeds(
@@ -27,6 +27,10 @@ public static class SpecialPointCalculator
         seeds.Add(SreeLagnaCalculator.Compute(
             d1.Planets.Single(p => p.Planet == "Ascendant").NirayanaLongitudeDegrees!.Value,
             d1.Planets.Single(p => p.Planet == "Moon").NirayanaLongitudeDegrees!.Value));
+        seeds.Add(InduLagnaCalculator.Compute(
+            d1.Planets.Single(p => p.Planet == "Ascendant").NirayanaLongitudeDegrees!.Value,
+            d1.Planets.Single(p => p.Planet == "Moon").NirayanaLongitudeDegrees!.Value));
+        seeds.Add(PranapadaLagnaCalculator.Compute(birthDetails, sun, ayanamsa));
         seeds.Add(PunyaSahamCalculator.Compute(
             d1.Planets.Single(p => p.Planet == "Sun").NirayanaLongitudeDegrees!.Value,
             d1.Planets.Single(p => p.Planet == "Moon").NirayanaLongitudeDegrees!.Value,
