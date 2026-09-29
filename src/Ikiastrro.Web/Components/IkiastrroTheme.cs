@@ -17,7 +17,7 @@ public static class IkiastrroTheme
 {
     private const string Canvas = "#FAF5EA";   // --brand-canvas
     private const string Midnight = "#0F2041"; // --brand-midnight
-    private const string Sunset = "#F47A24";   // --brand-sunset
+    private const string Sunrise = "#FCD7BD";  // --brand-sunrise
     private const string Line = "#D9D1C7";     // --brand-line
     private const string Muted = "#53698D";    // --brand-muted
 
@@ -25,13 +25,13 @@ public static class IkiastrroTheme
     {
         PaletteLight = new PaletteLight
         {
-            Primary = Sunset,
+            Primary = Sunrise,
             PrimaryContrastText = Midnight,
             Secondary = Midnight,
             Background = Canvas,
             BackgroundGray = Canvas,
             Surface = Canvas,
-            AppbarBackground = Sunset,
+            AppbarBackground = Sunrise,
             AppbarText = Midnight,
             DrawerBackground = Canvas,
             DrawerText = Midnight,

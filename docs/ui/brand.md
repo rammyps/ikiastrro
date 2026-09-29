@@ -15,7 +15,7 @@ colour relationships, typography, Navagraha/Ganesha composition and footer.
 
 **Iki-Astrro | Where Passion, Purpose & Planets Align.**
 
-- `Iki-Astrro` — sunset orange. The pipe — midnight blue. The tagline — midnight blue,
+- `Iki-Astrro` — midnight blue. The pipe — midnight blue. The tagline — midnight blue,
   standard interface typography (not a display-serif element).
 - Do not replace the pipe with a decorative divider or change the tagline copy.
 
@@ -28,7 +28,7 @@ Interface colours use these tokens; illustration colours may vary within the art
 | Warm canvas (background, quiet space) | `--brand-canvas` | `#FAF5EA` |
 | Raised canvas (fields, rows, elevated) | `--brand-surface` | `#FFFDFC` |
 | Midnight blue (headings, body, nav, action fills) | `--brand-midnight` | `#0F2041` |
-| Sunset orange (brand name, borders, emphasis, action text) | `--brand-sunset` | `#F47A24` |
+| Sunrise orange (the accent: app bar, footer, action/selected fills, outlines, row-hover — fill only, never text on the canvas) | `--brand-sunrise` | `#FCD7BD` |
 | Warm line (dividers) | `--brand-line` | `#D9D1C7` |
 | Muted blue (placeholders, secondary metadata) | `--brand-muted` | `#53698D` |
 | Soft peach (avatars, low-emphasis orange tint) | `--brand-peach` | `#FFF0E5` |
@@ -51,8 +51,8 @@ with saved-chart search and rows directly below. Main action label **Generate Ch
 
 ## Actions
 
-Primary: **sunset-orange fill, midnight-blue text** (`wkstream_UI_v2`; the earlier
-midnight-fill / orange-text treatment is retired). Selected nav may use the same treatment;
+Primary: **sunrise-orange fill, midnight-blue text** (sunrise replaced sunset orange `#F47A24`
+app-wide on 2026-09-29; the earlier midnight-fill / orange-text treatment is retired). Selected nav may use the same treatment;
 secondary nav is midnight-blue text on the canvas. Focus / hover / pressed states stay visibly
 distinct and meet accessible contrast.
 
@@ -65,7 +65,7 @@ mountain/footer artwork and the dedication footer:
 ## Application rule
 
 Every screen is a denser continuation of the main screen: warm, spacious, precise, with
-midnight-blue information structure and sunset-orange emphasis. **MudBlazor** is the canonical
+midnight-blue information structure and sunrise-orange emphasis. **MudBlazor** is the canonical
 component system (light theme, shared tokens, `MudLayout` / `MudAppBar` / `MudMainContent`),
 wired to the brand palette in `src/Ikiastrro.Web/Components/IkiastrroTheme.cs` — **Background
 and Surface are both the warm canvas** (`--brand-canvas`), so panels, menus and dropdowns sit

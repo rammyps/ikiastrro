@@ -17,4 +17,4 @@
     text-transform: uppercase;
 }
 .dt-sort.on { color: var(--brand-midnight); }
-.dt-arrow { color: var(--brand-sunset); font-size: 12px; }
+.dt-arrow { color: var(--brand-midnight); font-size: 12px; }

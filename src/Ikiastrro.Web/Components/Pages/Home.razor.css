@@ -96,7 +96,7 @@
 
 .home-row-open {
     margin-left: auto;
-    color: var(--brand-sunset);
+    color: var(--brand-midnight);
     font-weight: 700;
     white-space: nowrap;
 }
@@ -108,7 +108,7 @@
     border: 0;
     background: transparent;
     cursor: pointer;
-    color: var(--brand-sunset);
+    color: var(--brand-midnight);
     font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
 }
 
@@ -151,7 +151,7 @@
    in the panel, sunset-orange fill with dark-blue text/label/icon on top. */
 .home-form ::deep .mud-input-outlined:hover,
 .home-form ::deep .mud-input-outlined:focus-within {
-    background-color: var(--brand-sunset);
+    background-color: var(--brand-sunrise);
 }
 
 .home-form ::deep .mud-input-outlined:hover input,

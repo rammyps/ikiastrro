@@ -2,7 +2,7 @@
    same family as Natal_Transit_Comp_Wheel.razor.css (--brand-* palette, Manrope, sunset accent). */
 
 .ki-unavailable p { color: var(--brand-muted); }
-.ki-unavailable a { color: var(--brand-sunset); }
+.ki-unavailable a { color: var(--brand-midnight); }
 
 .ki-stephead {
     display: flex;
@@ -79,7 +79,7 @@
     font: 500 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
 }
 .ki-field input:focus-visible,
-.ki-field select:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
+.ki-field select:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
 .ki-field select:disabled { opacity: 0.55; }
 
 /* TRANSIT mm/yyyy — two plain numeric selects instead of the browser's native month input,
@@ -184,7 +184,7 @@
 }
 .ki-subpanels { min-width: 0; }
 .ki-steptab-sub {
-    border: 1px solid var(--brand-sunset);
+    border: 1px solid var(--brand-sunrise);
     min-width: 64px;
     min-height: 38px;
     padding: 5px 14px;
@@ -316,7 +316,7 @@
     font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
     text-transform: uppercase;
 }
-.ki-chart-picker:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
+.ki-chart-picker:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
 
 .ki-natal-layout {
     display: grid;
@@ -365,7 +365,7 @@
 }
 .ki-chart-toggle:hover { background: color-mix(in srgb, var(--brand-midnight) 85%, white); }
 
-.ki-chart-toggle:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
+.ki-chart-toggle:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
 .ki-natal-layout.is-chart-collapsed { grid-template-columns: minmax(0, 1fr); }
 .ki-natal-detail { width: 100%; overflow: visible; }
 .ki-natal-detail ::deep table { width: 100%; min-width: 0 !important; }

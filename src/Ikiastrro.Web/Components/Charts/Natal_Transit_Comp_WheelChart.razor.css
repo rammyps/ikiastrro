@@ -5,7 +5,7 @@
 .ntw-nak-sector-orange { fill: #fff; }
 .ntw-nak-sector-blue { fill: #fff; }
 .ntw-nak-boundary { stroke: var(--brand-midnight); stroke-width: .75; opacity: .55; }
-.ntw-natal { fill: var(--brand-sunset); stroke: var(--brand-midnight); stroke-width: 2; }
+.ntw-natal { fill: var(--brand-sunrise); stroke: var(--brand-midnight); stroke-width: 2; }
 .ntw-core { fill: #fff; stroke: var(--brand-midnight); stroke-width: 1; }
 .ntw-sign-line { stroke: var(--brand-midnight); stroke-width: 2.2; }
 .ntw-nak-line { stroke: var(--brand-midnight); stroke-width: 1.2; }
@@ -25,7 +25,7 @@
 .ntw-point circle { stroke-width: 2; }
 .ntw-point text { font-size: 12px; font-weight: 800; }
 .ntw-karaka { text-anchor: middle; fill: var(--brand-midnight); font-size: 9px; font-weight: 700; }
-.ntw-point-natal circle { fill: var(--brand-sunset); stroke: var(--brand-midnight); }
+.ntw-point-natal circle { fill: var(--brand-sunrise); stroke: var(--brand-midnight); }
 .ntw-point-natal text { fill: var(--brand-midnight); }
-.ntw-point-transit circle { fill: var(--brand-sunset); stroke: var(--brand-midnight); }
+.ntw-point-transit circle { fill: var(--brand-sunrise); stroke: var(--brand-midnight); }
 .ntw-point-transit text { fill: var(--brand-midnight); }

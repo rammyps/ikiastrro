@@ -134,8 +134,8 @@ midnight/sunset look on 2026-09-23, then reverted the same evening back to sunse
 — not MudBlazor's default text-plus-underline-slider look, and no longer split between a pill
 master rail and a filled-segment nested style:
 
-- **Every tab, active or inactive:** sunset-orange fill (`--tab-active-bg`/`--tab-inactive-bg` =
-  `--brand-sunset`) + dark-navy text (`--tab-active-fg`/`--tab-inactive-fg` = `--brand-midnight`)
+- **Every tab, active or inactive:** sunrise-orange fill (`--tab-active-bg`/`--tab-inactive-bg` =
+  `--brand-sunrise`; was `--brand-sunset` until the 2026-09-29 app-wide accent swap) + dark-navy text (`--tab-active-fg`/`--tab-inactive-fg` = `--brand-midnight`)
   — one flat look, no colour swap for the selected tab (rammyps's directive, 2026-09-23 evening;
   earlier that same day this was briefly midnight-fill/sunset-text, and before that active used
   a sunset fill/midnight text and inactive a quiet-cream fill/midnight text).
@@ -165,13 +165,13 @@ Performance/Composition toggle, House Strength's House order/Strength rank toggl
 Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga scheme selector, SPL LAGNAS's Wheel/Grid
 toggle and Chart `<select>` — is **not** styled as a navigation tab. It's a dark-navy
 (`--brand-midnight`) segmented pill, smaller than the card heading next to it, with the same
-sunset-fill selected state:
+sunrise-fill selected state:
 
 - Pill container: `background: var(--brand-midnight); border-radius: 999px; padding: 3px;` —
   segments have no gap/border between them beyond `gap: 2px`.
 - Inactive option: transparent background, `color: var(--brand-canvas)` (cream text on navy).
-- Active/selected option: `background: var(--brand-sunset); color: var(--brand-midnight)` — same
-  active pairing as a nav tab, so "selected = sunset" still reads consistently app-wide.
+- Active/selected option: `background: var(--brand-sunrise); color: var(--brand-midnight)` — same
+  active pairing as a nav tab, so "selected = sunrise" still reads consistently app-wide.
 - Smaller than a card `<h2>`: `font: 700 .68rem–.78rem/1 var(--font-interface)`, ALL CAPS,
   `padding: 4-6px 10-14px` (vs a nav tab's `--font-size-control`/6-20px).
 - Positioned on the **right** of the card header, opposite the `<h2>` (and before any trailing
@@ -275,12 +275,12 @@ wrapper gets promoted, not its grandchildren.
 | `--aspect-faint` | "aspected by" ghost chips |
 | `--vargottama` | `VargottamaStrip` lit-chip state |
 | `--wheel-ring` / `--wheel-tick` | `PolarWheel` ring + degree ticks |
-| `--brand-peach` / `--brand-canvas` / `--brand-midnight` / `--brand-sunset` / `--transit-paper` | `Natal_Transit_Comp_WheelChart` rings, spokes, glyphs (no namespaced `--ntw-*` set — reads brand tokens directly) |
+| `--brand-peach` / `--brand-canvas` / `--brand-midnight` / `--brand-sunrise` / `--transit-paper` | `Natal_Transit_Comp_WheelChart` rings, spokes, glyphs (no namespaced `--ntw-*` set — reads brand tokens directly) |
 | `--cell-fill` / `--lagna-fill` / `--grid-stroke` / `--sign-text` | `SouthIndianGrid_Detailed` cell ground, Lagna cell, borders, labels |
 | `--tmpl-*` (+ `--tmpl-rashi-highlight`) | `D1TemplateGrid` light "chart card" palette. `--tmpl-planet-*`/`--tmpl-housemoon-*`/`--tmpl-lagna-text` are aliases of the app-wide `--planet-*`/`--house-moon`/`--house-lagna` tokens (2026-09-25); the dark-theme block keeps its own literal values (the template's standalone "🌙 Dark" toggle, the one documented exception to "no hard-coded hex") |
-| `--status-strong` / `-moderate` / `-weak` (+ `-bg`) | strength traffic light — `PlanetStrengthChart`/`HouseStrengthChart` rank badges + status pills, `PlanetaryStateTable` verdict pills, `AshtakavargaChart`'s Sarvāṣṭavarga bars/Bhinnāṣṭavarga bands. `-moderate` is `var(--brand-sunset)` (2026-09-25, was an unrelated amber `#c9820a`) — see "Rank/score badge convention" below |
+| `--status-strong` / `-moderate` / `-weak` (+ `-bg`) | strength traffic light — `PlanetStrengthChart`/`HouseStrengthChart` rank badges + status pills, `PlanetaryStateTable` verdict pills, `AshtakavargaChart`'s Sarvāṣṭavarga bars/Bhinnāṣṭavarga bands. `-moderate` is `var(--brand-sunrise)` (2026-09-29; sunset-orange from 2026-09-25, an unrelated amber `#c9820a` before that) — see "Rank/score badge convention" below |
 | `--tab-active-bg` / `-fg`, `--tab-inactive-bg` / `-fg` | tab-strip fills — see "Tabs" above |
-| `--brand-sunrise` | table row-hover, every Key Inference table (see "Standard table format" above) **and** the light text on a Strong/Weak rank badge's solid fill (see "Rank/score badge convention" below). Distinct from `--brand-peach`, which keeps its other uses |
+| `--brand-sunrise` | **the app accent** (replaced `--brand-sunset` `#F47A24` app-wide 2026-09-29): app bar, footer, tab pills, primary/selected fills, chart markers, outlines, focus rings — always midnight text on it; text/icons that used to be sunset on the canvas are midnight. Also table row-hover, every Key Inference table (see "Standard table format" above) **and** the light text on a Strong/Weak rank badge's solid fill (see "Rank/score badge convention" below). Distinct from `--brand-peach`, which keeps its other uses |
 
 ## Rank/score badge convention (2026-09-25, rammyps's call)
 
@@ -289,8 +289,8 @@ Every place a table ranks or bands a numeric strength/score — `PlanetStrengthC
 Bhinnāṣṭavarga cells — reads the same 3-tier scale:
 
 - **Strong** — solid `--status-strong` (green) fill, `--brand-sunrise` text.
-- **Moderate** — solid `--status-moderate` (= `--brand-sunset`) fill, `--brand-midnight` text
-  (readable on sunset-orange, the same pairing `--tab-active-bg`/`-fg` already uses).
+- **Moderate** — solid `--status-moderate` (= `--brand-sunrise`) fill, `--brand-midnight` text
+  (the same pairing `--tab-active-bg`/`-fg` uses).
 - **Weak** — solid `--status-weak` (red) fill, `--brand-sunrise` text.
 
 This is a *different* visual treatment from the pale-tint "status pill" next to it in the same

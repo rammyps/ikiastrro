@@ -23,8 +23,9 @@
 }
 
 .acg-print:hover {
-    border-color: var(--brand-sunset);
-    background: var(--brand-sunset);
+    border-color: var(--brand-sunrise);
+    background: var(--brand-sunrise);
+    color: var(--brand-midnight);
 }
 
 .ac-grid {
@@ -46,7 +47,7 @@
     --paper: var(--brand-canvas);
     --paper-raised: var(--brand-canvas);
     --paper-line: var(--brand-line);
-    --accent: var(--brand-sunset);
+    --accent: var(--brand-sunrise);
     --accent-line: var(--brand-line);
     --asc-glow: var(--brand-peach);
     --shadow: transparent;
@@ -54,7 +55,7 @@
     --ink-soft: var(--brand-midnight);
     --ink-faint: var(--brand-muted);
     --house-lagna: transparent;
-    --house-lagna-fg: var(--brand-sunset);
+    --house-lagna-fg: var(--brand-midnight);
     --house-moon: transparent;
     --house-moon-fg: var(--brand-muted);
 }
@@ -65,7 +66,7 @@
     justify-content: space-between;
     gap: 0.5rem;
     padding: 8px 12px;
-    background: var(--brand-sunset);
+    background: var(--brand-sunrise);
     color: var(--brand-midnight);
 }
 
@@ -109,7 +110,7 @@
     font-size: 0.82em;
 }
 
-.ac-lg-lagna { color: var(--brand-sunset); font-weight: 800; }
+.ac-lg-lagna { color: var(--brand-midnight); font-weight: 800; }
 .ac-lg-moon { color: var(--brand-muted); font-weight: 800; }
 
 @media (max-width: 1000px) {

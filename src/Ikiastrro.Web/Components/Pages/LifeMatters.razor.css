@@ -10,7 +10,7 @@
 }
 
 .lm-unavailable p { color: var(--brand-muted); }
-.lm-unavailable a { color: var(--brand-sunset); }
+.lm-unavailable a { color: var(--brand-midnight); }
 
 .lm-layout {
     display: flex;
@@ -58,8 +58,8 @@
 }
 
 .lm-step:hover { background: var(--brand-peach); }
-.lm-step.is-selected { background: var(--brand-sunset); color: var(--brand-midnight); font-weight: 700; }
-.lm-step:focus-visible { outline: 3px solid var(--brand-sunset); outline-offset: -3px; }
+.lm-step.is-selected { background: var(--brand-sunrise); color: var(--brand-midnight); font-weight: 700; }
+.lm-step:focus-visible { outline: 3px solid var(--brand-sunrise); outline-offset: -3px; }
 
 .lm-step-text { flex: 1 1 auto; }
 .lm-step-varga { flex: 0 0 auto; color: var(--brand-muted); font-size: var(--font-size-meta); white-space: nowrap; }

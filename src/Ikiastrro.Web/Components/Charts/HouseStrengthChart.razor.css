@@ -44,7 +44,7 @@
 }
 
 .hsc-toggle button.hsc-toggle-on {
-    background: var(--brand-sunset);
+    background: var(--brand-sunrise);
     color: var(--brand-midnight);
 }
 

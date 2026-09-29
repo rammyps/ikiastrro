@@ -63,7 +63,7 @@
 
 .ik-headtab.is-here {
     background: var(--brand-midnight);
-    color: var(--brand-sunset);
+    color: var(--brand-sunrise);
 }
 
 /* Lives only in the footer now (rammyps, 2026-09-26) — no longer a grid item of the app bar
@@ -162,7 +162,7 @@
 
 .ik-person-caret {
     font-size: 0.6em;
-    color: var(--brand-sunset);
+    color: var(--brand-midnight);
 }
 
 /* "Ramya ▾" now opens a real dropdown of the other saved people (rammyps) instead of just
@@ -224,7 +224,7 @@
 }
 
 .ik-person-menu-all { border-top: 1px solid var(--brand-line); margin-top: 4px; padding-top: 4px; }
-.ik-person-menu-all button { color: var(--brand-sunset); }
+.ik-person-menu-all button { color: var(--brand-midnight); }
 
 .ik-person-scrim { position: fixed; inset: 0; z-index: 10; background: transparent; }
 
@@ -254,7 +254,7 @@
    remaining width, centred in it. */
 .ik-footer {
     flex: none;
-    background: var(--brand-sunset);
+    background: var(--brand-sunrise);
 }
 
 .ik-footer-inner {

@@ -69,5 +69,5 @@
 }
 .yg-edit-actions .btn-confirm {
     padding: 8px 14px; border-radius: 8px; border: none;
-    background: var(--brand-sunset, #f47a24); color: var(--brand-midnight); cursor: pointer;
+    background: var(--brand-sunrise); color: var(--brand-midnight); cursor: pointer;
 }

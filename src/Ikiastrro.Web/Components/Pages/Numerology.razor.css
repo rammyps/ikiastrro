@@ -10,7 +10,7 @@
 }
 
 .num-unavailable p { color: var(--brand-muted); }
-.num-unavailable a { color: var(--brand-sunset); }
+.num-unavailable a { color: var(--brand-midnight); }
 
 .num-card {
     max-width: 640px;
@@ -46,7 +46,7 @@
     color: var(--brand-midnight);
 }
 
-.num-root strong { color: var(--brand-sunset); }
+.num-root strong { color: var(--brand-midnight); }
 
 .num-total span, .num-root span {
     font-size: 0.7em;
@@ -82,7 +82,7 @@
 
 .num-letter-tile strong {
     font-size: 0.78em;
-    color: var(--brand-sunset);
+    color: var(--brand-midnight);
 }
 
 .num-method {

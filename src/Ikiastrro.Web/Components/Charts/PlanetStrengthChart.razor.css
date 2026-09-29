@@ -42,7 +42,7 @@
 }
 
 .psc-toggle button.psc-toggle-on {
-    background: var(--brand-sunset);
+    background: var(--brand-sunrise);
     color: var(--brand-midnight);
 }
 
@@ -249,7 +249,7 @@
 }
 
 .psc-pill.psc-status-strong { background: var(--status-strong-bg); color: var(--status-strong); }
-.psc-pill.psc-status-moderate { background: var(--status-moderate-bg); color: var(--status-moderate); }
+.psc-pill.psc-status-moderate { background: var(--status-moderate-bg); color: var(--brand-midnight); }
 .psc-pill.psc-status-weak { background: var(--status-weak-bg); color: var(--status-weak); }
 .psc-pill.psc-status-none { background: var(--brand-peach); color: var(--brand-muted); }
 

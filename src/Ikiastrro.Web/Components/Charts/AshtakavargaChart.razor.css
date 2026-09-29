@@ -6,8 +6,8 @@
 .av-context { margin: 4px 0 0; color: var(--brand-muted); font-size: .72rem; }
 .av-chart-select { display: block; }
 .av-chart-select select { min-height: 32px; min-width: 180px; border: 1px solid var(--brand-midnight); border-radius: 7px; background: var(--brand-midnight); color: var(--brand-canvas); padding: 5px 9px; font: 700 .72rem/1 var(--font-interface); text-transform: uppercase; }
-.av-chart-select select:focus-visible { outline: 2px solid var(--brand-sunset); outline-offset: 2px; }
-.av-card-head strong { color: var(--brand-sunset); font-size: 1.2rem; white-space: nowrap; }
+.av-chart-select select:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
+.av-card-head strong { color: var(--brand-midnight); font-size: 1.2rem; white-space: nowrap; }
 .av-card-head strong span { color: var(--brand-muted); font-size: .7rem; text-transform: uppercase; }
 
 /* Chart-control convention (2026-09-17, rammyps's call): a dark-navy segmented pill, smaller
@@ -16,13 +16,13 @@
    chart's own row-order/mode toggle (PlanetStrengthChart/HouseStrengthChart). */
 .av-toggle { display: inline-flex; gap: 2px; background: var(--brand-midnight); border-radius: 999px; padding: 3px; }
 .av-toggle button { border: 0; background: transparent; color: var(--brand-canvas); font: 700 .68rem/1 var(--font-interface); text-transform: uppercase; letter-spacing: .02em; padding: 4px 10px; border-radius: 999px; cursor: pointer; }
-.av-toggle button.av-toggle-on { background: var(--brand-sunset); color: var(--brand-midnight); }
+.av-toggle button.av-toggle-on { background: var(--brand-sunrise); color: var(--brand-midnight); }
 .av-bars { display: grid; gap: 8px; padding: 18px 16px; }
 .av-bar-row { display: grid; grid-template-columns: 72px minmax(120px,1fr) 34px; gap: 10px; align-items: center; }
 .av-sign { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .av-sign small, thead small { color: var(--brand-muted); font-size: .68rem; font-weight: 700; }
 .av-track { height: 22px; border-radius: 5px; background: var(--brand-line); overflow: hidden; }
-.av-fill { display: block; height: 100%; border-radius: 5px; background: var(--brand-sunset); }
+.av-fill { display: block; height: 100%; border-radius: 5px; background: var(--brand-sunrise); }
 /* Sarvāṣṭavarga sign-total band (2026-09-25, cited SAV&gt;30/&lt;25 threshold — see SavBand's
    doc comment): same green/sunset-orange/red + sunrise-on-strong/weak convention as the rank
    badges and Bhinnāṣṭavarga cells above, applied to both the bar fill and its trailing number. */

@@ -9,7 +9,7 @@
    HouseStrengthChart's own toggles. */
 .am-schemes { display: inline-flex; gap: 2px; background: var(--brand-midnight); border-radius: 999px; padding: 3px; flex-wrap: wrap; }
 .am-schemes button { border: 0; padding: 5px 12px; background: transparent; color: var(--brand-canvas); cursor: pointer; font: 700 .72rem/1 var(--font-interface); text-transform: uppercase; letter-spacing: .02em; border-radius: 999px; }
-.am-schemes button.is-active { background: var(--brand-sunset); color: var(--brand-midnight); }
+.am-schemes button.is-active { background: var(--brand-sunrise); color: var(--brand-midnight); }
 
 /* Vargottama table (Graha/D1/D9/Match). */
 .am-table-scroll { overflow-x: auto; }
@@ -50,7 +50,7 @@
 /* Varga-row -> chart-picker link (2026-09-25): each row's chart-type cell is a button that moves
    the chart shown to the left of this table (same convention as AshtakavargaChart's own picker). */
 .am-lord-chart { all: unset; cursor: pointer; font-weight: 700; border-bottom: 1px dotted var(--brand-muted); }
-.am-lord-chart:hover { color: var(--brand-sunset); border-bottom-color: var(--brand-sunset); }
+.am-lord-chart:hover { color: var(--brand-midnight); border-bottom-color: var(--brand-sunrise); }
 .am-detail-table tr.is-selected-chart { background: var(--brand-peach); }
 .am-detail-table tr.is-selected-chart .am-lord-chart { border-bottom-style: solid; }
 .am-key { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: 0; padding: 10px 16px 16px; color: var(--brand-muted); font-size: .72rem; }

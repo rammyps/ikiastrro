@@ -97,7 +97,7 @@ h1 {
 }
 
 .saved-charts-table ::deep .dt thead {
-    background: var(--brand-sunset);
+    background: var(--brand-sunrise);
 }
 
 .saved-charts-table ::deep .dt th { padding: 0; border-bottom: 0; }
@@ -129,7 +129,7 @@ h1 {
 }
 
 .saved-charts-table ::deep .dt tbody td:first-child a:hover {
-    color: var(--brand-sunset);
+    color: var(--brand-midnight);
 }
 
 .saved-charts-table ::deep .dt th:first-child,
@@ -249,7 +249,7 @@ h1 {
     cursor: pointer;
 }
 
-.sp-menu-btn:hover { background: var(--brand-peach); border-color: var(--brand-sunset); }
+.sp-menu-btn:hover { background: var(--brand-peach); border-color: var(--brand-sunrise); }
 
 .sp-caret { font-size: .7em; }
 
@@ -322,7 +322,7 @@ h1 {
     padding: .55rem 1.1rem;
     border: 0;
     border-radius: 8px;
-    background: var(--brand-sunset);
+    background: var(--brand-sunrise);
     color: var(--brand-midnight);
     font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
     cursor: pointer;
@@ -343,7 +343,7 @@ h1 {
 
 .sp-progress-bar {
     height: 100%;
-    background: var(--brand-sunset);
+    background: var(--brand-sunrise);
     transition: width .2s ease;
 }
 
@@ -466,7 +466,7 @@ h1 {
 }
 
 .edit-actions .btn-confirm {
-    background: var(--brand-sunset);
+    background: var(--brand-sunrise);
     color: var(--brand-midnight);
     border: 0;
     border-radius: 6px;
