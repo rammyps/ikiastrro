@@ -1,12 +1,14 @@
 ---
-last_updated: 2026-09-25
+last_updated: 2026-09-29
 status: approved
 phase: 1A/1B/2 (in progress; 0B specs retrofitted — see note below)
 ---
 
 # LifeMatters page & SIND-HOV-GRID — roadmap
 
-Revision 9. This plan incorporates the structural evidence-assembly review, its schema
+Revision 10 (2026-09-29): the page is restructured as Area → lagna-perspective Question →
+Sub-questions → D1 analysis, read through D1 strength statistics — decisions 12–15; built and
+specified in [`specs_life_matters_page.md`](components/specs_life_matters_page.md). Revision 9: this plan incorporates the structural evidence-assembly review, its schema
 corrections, the LifeMatter Interpretation Contract, and the subsequent Subject/Focus,
 canonical-code, Contribution, Bhava Bala, query, drill-through, and safety corrections.
 
@@ -127,7 +129,8 @@ longitude.” Do not imply independent recalculation in that Varga.
 - Arudha is house/special-point-focused.
 
 Each card preserves its natural ordering, unions matches across multiple foci, and displays an
-explicit no-rows message. Bhava Bala, Ashtakavarga, and Amsabala are Phase 4 work.
+explicit no-rows message. Sarva Ashtakavarga and Bhava Bala were brought forward into v1 on
+2026-09-29 (decision 13); Amsabala remains Phase 4 work.
 
 The dossier also includes compact projections for house condition (lord, lord placement,
 occupants, aspects, conjunctions), planet condition (dignity, functional nature, owned houses,
@@ -376,4 +379,20 @@ Inference read paths to dossier ingredients — all in `lifematters_claude_resea
 11. A derived reference the Focus schema can't express directly (`CHILDREN_06`, `'9th from 5th'`)
     seeds its arithmetically-flattened result (`House(LAGNA, 1)`) with the derivation preserved in
     the row's own `SourceRefCode`/note, rather than extending the schema for one row.
-
+12. **(2026-09-29) Four levels, lagna-first.** An area (category) is split into one question per
+    lagna perspective — "How is the self from power?" is the self read from Ghati Lagna — and the
+    area's matters become sub-questions re-read from that lagna. A matter's own seeded houses on
+    a lagna are "sourced"; otherwise its Lagna houses are re-counted from the lagna. Supersedes
+    the earlier Category → Step picker with separate lagna tracks.
+13. **(2026-09-29) D1 is read through strength statistics.** Sarva Ashtakavarga (>30 / <25, the
+    cited band), Bhava Bala (7 / 5 rupas), the lord's Ṣaḍbala (110% / 90% of minimum), Argala /
+    Virodhargala (`tbl_Fact_Argala`, count comparison) and avastha drive signals, filters and a
+    "Strongest first" sort. Bhava Bala and Ashtakavarga move from Phase 4 into v1. Decision 7
+    still holds: signals describe strength (capacity) and never set `Contribution`, and the sort
+    is never presented as a score.
+14. **(2026-09-29) Yoga × LifeMatter 7×7 matrix removed from the page.** The user judged the
+    mapping (`vw_YogaLifeMatter7x7`, migration 149) not meaningful; the page shows no yogas until
+    it is reworked. The table and view stay in the database.
+15. **(2026-09-29) Chart look.** `SindHovGrid` adopts `SouthIndianGrid_Detailed`'s visuals (dignity
+    dots, `(R)`/`(D)`, combust, aspects, Sanskrit names) plus a gold house-from-track badge for
+    the question's lagna and a D1 SAV chip; statistics stay D1 whichever chart is shown.

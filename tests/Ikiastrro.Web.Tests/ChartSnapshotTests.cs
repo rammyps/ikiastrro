@@ -100,7 +100,13 @@ public class ChartSnapshotTests : BunitContext
             .Add(p => p.SpecialPointFocusCodes, ["A12"])
             .Add(p => p.PinnedSign, "Libra")
             .Add(p => p.CenterTitle, "Marriage and spouse")
-            .Add(p => p.CenterNote, "D1 · Rasi"));
+            .Add(p => p.CenterNote, "7th from Ghati Lagna")
+            .Add(p => p.CenterMeta, "D1 · Lagna Aries · GL Pisces")
+            .Add(p => p.TrackSign, "Pisces")
+            .Add(p => p.TrackTag, "GL")
+            .Add(p => p.TrackLabel, "Ghati Lagna")
+            .Add(p => p.AspectedBySign, new Dictionary<string, IReadOnlyList<string>> { ["Libra"] = ["Ma(7)"] })
+            .Add(p => p.SavBySign, new Dictionary<string, int> { ["Aries"] = 30, ["Libra"] = 17, ["Aquarius"] = 43 }));
 
         cut.MatchesGolden(nameof(SindHovGrid));
     }

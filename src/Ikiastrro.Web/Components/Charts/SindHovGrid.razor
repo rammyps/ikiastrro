@@ -1,22 +1,33 @@
 @using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Web.Components.LifeMatters
 @using Microsoft.AspNetCore.Components.Web
 
+@* Life Matters chart — SouthIndianGrid_Detailed's visual language (sign + Sanskrit name, house
+   badges, dignity dots, (R)/(D), combust, aspect strip) on top of this component's own
+   interaction contract (hover preview, pin, keyboard, focus highlight). docs/ui/components/
+   specs_sind_hov_grid.md. Every optional parameter defaults to "not shown", so a caller that
+   passes only the original parameters renders the original content. *@
 <div class="sind-hov-grid" role="grid" aria-label="@AriaLabel" @onkeydown="OnGridKeyDown">
     @foreach (var cell in GridCells)
     {
         var isAscendant = cell.Sign == AscendantSign;
         var house = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(AscendantSign), Enum.Parse<ZodiacName>(cell.Sign));
+        int? trackHouse = string.IsNullOrEmpty(TrackSign)
+            ? null
+            : AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(TrackSign), Enum.Parse<ZodiacName>(cell.Sign));
         var isPinned = PinnedSign == cell.Sign;
         var isPreview = _previewSign == cell.Sign;
         var isRelevant = RelevantSigns.Contains(cell.Sign, StringComparer.Ordinal);
         var glyphs = PlanetsBySign.TryGetValue(cell.Sign, out var planets) ? planets : [];
         var points = SpecialPointsBySign.TryGetValue(cell.Sign, out var specialPoints) ? specialPoints : [];
+        var aspects = AspectedBySign.TryGetValue(cell.Sign, out var aspectList) ? aspectList : [];
+        int? sav = SavBySign.TryGetValue(cell.Sign, out var bindus) ? bindus : null;
 
         <button type="button"
                 class="chart-cell @(isAscendant ? "ascendant" : "") @(isRelevant ? "relevant" : "") @(isPinned ? "pinned" : "") @(isPreview ? "preview" : "")"
                 style="grid-column:@cell.Column;grid-row:@cell.Row"
                 role="gridcell"
-                aria-label="@CellAriaLabel(cell.DisplayName, house, glyphs, points)"
+                aria-label="@CellAriaLabel(cell.DisplayName, house, trackHouse, glyphs, points)"
                 aria-selected="@(isPinned ? "true" : "false")"
                 data-sign="@cell.Sign"
                 data-house="@house"
@@ -26,31 +37,65 @@
                 @onblur="ClearPreview"
                 @onclick="() => Pin(cell.Sign)"
                 @onkeydown="args => OnCellKeyDown(args, cell.Sign)">
+            <span class="house-nums">
+                <span class="house-number" title="House @house from this chart's Ascendant">@house</span>
+                @if (trackHouse is int th)
+                {
+                    <span class="house-number track" title="House @th from @TrackLabel">@th</span>
+                }
+            </span>
+            <span class="tags">
+                @if (isAscendant)
+                {
+                    <span class="lagna-label">LAGNA</span>
+                }
+                @if (!string.IsNullOrEmpty(TrackTag) && TrackSign == cell.Sign)
+                {
+                    <span class="track-tag" title="@TrackLabel">@TrackTag</span>
+                }
+            </span>
             <span class="sign-name">@cell.DisplayName</span>
-            <span class="house-number" title="House @house from this chart's Ascendant">@house</span>
-            @if (isAscendant)
-            {
-                <span class="lagna-label">LAGNA</span>
-            }
-            @if (isRelevant || isPinned)
-            {
-                <span class="selection-mark" aria-hidden="true">◆</span>
-            }
+            <span class="sign-sa">@cell.Sanskrit</span>
             @if (points.Count > 0)
             {
                 <span class="special-points">
                     @foreach (var point in points)
                     {
-                        <span class="special-point">@point</span>
+                        <span class="special-point @(SpecialPointFocusCodes.Contains(point, StringComparer.Ordinal) ? "is-focus" : "")">@point</span>
                     }
                 </span>
             }
             <span class="planets">
                 @foreach (var glyph in glyphs)
                 {
-                    <span class="planet"><PlanetChip Planet="@glyph.PlanetName" /></span>
+                    <span class="planet @(KarakaPlanets.Contains(glyph.PlanetName) ? "is-karaka" : "")">
+                        <PlanetChip Planet="@glyph.PlanetName" />
+                        @if (glyph.DignityToken is not null)
+                        {
+                            <span class="dot" style="background:var(--dignity-@glyph.DignityToken)"></span>
+                        }
+                        <span class="direction">(@(glyph.IsRetrograde ? "R" : "D"))</span>
+                        @if (glyph.IsCombust) { <span class="combust" title="Combust">🔥</span> }
+                    </span>
                 }
             </span>
+            @if (aspects.Count > 0)
+            {
+                <span class="aspect-strip" title="Aspected by">
+                    @foreach (var aspect in aspects)
+                    {
+                        <span class="aspect">@aspect</span>
+                    }
+                </span>
+            }
+            @if (sav is int b)
+            {
+                <span class="sav sav-@(LifeMatterStatistics.SavBand(b).ToString().ToLowerInvariant())" title="Sarva Ashtakavarga (D1): @b bindus">@b</span>
+            }
+            @if (isRelevant || isPinned)
+            {
+                <span class="selection-mark" aria-hidden="true">◆</span>
+            }
         </button>
     }
 
@@ -59,6 +104,10 @@
         @if (!string.IsNullOrWhiteSpace(CenterNote))
         {
             <span class="center-note">@CenterNote</span>
+        }
+        @if (!string.IsNullOrWhiteSpace(CenterMeta))
+        {
+            <span class="center-meta">@CenterMeta</span>
         }
     </div>
 </div>
@@ -76,7 +125,25 @@
     [Parameter] public EventCallback<string?> PreviewSignChanged { get; set; }
     [Parameter] public string CenterTitle { get; set; } = "";
     [Parameter] public string? CenterNote { get; set; }
+    [Parameter] public string? CenterMeta { get; set; }
     [Parameter] public string AriaLabel { get; set; } = "South Indian horoscope grid";
+
+    /// <summary>Sign of a second reference point (a special lagna). When set, each cell also shows its
+    /// house counted from here, in gold beside the house-from-Ascendant badge, and the sign itself
+    /// carries <see cref="TrackTag"/>.</summary>
+    [Parameter] public string? TrackSign { get; set; }
+    [Parameter] public string? TrackTag { get; set; }
+    [Parameter] public string? TrackLabel { get; set; }
+
+    /// <summary>Sign → aspect chips (ChartViewModel.BuildAspectedByMicro), drawn as a dashed strip.</summary>
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>> AspectedBySign { get; set; }
+        = new Dictionary<string, IReadOnlyList<string>>();
+
+    /// <summary>Sign → D1 Sarva Ashtakavarga bindus, drawn as a banded corner chip.</summary>
+    [Parameter] public IReadOnlyDictionary<string, int> SavBySign { get; set; } = new Dictionary<string, int>();
+
+    /// <summary>Planets outlined as this matter's karakas.</summary>
+    [Parameter] public IReadOnlySet<string> KarakaPlanets { get; set; } = new HashSet<string>();
 
     private string? _previewSign;
 
@@ -131,24 +198,26 @@
             await PinnedSignChanged.InvokeAsync(null);
     }
 
-    private static string CellAriaLabel(
+    private string CellAriaLabel(
         string sign,
         int house,
+        int? trackHouse,
         IReadOnlyList<GridPlanetGlyph> planets,
         IReadOnlyList<string> points)
     {
         var occupants = planets.Count == 0 ? "no planets" : string.Join(", ", planets.Select(x => x.PlanetName));
         var special = points.Count == 0 ? "" : $"; special points {string.Join(", ", points)}";
-        return $"{sign}, house {house}; {occupants}{special}";
+        var track = trackHouse is int th ? $", house {th} from {TrackLabel}" : "";
+        return $"{sign}, house {house}{track}; {occupants}{special}";
     }
 
-    private static readonly (string Sign, string DisplayName, int Column, int Row)[] GridCells =
+    private static readonly (string Sign, string DisplayName, string Sanskrit, int Column, int Row)[] GridCells =
     [
-        ("Pisces", "Pisces", 1, 1), ("Aries", "Aries", 2, 1),
-        ("Taurus", "Taurus", 3, 1), ("Gemini", "Gemini", 4, 1),
-        ("Aquarius", "Aquarius", 1, 2), ("Cancer", "Cancer", 4, 2),
-        ("Capricornus", "Capricorn", 1, 3), ("Leo", "Leo", 4, 3),
-        ("Sagittarius", "Sagittarius", 1, 4), ("Scorpio", "Scorpio", 2, 4),
-        ("Libra", "Libra", 3, 4), ("Virgo", "Virgo", 4, 4)
+        ("Pisces", "Pisces", "Meena", 1, 1), ("Aries", "Aries", "Mesha", 2, 1),
+        ("Taurus", "Taurus", "Vrishabha", 3, 1), ("Gemini", "Gemini", "Mithuna", 4, 1),
+        ("Aquarius", "Aquarius", "Kumbha", 1, 2), ("Cancer", "Cancer", "Karka", 4, 2),
+        ("Capricornus", "Capricorn", "Makara", 1, 3), ("Leo", "Leo", "Simha", 4, 3),
+        ("Sagittarius", "Sagittarius", "Dhanu", 1, 4), ("Scorpio", "Scorpio", "Vrishchika", 2, 4),
+        ("Libra", "Libra", "Tula", 3, 4), ("Virgo", "Virgo", "Kanya", 4, 4)
     ];
 }

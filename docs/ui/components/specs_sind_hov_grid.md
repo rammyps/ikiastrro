@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-25
+last_updated: 2026-09-29
 workstream: ui
 component: SindHovGrid
 route: embedded — LifeMatters page (see specs_life_matters_page.md)
@@ -15,12 +15,12 @@ this spec — `lifematters_plan.md`'s Phase 0B calls for the spec before impleme
 built Phase 1A/1B/part-of-2 in one pass. This spec documents what was actually built, flags where
 it diverges from or leaves gaps against `lifematters_plan.md`, and is the contract going forward.
 
-> New module, not a `SouthIndianGrid_Detailed`/`_Micro` variant — different job, not a denser
-> restyle. Those two show a chart's full content (planets, upagrahas, arudhas, aspects,
-> dignity). SindHovGrid shows only what a LifeMatter's evidence needs (planet occupants +
-> special-point labels) plus **hover/keyboard preview, click/Enter pin, and house/special-point
-> relevance highlighting** — state neither sibling component has. Per `project_standards.md`
-> §3.3, a genuinely new behavior is a new named module, not a prop bolted onto an existing one.
+> A separate module from `SouthIndianGrid_Detailed`/`_Micro` because of its behaviour:
+> **hover/keyboard preview, click/Enter pin, and house/special-point relevance highlighting**,
+> state neither sibling has. Since 2026-09-29 it borrows `SouthIndianGrid_Detailed`'s visual
+> language (sign + Sanskrit name, house badges, dignity dots, `(R)`/`(D)`, combust, aspect strip)
+> so Life Matters reads like the rest of the app's charts. Upagrahas and karaka-scheme tags stay
+> out; they remain Detailed/Micro's job.
 
 ## Geometry
 
@@ -42,7 +42,11 @@ is the mechanism behind the plan's `signAt((ascendantSignIndex + houseNumber - 1
 | `SpecialPointFocusCodes` | `IReadOnlyList<string>` | Special-point codes to highlight, matched against `SpecialPointsBySign` |
 | `PinnedSign` / `PinnedSignChanged` | `string?` / `EventCallback<string?>` | The pinned (clicked/Enter-Space'd) selection — caller-owned state |
 | `PreviewSignChanged` | `EventCallback<string?>` | Fires on hover/keyboard-focus preview; preview itself is internal state (`_previewSign`), only the callback surfaces it |
-| `CenterTitle` / `CenterNote` | `string` / `string?` | Center-block content — the page supplies the Step/Varga label here |
+| `CenterTitle` / `CenterNote` / `CenterMeta` | `string` / `string?` / `string?` | Center-block lines: matter, "7th from Ghati Lagna", chart + reference signs |
+| `TrackSign` / `TrackTag` / `TrackLabel` | `string?` | A second reference point (special lagna). Each cell adds a gold house-from-track badge; the track's own sign carries `TrackTag` (e.g. `GL`). Null → Ascendant badge only |
+| `AspectedBySign` | `IReadOnlyDictionary<string, IReadOnlyList<string>>` | Dashed aspect strip per sign (`ChartViewModel.BuildAspectedByMicro`, `Ma(4)` labels) |
+| `SavBySign` | `IReadOnlyDictionary<string, int>` | D1 Sarva Ashtakavarga bindus per sign, a corner chip banded by `LifeMatterStatistics.SavBand` (>30 / <25). The page passes it only when D1 is displayed |
+| `KarakaPlanets` | `IReadOnlySet<string>` | Planets outlined as the matter's karakas |
 | `AriaLabel` | `string` | Grid `aria-label`, defaults to "South Indian horoscope grid" |
 
 A cell is `relevant` when its sign is in `HouseFoci` (translated) or holds a special point whose
@@ -82,21 +86,23 @@ chart itself.
   rendering one itself.
 - "Clicking the selected Step keeps it selected; meaningful fallback is D1/Rasi" — Step/Varga
   lifecycle, not grid state.
-- Full chart display (aspects, upagrahas, dignity, karaka tags) — deliberately out of scope; that
-  remains `SouthIndianGrid_Detailed`/`_Micro`'s job elsewhere in the app.
+- Upagrahas and karaka-scheme tags — out of scope; `SouthIndianGrid_Detailed`/`_Micro` show them.
+- Deciding which reference sign is the track, or which houses are the focus — the page resolves
+  both and passes signs in.
 
 ## Rendering
 
-Inline CSS grid (`grid-template-columns: repeat(4, 1fr)`), CSS-isolated
-(`SindHovGrid.razor.css`), `--brand-*`/`--font-size-*` tokens (no chart-specific
-`--dignity-*`/`--house-*` tokens — those belong to Detailed/Micro's richer display). Sub-desktop
-breakpoint at 720px (row height 92px → 76px) — satisfies the plan's "page specification must
-define a sub-desktop stacked/scrollable breakpoint" at the component level; the page must still
-define its own layout breakpoint around the grid (card stacking), which is separate.
+Inline CSS grid (`repeat(4, minmax(0, 1fr))`, max 520px), CSS-isolated (`SindHovGrid.razor.css`),
+tokens only: `--brand-*`, `--house-lagna`/`--house-moon` (Ascendant and track badges),
+`--dignity-*` dots, `--status-strong`/`--status-weak` (SAV chip), `--asc-glow` (Lagna cell, layered
+over the cell's own fill). Relevant cells fill with `--brand-sunrise`; the pin adds a midnight
+inset. Sub-desktop breakpoint at 720px (row height 112px → 88px, Sanskrit names hidden).
 
-Golden SVG: `ChartSnapshotTests.SindHovGrid`, baseline at `docs/artifacts/ui/SindHovGrid-sample.svg`
-(per the plan's "Add and visually review a golden SVG, recognizing that a golden validates
-rendering, not behavior" — visual review still pending a human look, not just the diff passing).
+Golden SVG: `ChartSnapshotTests.SindHovGrid` (fixture includes a Ghati Lagna track, SAV chips and
+an aspect strip), baseline at `docs/artifacts/ui/SindHovGrid-sample.svg`. Tests for the new
+parameters: `TrackSign_AddsASecondHouseBadgeAndTagsTheReferenceSign`,
+`WithoutTrackSign_OnlyTheAscendantHouseBadgeRenders`,
+`DetailedCellContent_DignityDirectionCombustAspectsAndSavBand`.
 
 ## Files
 

@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-27
+last_updated: 2026-09-29
 workstream: database
 togaf: C — Data Architecture
 reflects: yoga source-variant UI and LifeMatter 7x7 matrix through migrations 148-149
@@ -21,6 +21,7 @@ row in the same change that adds or repoints a table component.
 | UI component / page | Source view · TVF · table | Repository | Columns surfaced | Defined by |
 |---|---|---|---|---|
 | `PlanetPositionsTable` — `Pages/VargaView.razor` | `vw_ChartPlanetEvidence` | `AstrologerEvidenceRepository` | House · Planet · Motion · Degree · Sign · Nakṣatra · Nak. Pada · dignity | baseline + varga migrations |
+| **Life Matters** — `Pages/LifeMatters.razor` (D1 statistics panel, sub-question table, Argala card, signals) | `vw_ChartAshtakavarga` · `vw_ChartBhavaBala` · `vw_ChartShadbala` · `tbl_Fact_Argala` · `tbl_Fact_PlanetaryState(+Flag)` · `tbl_Rule_LifeMatterReference` / `tbl_Rule_LifeMatterFocus` / `tbl_Dim_HouseReference` | `AshtakavargaRepository` · `BhavaStrengthRepository` · `PlanetaryStrengthRepository` · `ArgalaFactRepository.GetByBirthDetailId` (first reader of `tbl_Fact_Argala`) · `PlanetaryStateRepository` · `LifeMatterReferenceRepository.GetAllSteps` · `LifeMatterFocusRepository.GetHouseReferences` | SAV bindus per sign · Bhava Bala rupas per house · Ṣaḍbala % of minimum · Argala/Virodhargala pairs · avastha states — all D1; see [`../ui/components/specs_life_matters_page.md`](../ui/components/specs_life_matters_page.md) | db/128 (Argala) + strength / Ashtakavarga migrations |
 | `HouseLordshipTable` — `Pages/VargaView.razor` | `tbl_Chart_HouseLords` (per `ChartResultId` + `ChartType`) | `ChartHouseLordsRepository` | House · lord · lord's house / sign | baseline |
 | `ConjunctionsTable` — `Pages/VargaView.razor` | `tbl_Chart_Conjunctions` / `tbl_Chart_MultiGrahaConjunction(+Member)` | `ChartConjunctionsRepository`, `ChartMultiGrahaConjunctionRepository` | planet set · sign · house | baseline |
 | **Transit landing — D1 Birth tab** — `Pages/Natal_Transit_Comp_Wheel.razor` | `vw_ChartPlanetEvidence` (`ChartType = 'D1'`) | `Natal_Transit_Comp_WheelRepository` | House · Planet · Motion · Degree · Sign · Nakṣatra · Nak. Pada | baseline + varga migrations |

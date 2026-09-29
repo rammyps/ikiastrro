@@ -111,4 +111,60 @@ public sealed class SindHovGridTests : BunitContext
         Assert.NotNull(cut.Find("[data-sign='Libra'] .selection-mark"));
         Assert.Equal("South Indian horoscope grid", cut.Find("[role='grid']").GetAttribute("aria-label"));
     }
+
+    [Fact]
+    public void TrackSign_AddsASecondHouseBadgeAndTagsTheReferenceSign()
+    {
+        var cut = Render<SindHovGrid>(parameters => parameters
+            .Add(p => p.AscendantSign, "Aries")
+            .Add(p => p.TrackSign, "Pisces")
+            .Add(p => p.TrackTag, "GL")
+            .Add(p => p.TrackLabel, "Ghati Lagna"));
+
+        // Libra is 7th from Aries and 8th from Pisces.
+        var libra = cut.Find("[data-sign='Libra']");
+        Assert.Equal("7", libra.QuerySelector(".house-number:not(.track)")!.TextContent);
+        Assert.Equal("8", libra.QuerySelector(".house-number.track")!.TextContent);
+        Assert.Contains("house 8 from Ghati Lagna", libra.GetAttribute("aria-label"));
+        Assert.Equal("GL", cut.Find("[data-sign='Pisces'] .track-tag").TextContent);
+        Assert.Empty(cut.FindAll("[data-sign='Aries'] .track-tag"));
+    }
+
+    [Fact]
+    public void WithoutTrackSign_OnlyTheAscendantHouseBadgeRenders()
+    {
+        var cut = Render<SindHovGrid>(parameters => parameters.Add(p => p.AscendantSign, "Aries"));
+
+        Assert.Empty(cut.FindAll(".house-number.track"));
+        Assert.Empty(cut.FindAll(".sav"));
+        Assert.Empty(cut.FindAll(".aspect-strip"));
+    }
+
+    [Fact]
+    public void DetailedCellContent_DignityDirectionCombustAspectsAndSavBand()
+    {
+        var planets = new Dictionary<string, IReadOnlyList<GridPlanetGlyph>>
+        {
+            ["Aries"] = [new GridPlanetGlyph("Sun", "exalted", false, false), new GridPlanetGlyph("Mercury", "enemy", true, true)]
+        };
+        var aspects = new Dictionary<string, IReadOnlyList<string>> { ["Aries"] = ["Ju(9)"] };
+        var sav = new Dictionary<string, int> { ["Aries"] = 30, ["Libra"] = 17, ["Aquarius"] = 43 };
+
+        var cut = Render<SindHovGrid>(parameters => parameters
+            .Add(p => p.AscendantSign, "Aries")
+            .Add(p => p.PlanetsBySign, planets)
+            .Add(p => p.AspectedBySign, aspects)
+            .Add(p => p.SavBySign, sav)
+            .Add(p => p.KarakaPlanets, new HashSet<string> { "Sun" }));
+
+        var aries = cut.Find("[data-sign='Aries']");
+        Assert.Equal("Mesha", aries.QuerySelector(".sign-sa")!.TextContent);
+        Assert.Equal(["(D)", "(R)"], aries.QuerySelectorAll(".direction").Select(e => e.TextContent));
+        Assert.Single(aries.QuerySelectorAll(".combust"));
+        Assert.Single(aries.QuerySelectorAll(".planet.is-karaka"));
+        Assert.Equal("Ju(9)", aries.QuerySelector(".aspect")!.TextContent);
+        Assert.Contains("sav-middle", aries.QuerySelector(".sav")!.ClassList);
+        Assert.Contains("sav-weak", cut.Find("[data-sign='Libra'] .sav").ClassList);
+        Assert.Contains("sav-strong", cut.Find("[data-sign='Aquarius'] .sav").ClassList);
+    }
 }

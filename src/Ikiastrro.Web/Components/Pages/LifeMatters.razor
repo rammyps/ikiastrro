@@ -1,10 +1,13 @@
 @page "/life-matters/{Id:int}"
 @using Ikiastrro.Core.Engines.Astronomy
 @using Ikiastrro.Core.Engines.Dignity
+@using Ikiastrro.Core.Engines.Houses
 @using Ikiastrro.Core.Engines.PlanetaryStates
 @using Ikiastrro.Core.LifeMatters
 @using Ikiastrro.Core.Models
+@using Ikiastrro.Core.Presentation
 @using Ikiastrro.Web.Components.Charts
+@using Ikiastrro.Web.Components.LifeMatters
 @using Ikiastrro.Web.Components.Workspace
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartResultsRepository ChartResultsRepo
@@ -22,24 +25,20 @@
 @inject PlanetaryStateRuleRepository PlanetaryStateRuleRepo
 @inject PostureStateInterpretationRepository PostureStateInterpretationRepo
 @inject PlanetaryStrengthRepository PlanetaryStrengthRepo
-@inject YogaEvaluationRepository YogaEvaluationRepo
+@inject BhavaStrengthRepository BhavaStrengthRepo
+@inject AshtakavargaRepository AshtakavargaRepo
+@inject ArgalaFactRepository ArgalaFactRepo
 @inject ActivePerson Active
 
-@* Phase 3A/3B1 — docs/ui/lifematters_plan.md / docs/ui/components/specs_life_matters_page.md.
-   Page shell, Category/Step picker, Auto/D1/Manual Varga lifecycle, and the first evidence cards
-   (Planet condition, House condition). Subject/Focus rows are still unseeded (migration 137's
-   tables are empty pending audited population), so House condition always shows its explicit
-   no-rows state and Auto-Varga has nothing to follow yet — that is the correct v1 state, not a
-   bug: "no row in tbl_Rule_LifeMatterFocus" means "focus not yet structured," not an error.
-   Argala and Arudha cards are explicitly NOT built — Phase 0A only checked whether the two
-   existing repositories (ArgalaRuleRepository, NaisargikaKarakaRepository) could serve them, and
-   the build revealed neither actually can: tbl_Fact_Argala has no read path today (only
-   ArgalaFactRepository's write/delete for chart generation), and Arudha likewise has no
-   dedicated evidence repository (specs_life_matters_page.md's read-path table, corrected). *@
+@* docs/ui/components/specs_life_matters_page.md. Four levels: Area (LifeMatterReference category)
+   → Question (one per lagna perspective: "How is the self from power?" = Ghati Lagna) →
+   Sub-questions (the area's matters, each re-counted from that lagna) → D1 analysis (Sarva
+   Ashtakavarga, Bhava Bala, Ṣaḍbala, avastha, Argala/Virodhargala). Statistics are always D1 and
+   sign-based (LifeMatterStatistics); the chart control only changes the grid. *@
 
 <PageTitle>@(_data?.Person.Name ?? "Life Matters") · Life Matters</PageTitle>
 
-@if (_data is null)
+@if (_data is null || _stats is null)
 {
     <section class="lm-unavailable" role="status">
         <h1 class="lm-heading">LIFE MATTERS</h1>
@@ -49,266 +48,371 @@
 }
 else
 {
-    <h1 class="lm-heading">LIFE MATTERS</h1>
-    var displayed = ResolveDisplayedChart();
+    var d1 = _data.Charts["D1"];
+    var displayed = DisplayedChart();
+    var question = LifeMatterQuestions.Get(_question);
+    var areaSteps = StepsIn(_area);
+    var step = areaSteps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
+    var read = step is null ? null : Read(step, _question);
 
-
-    <div class="lm-layout">
-        <section class="lm-picker" aria-label="Category and Step">
-            <label class="lm-field">
-                <span>Category</span>
-                <select class="ki-chart-picker" value="@_selectedCategory" @onchange="OnCategoryChanged">
-                    @foreach (var c in _categories)
+    <div class="lm-top">
+        <h1 class="lm-heading">LIFE MATTERS</h1>
+        <div class="lm-chart-control" role="group" aria-label="Chart shown">
+            <span class="lm-label">Chart</span>
+            <div class="lm-seg">
+                <button type="button" aria-pressed="@Aria(_vargaMode == "D1")" @onclick='() => _vargaMode = "D1"'>D1</button>
+                <button type="button" aria-pressed="@Aria(_vargaMode == "Auto")" @onclick='() => _vargaMode = "Auto"'>Auto</button>
+                <button type="button" aria-pressed="@Aria(_vargaMode == "Manual")" @onclick='() => _vargaMode = "Manual"'>Varga</button>
+            </div>
+            @if (_vargaMode == "Manual")
+            {
+                <select class="ki-chart-picker" aria-label="Varga" value="@_manualChartType" @onchange="e => _manualChartType = (string)e.Value!">
+                    @foreach (var chart in _data.Charts.Values.OrderBy(c => c.ChartType))
                     {
-                        <option value="@c.CategoryCode">@c.CategoryName</option>
+                        <option value="@chart.ChartType">@chart.Label</option>
                     }
                 </select>
-            </label>
+            }
+            <span class="lm-muted">@(displayed?.ChartType == "D1" ? "Statistics are D1" : "Statistics stay D1")</span>
+        </div>
+    </div>
 
-            <nav class="lm-steps" role="list" aria-label="Steps">
-                @foreach (var step in _steps)
+    @* ---------------- Level 1 · Area ---------------- *@
+    <section class="lm-level" aria-label="Area">
+        <div class="lm-row">
+            <p class="lm-eyebrow"><b>1 · Area</b> <span>signals are the area's core house from Lagna, in D1</span></p>
+            <div class="lm-seg" role="group" aria-label="Area order">
+                <button type="button" aria-pressed="@Aria(!_areaStrongFirst)" @onclick="() => _areaStrongFirst = false">Area order</button>
+                <button type="button" aria-pressed="@Aria(_areaStrongFirst)" @onclick="() => _areaStrongFirst = true">Strongest first</button>
+            </div>
+        </div>
+        <div class="lm-pills" role="tablist">
+            @foreach (var area in OrderedAreas())
+            {
+                var core = CoreHouses(area.CategoryCode);
+                <button type="button" role="tab" class="lm-pill" aria-selected="@Aria(area.CategoryCode == _area)"
+                        title="Core house @string.Join(" & ", core.Select(Ordinal)) from Lagna"
+                        aria-label="@($"{LifeMatterQuestions.AreaLabel(area.CategoryCode, area.CategoryName)}, core house {string.Join(" and ", core.Select(Ordinal))} from Lagna")"
+                        @onclick="() => SelectArea(area.CategoryCode)">
+                    @LifeMatterQuestions.AreaLabel(area.CategoryCode, area.CategoryName)
+                    @Signals(AreaBands(area.CategoryCode))
+                    <span class="lm-count">H@(string.Join("·", core))</span>
+                </button>
+            }
+        </div>
+        <p class="lm-legend">Signals, left to right: <b>SAV</b> · <b>Bhava Bala</b> · <b>lord Ṣaḍbala</b> · <b>Argala</b>.
+            <span class="lm-sig" aria-hidden="true"><i class="strong"></i></span> strong
+            <span class="lm-sig" aria-hidden="true"><i class="middle"></i></span> middle
+            <span class="lm-sig" aria-hidden="true"><i class="weak"></i></span> weak
+            <span class="lm-sig" aria-hidden="true"><i class="none"></i></span> nothing to read</p>
+    </section>
+
+    @* ---------------- D1 statistics filter ---------------- *@
+    <section class="lm-filterbar" aria-label="Filter by D1 statistics">
+        <p class="lm-eyebrow"><b>Filter by D1 statistics</b> <span>applied to the selected question's sub-questions</span></p>
+        <div class="lm-pills">
+            @foreach (var f in Filters)
+            {
+                var n = areaSteps.Count(s => Read(s, _question) is { } r && r.Items.Any(i => f.Test(this, i.Stats)));
+                <button type="button" class="lm-pill" aria-pressed="@Aria(_filters.Contains(f.Key))" @onclick="() => ToggleFilter(f.Key)">
+                    @f.Label <span class="lm-count">@n</span>
+                </button>
+            }
+        </div>
+        <div class="lm-row lm-filter-opts">
+            <span class="lm-label">Match</span>
+            <div class="lm-seg">
+                <button type="button" aria-pressed="@Aria(_matchAll)" @onclick="() => _matchAll = true">All</button>
+                <button type="button" aria-pressed="@Aria(!_matchAll)" @onclick="() => _matchAll = false">Any</button>
+            </div>
+            <button type="button" class="lm-link" @onclick="() => _filters.Clear()">Clear</button>
+        </div>
+        <p class="lm-note">Bands: SAV above 30 favourable, below 25 unfavourable (the app's cited
+            Ashtakavarga rule). Bhava Bala 7+ strong / under 5 weak, and Ṣaḍbala 110%+ / under 90%
+            of the required minimum, are the app's existing presentation bands, not yet sourced
+            rules. Argala counts planets on each side of a pair. All four describe strength, not
+            outcomes.</p>
+    </section>
+
+    <div class="lm-layout">
+        @* ---------------- Level 2 · Question ---------------- *@
+        <section class="lm-level lm-questions-col" aria-label="Question">
+            <div class="lm-row">
+                <p class="lm-eyebrow"><b>2 · Question</b> <span>one per lagna</span></p>
+                <div class="lm-seg" role="group" aria-label="Question order">
+                    <button type="button" aria-pressed="@Aria(!_questionStrongFirst)" @onclick="() => _questionStrongFirst = false">Lagna order</button>
+                    <button type="button" aria-pressed="@Aria(_questionStrongFirst)" @onclick="() => _questionStrongFirst = true">Strongest first</button>
+                </div>
+            </div>
+            <div class="lm-questions" role="listbox" aria-label="Questions">
+                @foreach (var q in OrderedQuestions(areaSteps))
                 {
-                    <button type="button" role="listitem"
-                            class="lm-step @(step.LifeMatterId == _selectedLifeMatterId ? "is-selected" : "")"
-                            @onclick="() => SelectStep(step.LifeMatterId)">
-                        <span class="lm-step-text">@step.MatterText</span>
-                        <span class="lm-step-varga">@step.PrimaryChartsText</span>
+                    var refSign = ResolveReferenceSign(d1, q.Question.ReferenceCode);
+                    var core = CoreHouses(_area)[0];
+                    var reference = _references.FirstOrDefault(r => r.ReferenceCode == q.Question.ReferenceCode);
+                    <button type="button" role="option" class="lm-q" aria-selected="@Aria(q.Question.ReferenceCode == _question)"
+                            disabled="@(refSign is null)" title="@(refSign is null ? "Not computed for this person yet" : reference?.Perspective)"
+                            aria-label="@($"{q.Question.Ask(LifeMatterQuestions.AreaTheme(_area, CategoryName(_area)))} {q.Question.Label}{(refSign is null ? ", not computed yet" : "")}")"
+                            @onclick="() => _question = q.Question.ReferenceCode">
+                        <span class="lm-q-text">@q.Question.Ask(LifeMatterQuestions.AreaTheme(_area, CategoryName(_area)))</span>
+                        <span class="lm-q-sub">
+                            @if (q.Sourced) { <span class="lm-src-dot" title="Seeded focus in this area"></span> }
+                            @q.Question.Label
+                            @if (refSign is null)
+                            {
+                                <text> · not computed yet</text>
+                            }
+                            else
+                            {
+                                <text> · @DisplaySign(refSign) · @Ordinal(core) = @DisplaySign(LifeMatterSignMath.ResolveHouseSign(refSign, core))</text>
+                            }
+                        </span>
+                        <span class="lm-q-right">
+                            @Signals(q.Bands)
+                            @if (refSign is not null)
+                            {
+                                <span class="lm-count">@(_filters.Count > 0 ? $"{q.Matching}/{areaSteps.Count} match" : $"{areaSteps.Count} sub-questions")</span>
+                            }
+                        </span>
                     </button>
                 }
-            </nav>
+            </div>
+        </section>
 
-            <fieldset class="lm-varga">
-                <legend>Varga</legend>
-                <label><input type="radio" name="lm-varga" checked="@(_vargaMode == "Auto")" @onchange='() => SetVargaMode("Auto")' /> Auto</label>
-                <label><input type="radio" name="lm-varga" checked="@(_vargaMode == "D1")" @onchange='() => SetVargaMode("D1")' /> D1</label>
-                <label><input type="radio" name="lm-varga" checked="@(_vargaMode == "Manual")" @onchange='() => SetVargaMode("Manual")' /> Manual</label>
-                @if (_vargaMode == "Manual")
-                {
-                    <select class="ki-chart-picker" value="@_manualChartType" @onchange="OnManualChartChanged">
-                        @foreach (var chart in _data.Charts.Values.OrderBy(c => c.ChartType))
+        @* ---------------- Level 3 · Sub-questions ---------------- *@
+        <section class="lm-level lm-main-col" aria-label="Sub-questions">
+            <div class="lm-panel">
+                <p class="lm-eyebrow"><b>3 · Sub-questions</b> <span>this area's matters, each read from @question.Label</span></p>
+                <h2 class="lm-question">@question.Ask(LifeMatterQuestions.AreaTheme(_area, CategoryName(_area)))</h2>
+                @{ var qRef = _references.FirstOrDefault(r => r.ReferenceCode == _question); var qSign = ResolveReferenceSign(d1, _question); }
+                <p class="lm-note">@question.Label@(qSign is null ? "" : $" in {DisplaySign(qSign)}") · @qRef?.Perspective@(qRef is { AppliesInVarga: not "Any" } ? $" Applies in {qRef.AppliesInVarga}." : "")</p>
+                <div class="lm-scroll">
+                    <table class="lm-table">
+                        <thead><tr><th>Sub-question</th><th>House from @question.Label.Replace(" Lagna", "")</th><th>Sign</th><th class="num">SAV</th><th class="num">Bhava Bala</th><th>Lord Ṣaḍbala</th><th>Argala</th><th>Signals</th></tr></thead>
+                        <tbody>
+                        @foreach (var s in areaSteps)
                         {
-                            <option value="@chart.ChartType">@chart.Label</option>
+                            var r = Read(s, _question);
+                            var first = r?.Items.FirstOrDefault();
+                            <tr class="lm-pick @(s.LifeMatterId == _selectedLifeMatterId ? "is-selected" : "") @(Matches(r) ? "" : "is-dim")"
+                                tabindex="0" @onclick="() => SelectStep(s.LifeMatterId)"
+                                @onkeydown='e => { if (e.Key is "Enter" or " ") SelectStep(s.LifeMatterId); }'>
+                                <td>@s.MatterText</td>
+                                @if (first is null)
+                                {
+                                    <td colspan="7" class="lm-muted">@(r is null ? "Lagna not available" : "Focus not yet structured for this matter")</td>
+                                }
+                                else
+                                {
+                                    <td>@string.Join(" & ", r!.Items.Select(i => i.SpecialPoint is null ? Ordinal(i.House) : $"{i.SpecialPoint} in {Ordinal(i.House)}"))
+                                        @if (r.Sourced)
+                                        {
+                                            <span class="lm-kind">sourced</span>
+                                        }
+                                    </td>
+                                    <td>@DisplaySign(first.Stats.Sign)</td>
+                                    <td class="num">@first.Stats.SavBindus @Band(first.Stats.SavBand, "FAV", "MID", "UNFAV")</td>
+                                    <td class="num">@first.Stats.BhavaBalaRupas?.ToString("0.00")</td>
+                                    <td>@first.Stats.LordPlanet @(first.Stats.LordShadbalaPercent is { } p ? $"{p:0}%" : "")</td>
+                                    <td>@ArgalaText(first.Stats.Argala)</td>
+                                    <td>@Signals(first.Stats.Bands)</td>
+                                }
+                            </tr>
                         }
-                    </select>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="lm-chart-row">
+                <div class="lm-chart">
+                    @if (displayed is null)
+                    {
+                        <EmptyState Message="@($"{WantedChartType(step)} not generated for this person")" Cli="backfill-charts" />
+                    }
+                    else if (step is not null)
+                    {
+                        var trackSign = ResolveReferenceSign(displayed, _question);
+                        <SindHovGrid AscendantSign="@displayed.AscendantSign"
+                                     PlanetsBySign="PlanetsBySign(displayed)"
+                                     SpecialPointsBySign="SpecialPointsBySign(displayed, step)"
+                                     HouseFoci="QuestionHouseFoci(displayed, step)"
+                                     SpecialPointFocusCodes="SpecialPointCodes(step)"
+                                     PinnedSign="_pinnedSign"
+                                     PinnedSignChanged="s => _pinnedSign = s"
+                                     TrackSign="@(_question == "LAGNA" ? null : trackSign)"
+                                     TrackTag="@question.Tag"
+                                     TrackLabel="@question.Label"
+                                     AspectedBySign="ChartViewModel.BuildAspectedByMicro(displayed.KeyDetails, displayed.Aspects)"
+                                     SavBySign="@(displayed.ChartType == "D1" ? SavBySign() : new Dictionary<string, int>())"
+                                     KarakaPlanets="KarakaPlanets(displayed, step)"
+                                     CenterTitle="@step.MatterText"
+                                     CenterNote="@(read is null ? question.Label + " not available" : $"{string.Join(" & ", read.Items.Select(i => i.SpecialPoint ?? Ordinal(i.House)))} from {question.Label}")"
+                                     CenterMeta="@($"{displayed.ChartType} · Lagna {DisplaySign(displayed.AscendantSign)}{(trackSign is not null && _question != "LAGNA" ? $" · {question.Tag} {DisplaySign(trackSign)}" : "")}")" />
+                    }
+                </div>
+
+                <div class="lm-panel" aria-label="D1 statistics">
+                    <h2>D1 statistics</h2>
+                    @if (step is null || read is null)
+                    {
+                        <p class="lm-note">Choose a sub-question with a lagna available in D1.</p>
+                    }
+                    else if (read.Items.Count == 0)
+                    {
+                        <p class="lm-note">Relevant evidence not yet structured for this matter.</p>
+                    }
+                    else
+                    {
+                        <p class="lm-note">@step.MatterText · from @question.Label · @(read.Sourced ? "sourced focus" : "re-counted from its Lagna houses")</p>
+                        @foreach (var item in read.Items)
+                        {
+                            var st = item.Stats;
+                            <h3>@(item.SpecialPoint is null ? "" : $"{item.SpecialPoint} · ")@Ordinal(item.House) house · @DisplaySign(st.Sign) (H@(st.HouseFromLagna) from Lagna)</h3>
+                            <table class="lm-table lm-kv">
+                                <tbody>
+                                    <tr><th scope="row">Sarva Ashtakavarga</th><td>@Meter(st.SavBindus ?? 0, 56, 28) @st.SavBindus bindus @Band(st.SavBand, "FAVOURABLE", "MIDDLE", "UNFAVOURABLE")</td></tr>
+                                    <tr><th scope="row">Bhava Bala</th><td>@Meter((double)(st.BhavaBalaRupas ?? 0), 12, 7) @st.BhavaBalaRupas?.ToString("0.00") rupas @Band(st.BhavaBand, "STRONG", "MODERATE", "WEAK")</td></tr>
+                                    <tr><th scope="row">Lord</th><td>@st.LordPlanet @(st.LordShadbalaPercent is { } pct ? $"· Ṣaḍbala {pct:0}% of minimum" : "") @Band(st.LordShadbalaBand, "STRONG", "ADEQUATE", "WEAK")</td></tr>
+                                    <tr><th scope="row">Occupants</th><td>@(string.Join(", ", d1.Grahas.Where(g => g.Sign == st.Sign && g.Planet != "Ascendant").Select(g => g.Planet)) is { Length: > 0 } occ ? occ : "none")</td></tr>
+                                </tbody>
+                            </table>
+                        }
+                        <p class="lm-note">Meter ticks: SAV average 28 · Bhava Bala 7 rupas.</p>
+                    }
+                </div>
+            </div>
+        </section>
+    </div>
+
+    @* ---------------- Level 4 · D1 analysis ---------------- *@
+    <section class="lm-level" aria-label="D1 analysis">
+        <p class="lm-eyebrow"><b>4 · D1 analysis</b> <span>@step?.MatterText · from @question.Label</span></p>
+        <div class="lm-cards">
+            <section class="lm-panel" aria-label="Argala and Virodhargala">
+                <h2>Argala &amp; Virodhargala</h2>
+                <p class="lm-note">Intervention on each focus house from <code>tbl_Fact_Argala</code> (D1). A pair
+                    holds when its argala planets outnumber the obstructing ones; planet strength is not
+                    compared yet.</p>
+                @if (read is null || read.Items.Count == 0)
+                {
+                    <p class="lm-note">No focus house to analyse.</p>
                 }
-            </fieldset>
-        </section>
-
-        <section class="lm-chart" aria-label="Chart">
-            @if (displayed is null)
-            {
-                <EmptyState Message="@($"{ResolveWantedChartType()} not generated for this person")" Cli="backfill-charts" />
-            }
-            else
-            {
-                <SindHovGrid AscendantSign="@displayed.AscendantSign"
-                             PlanetsBySign="PlanetsBySign(displayed)"
-                             SpecialPointsBySign="SpecialPointsBySign(displayed)"
-                             HouseFoci="HouseFoci(displayed)"
-                             SpecialPointFocusCodes="SpecialPointFocusCodes()"
-                             PinnedSign="_pinnedSign"
-                             PinnedSignChanged="s => _pinnedSign = s"
-                             CenterTitle="@(_selectedStep?.MatterText ?? "")"
-                             CenterNote="@displayed.ChartType" />
-            }
-            @if (_resolved is not null && !_resolved.IsFocusStructured)
-            {
-                <p class="lm-unstructured">Relevant evidence not yet structured for this matter.</p>
-            }
-        </section>
-    </div>
-
-    <div class="lm-cards">
-        <section class="lm-card" aria-label="Planet condition">
-            <h2>Planet condition (Karakas)</h2>
-            @{ var karakaPlanets = KarakaPlanetRows(); }
-            @if (karakaPlanets.Count == 0)
-            {
-                <p class="lm-card-empty">No Karaka planet evidence for this matter.</p>
-            }
-            else
-            {
-                <p class="lm-card-note">D1 avastha and Ṣaḍbala — reused from Key Inference's own
-                    Planet-condition table (<code>PlanetaryStateTable</code>), scoped to this
-                    matter's Karaka planets only. Its "expression" verdict is Key Inference's own
-                    prior synthesis, not a new Contribution judgment for this matter.</p>
-                <PlanetaryStateTable Rows="karakaPlanets" StateNames="_stateNames"
-                                     PostureInterpretations="_postureInterpretations"
-                                     KeyDetails="D1KeyDetails" Strengths="_shadbala" />
-            }
-        </section>
-
-        <section class="lm-card" aria-label="House condition">
-            <h2>House condition</h2>
-            @{ var focusHouses = FocusHouseNumbersFromLagna(displayed); }
-            @if (displayed is null)
-            {
-                <p class="lm-card-empty">No chart displayed.</p>
-            }
-            else if (focusHouses.Count == 0)
-            {
-                <p class="lm-card-empty">No focused houses for this matter yet — House/SpecialPoint
-                    Focus rows are not seeded (migration 137).</p>
-            }
-            else
-            {
-                <table class="lm-house-table">
-                    <thead><tr><th>House</th><th>Sign</th><th>Lord</th><th>Lord placement</th><th>Occupants</th></tr></thead>
-                    <tbody>
-                    @foreach (var h in focusHouses)
+                else
+                {
+                    @foreach (var item in read.Items)
                     {
-                        var lord = displayed.HouseLords.FirstOrDefault(l => l.HouseNumber == h);
-                        var occupants = displayed.Grahas.Where(g => g.HouseNumberFromLagna == h).Select(g => g.Planet).ToList();
-                        <tr>
-                            <td>@h</td>
-                            <td>@lord?.HouseSign</td>
-                            <td>@lord?.LordPlanet</td>
-                            <td>@(lord is null ? "—" : $"{lord.LordPlacedInSign} (house {lord.LordPlacedInHouseFromLagna})")</td>
-                            <td>@(occupants.Count == 0 ? "no planets" : string.Join(", ", occupants))</td>
-                        </tr>
+                        var arg = item.Stats.Argala;
+                        <h3>@Ordinal(item.House) house · @DisplaySign(item.Stats.Sign)</h3>
+                        @if (!arg.Any)
+                        {
+                            <p class="lm-note">No planets in argala or virodhargala positions.</p>
+                        }
+                        else
+                        {
+                            <div class="lm-scroll">
+                                <table class="lm-table">
+                                    <thead><tr><th>Pair</th><th>Argala from</th><th>Virodhargala from</th><th>Result</th></tr></thead>
+                                    <tbody>
+                                    @foreach (var pair in arg.Pairs.Where(p => p.ArgalaPlanets.Count > 0 || p.ObstructingPlanets.Count > 0))
+                                    {
+                                        <tr>
+                                            <td>@pair.ArgalaOffset / @pair.ObstructionOffset <span class="lm-muted">@pair.Kind</span></td>
+                                            <td>@(pair.ArgalaPlanets.Count == 0 ? "—" : string.Join(", ", pair.ArgalaPlanets)) <span class="lm-muted">(@Ordinal(pair.ArgalaOffset))</span>@(pair.ExceptionApplied ? " · exception" : "")</td>
+                                            <td>@(pair.ObstructingPlanets.Count == 0 ? "—" : string.Join(", ", pair.ObstructingPlanets)) <span class="lm-muted">(@Ordinal(pair.ObstructionOffset))</span></td>
+                                            <td>@ArgalaResult(pair.Verdict)</td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
                     }
-                    </tbody>
-                </table>
-            }
-        </section>
+                }
+            </section>
 
-        <section class="lm-card" aria-label="Relationships">
-            <h2>Relationships (Karakas)</h2>
-            @{ var relationships = KarakaRelationships(displayed); }
-            @if (displayed is null)
-            {
-                <p class="lm-card-empty">No chart displayed.</p>
-            }
-            else if (relationships.Count == 0)
-            {
-                <p class="lm-card-empty">Fewer than two Karaka planets to relate for this matter.</p>
-            }
-            else
-            {
-                <p class="lm-card-note">Compound relationship (Naisargika + Tatkalika, PVR's five-tier
-                    scale) between this matter's Karaka planets, in the currently displayed chart —
-                    <code>DignityEngine.EvaluatePairRelationship</code>, the same computation
-                    dignity/avastha/Ṣaḍbala already use, not a new rule.</p>
-                <table class="lm-house-table">
-                    <thead><tr><th>Planet</th><th>Planet</th><th>Relationship</th></tr></thead>
-                    <tbody>
-                    @foreach (var (a, b, rel) in relationships)
-                    {
-                        <tr><td>@a</td><td>@b</td><td>@(rel ?? "—")</td></tr>
-                    }
-                    </tbody>
-                </table>
-            }
-        </section>
+            <section class="lm-panel lm-card-wide" aria-label="Planet strength and avastha">
+                <h2>Planet strength &amp; avastha</h2>
+                @{ var planetRows = PlanetRows(read, step); }
+                @if (planetRows.Count == 0)
+                {
+                    <p class="lm-note">No lord or karaka planets for this sub-question.</p>
+                }
+                else
+                {
+                    <p class="lm-note">The focus houses' lords and the matter's karakas (@string.Join(", ", planetRows.Select(r => r.Planet))),
+                        in D1 — Key Inference's own avastha table, where Capacity carries Ṣaḍbala.</p>
+                    <PlanetaryStateTable Rows="planetRows" StateNames="_stateNames"
+                                         PostureInterpretations="_postureInterpretations"
+                                         KeyDetails="d1.KeyDetails" Strengths="_shadbala" />
+                }
+            </section>
 
-        <section class="lm-card" aria-label="Yogas">
-            <h2>Relevant yogas</h2>
-            @if (_selectedStep is null)
-            {
-                <p class="lm-card-empty">Choose a Life Matter step to see its relevant yogas.</p>
-            }
-            else if (RelevantYogas.Count == 0)
-            {
-                <p class="lm-card-empty">No present yogas are mapped to this Life Matter.</p>
-            }
-            else
-            {
-                <p class="lm-card-note">Filtered to source variants mapped to
-                    <strong>@_selectedStep.MatterText</strong> by the ranked Yoga × LifeMatter matrix.
-                    Matrix paths remain proposed until source review promotes them.</p>
-                <table class="lm-house-table">
-                    <thead><tr><th>Rank</th><th>Source</th><th>Yoga</th><th>Type</th><th>Rule</th><th>Review</th></tr></thead>
-                    <tbody>
-                    @foreach (var item in RelevantYogas)
-                    {
-                        <tr>
-                            <td>@item.Path.PathRank</td>
-                            <td>@item.Yoga.SourceRefCode</td>
-                            <td>@item.Yoga.YogaCode</td>
-                            <td>@item.Yoga.YogaTypeCode</td>
-                            <td>@item.Yoga.YogaRule</td>
-                            <td>@item.Path.ReviewStatusCode</td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            }
-        </section>
-
-        <section class="lm-card lm-card-blocked" aria-label="Argala">
-            <h2>Argala</h2>
-            <p class="lm-card-empty">Not available yet — no repository reads
-                <code>tbl_Fact_Argala</code> for display today (only write/delete, used by chart
-                generation). A read path is needed before this card can be built.</p>
-        </section>
-
-        <section class="lm-card lm-card-blocked" aria-label="Arudha">
-            <h2>Arudha</h2>
-            <p class="lm-card-empty">Not available yet — Arudha placements have no dedicated
-                evidence repository; today they are only rendered as chart-grid labels.</p>
-        </section>
-    </div>
+            <section class="lm-panel" aria-label="Relationships">
+                <h2>Karaka relationships</h2>
+                @{ IReadOnlyList<(string PlanetA, string PlanetB, string? Relationship)> relationships = displayed is null || step is null ? [] : KarakaRelationships(displayed, step); }
+                @if (relationships.Count == 0)
+                {
+                    <p class="lm-note">Fewer than two karaka planets to relate for this matter.</p>
+                }
+                else
+                {
+                    <p class="lm-note">Compound relationship (Naisargika + Tatkalika) between this matter's karakas in
+                        @displayed!.ChartType — <code>DignityEngine.EvaluatePairRelationship</code>.</p>
+                    <table class="lm-table">
+                        <thead><tr><th>Planet</th><th>Planet</th><th>Relationship</th></tr></thead>
+                        <tbody>
+                        @foreach (var (a, b, rel) in relationships)
+                        {
+                            <tr><td>@a</td><td>@b</td><td>@(rel ?? "—")</td></tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </section>
+        </div>
+        <p class="lm-disclaimer">Statistics show strength (capacity), not outcomes. A strong house or planet is
+            not by itself a favourable result for this matter.</p>
+    </section>
 }
 
 @code {
     [Parameter] public int Id { get; set; }
 
     private const byte RuleSetId = 1;
+    private static readonly LifeMatterFocusResolver Resolver = new();
 
     private WorkspaceData? _data;
+    private LifeMatterStatistics? _stats;
     private IReadOnlyList<LifeMatterCategoryRow> _categories = [];
-    private string? _selectedCategory;
-    private IReadOnlyList<LifeMatterStepRow> _steps = [];
-    private int? _selectedLifeMatterId;
-    private LifeMatterStepRow? _selectedStep => _steps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
+    private IReadOnlyList<LifeMatterStepRow> _allSteps = [];
+    private IReadOnlyList<HouseReferenceRow> _references = [];
+    private Dictionary<int, ResolvedLifeMatterFocus> _resolved = new();
 
-    private IReadOnlyList<LifeMatterSubjectRule> _subjects = [];
-    private IReadOnlyList<LifeMatterKarakaRule> _karakas = [];
-    private IReadOnlyList<LifeMatterFocusRule> _foci = [];
-    private static readonly LifeMatterFocusResolver Resolver = new();
-    private ResolvedLifeMatterFocus? _resolved;
-
-    // Planet condition card — D1 avastha/Ṣaḍbala only, per PlanetaryStateFact's own gating
-    // (AgeStateId/PostureStateId are D1-only). Loaded once per person, not per Step/Varga.
     private IReadOnlyList<PlanetaryStateFact> _planetaryStates = [];
     private IReadOnlyDictionary<byte, PlanetaryStateRow> _stateNames = new Dictionary<byte, PlanetaryStateRow>();
     private IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow> _postureInterpretations =
         new Dictionary<(byte, byte), PostureStateInterpretationRow>();
     private IReadOnlyList<ShadbalaSummaryRow> _shadbala = [];
 
-    // Yoga rows and the ranked Yoga × LifeMatter matrix are loaded once per person. The selected
-    // Step filters by exact source-variant identity, so similarly named variants cannot leak in.
-    private IReadOnlyList<YogaEvaluationRow> _yogas = [];
-    private IReadOnlyList<YogaLifeMatterPathRow> _yogaLifeMatterPaths = [];
-
-    private IReadOnlyList<(YogaEvaluationRow Yoga, YogaLifeMatterPathRow Path)> RelevantYogas
-    {
-        get
-        {
-            if (_selectedStep is null) return [];
-
-            var paths = _yogaLifeMatterPaths
-                .Where(p => string.Equals(p.SubArea1, _selectedStep.MatterText, StringComparison.OrdinalIgnoreCase))
-                .GroupBy(p => (p.SourceRefCode, p.SourceVariantCode))
-                .ToDictionary(g => g.Key, g => g.OrderBy(p => p.PathRank).First());
-
-            return _yogas
-                .Where(y => paths.ContainsKey((y.SourceRefCode, y.SourceVariantCode)))
-                .Select(y => (Yoga: y, Path: paths[(y.SourceRefCode, y.SourceVariantCode)]))
-                .OrderBy(x => x.Path.PathRank)
-                .ThenByDescending(x => x.Path.RelevanceScore)
-                .ThenBy(x => x.Yoga.YogaCode)
-                .ToList();
-        }
-    }
-
-    private string _vargaMode = "Auto";
+    private string _area = "";
+    private string _question = "LAGNA";
+    private int? _selectedLifeMatterId;
+    private readonly HashSet<string> _filters = [];
+    private bool _matchAll = true;
+    private bool _areaStrongFirst;
+    private bool _questionStrongFirst;
+    private string _vargaMode = "D1";
     private string? _manualChartType;
     private string? _lastDisplayedChartType;
     private string? _pinnedSign;
+    private int? _loadedId;
 
     protected override void OnParametersSet()
     {
+        if (_loadedId == Id) return;
+        _loadedId = Id;
+
         _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
             ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,
             ChartMultiGrahaConjunctionRepo, ChartTypeRepo.GetAll());
@@ -325,71 +429,212 @@ else
             $"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
         Active.SetHeaderExtra(null);
 
-        if (_categories.Count == 0)
-        {
-            _categories = LifeMatterReferenceRepo.GetCategories(RuleSetId);
-            _subjects = LifeMatterFocusRepo.GetSubjects(RuleSetId);
-            _foci = LifeMatterFocusRepo.GetFoci(RuleSetId);
-            _karakas = KarakaMatterRepo.GetForRuleSet(RuleSetId);
+        // One page-load snapshot; every Area/Question/Sub-question switch after this is client-side.
+        _categories = LifeMatterReferenceRepo.GetCategories(RuleSetId);
+        _allSteps = LifeMatterReferenceRepo.GetAllSteps(RuleSetId);
+        _references = LifeMatterFocusRepo.GetHouseReferences();
+        var subjects = LifeMatterFocusRepo.GetSubjects(RuleSetId);
+        var foci = LifeMatterFocusRepo.GetFoci(RuleSetId);
+        var karakas = KarakaMatterRepo.GetForRuleSet(RuleSetId);
+        _resolved = _allSteps.ToDictionary(s => s.LifeMatterId,
+            s => Resolver.Resolve(RuleSetId, s.LifeMatterId, subjects, karakas, foci));
 
-            _planetaryStates = PlanetaryStateRepo.GetByBirthDetailId(Id).Where(r => r.AgeStateId.HasValue).ToList();
-            _stateNames = PlanetaryStateRuleRepo.GetAllStates();
-            var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
-            _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
-            _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
-            _yogas = YogaEvaluationRepo.GetByBirthDetailId(Id).Where(y => y.Present == true).ToList();
-            _yogaLifeMatterPaths = YogaEvaluationRepo.GetLifeMatterPathsByBirthDetailId(Id);
+        _planetaryStates = PlanetaryStateRepo.GetByBirthDetailId(Id).Where(r => r.AgeStateId.HasValue).ToList();
+        _stateNames = PlanetaryStateRuleRepo.GetAllStates();
+        var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
+        _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
+        _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _stats = new LifeMatterStatistics(_data.Charts["D1"].AscendantSign,
+            AshtakavargaRepo.GetByBirthDetailId(Id), BhavaStrengthRepo.GetSummaryByBirthDetailId(Id),
+            _shadbala, ArgalaFactRepo.GetByBirthDetailId(Id));
 
-            if (_categories.Count > 0)
-                OnCategorySelected(_categories[0].CategoryCode);
-        }
+        _area = _categories.FirstOrDefault()?.CategoryCode ?? "";
+        _selectedLifeMatterId = StepsIn(_area).FirstOrDefault()?.LifeMatterId;
     }
 
-    private void OnCategoryChanged(ChangeEventArgs e) => OnCategorySelected((string)e.Value!);
+    // ---------------- selection ----------------
 
-    private void OnCategorySelected(string categoryCode)
+    private IReadOnlyList<LifeMatterStepRow> StepsIn(string categoryCode) =>
+        _allSteps.Where(s => s.CategoryCode == categoryCode).OrderBy(s => s.DisplayOrder).ToList();
+
+    private string CategoryName(string categoryCode) =>
+        _categories.FirstOrDefault(c => c.CategoryCode == categoryCode)?.CategoryName ?? categoryCode;
+
+    private void SelectArea(string categoryCode)
     {
-        _selectedCategory = categoryCode;
-        _steps = LifeMatterReferenceRepo.GetSteps(RuleSetId, categoryCode);
-        if (_steps.Count > 0)
-            SelectStep(_steps[0].LifeMatterId);
-        else
-            _selectedLifeMatterId = null;
+        if (categoryCode == _area) return;
+        _area = categoryCode;
+        _selectedLifeMatterId = StepsIn(categoryCode).FirstOrDefault()?.LifeMatterId;
+        _pinnedSign = null;
     }
 
-    // Clicking the already-selected Step keeps it selected (no-op, not a deselect) — the plan's
-    // "no meaningful blank state" rule, applied here at the Step level.
+    // Selecting the already-selected sub-question keeps it selected (no deselect).
     private void SelectStep(int lifeMatterId)
     {
         if (lifeMatterId == _selectedLifeMatterId) return;
         _selectedLifeMatterId = lifeMatterId;
-        _resolved = Resolver.Resolve(RuleSetId, lifeMatterId, _subjects, _karakas, _foci);
         _pinnedSign = null;
     }
 
-    private void SetVargaMode(string mode) => _vargaMode = mode;
+    private void ToggleFilter(string key)
+    {
+        if (!_filters.Remove(key)) _filters.Add(key);
+    }
 
-    private void OnManualChartChanged(ChangeEventArgs e) => _manualChartType = (string)e.Value!;
+    // ---------------- areas and questions ----------------
 
-    // Auto follows the Step's Subject; D1 pins the foundation chart; Manual stays whatever the
-    // picker last chose. "if unmapped, retain the last chart — never blank."
-    private string ResolveWantedChartType() => _vargaMode switch
+    /// <summary>The area's most-focused house(s) from Lagna across its matters (ties kept, ascending);
+    /// house 1 when the area has no Lagna house focus at all.</summary>
+    private IReadOnlyList<int> CoreHouses(string categoryCode)
+    {
+        var counts = StepsIn(categoryCode)
+            .SelectMany(s => _resolved[s.LifeMatterId].HouseAndSpecialPointFoci)
+            .Where(f => f.FocusKind == LifeMatterFocusKind.House && f.ReferenceCode == "LAGNA" && f.HouseNumber is not null)
+            .GroupBy(f => f.HouseNumber!.Value)
+            .Select(g => (House: g.Key, Count: g.Count()))
+            .ToList();
+        if (counts.Count == 0) return [1];
+        var max = counts.Max(c => c.Count);
+        return counts.Where(c => c.Count == max).Select(c => c.House).Order().ToList();
+    }
+
+    private IReadOnlyList<StrengthBand> AreaBands(string categoryCode)
+    {
+        var d1 = _data!.Charts["D1"];
+        return _stats!.ForSign(LifeMatterSignMath.ResolveHouseSign(d1.AscendantSign, CoreHouses(categoryCode)[0])).Bands;
+    }
+
+    private IEnumerable<LifeMatterCategoryRow> OrderedAreas() => _areaStrongFirst
+        ? _categories.OrderByDescending(c => LifeMatterStatistics.SortKey(AreaBands(c.CategoryCode)))
+        : _categories;
+
+    private sealed record QuestionRow(LifeMatterQuestion Question, bool Sourced, IReadOnlyList<StrengthBand> Bands, int Matching);
+
+    private IEnumerable<QuestionRow> OrderedQuestions(IReadOnlyList<LifeMatterStepRow> areaSteps)
+    {
+        var d1 = _data!.Charts["D1"];
+        var core = CoreHouses(_area)[0];
+        var rows = LifeMatterQuestions.All.Select(q =>
+        {
+            var refSign = ResolveReferenceSign(d1, q.ReferenceCode);
+            var sourced = areaSteps.Any(s => _resolved[s.LifeMatterId].HouseAndSpecialPointFoci
+                .Any(f => f.FocusKind == LifeMatterFocusKind.House && f.ReferenceCode == q.ReferenceCode));
+            IReadOnlyList<StrengthBand> bands = refSign is null
+                ? [StrengthBand.None, StrengthBand.None, StrengthBand.None, StrengthBand.None]
+                : _stats!.ForSign(LifeMatterSignMath.ResolveHouseSign(refSign, core)).Bands;
+            var matching = refSign is null ? 0 : areaSteps.Count(s => Matches(Read(s, q.ReferenceCode)));
+            return new QuestionRow(q, sourced, bands, matching);
+        }).ToList();
+
+        return _questionStrongFirst
+            ? rows.OrderBy(r => ResolveReferenceSign(d1, r.Question.ReferenceCode) is null)
+                  .ThenByDescending(r => LifeMatterStatistics.SortKey(r.Bands))
+            : rows;
+    }
+
+    // ---------------- sub-question read (always D1) ----------------
+
+    private sealed record ReadItem(int House, string? SpecialPoint, HouseStatistics Stats);
+    private sealed record SubRead(bool Sourced, IReadOnlyList<ReadItem> Items);
+
+    /// <summary>
+    /// A matter read from one lagna, in D1. House numbers are the matter's own seeded houses on this
+    /// lagna when it has any ("sourced"); otherwise its Lagna houses (or other house foci) counted
+    /// from this lagna instead. Special-point foci (A10, GA_AK, ...) are placed where they fall.
+    /// Null when the lagna itself can't be resolved for this person.
+    /// </summary>
+    private SubRead? Read(LifeMatterStepRow step, string referenceCode)
+    {
+        var d1 = _data!.Charts["D1"];
+        var refSign = ResolveReferenceSign(d1, referenceCode);
+        if (refSign is null) return null;
+
+        var (houses, sourced) = QuestionHouses(step, referenceCode);
+        var items = houses
+            .Select(h => new ReadItem(h, null, _stats!.ForSign(LifeMatterSignMath.ResolveHouseSign(refSign, h))))
+            .ToList();
+        foreach (var code in SpecialPointCodes(step))
+        {
+            var sign = SpecialPointSign(d1, code);
+            if (sign is null) continue;
+            var house = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(refSign), Enum.Parse<ZodiacName>(sign));
+            items.Add(new ReadItem(house, code, _stats!.ForSign(sign)));
+        }
+
+        return new SubRead(sourced, items);
+    }
+
+    private (IReadOnlyList<int> Houses, bool Sourced) QuestionHouses(LifeMatterStepRow step, string referenceCode)
+    {
+        var houseFoci = _resolved[step.LifeMatterId].HouseAndSpecialPointFoci
+            .Where(f => f.FocusKind == LifeMatterFocusKind.House && f.HouseNumber is not null)
+            .ToList();
+        var own = houseFoci.Where(f => f.ReferenceCode == referenceCode).Select(f => f.HouseNumber!.Value).Distinct().ToList();
+        if (own.Count > 0) return (own, true);
+        var lagna = houseFoci.Where(f => f.ReferenceCode == "LAGNA").Select(f => f.HouseNumber!.Value).Distinct().ToList();
+        return (lagna.Count > 0 ? lagna : houseFoci.Select(f => f.HouseNumber!.Value).Distinct().ToList(), false);
+    }
+
+    private IReadOnlyList<string> SpecialPointCodes(LifeMatterStepRow step) =>
+        _resolved[step.LifeMatterId].HouseAndSpecialPointFoci
+            .Where(f => f.FocusKind == LifeMatterFocusKind.SpecialPoint && f.SpecialPointCode is not null)
+            .Select(f => f.SpecialPointCode!)
+            .ToList();
+
+    // ---------------- filters ----------------
+
+    private sealed record StatFilter(string Key, string Label, Func<LifeMatters, HouseStatistics, bool> Test);
+
+    private static readonly IReadOnlyList<StatFilter> Filters =
+    [
+        new("savHigh", "SAV above 30", (_, s) => s.SavBindus > 30),
+        new("savLow", "SAV below 25", (_, s) => s.SavBindus < 25),
+        new("bhavaStrong", "Bhava Bala 7+", (_, s) => s.BhavaBalaRupas >= 7),
+        new("lordStrong", "Lord Ṣaḍbala 110%+", (_, s) => s.LordShadbalaPercent >= 110),
+        new("lordWeak", "Lord Ṣaḍbala under 90%", (_, s) => s.LordShadbalaPercent < 90),
+        new("argalaHolds", "Argala holds", (_, s) => s.Argala.Net > 0),
+        new("argalaObstructed", "Argala obstructed", (_, s) => s.Argala.Net < 0),
+        new("lordYuva", "Lord in Yuva", (page, s) => page.LordState(s.LordPlanet, f => f.AgeStateId) == "Yuva"),
+        new("lordJagrat", "Lord awake (Jagrat)", (page, s) => page.LordState(s.LordPlanet, f => f.WakefulnessStateId) == "Jagrat"),
+    ];
+
+    private string? LordState(string planet, Func<PlanetaryStateFact, byte?> stateId)
+    {
+        var fact = _planetaryStates.FirstOrDefault(f => f.Planet == planet);
+        return fact is not null && stateId(fact) is { } id && _stateNames.TryGetValue(id, out var row) ? row.StateName : null;
+    }
+
+    private bool Matches(SubRead? read)
+    {
+        if (_filters.Count == 0) return true;
+        if (read is null || read.Items.Count == 0) return false;
+        var hits = Filters.Where(f => _filters.Contains(f.Key))
+            .Select(f => read.Items.Any(i => f.Test(this, i.Stats)));
+        return _matchAll ? hits.All(h => h) : hits.Any(h => h);
+    }
+
+    // ---------------- chart ----------------
+
+    private string WantedChartType(LifeMatterStepRow? step) => _vargaMode switch
     {
         "D1" => "D1",
         "Manual" => _manualChartType ?? _lastDisplayedChartType ?? "D1",
-        _ => _resolved?.Subject?.ChartTypeCode ?? (_lastDisplayedChartType ?? "D1")
+        _ => (step is null ? null : _resolved[step.LifeMatterId].Subject?.ChartTypeCode) ?? _lastDisplayedChartType ?? "D1"
     };
 
-    private LoadedChart? ResolveDisplayedChart()
+    private LoadedChart? DisplayedChart()
     {
-        var wanted = ResolveWantedChartType();
-        if (_data!.Charts.TryGetValue(wanted, out var chart))
-        {
-            _lastDisplayedChartType = wanted;
-            return chart;
-        }
+        var step = _allSteps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
+        var wanted = WantedChartType(step);
+        if (!_data!.Charts.TryGetValue(wanted, out var chart)) return null;
+        _lastDisplayedChartType = wanted;
+        return chart;
+    }
 
-        return null; // uncomputed Varga — the chart's existing empty state, not a fallback chart
+    private IReadOnlyList<SindHovHouseFocus> QuestionHouseFoci(LoadedChart chart, LifeMatterStepRow step)
+    {
+        var refSign = ResolveReferenceSign(chart, _question);
+        return refSign is null ? [] : QuestionHouses(step, _question).Houses.Select(h => new SindHovHouseFocus(refSign, h)).ToList();
     }
 
     private static IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> PlanetsBySign(LoadedChart chart) =>
@@ -399,64 +644,48 @@ else
                 k.Planet, ChartViewModel.DignityToken(k.DignityStatus),
                 k.IsRetrograde ?? false, k.IsCombust ?? false)).ToList());
 
-    // Scoped to Arudha padas (canonical A1..A12/AL) plus, when a Step's own Focus targets it, the
-    // one resolved "GA_AK" Graha Arudha point (LifeMatterFocusResolver.IsCanonicalSpecialPointCode)
-    // — SELF_IDENTITY_04 "what I think of the world" (2026-09-25). Special lagnas (HL/GL/SL/BL/PS)
-    // and the other 8 Graha Arudhas stay a full chart's job (SouthIndianGrid_Detailed/_Micro
-    // elsewhere), not this simplified grid's — only the single graha a Step actually asks for.
-    private IReadOnlyDictionary<string, IReadOnlyList<string>> SpecialPointsBySign(LoadedChart chart)
+    // Arudha padas and the special lagnas (HL/GL/SL/IL/PP) as cell labels, plus the one Graha Arudha
+    // point a matter's own focus asks for ("GA_AK", drawn as that literal code so SindHovGrid's
+    // SpecialPointFocusCodes match highlights it).
+    private IReadOnlyDictionary<string, IReadOnlyList<string>> SpecialPointsBySign(LoadedChart chart, LifeMatterStepRow step)
     {
-        var bySign = chart.SpecialPoints.Where(k => k.PointKind == "Arudha")
+        var bySign = chart.SpecialPoints
+            .Where(k => k.PointKind == "Arudha" || (k.PointKind == "SpecialLagna" && k.Planet is "HL" or "GL" or "SL" or "IL" or "PP"))
             .GroupBy(k => k.Sign)
-            .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(k => k.Planet).ToList());
+            .ToDictionary(g => g.Key, g => g.Select(k => k.Planet).ToList());
 
-        if (!SpecialPointFocusCodes().Contains("GA_AK", StringComparer.Ordinal))
-            return bySign;
+        if (SpecialPointCodes(step).Contains("GA_AK") && SpecialPointSign(chart, "GA_AK") is { } gaSign)
+        {
+            if (!bySign.TryGetValue(gaSign, out var list)) bySign[gaSign] = list = [];
+            list.Add("GA_AK");
+        }
 
-        var akPlanet = chart.Grahas.FirstOrDefault(g => g.CharaKaraka == "AK")?.Planet;
-        var gaPoint = akPlanet is null
-            ? null
-            : chart.SpecialPoints.FirstOrDefault(p => p.PointKind == "GrahaArudha" && p.Planet == $"GA_{akPlanet}");
-        if (gaPoint is null)
-            return bySign;
-
-        // Drawn as the literal "GA_AK" code (matching SindHovGrid's plain "AL"/"A5" convention),
-        // not the resolved planet — keeping it identical to the Focus row's own SpecialPointCode
-        // is what lets SindHovGrid's own SpecialPointFocusCodes.Contains(...) highlight match.
-        var merged = new Dictionary<string, IReadOnlyList<string>>(bySign);
-        var existing = merged.TryGetValue(gaPoint.Sign, out var codes) ? codes : Array.Empty<string>();
-        merged[gaPoint.Sign] = existing.Append("GA_AK").ToList();
-        return merged;
+        return bySign.ToDictionary(p => p.Key, p => (IReadOnlyList<string>)p.Value);
     }
 
-    private IReadOnlyList<SindHovHouseFocus> HouseFoci(LoadedChart chart) =>
-        (_resolved?.HouseAndSpecialPointFoci ?? [])
-            .Where(f => f.FocusKind == LifeMatterFocusKind.House)
-            .Select(f => (f, sign: ResolveReferenceSign(chart, f.ReferenceCode!)))
-            .Where(x => x.sign is not null)
-            .Select(x => new SindHovHouseFocus(x.sign!, x.f.HouseNumber!.Value))
-            .ToList();
+    private static string? SpecialPointSign(LoadedChart chart, string code)
+    {
+        if (code == "GA_AK")
+        {
+            var ak = chart.Grahas.FirstOrDefault(g => g.CharaKaraka == "AK")?.Planet;
+            return ak is null ? null : chart.SpecialPoints.FirstOrDefault(p => p.PointKind == "GrahaArudha" && p.Planet == $"GA_{ak}")?.Sign;
+        }
 
-    private IReadOnlyList<string> SpecialPointFocusCodes() =>
-        (_resolved?.HouseAndSpecialPointFoci ?? [])
-            .Where(f => f.FocusKind == LifeMatterFocusKind.SpecialPoint)
-            .Select(f => f.SpecialPointCode!)
-            .ToList();
+        return chart.SpecialPoints.FirstOrDefault(p => p.Planet == code)?.Sign;
+    }
 
-    // Resolves a tbl_Dim_HouseReference ReferencePoint to a concrete sign in the CURRENTLY
-    // DISPLAYED chart. "Planet"-basis references (Chandra/Ravi Lagna, the 7 Graha Lagnas, db/32)
-    // need no persisted SpecialPoint at all — they're just that graha's own already-known
-    // position, same as KarakaPolarWheel never asked for them as points either (confirmed
-    // 2026-09-25: neither table nor any chart-fact expects a Paaka/Karakamsa/Graha-Lagna degree,
-    // only a sign lookup). Paaka Lagna ("LagnaLord" basis, PVR sec 7.3.5) is one indirection
-    // further: the sign of WHOEVER rules D1's own Lagna (fixed per person), read in whichever
-    // chart is displayed - same "special lagnas are reference points projected into every varga"
-    // convention (pvr-coverage.md ch.7) the others already use. Karakamsa Lagna ("KarakaInVarga"
-    // basis, PVR sec 7.3.6) is the one genuine exception: by definition it's always the
-    // Atmakaraka's sign IN D9 specifically, never the displayed chart - hence the explicit
-    // `_data!.Charts["D9"]` lookup instead of `chart`. An unresolvable reference silently drops
-    // that one focus row rather than throwing - consistent with "no row means focus not yet
-    // structured," applied per-reference instead of per-matter.
+    private IReadOnlyDictionary<string, int> SavBySign()
+    {
+        return Enum.GetValues<ZodiacName>()
+            .Select(z => (Sign: z.ToString(), Stats: _stats!.ForSign(z.ToString())))
+            .Where(x => x.Stats.SavBindus is not null)
+            .ToDictionary(x => x.Sign, x => x.Stats.SavBindus!.Value);
+    }
+
+    // Resolves a tbl_Dim_HouseReference code to a sign in the given chart. Planet-basis references
+    // are that graha's own sign; Paaka Lagna is the sign of D1's Lagna lord (PVR 7.3.5); Karakamsa
+    // is always the Atmakaraka's D9 sign (PVR 7.3.6). Special lagnas read their persisted points;
+    // Indu/Pranapada resolve once their IL/PP points are persisted. Unresolvable → null.
     private string? ResolveReferenceSign(LoadedChart chart, string referenceCode) => referenceCode switch
     {
         "LAGNA" => chart.AscendantSign,
@@ -466,8 +695,10 @@ else
         "HORA_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "HL")?.Sign,
         "GHATI_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "GL")?.Sign,
         "SREE_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "SL")?.Sign,
+        "INDU_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "IL")?.Sign,
+        "PRANAPADA_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "PP")?.Sign,
         "PAAKA_LAGNA" => ResolvePaakaLagnaSign(chart),
-        "KARAKAMSA_LAGNA" => ResolveKarakamsaLagnaSign(),
+        "KARAKAMSA_LAGNA" => _data!.Charts.TryGetValue("D9", out var d9) ? d9.Grahas.FirstOrDefault(g => g.CharaKaraka == "AK")?.Sign : null,
         var code when code.StartsWith("GRAHA_LAGNA_", StringComparison.Ordinal) =>
             chart.Grahas.FirstOrDefault(g => string.Equals(g.Planet, code["GRAHA_LAGNA_".Length..], StringComparison.OrdinalIgnoreCase))?.Sign,
         _ => null
@@ -479,53 +710,16 @@ else
         return lagnaLord is null ? null : chart.Grahas.FirstOrDefault(g => g.Planet == lagnaLord)?.Sign;
     }
 
-    private string? ResolveKarakamsaLagnaSign() =>
-        _data!.Charts.TryGetValue("D9", out var d9) ? d9.Grahas.FirstOrDefault(g => g.CharaKaraka == "AK")?.Sign : null;
+    // ---------------- planets ----------------
 
-    private IReadOnlyList<ChartKeyDetail> D1KeyDetails => _data!.Charts["D1"].KeyDetails;
-
-    // Planet condition card — D1 PlanetaryStateFact rows for this Step's Karaka planets only.
-    private IReadOnlyList<PlanetaryStateFact> KarakaPlanetRows()
-    {
-        if (_resolved is null || !_data!.Charts.TryGetValue("D1", out var d1)) return [];
-
-        var planets = ResolveKarakaPlanetNames(d1);
-        return _planetaryStates.Where(r => planets.Contains(r.Planet)).ToList();
-    }
-
-    // Relationships card — compound (Naisargika + Tatkalika) relationship between every pair of
-    // this Step's Karaka planets, using the CURRENTLY DISPLAYED chart's sign placements (unlike
-    // avastha/Shadbala, relationship is chart/varga-specific, not D1-only).
-    private IReadOnlyList<(string PlanetA, string PlanetB, string? Relationship)> KarakaRelationships(LoadedChart? chart)
-    {
-        if (chart is null) return [];
-
-        var planets = ResolveKarakaPlanetNames(chart).ToList();
-        var pairs = new List<(string, string, string?)>();
-        for (var i = 0; i < planets.Count; i++)
-        for (var j = i + 1; j < planets.Count; j++)
-        {
-            var signA = chart.Grahas.FirstOrDefault(g => g.Planet == planets[i])?.Sign;
-            var signB = chart.Grahas.FirstOrDefault(g => g.Planet == planets[j])?.Sign;
-            if (signA is null || signB is null) continue;
-
-            var relationship = DignityEngine.EvaluatePairRelationship(
-                planets[i], planets[j], Enum.Parse<ZodiacName>(signA), Enum.Parse<ZodiacName>(signB));
-            pairs.Add((planets[i], planets[j], relationship));
-        }
-
-        return pairs;
-    }
-
-    // KarakaMatterRepository.KarakaCode is "GRAHA_<PLANETNAME>" for a fixed graha or
-    // "KARAKA_<Code>" for a chara karaka (AK/AmK/BK/.../DK). Chara karaka rank is D1-derived but
-    // carried onto every chart's own ChartKeyDetail.CharaKaraka (same doc comment as that field),
-    // so this resolves correctly against whichever chart is passed in, not only D1.
-    private IReadOnlySet<string> ResolveKarakaPlanetNames(LoadedChart chart) =>
-        (_resolved?.Karakas ?? [])
+    // KarakaCode is "GRAHA_<PLANET>" for a fixed graha or "KARAKA_<code>" for a chara karaka (AK..DK);
+    // chara karaka rank is D1-derived but carried onto every chart's ChartKeyDetail.CharaKaraka.
+    private IReadOnlySet<string> KarakaPlanets(LoadedChart chart, LifeMatterStepRow step) =>
+        _resolved[step.LifeMatterId].Karakas
             .Select(k => ResolveKarakaPlanet(chart, k.KarakaCode))
             .Where(p => p is not null)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase)!;
+            .Select(p => p!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     private static string? ResolveKarakaPlanet(LoadedChart chart, string karakaCode)
     {
@@ -544,18 +738,80 @@ else
         return null;
     }
 
-    // House condition card — the resolved House-kind Focus rows' signs, translated to
-    // house-from-Lagna numbers for the currently displayed chart (ChartHouseLord/Grahas are
-    // always keyed by house-from-Lagna, never by sign).
-    private IReadOnlyList<int> FocusHouseNumbersFromLagna(LoadedChart? chart)
+    // Planet strength & avastha card — the focus signs' lords, then the matter's karakas, in D1.
+    private IReadOnlyList<PlanetaryStateFact> PlanetRows(SubRead? read, LifeMatterStepRow? step)
     {
-        if (chart is null) return [];
-
-        var ascendant = Enum.Parse<ZodiacName>(chart.AscendantSign);
-        return HouseFoci(chart)
-            .Select(f => LifeMatterFocusResolver.ResolveHouseSign(Enum.Parse<ZodiacName>(f.ReferenceSign), f.HouseNumber))
-            .Select(sign => AstroMath.CountFromSignToSign(ascendant, sign))
-            .Distinct()
+        if (read is null || step is null) return [];
+        var order = read.Items.Select(i => i.Stats.LordPlanet)
+            .Concat(KarakaPlanets(_data!.Charts["D1"], step))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        return order.Select(p => _planetaryStates.FirstOrDefault(f => string.Equals(f.Planet, p, StringComparison.OrdinalIgnoreCase)))
+            .Where(f => f is not null)
+            .Select(f => f!)
             .ToList();
     }
+
+    // Compound relationship between every pair of the matter's karakas in the displayed chart.
+    private IReadOnlyList<(string PlanetA, string PlanetB, string? Relationship)> KarakaRelationships(LoadedChart chart, LifeMatterStepRow step)
+    {
+        var planets = KarakaPlanets(chart, step).ToList();
+        var pairs = new List<(string, string, string?)>();
+        for (var i = 0; i < planets.Count; i++)
+        for (var j = i + 1; j < planets.Count; j++)
+        {
+            var signA = chart.Grahas.FirstOrDefault(g => g.Planet == planets[i])?.Sign;
+            var signB = chart.Grahas.FirstOrDefault(g => g.Planet == planets[j])?.Sign;
+            if (signA is null || signB is null) continue;
+            pairs.Add((planets[i], planets[j], DignityEngine.EvaluatePairRelationship(
+                planets[i], planets[j], Enum.Parse<ZodiacName>(signA), Enum.Parse<ZodiacName>(signB))));
+        }
+
+        return pairs;
+    }
+
+    // ---------------- presentation helpers ----------------
+
+    // "2 hold · 1 contested" — only the non-zero outcomes; "none" when no planet intervenes at all.
+    private static string ArgalaText(ArgalaSummary argala)
+    {
+        if (!argala.Any) return "none";
+        var contested = argala.Pairs.Count(p => p.Verdict == ArgalaVerdict.Contested);
+        var parts = new[] { (argala.Holds, "hold"), (contested, "contested"), (argala.Obstructed, "obstructed") }
+            .Where(x => x.Item1 > 0).Select(x => $"{x.Item1} {x.Item2}").ToList();
+        return parts.Count == 0 ? "obstruction only" : string.Join(" · ", parts);
+    }
+
+    private static string Aria(bool value) => value ? "true" : "false";
+
+    private static RenderFragment ArgalaResult(ArgalaVerdict? verdict) => verdict switch
+    {
+        ArgalaVerdict.Holds => @<span class="lm-band strong">HOLDS</span>,
+        ArgalaVerdict.Obstructed => @<span class="lm-band weak">OBSTRUCTED</span>,
+        ArgalaVerdict.Contested => @<span class="lm-band middle">CONTESTED</span>,
+        _ => @<span class="lm-muted">obstruction only</span>
+    };
+
+    private static string DisplaySign(string sign) => sign == "Capricornus" ? "Capricorn" : sign;
+
+    private static string Ordinal(int n) => n + (n % 100 is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
+
+    private static RenderFragment Signals(IReadOnlyList<StrengthBand> bands) =>
+        @<span class="lm-sig" role="img" aria-label="@("Signals: " + string.Join(", ", bands.Select(b => b.ToString().ToLowerInvariant())))">
+            @foreach (var band in bands)
+            {
+                <i class="@band.ToString().ToLowerInvariant()"></i>
+            }
+        </span>;
+
+    private static RenderFragment Band(StrengthBand band, string strong, string middle, string weak) => band switch
+    {
+        StrengthBand.Strong => @<span class="lm-band strong">@strong</span>,
+        StrengthBand.Middle => @<span class="lm-band middle">@middle</span>,
+        StrengthBand.Weak => @<span class="lm-band weak">@weak</span>,
+        _ => @<span></span>
+    };
+
+    private static RenderFragment Meter(double value, double max, double tick) =>
+        @<span class="lm-meter" aria-hidden="true"><b style="width:@(Math.Min(100, value / max * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></b><span class="lm-tick" style="left:@((tick / max * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></span></span>;
 }
