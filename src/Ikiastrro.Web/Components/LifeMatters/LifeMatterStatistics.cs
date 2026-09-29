@@ -1,5 +1,6 @@
 using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Models;
 using Ikiastrro.Data;
 
 namespace Ikiastrro.Web.Components.LifeMatters;
@@ -26,8 +27,8 @@ public sealed record ArgalaSummary(IReadOnlyList<ArgalaPair> Pairs)
     public bool Any => Pairs.Any(p => p.ArgalaPlanets.Count > 0 || p.ObstructingPlanets.Count > 0);
 }
 
-/// <summary>D1 strength statistics for one sign, read as a house. Every figure is sign-based, so a
-/// house counted from any lagna reads the same persisted D1 facts.</summary>
+/// <summary>Strength statistics for one sign of one chart, read as a house from that chart's Lagna.
+/// Every figure is sign-based, so a house counted from any lagna reads the same facts.</summary>
 public sealed record HouseStatistics(
     string Sign, int HouseFromLagna, int? SavBindus, decimal? BhavaBalaRupas,
     string LordPlanet, decimal? LordShadbalaPercent, ArgalaSummary Argala)
@@ -43,9 +44,12 @@ public sealed record HouseStatistics(
 }
 
 /// <summary>
-/// D1 statistics for the Life Matters page, built once per person from persisted facts
-/// (vw_ChartAshtakavarga, vw_ChartBhavaBala, vw_ChartShadbala, tbl_Fact_Argala) and queried per
-/// sign. Bands reuse the thresholds the app already shows elsewhere: SAV above 30 favourable and
+/// Statistics for the Life Matters page, built once per person per chart (D1 or any varga) from
+/// persisted facts (vw_ChartAshtakavarga, vw_ChartBhavaBala, vw_ChartShadbala, tbl_Fact_Argala) and
+/// queried per sign. In a varga: SAV is that varga's own Sarva Ashtakavarga (still 337 bindus in
+/// total, so the same bands apply); Argala is the varga's own occupancy; the lord is the varga
+/// sign's lord, and its Ṣaḍbala is the planet's (Ṣaḍbala exists only once per planet); Bhava Bala
+/// is a D1 house computation and reads as nothing in a varga. Bands reuse the thresholds the app already shows elsewhere: SAV above 30 favourable and
 /// below 25 unfavourable (AshtakavargaChart's cited rule), Bhava Bala 7+/under 5 rupas
 /// (HouseStrengthChart) and Ṣaḍbala 110%+/under 90% of the required minimum (PlanetaryStateTable's
 /// strong/weak bands). They describe strength, not outcomes.
@@ -57,6 +61,7 @@ public sealed class LifeMatterStatistics
     private static readonly (int Argala, int Obstruction, string Kind)[] Pairs =
         [(2, 12, "Primary"), (4, 10, "Primary"), (11, 3, "Primary"), (5, 9, "Secondary")];
 
+    public string ChartType { get; }
     private readonly ZodiacName _ascendant;
     private readonly IReadOnlyDictionary<int, int> _savBySignNumber;
     private readonly IReadOnlyDictionary<int, decimal> _bhavaByHouse;
@@ -69,18 +74,44 @@ public sealed class LifeMatterStatistics
         IEnumerable<BhavaBalaSummaryRow> bhavaBala,
         IEnumerable<ShadbalaSummaryRow> shadbala,
         IEnumerable<ArgalaFactRow> argala)
+        : this("D1", d1AscendantSign, ashtakavarga, bhavaBala, shadbala, argala)
     {
-        _ascendant = Enum.Parse<ZodiacName>(d1AscendantSign);
+    }
+
+    /// <param name="argala">House-target Argala facts for <paramref name="chartType"/>; rows for other
+    /// charts are ignored. Only D1 is persisted today, so a varga's rows come from
+    /// <see cref="LiveArgala"/>.</param>
+    public LifeMatterStatistics(
+        string chartType,
+        string ascendantSign,
+        IEnumerable<AshtakavargaRow> ashtakavarga,
+        IEnumerable<BhavaBalaSummaryRow> bhavaBala,
+        IEnumerable<ShadbalaSummaryRow> shadbala,
+        IEnumerable<ArgalaFactRow> argala)
+    {
+        ChartType = chartType;
+        _ascendant = Enum.Parse<ZodiacName>(ascendantSign);
         _savBySignNumber = ashtakavarga
-            .Where(r => r.ChartType == "D1" && r.SarvaBindus is not null)
+            .Where(r => r.ChartType == chartType && r.SarvaBindus is not null)
             .GroupBy(r => (int)r.SignNumber)
             .ToDictionary(g => g.Key, g => (int)g.First().SarvaBindus!.Value);
-        _bhavaByHouse = bhavaBala.ToDictionary(r => (int)r.HouseNumber, r => r.BhavaBalaRupas);
+        _bhavaByHouse = chartType == "D1"
+            ? bhavaBala.ToDictionary(r => (int)r.HouseNumber, r => r.BhavaBalaRupas)
+            : new Dictionary<int, decimal>();
         _shadbalaPercentByPlanet = shadbala.ToDictionary(r => r.Planet, r => r.PercentOfMinimum, StringComparer.OrdinalIgnoreCase);
         _argalaByHouse = argala
-            .Where(r => r.ChartType == "D1" && r.TargetKind == "House")
+            .Where(r => r.ChartType == chartType && r.TargetKind == "House")
             .ToLookup(r => (int)r.TargetHouseNumber);
     }
+
+    /// <summary>House-target Argala rows computed from a chart's own graha positions — the same
+    /// ArgalaFactBuilder chart generation persists for D1, run live for a varga that has no stored rows.</summary>
+    public static IReadOnlyList<ArgalaFactRow> LiveArgala(string chartType, string ascendantSign, IEnumerable<ChartKeyDetail> grahas) =>
+        ArgalaFactBuilder.BuildForHouses(Enum.Parse<ZodiacName>(ascendantSign), ArgalaFactBuilder.BuildOccupancy(grahas))
+            .Select(f => new ArgalaFactRow(chartType, f.TargetKind, f.TargetKey, (byte)f.TargetHouseNumber,
+                f.RelationTypeCode, (byte)f.HouseOffset, f.IsPrimary, f.OccupantPlanet.ToString(),
+                f.ExceptionApplied, f.CountedAntiZodiacally, null))
+            .ToList();
 
     public HouseStatistics ForSign(string sign)
     {
