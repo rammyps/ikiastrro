@@ -26,9 +26,12 @@
 /* Sarvāṣṭavarga sign-total band (2026-09-25, cited SAV&gt;30/&lt;25 threshold — see SavBand's
    doc comment): same green/sunset-orange/red + sunrise-on-strong/weak convention as the rank
    badges and Bhinnāṣṭavarga cells above, applied to both the bar fill and its trailing number. */
-.av-fill.av-high { background: var(--status-strong); }
+/* Bar fills only are lightened (rammyps, 2026-09-29): a 55% mix of the green/red with white, so
+   the long bars read softer than the solid badges; the trailing .av-value pills and the
+   Bhinnāṣṭavarga cells keep the full-strength tokens. */
+.av-fill.av-high { background: color-mix(in srgb, var(--status-strong) 55%, white); }
 .av-fill.av-moderate { background: var(--status-moderate); }
-.av-fill.av-zero { background: var(--status-weak); }
+.av-fill.av-zero { background: color-mix(in srgb, var(--status-weak) 55%, white); }
 .av-value {
     display: inline-block;
     min-width: 2.2em;
