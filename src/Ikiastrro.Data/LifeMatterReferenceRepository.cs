@@ -46,6 +46,22 @@ public sealed class LifeMatterReferenceRepository(SqlConnectionFactory factory)
             ORDER BY lm.DisplayOrder, lm.Id
             """, new { RuleSetId = ruleSetId, CategoryCode = categoryCode }).ToList();
     }
+
+    /// <summary>Every active step across all categories in one query — the Life Matters page's
+    /// page-load snapshot, so area-level summaries don't need a GetSteps call per category.</summary>
+    public IReadOnlyList<LifeMatterStepRow> GetAllSteps(byte ruleSetId)
+    {
+        using var connection = factory.CreateOpenConnection();
+        return connection.Query<LifeMatterStepRow>("""
+            SELECT lm.LifeMatterId, dm.Code AS LifeMatterCode, lm.CategoryCode, lm.CategoryName,
+                   CAST(lm.DisplayOrder AS INT) AS DisplayOrder, lm.MatterText, lm.PrimaryChartsText,
+                   lm.HouseFromLagnaText, lm.KarakaText, lm.BasisCode, lm.SourceRefCode
+            FROM dbo.tbl_Rule_LifeMatterReference lm
+            JOIN dbo.tbl_Dim_LifeMatter dm ON dm.Id = lm.LifeMatterId
+            WHERE lm.RuleSetId = @RuleSetId AND lm.IsActive = 1
+            ORDER BY lm.CategoryCode, lm.DisplayOrder, lm.Id
+            """, new { RuleSetId = ruleSetId }).ToList();
+    }
 }
 
 public sealed class DivisionalSubjectRepository(SqlConnectionFactory factory)
