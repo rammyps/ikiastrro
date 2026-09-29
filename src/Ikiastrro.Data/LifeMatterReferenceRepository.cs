@@ -108,7 +108,22 @@ public sealed class LifeMatterFocusRepository(SqlConnectionFactory factory)
             ORDER BY LifeMatterId, Priority, Id
             """, new { RuleSetId = ruleSetId }).ToList();
     }
+
+    /// <summary>Every active tbl_Dim_HouseReference row — the lagna perspectives a Focus row can
+    /// count from, with their Perspective text and the vargas they apply in.</summary>
+    public IReadOnlyList<HouseReferenceRow> GetHouseReferences()
+    {
+        using var connection = factory.CreateOpenConnection();
+        return connection.Query<HouseReferenceRow>("""
+            SELECT ReferenceCode, ReferenceName, Perspective, AppliesInVarga, CAST(SortOrder AS INT) AS SortOrder
+            FROM dbo.tbl_Dim_HouseReference
+            WHERE IsActive = 1
+            ORDER BY SortOrder
+            """).ToList();
+    }
 }
+
+public sealed record HouseReferenceRow(string ReferenceCode, string ReferenceName, string Perspective, string AppliesInVarga, int SortOrder);
 
 public sealed class KarakaMatterRepository(SqlConnectionFactory factory)
 {
