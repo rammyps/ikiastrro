@@ -48,6 +48,10 @@ and `NUMEROLOGY`. Unknown person or no D1 chart → "No saved charts found for t
      structured for this matter".
    - Below the table: the chart and a **D1 statistics** panel per focus house (SAV meter with
      the 28 average tick, Bhava Bala meter with the 7-rupa tick, lord Ṣaḍbala, occupants).
+     When the question's lagna is the matter's own seeded focus, the panel adds a "Why <lagna>"
+     note: the `tbl_Content_Interpretation` row with SubjectType `LIFE_MATTER_FOCUS` and key
+     `{LifeMatterCode}_{ReferenceCode}` (db/153 seeds Indu → WEALTH_11, Pranapada →
+     SELF_HEALTH_02 / TROUBLE_LOSS_07). No row, no note.
 4. **D1 analysis** — for the selected sub-question and question:
    - **Argala & Virodhargala** per focus house, from `tbl_Fact_Argala` (D1): pairs 2/12, 4/10,
      11/3, secondary 5/9, and a malefic 3rd/11th pair when present; planets on each side, an
@@ -107,6 +111,7 @@ All reads happen once per person in `OnParametersSet`; every selection after tha
 | Areas, all steps | `LifeMatterReferenceRepository.GetCategories` / `GetAllSteps` | `tbl_Rule_LifeMatterReference` |
 | Subjects, foci, lagna perspectives | `LifeMatterFocusRepository.GetSubjects` / `GetFoci` / `GetHouseReferences` | `tbl_Rule_LifeMatterSubject` / `tbl_Rule_LifeMatterFocus` / `tbl_Dim_HouseReference` |
 | Karakas | `KarakaMatterRepository.GetForRuleSet` | `tbl_Rule_KarakaMatter` |
+| Focus notes | `InterpretationRepository.GetBySubjectType(1, "LIFE_MATTER_FOCUS")` | `tbl_Content_Interpretation` |
 | SAV | `AshtakavargaRepository.GetByBirthDetailId` | `vw_ChartAshtakavarga` |
 | Bhava Bala | `BhavaStrengthRepository.GetSummaryByBirthDetailId` | `vw_ChartBhavaBala` |
 | Ṣaḍbala | `PlanetaryStrengthRepository.GetSummaryByBirthDetailId` | `vw_ChartShadbala` |

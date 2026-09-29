@@ -28,6 +28,7 @@
 @inject BhavaStrengthRepository BhavaStrengthRepo
 @inject AshtakavargaRepository AshtakavargaRepo
 @inject ArgalaFactRepository ArgalaFactRepo
+@inject InterpretationRepository InterpretationRepo
 @inject ActivePerson Active
 
 @* docs/ui/components/specs_life_matters_page.md. Four levels: Area (LifeMatterReference category)
@@ -278,6 +279,13 @@ else
                                 </tbody>
                             </table>
                         }
+                        @if (read.Sourced && FocusNote(step) is { } note)
+                        {
+                            <div class="lm-focus-note">
+                                <h3>Why @question.Label</h3>
+                                <p><InterpretationText StandardText="@note.StandardText" ShortText="@note.ShortText" /></p>
+                            </div>
+                        }
                         <p class="lm-note">Meter ticks: SAV average 28 · Bhava Bala 7 rupas.</p>
                     }
                 </div>
@@ -395,6 +403,11 @@ else
         new Dictionary<(byte, byte), PostureStateInterpretationRow>();
     private IReadOnlyList<ShadbalaSummaryRow> _shadbala = [];
 
+    // Sourced rationale for a matter's special-lagna Focus row, tbl_Content_Interpretation
+    // SubjectType 'LIFE_MATTER_FOCUS' keyed '{LifeMatterCode}_{ReferenceCode}' (db/153). Seeded so
+    // far for the Indu/Pranapada links only; a missing row simply shows nothing.
+    private IReadOnlyList<InterpretationRow> _focusNotes = [];
+
     private string _area = "";
     private string _question = "LAGNA";
     private int? _selectedLifeMatterId;
@@ -433,6 +446,7 @@ else
         _categories = LifeMatterReferenceRepo.GetCategories(RuleSetId);
         _allSteps = LifeMatterReferenceRepo.GetAllSteps(RuleSetId);
         _references = LifeMatterFocusRepo.GetHouseReferences();
+        _focusNotes = InterpretationRepo.GetBySubjectType(RuleSetId, "LIFE_MATTER_FOCUS");
         var subjects = LifeMatterFocusRepo.GetSubjects(RuleSetId);
         var foci = LifeMatterFocusRepo.GetFoci(RuleSetId);
         var karakas = KarakaMatterRepo.GetForRuleSet(RuleSetId);
@@ -574,6 +588,9 @@ else
         var lagna = houseFoci.Where(f => f.ReferenceCode == "LAGNA").Select(f => f.HouseNumber!.Value).Distinct().ToList();
         return (lagna.Count > 0 ? lagna : houseFoci.Select(f => f.HouseNumber!.Value).Distinct().ToList(), false);
     }
+
+    private InterpretationRow? FocusNote(LifeMatterStepRow step) =>
+        InterpretationRepository.Resolve(_focusNotes, $"{step.LifeMatterCode}_{_question}", null);
 
     private IReadOnlyList<string> SpecialPointCodes(LifeMatterStepRow step) =>
         _resolved[step.LifeMatterId].HouseAndSpecialPointFoci

@@ -108,6 +108,9 @@
 .lm-meter b { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--brand-midnight); }
 .lm-tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--house-lagna); }
 
+.lm-focus-note { border-left: 3px solid var(--house-lagna); padding-left: 10px; }
+.lm-focus-note p { margin: 4px 0 0; font-size: var(--font-size-support); }
+
 .lm-chart-row { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 20px; align-items: start; }
 
 /* Level 4 */
