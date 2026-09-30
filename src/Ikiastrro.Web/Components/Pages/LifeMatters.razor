@@ -31,6 +31,8 @@
 @inject ArgalaFactRepository ArgalaFactRepo
 @inject InterpretationRepository InterpretationRepo
 @inject ActivePerson Active
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 
 
 @* docs/ui/components/specs_life_matters_page.md "Customer flow". Three levels: EXPLORE (area →
@@ -79,6 +81,12 @@ else
         <span class="lm-crumb-sep" aria-hidden="true">→</span>
         <span class="lm-crumb">@perspective</span>
         <span class="lm-context-pct">@Pct(readPct, "Selected question")</span>
+        <button type="button" class="lm-copy" @onclick="CopyLink" title="Copy a link to this exact reading">@(_copyStatus ?? "Copy link")</button>
+        @if (_copyFailed)
+        {
+            @* The clipboard needs permission; the link itself is always here to copy by hand. *@
+            <input class="lm-link-field" readonly value="@Nav.Uri" aria-label="Link to this reading" onfocus="this.select()" />
+        }
     </div>
 
     <div class="lm-top">
@@ -527,6 +535,12 @@ else
 @code {
     [Parameter] public int Id { get; set; }
 
+    // Deep link (LifeMatterLink): ?matter=WEALTH_02&lagna=MO&chart=D9. Read on load and whenever the
+    // URL changes (back/forward, a pasted link); every selection writes the URL back in place.
+    [SupplyParameterFromQuery(Name = "matter")] public string? Matter { get; set; }
+    [SupplyParameterFromQuery(Name = "lagna")] public string? Lagna { get; set; }
+    [SupplyParameterFromQuery(Name = "chart")] public string? Chart { get; set; }
+
     private const byte RuleSetId = 1;
     private static readonly LifeMatterFocusResolver Resolver = new();
 
@@ -566,7 +580,11 @@ else
 
     protected override void OnParametersSet()
     {
-        if (_loadedId == Id) return;
+        if (_loadedId == Id)
+        {
+            ApplyQuery();
+            return;
+        }
         _loadedId = Id;
         _statsByChart.Clear();
         _chartOverride = null;
@@ -610,8 +628,64 @@ else
         _amsabala = AmsabalaRepo.GetByBirthDetailId(Id);
         _argala = ArgalaFactRepo.GetByBirthDetailId(Id);
 
-        _area = _categories.FirstOrDefault()?.CategoryCode ?? "";
-        _selectedLifeMatterId = StepsIn(_area).FirstOrDefault()?.LifeMatterId;
+        _appliedQuery = null;
+        ApplyQuery();
+    }
+
+    // ---------------- deep link ----------------
+
+    private string? _appliedQuery;   // the matter|lagna|chart last applied or written, so a URL we wrote is not re-applied
+    private string? _copyStatus;
+    private bool _copyFailed;
+
+    private static string QueryKey(string? matter, string? lagna, string? chart) => $"{matter}|{lagna}|{chart}";
+
+    /// <summary>Selects what the URL names; anything it doesn't name (or names wrongly) falls back to
+    /// the default — the first area's first matter, Lagna, the matter's own chart.</summary>
+    private void ApplyQuery()
+    {
+        var key = QueryKey(Matter, Lagna, Chart);
+        if (_data is null || key == _appliedQuery) return;
+        _appliedQuery = key;
+
+        var step = _allSteps.FirstOrDefault(s => string.Equals(s.LifeMatterCode, Matter, StringComparison.OrdinalIgnoreCase));
+        _area = step?.CategoryCode ?? _categories.FirstOrDefault()?.CategoryCode ?? "";
+        _selectedLifeMatterId = step?.LifeMatterId ?? StepsIn(_area).FirstOrDefault()?.LifeMatterId;
+        _question = LifeMatterLink.ResolveLagna(Lagna) ?? "LAGNA";
+        _chartOverride = LifeMatterLink.ResolveChart(Chart, _data.Charts.Keys);
+        _pinnedSign = null;
+        _showAllMatters = false;
+        _copyStatus = null;
+        _copyFailed = false;
+    }
+
+    /// <summary>Writes the current selection into the URL (replacing the history entry), so the
+    /// address bar is always a shareable link to this exact reading.</summary>
+    private void SyncUrl()
+    {
+        _copyStatus = null;
+        _copyFailed = false;
+        var step = _allSteps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
+        var chart = step is null || _chartOverride is null || _chartOverride == HomeChart(step) ? null : _chartOverride;
+        _appliedQuery = QueryKey(step?.LifeMatterCode, _question == "LAGNA" ? null : LifeMatterQuestions.Get(_question).Tag, chart);
+        var url = LifeMatterLink.Url(Id, step?.LifeMatterCode, _question, chart);
+        if (Nav.ToBaseRelativePath(Nav.Uri) != url.TrimStart('/')) Nav.NavigateTo(url, replace: true);
+    }
+
+    private async Task CopyLink()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Nav.Uri);
+            _copyStatus = "Link copied";
+            _copyFailed = false;
+        }
+        catch (JSException)
+        {
+            // Clipboard refused (no permission, not a secure context): show the link to copy by hand.
+            _copyStatus = "Copy link";
+            _copyFailed = true;
+        }
     }
 
     // Persisted Argala where chart generation stored it (D1), else live — ArgalaFacts.ForChart,
@@ -641,6 +715,7 @@ else
         _chartOverride = null;
         _pinnedSign = null;
         _showAllMatters = false;
+        SyncUrl();
     }
 
     // A new matter opens in its own varga; selecting the current one keeps it (no deselect).
@@ -650,12 +725,14 @@ else
         _selectedLifeMatterId = lifeMatterId;
         _chartOverride = null;
         _pinnedSign = null;
+        SyncUrl();
     }
 
     private void SelectChart(string chartType)
     {
         _chartOverride = chartType;
         _pinnedSign = null;
+        SyncUrl();
     }
 
     // ---------------- charts per matter ----------------
@@ -740,6 +817,7 @@ else
     {
         _question = referenceCode;
         _pinnedSign = null;
+        SyncUrl();
     }
 
     private void SelectCell(string referenceCode, string chartType)
@@ -747,6 +825,7 @@ else
         _question = referenceCode;
         _chartOverride = chartType;
         _pinnedSign = null;
+        SyncUrl();
     }
 
     private string ChartTypeFor(LifeMatterStepRow step) =>

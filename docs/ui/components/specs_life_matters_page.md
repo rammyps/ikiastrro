@@ -23,6 +23,24 @@ page runs edge to edge: it renders a hidden `.lm-full` marker and `MainLayout.ra
 the centered column's max width for `.ik-page:has(.lm-full)` (16px side padding). No page
 heading; the active header pill names the page.
 
+## Deep links
+
+Every reading has its own URL: `/life-matters/{id}?matter=WEALTH_02&lagna=MO&chart=D9`
+(`LifeMatterLink.cs`, `LifeMatterLinkTests`).
+
+| Parameter | Value | Left out when |
+|---|---|---|
+| `matter` | `tbl_Dim_LifeMatter.Code` (unique; its area follows from it) | no question selected |
+| `lagna` | a perspective's tag (`MO`, `SU`, `AL`, `HL` …) or its `tbl_Dim_HouseReference` code | Lagna |
+| `chart` | a generated chart code (`D9`, `D2-US`) | it is the question's own chart |
+
+Values are case-insensitive. A value that names nothing falls back to the default (the first
+area's first question, Lagna, the question's own chart) — never an error. The page applies the
+URL on load and whenever it changes (a link opened inside the app, back/forward); every
+selection rewrites the URL in place (`replace`, no extra history entries), so the address bar is
+always a link to the reading on screen. **Copy link** in the context bar copies it; when the
+browser refuses the clipboard, the link appears in a read-only field to copy by hand.
+
 ## Layout — customer flow
 
 Rebuilt 2026-10-01 from the Life Matters UX audit (`reports/life-matters-audit/`): the answer
