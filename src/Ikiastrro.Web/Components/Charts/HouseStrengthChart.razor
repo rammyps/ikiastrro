@@ -170,5 +170,5 @@
     /// restated, so it isn't double-counted when this house's support is later combined with a
     /// planet's Shadbala elsewhere.</summary>
     private static decimal IndependentBhavabala(IReadOnlyDictionary<string, decimal> comps) =>
-        comps.GetValueOrDefault("BHAVA_DIG_BALA", 0) + comps.GetValueOrDefault("BHAVA_DRIK_BALA", 0);
+        comps.Where(kv => IndependentBhavaBala.ComponentCodes.Contains(kv.Key)).Sum(kv => kv.Value);
 }

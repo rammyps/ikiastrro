@@ -50,12 +50,19 @@ public sealed class LifeMatterStatisticsTests
         Assert.Equal(expected, LifeMatterStatistics.SavBand(bindus));
 
     [Theory]
-    [InlineData(7.0, StrengthBand.Strong)]
-    [InlineData(6.99, StrengthBand.Middle)]
-    [InlineData(5.0, StrengthBand.Middle)]
-    [InlineData(4.99, StrengthBand.Weak)]
-    public void BhavaBand_MatchesHouseStrengthChart(double rupas, StrengthBand expected) =>
-        Assert.Equal(expected, LifeMatterStatistics.BhavaBand((decimal)rupas));
+    [InlineData(1.0, StrengthBand.Strong)]   // one SD above the chart's own house mean
+    [InlineData(0.99, StrengthBand.Middle)]
+    [InlineData(-1.0, StrengthBand.Middle)]
+    [InlineData(-1.01, StrengthBand.Weak)]
+    public void IndependentBhavaBand_IsOneStandardDeviationEitherSide(double z, StrengthBand expected) =>
+        Assert.Equal(expected, LifeMatterStatistics.IndependentBhavaBand(z));
+
+    [Theory]
+    [InlineData(5, StrengthBand.Strong)]     // PVR: 5+ good, 3 or fewer bad
+    [InlineData(4, StrengthBand.Middle)]
+    [InlineData(3, StrengthBand.Weak)]
+    public void BavBand_UsesTheCitedFivePlusThreeOrFewerRule(int bindus, StrengthBand expected) =>
+        Assert.Equal(expected, LifeMatterStatistics.BavBand(bindus));
 
     [Theory]
     [InlineData(100.0, StrengthBand.Strong)]   // Parāśara's required minimum (SRC_BPHS_27)
@@ -71,7 +78,7 @@ public sealed class LifeMatterStatisticsTests
         var stats = Build().ForSign("Gemini"); // lord Mercury has no Ṣaḍbala row in this fixture
 
         Assert.Null(stats.SavBindus);
-        Assert.Equal([StrengthBand.None, StrengthBand.None, StrengthBand.None, StrengthBand.None], stats.Bands);
+        Assert.All(stats.Bands, b => Assert.Equal(StrengthBand.None, b));
     }
 
     [Fact]
@@ -151,6 +158,7 @@ public sealed class LifeMatterStatisticsTests
         Assert.Equal(17, d1.ForSign("Libra").SavBindus);
         Assert.Equal(40, d9.SavBindus);
         Assert.Null(d9.BhavaBalaRupas);                 // Bhava Bala is a D1 house computation
+        Assert.Null(d9.IndependentBhavaZ);
         Assert.Equal(StrengthBand.None, d9.BhavaBand);
         Assert.Equal(116.35m, d9.LordShadbalaPercent);  // one Ṣaḍbala per planet
     }
@@ -199,13 +207,74 @@ public sealed class LifeMatterStatisticsTests
     public void ShadbalaIndex_IsPercentOfMinimumOutOf200(double percent, int expected) =>
         Assert.Equal(expected, LifeMatterStatistics.ShadbalaIndex((decimal)percent));
 
-    [Fact]
-    public void StrengthPercent_AveragesOnlyTheReadableSignals()
+    // Independent Bhava Bala (Dig + Drik) per house: houses 1-6 at 1.0 Rupas, 7-12 at 0.0 — mean
+    // 0.5, SD 0.5, so every house sits exactly one SD either side.
+    private static IEnumerable<BhavaBalaComponentRow> Components()
     {
-        var libra = Build().ForSign("Libra"); // SAV 17 → 30, Bhava 6.41 → 53, Venus 116.35% → 58, no Argala
+        for (var h = 1; h <= 12; h++)
+        {
+            var rupas = h <= 6 ? 1.0m : 0.0m;
+            yield return new BhavaBalaComponentRow((byte)h, "BHAVADHIPATI_BALA", 400m);   // excluded
+            yield return new BhavaBalaComponentRow((byte)h, "BHAVA_DIG_BALA", rupas * 60m);
+            yield return new BhavaBalaComponentRow((byte)h, "BHAVA_DRIK_BALA", 0m);
+        }
+    }
 
-        Assert.Equal([30, 53, 58, null], libra.Percents);
-        Assert.Equal(47, libra.StrengthPercent);
+    private static LifeMatterStatistics BuildFull() => new("D1", "Aries",
+        [new AshtakavargaRow("D1", "VENUS", 7, 7, 5, 28), new AshtakavargaRow("D1", "SUN", 7, 7, 2, 28)],
+        [new BhavaBalaSummaryRow(7, "Libra", "Venus", 1, "Aries", "Enemy", 384.5m, 6.41m)],
+        [
+            new ShadbalaSummaryRow("Venus", 0, 0, 0, 0, 0, 0, 0, 384m, 6.40m, 5.5m, 100m),
+            new ShadbalaSummaryRow("Jupiter", 0, 0, 0, 0, 0, 0, 0, 400m, 6.66m, 6.5m, 200m),
+        ],
+        [],
+        Components(),
+        [
+            new AmsabalaRow("VENUS", "SHODASAVARGA", 16, 4, null, ""),
+            new AmsabalaRow("VENUS", "SHADVARGA", 6, 6, null, ""),     // other schemes are ignored
+            new AmsabalaRow("JUPITER", "SHODASAVARGA", 16, 12, null, ""),
+        ]);
+
+    [Fact]
+    public void BhavaBala_ExcludesTheLordsShadbalaAndIsScoredAgainstTheChartsOwnHouses()
+    {
+        var stats = BuildFull();
+
+        var libra = stats.ForSign("Libra");     // house 7: one SD below the mean
+        Assert.Equal(0m, libra.IndependentBhavaRupas);
+        Assert.Equal(-1.0, libra.IndependentBhavaZ!.Value, 6);
+        Assert.Equal(40, LifeMatterStatistics.IndependentBhavaIndex(libra.IndependentBhavaZ));
+        Assert.Equal(6.41m, libra.BhavaBalaRupas);   // the raw total is kept for display only
+
+        var aries = stats.ForSign("Aries");     // house 1: one SD above
+        Assert.Equal(StrengthBand.Strong, aries.BhavaBand);
+        Assert.Equal(60, LifeMatterStatistics.IndependentBhavaIndex(aries.IndependentBhavaZ));
+    }
+
+    [Fact]
+    public void Axes_CapacityAndConsistencyReadTheLordAndKarakas_ContextReadsTheSign()
+    {
+        var libra = BuildFull().ForSign("Libra", ["Jupiter", "Venus"]);   // Venus is the lord and a kāraka: counted once
+
+        Assert.Equal(5, libra.LordBavBindus);          // Venus's own BAV in Libra, not the Sun's
+        Assert.Equal(25, libra.LordAmsabalaPercent);   // 4 of 16 Shodasavarga
+        Assert.Equal(["Venus", "Jupiter"], libra.Planets.Select(p => p.Planet));
+        Assert.Equal(75, libra.Capacity);              // Venus 100% → 50, Jupiter 200% → 100
+        Assert.Equal(50, libra.Consistency);           // 25% and 75%
+        Assert.Equal([50, 63, 40, null], libra.ContextParts);   // SAV 28, BAV 5, z −1, no Argala
+        Assert.Equal(51, libra.Context);
+        Assert.Equal(59, libra.StrengthPercent);       // mean of 75, 50, 51 — each axis counts once
+    }
+
+    [Fact]
+    public void StrengthPercent_AveragesOnlyTheReadableAxes()
+    {
+        var libra = Build().ForSign("Libra"); // no Amsabala or Bhava components in this fixture
+
+        Assert.Null(libra.Consistency);
+        Assert.Equal(58, libra.Capacity);     // Venus 116.35% → 58
+        Assert.Equal(30, libra.Context);      // SAV 17 → 30; no BAV for Venus, no Bhava components, no Argala
+        Assert.Equal(44, libra.StrengthPercent);
         Assert.Null(Build().ForSign("Gemini").StrengthPercent);
     }
 

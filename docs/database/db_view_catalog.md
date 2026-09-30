@@ -21,7 +21,7 @@ row in the same change that adds or repoints a table component.
 | UI component / page | Source view · TVF · table | Repository | Columns surfaced | Defined by |
 |---|---|---|---|---|
 | `PlanetPositionsTable` — `Pages/VargaView.razor` | `vw_ChartPlanetEvidence` | `AstrologerEvidenceRepository` | House · Planet · Motion · Degree · Sign · Nakṣatra · Nak. Pada · dignity | baseline + varga migrations |
-| **Life Matters** — `Pages/LifeMatters.razor` (D1 statistics panel, sub-question table, Argala card, signals) | `vw_ChartAshtakavarga` · `vw_ChartBhavaBala` · `vw_ChartShadbala` · `tbl_Fact_Argala` · `tbl_Fact_PlanetaryState(+Flag)` · `tbl_Rule_LifeMatterReference` / `tbl_Rule_LifeMatterFocus` / `tbl_Dim_HouseReference` | `AshtakavargaRepository` · `BhavaStrengthRepository` · `PlanetaryStrengthRepository` · `ArgalaFactRepository.GetByBirthDetailId` (first reader of `tbl_Fact_Argala`) · `PlanetaryStateRepository` · `LifeMatterReferenceRepository.GetAllSteps` · `LifeMatterFocusRepository.GetHouseReferences` | SAV bindus per sign · Bhava Bala rupas per house · Ṣaḍbala % of minimum · Argala/Virodhargala pairs · avastha states — all D1; see [`../ui/components/specs_life_matters_page.md`](../ui/components/specs_life_matters_page.md) | db/128 (Argala) + strength / Ashtakavarga migrations |
+| **Life Matters** — `Pages/LifeMatters.razor` (D1 statistics panel, sub-question table, Argala card, signals) | `vw_ChartAshtakavarga` (SAV + BAV) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` · `vw_ChartShadbala` · `vw_ChartAmsabala` · `tbl_Fact_Argala` · `tbl_Fact_PlanetaryState(+Flag)` · `tbl_Rule_LifeMatterReference` / `tbl_Rule_LifeMatterFocus` / `tbl_Dim_HouseReference` | `AshtakavargaRepository` · `BhavaStrengthRepository` · `PlanetaryStrengthRepository` · `ArgalaFactRepository.GetByBirthDetailId` (first reader of `tbl_Fact_Argala`) · `PlanetaryStateRepository` · `LifeMatterReferenceRepository.GetAllSteps` · `LifeMatterFocusRepository.GetHouseReferences` | SAV bindus per sign · Bhava Bala rupas per house · Ṣaḍbala % of minimum · Argala/Virodhargala pairs · avastha states — all D1; see [`../ui/components/specs_life_matters_page.md`](../ui/components/specs_life_matters_page.md) | db/128 (Argala) + strength / Ashtakavarga migrations |
 | `HouseLordshipTable` — `Pages/VargaView.razor` | `tbl_Chart_HouseLords` (per `ChartResultId` + `ChartType`) | `ChartHouseLordsRepository` | House · lord · lord's house / sign | baseline |
 | `ConjunctionsTable` — `Pages/VargaView.razor` | `tbl_Chart_Conjunctions` / `tbl_Chart_MultiGrahaConjunction(+Member)` | `ChartConjunctionsRepository`, `ChartMultiGrahaConjunctionRepository` | planet set · sign · house | baseline |
 | **Transit landing — D1 Birth tab** — `Pages/Natal_Transit_Comp_Wheel.razor` | `vw_ChartPlanetEvidence` (`ChartType = 'D1'`) | `Natal_Transit_Comp_WheelRepository` | House · Planet · Motion · Degree · Sign · Nakṣatra · Nak. Pada | baseline + varga migrations |
@@ -90,8 +90,8 @@ pending) · `vw_ChartAmsabala` (`db/101`, repository ready, UI pending) ·
 **Not needed:** `tbl_Rule_Exaltation` — the Uchcha Bindu sign+degree per graha is already in
 `tbl_Rule_GrahaDignity` and `tbl_SignAttributes` (see row above).
 
-**Strength cut-offs:** `tbl_Rule_StrengthBand` (`db/154`) — Strong/Moderate lower bounds for
-Ṣaḍbala %, Bhava Bala and SAV; read in code through its mirror `StrengthBands` (Key Inference 3.1–3.3,
+**Strength cut-offs:** `tbl_Rule_StrengthBand` (`db/154`, `db/155`) — Strong/Moderate lower bounds for
+Ṣaḍbala %, Bhava Bala, SAV, BAV and chart-relative independent Bhava Bala; read in code through its mirror `StrengthBands` (Key Inference 3.1–3.3,
 Life Matters).
 
 **Done — `db/079_add_yoga_type_and_rule.sql`:** `tbl_Rule_Yoga.FormationFamilyCode` (unused

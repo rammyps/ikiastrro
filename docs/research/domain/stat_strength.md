@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-09-16
-reflects: master (Vargas step-6 redesign in progress, see "Build roadmap" below)
+last_updated: 2026-10-01
+reflects: master (Life Matters three-axis statistics, see "Build roadmap" below)
 ---
 
 # Planet strength statistics — normalization framework & build roadmap
@@ -262,6 +262,16 @@ already exists — no new fact tables, no new migrations.
 - Connected-house `Context_p` — join $H_{placed}$/$H_{owned}$/$H_{karaka}$ against Tier-0
   independent Bhavabala per house.
 - Ashtakavarga `N(SAV)`/`N(BAV)` normalization, blended into that context score.
+
+**Built 2026-10-01, house-first rather than planet-first:** Life Matters reads the three axes per
+*house* (`LifeMatterStatistics` / `HouseStatistics`) — Capacity = Ṣaḍbala of the sign's lord and
+the matter's kārakas, Consistency = their Shodasavarga Amsabala, Context = SAV + the lord's BAV in
+the sign + independent Bhava Bala (as 50 + 10z against the chart's 12 houses, §1.3) + Argala.
+Strength % = arithmetic mean of the three axes (each axis weighted equally; not yet the §4
+geometric composite, which stays Tier 2). Indices are centred on each measure's reference point
+(SAV 28 and BAV 4 → 50%, required Ṣaḍbala → 50%, chart mean → 50%) rather than §3's
+"100 = average" form, to keep the page's 0–100% display. The planet-first `Context_p` with §2's
+ownership/placement/kāraka weights is still open.
 
 ### Tier 2 — later, genuine new engine work, only after Tier 1 ships and is reviewed
 

@@ -162,7 +162,9 @@ Publishes to the CLI and UI streams under
   the app's one set of Strong/Moderate cut-offs for Ṣaḍbala % of minimum (100 `SRC_BPHS_27` /
   80 `SRC_IKIASTRRO_SYNTHESIS`), Bhava Bala Rūpas (7 / 5, both synthesis) and Sarvāṣṭakavarga
   bindus (31 / 25, `SRC_PVR_INTEGRATED`), one `SourceRefCode` per boundary — a verified mirror of
-  Core `StrengthBands`, checked by `verify-strength` Phase 3.
+  Core `StrengthBands`, checked by `verify-strength` Phase 3. **`db/155`** adds two scales for
+  the Life Matters axes: `BAV_BINDUS` (5 / 4, `SRC_PVR_INTEGRATED`) and
+  `BHAVA_BALA_INDEPENDENT_Z` (±1 SD of the chart's houses, `SRC_IKIASTRRO_SYNTHESIS`).
 - **`FEAT-ASHTAKAVARGA-01`** — migrations 074–078: production `dbo` schema
   (`tbl_Rule_AshtakavargaContribution` — 56-row Parāśari matrix, SAV total 337;
   `tbl_Rule_AshtakavargaReduction` — Ṭrikoṇa / Ekādhipatya / Sodhya-Piṇḍa;

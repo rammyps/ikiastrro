@@ -82,22 +82,31 @@ Lagna houses (or other house foci) re-counted from that lagna. Special-point foc
 ## Statistics per chart
 
 `LifeMatterStatistics(chartType, ascendantSign, …)` answers per sign, read as a house from that
-chart's Lagna:
+chart's Lagna; `ForSign(sign, karakas)` adds the matter's kāraka planets. Signals are grouped into
+`docs/research/domain/stat_strength.md` §4's three axes (2026-10-01, rammyps's choice), each kept
+separate:
 
-| Statistic | In D1 | In a varga | Strong | Weak | Band source |
-|---|---|---|---|---|---|
-| Sarva Ashtakavarga | D1 SAV | that varga's own SAV (every varga totals 337) | > 30 | < 25 | cited rule used by `AshtakavargaChart` |
-| Bhava Bala | D1 house rupas | nothing to read (D1-only computation) | ≥ 7 | < 5 | `StrengthBands.BhavaBalaRupas` (project heuristic) |
-| Lord Ṣaḍbala | sign lord's % of minimum | the varga sign's lord, same planet figure | ≥ 100 | < 80 | `StrengthBands.ShadbalaPercentOfMinimum` (100% = BPHS required minimum; 80% heuristic) |
-| Argala | pairs holding minus obstructed | same, from the varga's own placements | > 0 | < 0 | count comparison |
+| Axis | Signal | In D1 | In a varga | Index (≈50% = reference) | Strong | Weak | Band source |
+|---|---|---|---|---|---|---|---|
+| Capacity | Ṣaḍbala of the sign's lord and the matter's kārakas | % of minimum | same planet figure | % ÷ 200 (minimum → 50%) | ≥ 100 | < 80 | `StrengthBands.ShadbalaPercentOfMinimum` (100% BPHS; 80% heuristic) |
+| Consistency | the same planets' Amsabala | Shodasavarga good/16 | same | the % itself | — | — | none (stat_strength.md §1.2: one canonical scheme, never an average of the four) |
+| Context | Sarva Ashtakavarga | D1 SAV | that varga's SAV | ÷ 56 (28 → 50%) | > 30 | < 25 | `StrengthBands.SarvaAshtakavargaBindus` (PVR) |
+| Context | the lord's own BAV in the sign | D1 BAV | that varga's BAV | ÷ 8 (4 → 50%) | ≥ 5 | ≤ 3 | `StrengthBands.BhinnaAshtakavargaBindus` (PVR) |
+| Context | independent Bhava Bala (Dig + Drik) | z against the chart's 12 houses | nothing (D1-only) | 50 + 10z | z ≥ +1 | z < −1 | `StrengthBands.IndependentBhavaBalaZ` (heuristic) |
+| Context | Argala | pairs holding minus obstructed | same, varga's own placements | share of pairs that hold | > 0 | < 0 | count comparison |
 
-**Strength %** (`HouseStatistics.StrengthPercent`): the mean of the readable signals, each on a
-0–100 index whose ordinary middle is about 50% — SAV out of 56 bindus (28 → 50%), Bhava Bala
-out of 12 rupas, lord Ṣaḍbala % of minimum out of 200 (the minimum → 50%), Argala as the share
-of judged pairs that hold (contested counts half; obstruction only → 50%). A read covering
-several houses/points shows their mean. It replaces the Strong … Weak label (the bands stay on
-the detail rows); the per-signal breakdown is the tooltip and `aria-label`. Presentation scales,
-not sourced rules; it describes strength, never outcomes.
+**Why independent Bhava Bala:** raw Bhava Bala includes Bhavadhipati Bala, which *is* the lord's
+Ṣaḍbala — averaging it with the lord's Ṣaḍbala counted the lord twice (stat_strength.md §0, §1.3).
+Raw Bhava Bala is still shown on the detail row as "total", not scored. `IndependentBhavaBala`
+(`Ikiastrro.Data`) is the one definition, shared with Key Inference 3.2.
+
+**Axes:** Capacity and Consistency are the mean over the lord and the matter's kārakas (each
+planet once); Context is the mean of its readable parts. **Strength %**
+(`HouseStatistics.StrengthPercent`) is the mean of the readable axes, so each axis counts
+equally however many signals it holds. A read covering several houses/points shows their mean.
+The detail table shows Capacity, Consistency and Context as rows above Strength; tooltips carry the
+per-planet and per-part breakdowns. Presentation scales, not sourced rules; it describes strength,
+never outcomes.
 
 Reference resolution (`ResolveReferenceSign`, per chart): Lagna = Ascendant; Chandra/Surya =
 Moon/Sun sign; Arudha/Hora/Ghati/Sree/Indu/Pranapada = the chart's persisted

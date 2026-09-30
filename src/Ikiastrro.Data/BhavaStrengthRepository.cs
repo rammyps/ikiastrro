@@ -19,6 +19,21 @@ public sealed record BhavaBalaSummaryRow(byte HouseNumber, string? HouseSign, st
 /// under one house (BHAVADHIPATI_BALA / BHAVA_DIG_BALA / BHAVA_DRIK_BALA, BhavaBalaCalculator).</summary>
 public sealed record BhavaBalaComponentRow(byte HouseNumber, string ComponentCode, decimal ValueVirupas);
 
+/// <summary>Independent Bhava Bala — Bhava Dig + Bhava Drik only, without Bhavadhipati Bala (which
+/// IS the house lord's own Ṣaḍbala). Use this, not the raw total, whenever a house's support is
+/// combined with a planet's Ṣaḍbala, or the lord is counted twice (stat_strength.md §0, §1.3).
+/// Shared by Key Inference 3.2 and Life Matters.</summary>
+public static class IndependentBhavaBala
+{
+    public static readonly IReadOnlySet<string> ComponentCodes =
+        new HashSet<string>(["BHAVA_DIG_BALA", "BHAVA_DRIK_BALA"], StringComparer.OrdinalIgnoreCase);
+
+    public static IReadOnlyDictionary<int, decimal> RupasByHouse(IEnumerable<BhavaBalaComponentRow> components) =>
+        components.Where(c => ComponentCodes.Contains(c.ComponentCode))
+            .GroupBy(c => (int)c.HouseNumber)
+            .ToDictionary(g => g.Key, g => g.Sum(c => c.ValueVirupas) / 60m);
+}
+
 /// <summary>Persists the three auditable Bhava Bala components and twelve house totals.</summary>
 public sealed class BhavaStrengthRepository
 {

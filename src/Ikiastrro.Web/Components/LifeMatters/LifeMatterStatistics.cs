@@ -12,7 +12,7 @@ public enum StrengthBand { Strong, Middle, Weak, None }
 
 public enum ArgalaVerdict { Holds, Contested, Obstructed }
 
-/// <summary>One overall reading of the four signals (strong count minus weak count): ±2 or more is
+/// <summary>One overall reading of the banded signals (strong count minus weak count): ±2 or more is
 /// Strong/Weak, ±1 leans that way, 0 is Mixed; None when no signal can be read. A strength summary,
 /// never an outcome.</summary>
 public enum StrengthLean { Strong, LeansStrong, Mixed, LeansWeak, Weak, None }
@@ -33,43 +33,68 @@ public sealed record ArgalaSummary(IReadOnlyList<ArgalaPair> Pairs)
     public bool Any => Pairs.Any(p => p.ArgalaPlanets.Count > 0 || p.ObstructingPlanets.Count > 0);
 }
 
+/// <summary>One planet's strength read for a matter: its Ṣaḍbala % of required minimum (Capacity)
+/// and Shodasavarga Amsabala % (Consistency). Null where the planet has none (Rahu/Ketu).</summary>
+public sealed record PlanetStrength(string Planet, decimal? ShadbalaPercent, int? AmsabalaPercent);
+
 /// <summary>Strength statistics for one sign of one chart, read as a house from that chart's Lagna.
-/// Every figure is sign-based, so a house counted from any lagna reads the same facts.</summary>
+/// Every sign figure is sign-based, so a house counted from any lagna reads the same facts. Grouped
+/// into stat_strength.md §4's three axes, each kept separate:
+/// <list type="bullet">
+/// <item>Capacity — Ṣaḍbala of the sign's lord and the matter's kārakas.</item>
+/// <item>Consistency — the same planets' Shodasavarga Amsabala.</item>
+/// <item>Context — the sign itself: SAV, the lord's own BAV there, independent Bhava Bala
+/// (chart-relative, lord's Ṣaḍbala excluded so it isn't counted twice), and Argala.</item>
+/// </list></summary>
 public sealed record HouseStatistics(
-    string Sign, int HouseFromLagna, int? SavBindus, decimal? BhavaBalaRupas,
-    string LordPlanet, decimal? LordShadbalaPercent, ArgalaSummary Argala)
+    string Sign, int HouseFromLagna, int? SavBindus,
+    decimal? BhavaBalaRupas, decimal? IndependentBhavaRupas, double? IndependentBhavaZ,
+    string LordPlanet, decimal? LordShadbalaPercent, int? LordBavBindus, int? LordAmsabalaPercent,
+    ArgalaSummary Argala, IReadOnlyList<PlanetStrength> Karakas)
 {
     public StrengthBand SavBand => LifeMatterStatistics.SavBand(SavBindus);
-    public StrengthBand BhavaBand => LifeMatterStatistics.BhavaBand(BhavaBalaRupas);
+    public StrengthBand LordBavBand => LifeMatterStatistics.BavBand(LordBavBindus);
+    public StrengthBand BhavaBand => LifeMatterStatistics.IndependentBhavaBand(IndependentBhavaZ);
     public StrengthBand LordShadbalaBand => LifeMatterStatistics.ShadbalaBand(LordShadbalaPercent);
     public StrengthBand ArgalaBand => !Argala.Any ? StrengthBand.None
         : Argala.Net > 0 ? StrengthBand.Strong : Argala.Net < 0 ? StrengthBand.Weak : StrengthBand.Middle;
 
-    /// <summary>The four signals in fixed display order: SAV · Bhava Bala · lord Ṣaḍbala · Argala.</summary>
-    public IReadOnlyList<StrengthBand> Bands => [SavBand, BhavaBand, LordShadbalaBand, ArgalaBand];
+    /// <summary>The banded signals, for the Strong-minus-Weak reading and sort: SAV · lord's BAV ·
+    /// independent Bhava Bala · lord Ṣaḍbala · Argala.</summary>
+    public IReadOnlyList<StrengthBand> Bands => [SavBand, LordBavBand, BhavaBand, LordShadbalaBand, ArgalaBand];
 
-    /// <summary>The four signals as 0–100 indices, same order as <see cref="Bands"/>; null where
-    /// nothing can be read. See <see cref="LifeMatterStatistics.SavIndex"/> and siblings.</summary>
-    public IReadOnlyList<int?> Percents =>
+    /// <summary>The lord first, then the matter's kārakas, each planet once.</summary>
+    public IReadOnlyList<PlanetStrength> Planets =>
+        [new PlanetStrength(LordPlanet, LordShadbalaPercent, LordAmsabalaPercent),
+         .. Karakas.Where(k => !string.Equals(k.Planet, LordPlanet, StringComparison.OrdinalIgnoreCase))];
+
+    /// <summary>Context's four parts as 0–100 indices: SAV · lord's BAV · independent Bhava Bala · Argala.</summary>
+    public IReadOnlyList<int?> ContextParts =>
     [
-        LifeMatterStatistics.SavIndex(SavBindus), LifeMatterStatistics.BhavaIndex(BhavaBalaRupas),
-        LifeMatterStatistics.ShadbalaIndex(LordShadbalaPercent), LifeMatterStatistics.ArgalaIndex(Argala)
+        LifeMatterStatistics.SavIndex(SavBindus), LifeMatterStatistics.BavIndex(LordBavBindus),
+        LifeMatterStatistics.IndependentBhavaIndex(IndependentBhavaZ), LifeMatterStatistics.ArgalaIndex(Argala)
     ];
 
-    /// <summary>The mean of the readable signal indices — the page's one strength figure. Null
-    /// when no signal can be read.</summary>
-    public int? StrengthPercent => LifeMatterStatistics.Mean(Percents);
+    public int? Capacity => LifeMatterStatistics.Mean(Planets.Select(p => LifeMatterStatistics.ShadbalaIndex(p.ShadbalaPercent)));
+    public int? Consistency => LifeMatterStatistics.Mean(Planets.Select(p => p.AmsabalaPercent));
+    public int? Context => LifeMatterStatistics.Mean(ContextParts);
+
+    /// <summary>Capacity · Consistency · Context, in that order.</summary>
+    public IReadOnlyList<int?> Axes => [Capacity, Consistency, Context];
+
+    /// <summary>The page's one strength figure: the mean of the readable axes, so each axis counts
+    /// equally however many signals it holds. Null when no axis can be read.</summary>
+    public int? StrengthPercent => LifeMatterStatistics.Mean(Axes);
 }
 
 /// <summary>
 /// Statistics for the Life Matters page, built once per person per chart (D1 or any varga) from
-/// persisted facts (vw_ChartAshtakavarga, vw_ChartBhavaBala, vw_ChartShadbala, tbl_Fact_Argala) and
-/// queried per sign. In a varga: SAV is that varga's own Sarva Ashtakavarga (still 337 bindus in
-/// total, so the same bands apply); Argala is the varga's own occupancy; the lord is the varga
-/// sign's lord, and its Ṣaḍbala is the planet's (Ṣaḍbala exists only once per planet); Bhava Bala
-/// is a D1 house computation and reads as nothing in a varga. Bands are StrengthBands — the same cut-offs Key Inference step 3 shows: SAV above 30
-/// favourable and below 25 unfavourable, Bhava Bala 7+/under 5 rupas, Ṣaḍbala 100%+/under 80% of
-/// the required minimum. They describe strength, not outcomes.
+/// persisted facts (vw_ChartAshtakavarga, vw_ChartBhavaBala + tbl_Fact_BhavaStrengthComponent,
+/// vw_ChartShadbala, vw_ChartAmsabala, tbl_Fact_Argala) and queried per sign. In a varga: SAV and
+/// the lord's BAV are that varga's own Ashtakavarga; Argala is the varga's own occupancy; the lord
+/// is the varga sign's lord; Ṣaḍbala and Amsabala exist once per planet; Bhava Bala is a D1 house
+/// computation and reads as nothing in a varga. Bands are StrengthBands — the cut-offs Key
+/// Inference step 3 shows. They describe strength, not outcomes.
 /// </summary>
 public sealed class LifeMatterStatistics
 {
@@ -78,11 +103,19 @@ public sealed class LifeMatterStatistics
     private static readonly (int Argala, int Obstruction, string Kind)[] Pairs =
         [(2, 12, "Primary"), (4, 10, "Primary"), (11, 3, "Primary"), (5, 9, "Secondary")];
 
+    /// <summary>Consistency reads one canonical Amsabala scheme, never an average of the four
+    /// overlapping ones (stat_strength.md §1.2): Shodasavarga, since every varga is generated.</summary>
+    public const string AmsabalaScheme = "SHODASAVARGA";
+
     public string ChartType { get; }
     private readonly ZodiacName _ascendant;
     private readonly IReadOnlyDictionary<int, int> _savBySignNumber;
+    private readonly IReadOnlyDictionary<(string Planet, int SignNumber), int> _bavByPlanetSign;
     private readonly IReadOnlyDictionary<int, decimal> _bhavaByHouse;
+    private readonly IReadOnlyDictionary<int, decimal> _independentBhavaByHouse;
+    private readonly IReadOnlyDictionary<int, double> _independentBhavaZByHouse;
     private readonly IReadOnlyDictionary<string, decimal?> _shadbalaPercentByPlanet;
+    private readonly IReadOnlyDictionary<string, int> _amsabalaPercentByPlanet;
     private readonly ILookup<int, ArgalaFactRow> _argalaByHouse;
 
     public LifeMatterStatistics(
@@ -98,41 +131,85 @@ public sealed class LifeMatterStatistics
     /// <param name="argala">House-target Argala facts for <paramref name="chartType"/>; rows for other
     /// charts are ignored. Only D1 is persisted today, so a varga's rows come from
     /// <see cref="Ikiastrro.Web.Components.Charts.ArgalaFacts.ForChart"/>.</param>
+    /// <param name="bhavaComponents">D1's tbl_Fact_BhavaStrengthComponent rows, for independent
+    /// Bhava Bala; none means Bhava Bala's part of Context can't be read.</param>
+    /// <param name="amsabala">The person's Amsabala rows (all schemes); only
+    /// <see cref="AmsabalaScheme"/> is read.</param>
     public LifeMatterStatistics(
         string chartType,
         string ascendantSign,
         IEnumerable<AshtakavargaRow> ashtakavarga,
         IEnumerable<BhavaBalaSummaryRow> bhavaBala,
         IEnumerable<ShadbalaSummaryRow> shadbala,
-        IEnumerable<ArgalaFactRow> argala)
+        IEnumerable<ArgalaFactRow> argala,
+        IEnumerable<BhavaBalaComponentRow>? bhavaComponents = null,
+        IEnumerable<AmsabalaRow>? amsabala = null)
     {
         ChartType = chartType;
         _ascendant = Enum.Parse<ZodiacName>(ascendantSign);
-        _savBySignNumber = ashtakavarga
-            .Where(r => r.ChartType == chartType && r.SarvaBindus is not null)
+        var chartAv = ashtakavarga.Where(r => r.ChartType == chartType).ToList();
+        _savBySignNumber = chartAv
+            .Where(r => r.SarvaBindus is not null)
             .GroupBy(r => (int)r.SignNumber)
             .ToDictionary(g => g.Key, g => (int)g.First().SarvaBindus!.Value);
-        _bhavaByHouse = chartType == "D1"
+        _bavByPlanetSign = chartAv
+            .GroupBy(r => (r.RecipientCode.ToUpperInvariant(), (int)r.SignNumber))
+            .ToDictionary(g => g.Key, g => (int)g.First().BinduCount);
+        var isD1 = chartType == "D1";
+        _bhavaByHouse = isD1
             ? bhavaBala.ToDictionary(r => (int)r.HouseNumber, r => r.BhavaBalaRupas)
             : new Dictionary<int, decimal>();
+        _independentBhavaByHouse = isD1 && bhavaComponents is not null
+            ? IndependentBhavaBala.RupasByHouse(bhavaComponents)
+            : new Dictionary<int, decimal>();
+        _independentBhavaZByHouse = ZScores(_independentBhavaByHouse);
         _shadbalaPercentByPlanet = shadbala.ToDictionary(r => r.Planet, r => r.PercentOfMinimum, StringComparer.OrdinalIgnoreCase);
+        _amsabalaPercentByPlanet = (amsabala ?? [])
+            .Where(r => r.SchemeCode == AmsabalaScheme && r.GroupSize > 0)
+            .GroupBy(r => r.PlanetCode, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => (int)Math.Round(100.0 * g.First().GoodCount / g.First().GroupSize, MidpointRounding.AwayFromZero),
+                StringComparer.OrdinalIgnoreCase);
         _argalaByHouse = argala
             .Where(r => r.ChartType == chartType && r.TargetKind == "House")
             .ToLookup(r => (int)r.TargetHouseNumber);
     }
 
-    public HouseStatistics ForSign(string sign)
+    /// <param name="karakas">The matter's kāraka planets in this chart; they join the lord in
+    /// Capacity and Consistency. None for a house read with no matter (the area summary).</param>
+    public HouseStatistics ForSign(string sign, IEnumerable<string>? karakas = null)
     {
         var zodiac = Enum.Parse<ZodiacName>(sign);
         var house = AstroMath.CountFromSignToSign(_ascendant, zodiac);
         var lord = HouseEngine.GetSignLord(zodiac);
+        var signNumber = (int)zodiac + 1;
         return new HouseStatistics(
             sign, house,
-            _savBySignNumber.TryGetValue((int)zodiac + 1, out var sav) ? sav : null,
+            _savBySignNumber.TryGetValue(signNumber, out var sav) ? sav : null,
             _bhavaByHouse.TryGetValue(house, out var bhava) ? bhava : null,
+            _independentBhavaByHouse.TryGetValue(house, out var independent) ? independent : null,
+            _independentBhavaZByHouse.TryGetValue(house, out var z) ? z : null,
             lord,
             _shadbalaPercentByPlanet.GetValueOrDefault(lord),
-            BuildArgala(_argalaByHouse[house].ToList()));
+            _bavByPlanetSign.TryGetValue((lord.ToUpperInvariant(), signNumber), out var bav) ? bav : null,
+            AmsabalaPercent(lord),
+            BuildArgala(_argalaByHouse[house].ToList()),
+            (karakas ?? []).Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(k => new PlanetStrength(k, _shadbalaPercentByPlanet.GetValueOrDefault(k), AmsabalaPercent(k)))
+                .ToList());
+    }
+
+    private int? AmsabalaPercent(string planet) =>
+        _amsabalaPercentByPlanet.TryGetValue(planet, out var pct) ? pct : null;
+
+    /// <summary>Each house's z-score against the chart's own houses (population SD); every house
+    /// reads 0 when they're all equal. Empty when fewer than two houses are known.</summary>
+    private static IReadOnlyDictionary<int, double> ZScores(IReadOnlyDictionary<int, decimal> byHouse)
+    {
+        if (byHouse.Count < 2) return new Dictionary<int, double>();
+        var values = byHouse.Values.Select(v => (double)v).ToList();
+        var mean = values.Average();
+        var sd = Math.Sqrt(values.Sum(v => (v - mean) * (v - mean)) / values.Count);
+        return byHouse.ToDictionary(kv => kv.Key, kv => sd == 0 ? 0 : ((double)kv.Value - mean) / sd);
     }
 
     public decimal? ShadbalaPercent(string planet) => _shadbalaPercentByPlanet.GetValueOrDefault(planet);
@@ -167,7 +244,10 @@ public sealed class LifeMatterStatistics
     // Key Inference step 3 shows, so a planet or house never gets two different labels.
     public static StrengthBand SavBand(int? bindus) => ToBand(StrengthBands.SarvaAshtakavargaBindus.Classify(bindus));
 
-    public static StrengthBand BhavaBand(decimal? rupas) => ToBand(StrengthBands.BhavaBalaRupas.Classify(rupas));
+    public static StrengthBand BavBand(int? bindus) => ToBand(StrengthBands.BhinnaAshtakavargaBindus.Classify(bindus));
+
+    public static StrengthBand IndependentBhavaBand(double? z) =>
+        ToBand(StrengthBands.IndependentBhavaBalaZ.Classify(z is { } v ? (decimal)v : null));
 
     public static StrengthBand ShadbalaBand(decimal? percentOfMinimum) =>
         ToBand(StrengthBands.ShadbalaPercentOfMinimum.Classify(percentOfMinimum));
@@ -180,14 +260,18 @@ public sealed class LifeMatterStatistics
         _ => StrengthBand.None,
     };
 
-    // 0–100 strength indices. Each scale puts the ordinary middle at about 50, so the four can be
-    // averaged: SAV out of the 56 bindus a sign can hold (28, the average, is 50%); Bhava Bala out
-    // of 12 rupas (the page's meter scale); Ṣaḍbala % of minimum out of 200 (the minimum is 50%);
+    // 0–100 strength indices, each centred on its own reference point so the middle reads about 50:
+    // SAV out of 56 bindus (28, the average sign, is 50%); a planet's BAV out of 8 (4, the middle, is
+    // 50%); independent Bhava Bala as 50 + 10z against the chart's 12 houses (the chart's own mean
+    // is 50%, stat_strength.md §1.3); Ṣaḍbala % of minimum out of 200 (the required minimum is 50%);
     // Argala as the share of pairs that hold (contested counts half, obstruction-only is 50%).
-    // Presentation scales, not sourced rules — strength, never an outcome.
+    // Amsabala (Consistency) is its own share of vargas, 0–100. Presentation scales, not sourced
+    // rules — strength, never an outcome.
     public static int? SavIndex(int? bindus) => bindus is { } b ? Index(b / 56.0) : null;
 
-    public static int? BhavaIndex(decimal? rupas) => rupas is { } r ? Index((double)r / 12) : null;
+    public static int? BavIndex(int? bindus) => bindus is { } b ? Index(b / 8.0) : null;
+
+    public static int? IndependentBhavaIndex(double? z) => z is { } v ? Index((50 + 10 * v) / 100) : null;
 
     public static int? ShadbalaIndex(decimal? percentOfMinimum) => percentOfMinimum is { } p ? Index((double)p / 200) : null;
 

@@ -27,6 +27,7 @@
 @inject PlanetaryStrengthRepository PlanetaryStrengthRepo
 @inject BhavaStrengthRepository BhavaStrengthRepo
 @inject AshtakavargaRepository AshtakavargaRepo
+@inject AmsabalaRepository AmsabalaRepo
 @inject ArgalaFactRepository ArgalaFactRepo
 @inject InterpretationRepository InterpretationRepo
 @inject ActivePerson Active
@@ -269,12 +270,15 @@ else
                         <p><InterpretationText StandardText="@note.StandardText" ShortText="@note.ShortText" /></p>
                     </div>
                 }
-                <p class="lm-note">Bands: SAV above 30 favourable, below 25 unfavourable (the app's cited
-                    Ashtakavarga rule; every varga's SAV also totals 337). Ṣaḍbala is strong at 100% of its required
-                    minimum (Parāśara's own line) and weak under 80%; that 80% floor and Bhava Bala's 7+/under
-                    5 rupas are the app's own heuristics, not classical rules. Argala in a varga is computed from that varga's placements. Strength %: SAV out of
-                    56 bindus, Bhava Bala out of 12 rupas, lord Ṣaḍbala out of 200% of its minimum, Argala as
-                    the share of pairs that hold; averaged over whichever can be read.</p>
+                <p class="lm-note">Strength % is the mean of three axes, each counting equally. Capacity: Ṣaḍbala of
+                    the lord and the matter's kārakas (the required minimum reads 50%). Consistency: the same planets'
+                    Shodasavarga Amsabala. Context: SAV out of 56 bindus, the lord's own BAV in the sign out of 8,
+                    Bhava Bala and Argala. Bhava Bala here is Dig + Drik only — its Bhavadhipati part is the lord's
+                    Ṣaḍbala, already in Capacity — scored against this chart's 12 houses (the chart's mean reads 50%).
+                    Bands: SAV above 30 / below 25 and BAV 5+ / 3 or fewer (PVR); Ṣaḍbala strong at 100% of its
+                    required minimum (Parāśara) and weak under 80%; Bhava Bala strong or weak beyond one standard
+                    deviation of the chart's houses. The 80% floor and the Bhava Bala band are the app's own
+                    heuristics, not classical rules. Argala in a varga is computed from that varga's placements.</p>
             }
         }
     </section>
@@ -385,6 +389,8 @@ else
     // Persisted facts, read once; LifeMatterStatistics is built per chart on first use.
     private IReadOnlyList<AshtakavargaRow> _ashtakavarga = [];
     private IReadOnlyList<BhavaBalaSummaryRow> _bhavaBala = [];
+    private IReadOnlyList<BhavaBalaComponentRow> _bhavaComponents = [];
+    private IReadOnlyList<AmsabalaRow> _amsabala = [];
     private IReadOnlyList<ArgalaFactRow> _argala = [];
     private readonly Dictionary<string, LifeMatterStatistics> _statsByChart = new();
 
@@ -448,6 +454,8 @@ else
         _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
         _ashtakavarga = AshtakavargaRepo.GetByBirthDetailId(Id);
         _bhavaBala = BhavaStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _bhavaComponents = BhavaStrengthRepo.GetComponentsByBirthDetailId(Id);
+        _amsabala = AmsabalaRepo.GetByBirthDetailId(Id);
         _argala = ArgalaFactRepo.GetByBirthDetailId(Id);
 
         _area = _categories.FirstOrDefault()?.CategoryCode ?? "";
@@ -462,7 +470,7 @@ else
         var chart = _data!.Charts[chartType];
         var argala = ArgalaFacts.ForChart(_argala, chartType, chart.AscendantSign, chart.Grahas);
         return _statsByChart[chartType] = new LifeMatterStatistics(chartType, chart.AscendantSign,
-            _ashtakavarga, _bhavaBala, _shadbala, argala);
+            _ashtakavarga, _bhavaBala, _shadbala, argala, _bhavaComponents, _amsabala);
     }
 
     // ---------------- selection ----------------
@@ -615,16 +623,17 @@ else
         if (refSign is null) return null;
 
         var stats = StatsFor(chartType);
+        var karakas = KarakaPlanets(chart, step);
         var (houses, sourced) = QuestionHouses(step, referenceCode);
         var items = houses
-            .Select(h => new ReadItem(h, null, stats.ForSign(LifeMatterSignMath.ResolveHouseSign(refSign, h))))
+            .Select(h => new ReadItem(h, null, stats.ForSign(LifeMatterSignMath.ResolveHouseSign(refSign, h), karakas)))
             .ToList();
         foreach (var code in SpecialPointCodes(step))
         {
             var sign = SpecialPointSign(chart, code);
             if (sign is null) continue;
             var house = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(refSign), Enum.Parse<ZodiacName>(sign));
-            items.Add(new ReadItem(house, code, stats.ForSign(sign)));
+            items.Add(new ReadItem(house, code, stats.ForSign(sign, karakas)));
         }
 
         return new SubRead(sourced, items);
@@ -652,7 +661,9 @@ else
 
     // ---------------- statistics table ----------------
 
-    private static readonly string[] StatRows = ["Sign", "SAV", "Bhava Bala", "Lord", "Lord's dignity", "Occupants", "Argala", "Strength"];
+    private static readonly string[] StatRows =
+        ["Sign", "SAV", "Bhava Bala", "Lord", "Lord's dignity", "Kārakas", "Occupants", "Argala",
+         "Capacity", "Consistency", "Context", "Strength"];
 
     private RenderFragment Cell(string row, ReadItem? item, LoadedChart? chart)
     {
@@ -663,10 +674,15 @@ else
             "Sign" => @<span>@DisplaySign(st.Sign) <span class="lm-muted">· H@(st.HouseFromLagna) from @chart.ChartType Lagna</span></span>,
             "SAV" => st.SavBindus is null ? @<span class="lm-muted">not computed</span>
                 : @<span>@Meter(st.SavBindus.Value, 56, 28) @st.SavBindus @Band(st.SavBand, "FAV", "MID", "UNFAV")</span>,
-            "Bhava Bala" => st.BhavaBalaRupas is null
+            "Bhava Bala" => st.IndependentBhavaRupas is null
                 ? @<span class="lm-muted">@(chart.ChartType == "D1" ? "not computed" : "D1 only")</span>
-                : @<span>@Meter((double)st.BhavaBalaRupas.Value, 12, 7) @st.BhavaBalaRupas.Value.ToString("0.00") rupas @Band(st.BhavaBand, "STRONG", "MOD", "WEAK")</span>,
-            "Lord" => @<span>@st.LordPlanet@(st.LordShadbalaPercent is { } pct ? $" · Ṣaḍbala {pct:0}%" : "") @Band(st.LordShadbalaBand, "STRONG", "MOD", "WEAK")</span>,
+                : @<span title="Bhava Dig + Drik only — Bhavadhipati Bala is the lord's own Ṣaḍbala, already under Capacity. Scored against this chart's 12 houses (50% = the chart's mean).">@Meter(LifeMatterStatistics.IndependentBhavaIndex(st.IndependentBhavaZ) ?? 0, 100, 50) @st.IndependentBhavaRupas.Value.ToString("0.00") rupas independent @Band(st.BhavaBand, "STRONG", "MOD", "WEAK") <span class="lm-muted">· total @(st.BhavaBalaRupas?.ToString("0.00") ?? "—")</span></span>,
+            "Lord" => @<span>@st.LordPlanet@(st.LordShadbalaPercent is { } pct ? $" · Ṣaḍbala {pct:0}%" : "") @Band(st.LordShadbalaBand, "STRONG", "MOD", "WEAK")@(st.LordBavBindus is { } bav ? $" · BAV {bav}" : "") @Band(st.LordBavBand, "GOOD", "MID", "BAD")@(st.LordAmsabalaPercent is { } am ? $" · Amsabala {am}%" : "")</span>,
+            "Kārakas" => st.Karakas.Count == 0 ? @<span class="lm-muted">none</span>
+                : @<span>@string.Join(" · ", st.Karakas.Select(PlanetText))</span>,
+            "Capacity" => Pct(st.Capacity, "Ṣaḍbala index (required minimum = 50%) of " + string.Join(", ", st.Planets.Select(PlanetText))),
+            "Consistency" => Pct(st.Consistency, "Shodasavarga Amsabala of " + string.Join(", ", st.Planets.Select(PlanetText))),
+            "Context" => Pct(st.Context, ContextBreakdown(st)),
             "Lord's dignity" => @<span>@(chart.Grahas.FirstOrDefault(g => g.Planet == st.LordPlanet)?.DignityStatus ?? "—") <span class="lm-muted">in @chart.ChartType</span></span>,
             "Occupants" => @<span>@(string.Join(", ", chart.Grahas.Where(g => g.Sign == st.Sign && g.Planet != "Ascendant").Select(g => g.Planet)) is { Length: > 0 } occ ? occ : "none")</span>,
             "Argala" => @<span>@ArgalaText(st.Argala)</span>,
@@ -845,12 +861,21 @@ else
 
     private static string Ordinal(int n) => n + (n % 100 is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
 
-    // One strength figure (0–100%) in place of a Strong … Weak label; the per-signal breakdown is
-    // in the tooltip and screen-reader label.
-    private static readonly string[] SignalNames = ["SAV", "Bhava Bala", "lord Ṣaḍbala", "Argala"];
+    // One strength figure (0–100%): the mean of the three axes (stat_strength.md §4), each axis
+    // counting equally. The per-axis breakdown is in the tooltip and screen-reader label.
+    private static readonly string[] AxisNames = ["Capacity", "Consistency", "Context"];
+    private static readonly string[] ContextNames = ["SAV", "lord's BAV", "Bhava Bala", "Argala"];
+
+    private static string Percent(int? p) => p is null ? "not read" : $"{p}%";
 
     private static string Breakdown(HouseStatistics st) =>
-        string.Join(" · ", st.Percents.Select((p, i) => $"{SignalNames[i]} {(p is null ? "not read" : $"{p}%")}"));
+        string.Join(" · ", st.Axes.Select((p, i) => $"{AxisNames[i]} {Percent(p)}"));
+
+    private static string ContextBreakdown(HouseStatistics st) =>
+        string.Join(" · ", st.ContextParts.Select((p, i) => $"{ContextNames[i]} {Percent(p)}"));
+
+    private static string PlanetText(PlanetStrength p) =>
+        p.Planet + (p.ShadbalaPercent is { } s ? $" Ṣaḍbala {s:0}%" : "") + (p.AmsabalaPercent is { } a ? $" · Amsabala {a}%" : "");
 
     private static RenderFragment Strength(HouseStatistics st) => Pct(st.StrengthPercent, Breakdown(st));
 

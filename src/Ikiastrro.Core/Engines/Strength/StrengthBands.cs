@@ -43,6 +43,17 @@ public static class StrengthBands
     public static readonly StrengthBandScale SarvaAshtakavargaBindus =
         new("SAV_BINDUS", 31m, "SRC_PVR_INTEGRATED", 25m, "SRC_PVR_INTEGRATED");
 
+    /// <summary>One planet's Bhinnāṣṭakavarga bindus in a sign: 5 or more good, 3 or fewer bad
+    /// (docs/research/domain/transit-events.md, same PVR row as the SAV band).</summary>
+    public static readonly StrengthBandScale BhinnaAshtakavargaBindus =
+        new("BAV_BINDUS", 5m, "SRC_PVR_INTEGRATED", 4m, "SRC_PVR_INTEGRATED");
+
+    /// <summary>Independent Bhava Bala (Bhava Dig + Drik, without Bhavadhipati Bala — the lord's own
+    /// Ṣaḍbala) as a z-score against the chart's own 12 houses (stat_strength.md §1.3). No classical
+    /// cut-off exists; ±1 standard deviation is the project's heuristic.</summary>
+    public static readonly StrengthBandScale IndependentBhavaBalaZ =
+        new("BHAVA_BALA_INDEPENDENT_Z", 1m, "SRC_IKIASTRRO_SYNTHESIS", -1m, "SRC_IKIASTRRO_SYNTHESIS");
+
     public static IReadOnlyList<StrengthBandScale> All { get; } =
-        [ShadbalaPercentOfMinimum, BhavaBalaRupas, SarvaAshtakavargaBindus];
+        [ShadbalaPercentOfMinimum, BhavaBalaRupas, SarvaAshtakavargaBindus, BhinnaAshtakavargaBindus, IndependentBhavaBalaZ];
 }
