@@ -83,6 +83,26 @@
 }
 .lm-copy:focus-visible { outline: 3px solid var(--brand-midnight); outline-offset: 1px; }
 
+/* Foundation strip: rising sign, Lagna lord, Moon, birth-time check — each opens Key Inference. */
+.lm-foundation { margin: 0 0 16px; }
+.lm-foundation ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 6px 0 0; padding: 0; list-style: none; }
+.lm-found a {
+    display: flex; flex-direction: column; gap: 2px; height: 100%; padding: 8px 10px; box-sizing: border-box;
+    border: 1px solid var(--brand-line); border-left: 4px solid var(--brand-line); background: var(--brand-surface);
+    color: var(--brand-midnight); text-decoration: none;
+}
+.lm-found a:hover { border-color: var(--brand-midnight); }
+.lm-found a:focus-visible { outline: 3px solid var(--brand-midnight); outline-offset: 1px; }
+.lm-found.is-good a { border-left-color: var(--status-strong); }
+.lm-found.is-caution a { border-left-color: var(--status-moderate); background: var(--status-moderate-bg); }
+.lm-found.is-weak a { border-left-color: var(--status-weak); background: var(--status-weak-bg); }
+.lm-found-label { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-muted); }
+.lm-found-value { font-weight: 800; }
+.lm-found-detail { font-size: var(--font-size-meta); color: var(--brand-muted); }
+
+.lm-ki-link { margin-top: 10px; font-size: var(--font-size-meta); }
+.lm-ki-link a { color: var(--brand-midnight); font-weight: 700; text-underline-offset: 2px; }
+
 .lm-step { margin: 0; font: 800 var(--font-size-meta) / 1.3 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
 .lm-step b {
     display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 6px; border-radius: 50%;
@@ -209,6 +229,7 @@
 
 @media (max-width: 1000px) {
     .lm-top { grid-template-columns: 1fr; }
+    .lm-foundation ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Phones: the context bar docks at the top (the app bar scrolls away there, MainLayout.razor.css);

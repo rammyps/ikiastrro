@@ -89,6 +89,23 @@ else
         }
     </div>
 
+    @* ---------------- Foundation: what every reading stands on (D1) ---------------- *@
+    <section class="lm-foundation" aria-label="Chart foundation">
+        <p class="lm-kicker">Foundation · main birth chart</p>
+        <ul>
+            @foreach (var f in _foundation)
+            {
+                <li class="lm-found @(f.Tone is null ? null : $"is-{f.Tone}")">
+                    <a href="@KeyInferenceLink.Url(Id, f.Step)" title="@($"{f.Detail} Open in Key Inference.")">
+                        <span class="lm-found-label">@f.Label</span>
+                        <span class="lm-found-value">@f.Value</span>
+                        <span class="lm-found-detail">@f.Detail</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </section>
+
     <div class="lm-top">
         @* ================= 1 · EXPLORE ================= *@
         <nav class="lm-explore" aria-label="Choose a life area and question">
@@ -302,6 +319,7 @@ else
 
             <details class="lm-section" open>
                 <summary>Chart <span>@ChartName(chartType) · @chartType · from @question.Label</span></summary>
+                <p class="lm-ki-link"><a href="@KeyInferenceLink.Url(Id, KeyInferenceLink.Overview, chartType)">Planet positions for @chartType in Key Inference →</a></p>
                 <div class="lm-chart">
                     @if (displayed is null)
                     {
@@ -332,6 +350,7 @@ else
 
             <details class="lm-section">
                 <summary>Every perspective in every chart <span>@SummaryCharts(step).Count charts × @LifeMatterQuestions.All.Count perspectives</span></summary>
+                <p class="lm-ki-link"><a href="@KeyInferenceLink.Url(Id, KeyInferenceLink.SpecialLagnas)">The special lagnas in Key Inference →</a></p>
                 @{ var summaryCharts = SummaryCharts(step); }
                 <p class="lm-note">@SummaryNote(step) Choose a figure to show that perspective in that chart.</p>
                 <div class="lm-scroll">
@@ -379,6 +398,7 @@ else
             <details class="lm-section">
                 @{ var detailCharts = DetailCharts(step, chartType); }
                 <summary>House-by-house evidence <span>@question.Label · @string.Join(" · ", detailCharts)</span></summary>
+                <p class="lm-ki-link"><a href="@KeyInferenceLink.Url(Id, KeyInferenceLink.Houses, chartType)">House lords and occupants for @chartType in Key Inference →</a></p>
                 <p class="lm-note">@SourceSentence(read, question) The main birth chart (D1) is the foundation; the
                     question's own charts confirm it.</p>
                 @{ var reads = detailCharts.Select(c => (Chart: c, Read: Read(step, _question, c))).ToList(); }
@@ -433,6 +453,7 @@ else
 
             <details class="lm-section">
                 <summary>Help or hindrance from other planets <span>Argala &amp; Virodhargala · @chartType</span></summary>
+                <p class="lm-ki-link"><a href="@KeyInferenceLink.Url(Id, KeyInferenceLink.Houses, chartType)">Every house's Argala for @chartType in Key Inference →</a></p>
                 <p class="lm-note">Planets placed to intervene on each house in @chartType@(chartType == "D1" ? "" : ", from that chart's own placements").
                     An intervention holds when its planets outnumber the obstructing ones; planet strength is not
                     compared yet.</p>
@@ -478,6 +499,7 @@ else
             {
                 <details class="lm-section">
                     <summary>How the significator planets relate <span>Kāraka relationships · @chartType</span></summary>
+                    <p class="lm-ki-link"><a href="@KeyInferenceLink.Url(Id, KeyInferenceLink.Relationships, chartType)">Dṛṣṭi, dispositors and conjunctions for @chartType in Key Inference →</a></p>
                     <p class="lm-note">Compound relationship (natural + temporary) between this question's significator
                         planets in @chartType.</p>
                     <table class="lm-table">
@@ -495,6 +517,7 @@ else
             <details class="lm-section">
                 @{ var planetRows = PlanetRows(read ?? d1Read, step); }
                 <summary>Planet strength &amp; condition <span>Ṣaḍbala &amp; Avastha · D1</span></summary>
+                <p class="lm-ki-link"><a href="@KeyInferenceLink.Url(Id, KeyInferenceLink.Strength)">Full Ṣaḍbala and Bhāva Bala in Key Inference →</a></p>
                 @if (planetRows.Count == 0)
                 {
                     <p class="lm-note">No ruling or significator planets for this question.</p>
@@ -563,6 +586,7 @@ else
     private IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow> _postureInterpretations =
         new Dictionary<(byte, byte), PostureStateInterpretationRow>();
     private IReadOnlyList<ShadbalaSummaryRow> _shadbala = [];
+    private IReadOnlyList<FoundationItem> _foundation = [];
 
     // Sourced rationale for a matter's special-lagna Focus row, tbl_Content_Interpretation
     // SubjectType 'LIFE_MATTER_FOCUS' keyed '{LifeMatterCode}_{ReferenceCode}' (db/153). Seeded so
@@ -622,6 +646,7 @@ else
         var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
         _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
         _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _foundation = LifeMatterFoundation.Build(_data.Charts["D1"], _shadbala);
         _ashtakavarga = AshtakavargaRepo.GetByBirthDetailId(Id);
         _bhavaBala = BhavaStrengthRepo.GetSummaryByBirthDetailId(Id);
         _bhavaComponents = BhavaStrengthRepo.GetComponentsByBirthDetailId(Id);

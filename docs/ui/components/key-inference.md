@@ -40,7 +40,7 @@ below); the rest stay inline here until split out the same way in later work.
 |---|---|---|---|
 | **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table only (Planet · Sign · Degree · Nakṣatra · Pāda · Nakṣatra/Sub-lord chain · direction · house from Lagna/Moon) + D1 Birth / Current Transit toggle; analytical role/condition columns belong exclusively to 2.2 | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
 | **1.4 · Relationships** | `GrahaDrishtiMatrix` — D1/D9/D10 selector, focus-body summary, heat matrix, discrete ordinal badges, and selected-cell evidence breakdown | Sphuṭa percentage and discrete aspect metadata remain visually distinct; chart-matched conjunction groups follow the matrix. This is the sole full-detail relationship owner. | `vw_ChartGrahaDrishtiStrengths` via `GrahaDrishtiStrengthRepository` + `tbl_Chart_MultiGrahaConjunction(+Member)` |
-| **1.2 · About Houses** | — | House Lord Placement; House Lord Key Findings; Argala &amp; Virodhargala | `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` + live `ArgalaCalculator` |
+| **1.2 · About Houses** | — | House Lord Placement (with a **Life matters** column linking each house's matters into Life Matters — `LifeMatterHouseIndex`, see `specs_life_matters_page.md` "Links to and from Key Inference"); House Lord Key Findings; Argala &amp; Virodhargala | `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` + `tbl_Fact_Argala` + `tbl_Rule_LifeMatterFocus` |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
 | **1.3 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | functional nature + ruled houses + independent ownership flags (māraka, bādhaka, dusthāna, triṣaḍāya, Kendrādhipati doṣa) + rationale disclosure + dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
 | **1.1 · Overview** | — | `PlanetPositionsD1Transposed` — the default natal key table, with grahas as columns and Degree / Direction / House / Rāśi / Rāśi Lord / Nakshatra / Nakshatra Lord / Sub-Lord Chain / Nakshatra Pāda rows | `tbl_Chart_KeyDetails` via `ChartViewModel.BuildPlanetRows` |
@@ -343,6 +343,8 @@ Supersedes the "2026-09-23 — Natal/Transit navigation revision" section's sub-
   - `KeyInference.razor`'s `Step` query-param routing updated to match: `overview`/`general`/
     `generaldetails`/`signs`/`nakshatras` all resolve to the new combined tab 0; `planets` → 1;
     `houses` → 2 (unchanged); `relationships`/`aspected` → 3.
+  - `?chart=` (2026-10-01, any case, e.g. `?step=houses&chart=D9`) opens the chart picker on
+    that chart when the person has it — the target of Life Matters' *… in Key Inference* links.
 - **Every nested sub-tab strip (1.1–1.4, and 3.1–3.3) now wraps its label onto two lines**
   instead of growing the pill wide — `.ki-subtabs ::deep .mud-tab` caps `max-width: 130px`,
   allows `white-space: normal`, and drops to `0.72×` the base control font size.

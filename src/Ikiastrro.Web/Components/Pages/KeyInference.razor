@@ -1,6 +1,7 @@
 @page "/key-inference/{Id:int}"
 @using System.Globalization
 @using Ikiastrro.Web.Components.Workspace
+@using Ikiastrro.Web.Components.LifeMatters
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
@@ -30,6 +31,8 @@
 @inject Ikiastrro.Data.PlanetaryStateRuleRepository PlanetaryStateRuleRepo
 @inject Ikiastrro.Data.PostureStateInterpretationRepository PostureStateInterpretationRepo
 @inject Ikiastrro.Data.PanchangaRepository PanchangaRepo
+@inject LifeMatterReferenceRepository LifeMatterReferenceRepo
+@inject LifeMatterFocusRepository LifeMatterFocusRepo
 @inject ActivePerson Active
 
 @* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
@@ -205,7 +208,8 @@ else
                             {
                                 <div id="ki-natal-panel-2" role="tabpanel" aria-labelledby="ki-natal-tab-2">
 <h3 class="ki-sectionhead">House lord placement</h3>
-                    <HouseLordshipTable Rows="natalChart.HouseLords" Occupants="Occupants(natalChart)" />
+                    <HouseLordshipTable Rows="natalChart.HouseLords" Occupants="Occupants(natalChart)"
+                                        LifeMatters="_houseMatters" PersonId="Id" ChartType="@natalChart.ChartType" />
 
                     <h3 class="ki-sectionhead">House lord key findings</h3>
                     <HouseLordFindingsTable Rows="natalChart.HouseLordInterpretations" />
@@ -488,6 +492,14 @@ else
     [Parameter] public int Id { get; set; }
     [Parameter, SupplyParameterFromQuery(Name = "step")] public string? Step { get; set; }
 
+    /// <summary>Opens the chart picker on this chart (e.g. <c>?step=houses&amp;chart=D9</c> — a Life
+    /// Matters "full table" link, KeyInferenceLink); ignored when the person has no such chart.</summary>
+    [Parameter, SupplyParameterFromQuery(Name = "chart")] public string? Chart { get; set; }
+
+    /// <summary>House number -> the life matters read from it; the About Houses table's links
+    /// into Life Matters.</summary>
+    private IReadOnlyDictionary<int, IReadOnlyList<HouseMatterLink>> _houseMatters = new Dictionary<int, IReadOnlyList<HouseMatterLink>>();
+
     private int _masterTab;
     private int _activeTab;
     private int _strengthTab;
@@ -668,6 +680,9 @@ else
             return;
         }
 
+        if (Chart is not null && _data.Charts.Keys.FirstOrDefault(c => string.Equals(c, Chart, StringComparison.OrdinalIgnoreCase)) is { } linkedChart)
+            _natalChart = linkedChart;
+
         var p = _data.Person;
         Active.Set(Id, p.Name,
             $"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
@@ -704,6 +719,7 @@ else
         var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
         _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
         _panchanga = PanchangaRepo.GetByBirthDetailId(Id);
+        _houseMatters = LifeMatterHouseIndex.ByHouse(LifeMatterReferenceRepo.GetAllSteps(1), LifeMatterFocusRepo.GetFoci(1));
 
         var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
             ? parsedOffset

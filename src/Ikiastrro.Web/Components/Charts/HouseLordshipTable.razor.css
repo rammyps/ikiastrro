@@ -11,3 +11,8 @@
 .hlt .pill { display: inline-flex; align-items: center; gap: .3rem; }
 .hlt .dot { width: .5rem; height: .5rem; border-radius: 50%; display: inline-block; }
 .muted { color: var(--brand-muted); }
+.hlt-matters { min-width: 12rem; }
+.hlt-matters a { display: block; color: var(--brand-midnight); text-decoration: underline; text-decoration-color: var(--brand-peach); text-underline-offset: 2px; }
+.hlt-matters a:hover { text-decoration-color: var(--brand-midnight); }
+.hlt-matters a:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 1px; }
+.hlt-matters summary { cursor: pointer; color: var(--brand-muted); font-size: var(--font-size-meta); }

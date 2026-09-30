@@ -41,6 +41,19 @@ selection rewrites the URL in place (`replace`, no extra history entries), so th
 always a link to the reading on screen. **Copy link** in the context bar copies it; when the
 browser refuses the clipboard, the link appears in a read-only field to copy by hand.
 
+### Links to and from Key Inference
+
+- **In:** Key Inference → Natal → About Houses → *House lord placement* has a **Life matters**
+  column: for each house, the matters whose Lagna house focus is that house
+  (`LifeMatterHouseIndex`, `tbl_Rule_LifeMatterFocus` ReferenceCode `LAGNA`), in focus priority
+  then step order. Two show; the rest sit under **n more**. Each opens `?matter=…`, plus
+  `&chart=` when the table shows a chart other than D1.
+- **Out:** each Investigate section ends with a *… in Key Inference →* link to the table behind it
+  (`KeyInferenceLink`): Chart → `step=overview`, House-by-house evidence and Argala →
+  `step=houses`, Kāraka relationships → `step=relationships`, all with `&chart=` for the chart on
+  screen; Every perspective → `step=spllagnas`; Planet strength → `step=strength`. Key Inference
+  reads `?chart=` (any case) to open its chart picker on that chart.
+
 ## Layout — customer flow
 
 Rebuilt 2026-10-01 from the Life Matters UX audit (`reports/life-matters-audit/`): the answer
@@ -49,6 +62,12 @@ comes first, the evidence is one click away. Wording and bands come from `LifeMa
 
 0. **Context bar** (sticky under the app bar; at the very top on phones) —
    `Area → Question → Chart → Perspective` and the selected question's %.
+   **Foundation strip** below it (`LifeMatterFoundation`, D1 only, PVR's first stages): rising
+   sign and degree; Lagna lord, its house and dignity, toned by Ṣaḍbala % of the required
+   minimum (≥100% good, else weak); Moon sign, nakshatra and house; **birth-time check** — the
+   Lagna's distance to the nearer sign edge (<1° weak: the rising sign itself is in doubt; <3°
+   caution; else good). Each card opens the matching Key Inference step. Four across on desktop,
+   two on phones.
 1. **Explore** (left on desktop):
    - **Area pills** — the 11 `tbl_Rule_LifeMatterReference` categories, each with its
      **area overview** %: the strength of its **core house** in D1 (the house most often seeded as
@@ -205,7 +224,9 @@ carries a word band, never colour alone.
 
 ## Tests
 
-`LifeMatterReadingTests` (word bands around 50%, strongest / limiting factors with unmeasured ones
+`LifeMatterFoundationTests` (the four cards, Ṣaḍbala tone, sign-edge thresholds),
+`LifeMatterHouseIndexTests` (Lagna foci only, priority order, one entry per matter),
+`KeyInferenceLinkTests`, `LifeMatterLinkTests`, `LifeMatterReadingTests` (word bands around 50%, strongest / limiting factors with unmeasured ones
 as uncertain, the four primary perspectives), `LifeMatterStatisticsTests` (bands, per-sign D1
 reads, varga SAV and empty Bhava Bala, live varga Argala, Argala pairing), `SindHovGridTests`,
 `ChartSnapshotTests.SindHovGrid` (golden). No bUnit test drives the page itself; the customer flow
