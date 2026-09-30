@@ -451,3 +451,8 @@ live against a running instance before moving to the next):
 - The 5-band Capacity scale (75/90/110/130%, `stat_strength.md` §1.1) in 3.1's Capacity column and
   `PlanetaryStateTable` is a separate scale and is unchanged.
 
+- **Fixed (2026-10-01): the 1.4 "Rāśi & graha dispositors" table was always empty.** Its
+  `ChartType` and `AscendantSign` string parameters were written without `@`
+  (`AscendantSign="relationshipChart.AscendantSign"`), so Razor passed that literal text, no sign
+  parsed, and the table rendered a header with no rows. `DispositorTable` now also shows an
+  `EmptyState` instead of a silent empty table (`DispositorTableTests`).

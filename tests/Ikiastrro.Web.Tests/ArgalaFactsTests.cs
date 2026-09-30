@@ -2,7 +2,6 @@ using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Models;
 using Ikiastrro.Data;
-using Ikiastrro.Web.Components.Charts;
 
 namespace Ikiastrro.Web.Tests;
 

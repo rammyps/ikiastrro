@@ -3,10 +3,17 @@
 @using Ikiastrro.Core.Models
 @using Ikiastrro.Core.Pipeline
 
+@if (Rows.Count == 0)
+{
+    <EmptyState Message="@($"No dispositor data — no readable graha placements for {ChartType} (ascendant \"{AscendantSign}\").")" />
+}
+else
+{
 <div class="dsp-scroll"><table class="dsp-table"><thead><tr><th>Graha</th><th>Rāśi</th><th>Rāśi dispositor</th><th>Graha dispositor chain</th><th>Final dispositor</th><th>Outcome</th></tr></thead><tbody>
 @foreach (var row in Rows) { <tr><th>@row.Planet</th><td>@row.Sign</td><td>@row.ImmediateDispositor</td><td>@string.Join(" → ", row.Chain.Chain)</td><td>@(row.Chain.FinalDispositor ?? "—")</td><td>@Outcome(row.Chain.TerminationCode)</td></tr> }
 </tbody></table></div>
 <p class="dsp-note">The rāśi dispositor is the lord of the occupied sign; the chain follows that lord until it reaches its own sign or a reception cycle.</p>
+}
 
 @code {
     [Parameter, EditorRequired] public string ChartType { get; set; } = "D1";

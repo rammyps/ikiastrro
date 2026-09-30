@@ -38,6 +38,8 @@ builder.Services.AddScoped<AshtakavargaRepository>();
 builder.Services.AddScoped<VargottamaRepository>();
 builder.Services.AddScoped<KpSubLordChainRepository>();
 builder.Services.AddScoped<ArgalaFactRepository>();
+builder.Services.AddScoped<Ikiastrro.Data.Statistics.HouseStrengthStatisticsRepository>();
+builder.Services.AddScoped<Ikiastrro.Data.Statistics.HouseStrengthStatisticsService>();
 builder.Services.AddScoped<GrahaDrishtiStrengthRepository>();
 builder.Services.AddScoped<PanchangaRepository>();
 builder.Services.AddScoped<YogaInputRepository>();

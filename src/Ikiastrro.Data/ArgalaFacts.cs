@@ -1,9 +1,8 @@
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Models;
-using Ikiastrro.Data;
 
-namespace Ikiastrro.Web.Components.Charts;
+namespace Ikiastrro.Data;
 
 /// <summary>One chart's house-target Argala / Virodhargala rows, shared by Key Inference's
 /// ArgalaTable and Life Matters so both pages read the same facts. Stored tbl_Fact_Argala rows

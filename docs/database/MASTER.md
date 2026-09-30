@@ -165,6 +165,12 @@ Publishes to the CLI and UI streams under
   Core `StrengthBands`, checked by `verify-strength` Phase 3. **`db/155`** adds two scales for
   the Life Matters axes: `BAV_BINDUS` (5 / 4, `SRC_PVR_INTEGRATED`) and
   `BHAVA_BALA_INDEPENDENT_Z` (±1 SD of the chart's houses, `SRC_IKIASTRRO_SYNTHESIS`).
+  **`db/156`** adds `tbl_Fact_HouseStrengthStatistics` + `vw_ChartHouseStrengthStatistics`: the
+  Life Matters strength statistics saved per chart × sign (SAV, lord's BAV, raw/independent Bhava
+  Bala + z, lord Ṣaḍbala %, lord Shodasavarga Amsabala %, Argala counts, lord-only Capacity /
+  Consistency / Context / Strength %). Written by `HouseStrengthStatisticsService` (Data) at the
+  end of `GenerateAll`/`RecomputeAnalytics`; CLI `backfill-strength-statistics` for older people;
+  deleted by both `GenerateAll` and `BirthDetailDeletionService`.
 - **`FEAT-ASHTAKAVARGA-01`** — migrations 074–078: production `dbo` schema
   (`tbl_Rule_AshtakavargaContribution` — 56-row Parāśari matrix, SAV total 337;
   `tbl_Rule_AshtakavargaReduction` — Ṭrikoṇa / Ekādhipatya / Sodhya-Piṇḍa;

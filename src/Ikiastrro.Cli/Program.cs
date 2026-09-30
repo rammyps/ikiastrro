@@ -138,7 +138,29 @@ var chartGenerationService = new ChartGenerationService(
     new AshtakavargaRepository(connectionFactory), new PanchangaRepository(connectionFactory),
     new AmsabalaRepository(connectionFactory), new AmsabalaSchemeRepository(connectionFactory),
     new KpSubLordChainRepository(connectionFactory), new ArgalaFactRepository(connectionFactory),
-    new GrahaDrishtiStrengthRepository(connectionFactory));
+    new GrahaDrishtiStrengthRepository(connectionFactory),
+    NewHouseStrengthStatisticsService(connectionFactory, chartResultsRepo));
+
+static Ikiastrro.Data.Statistics.HouseStrengthStatisticsService NewHouseStrengthStatisticsService(
+    SqlConnectionFactory factory, ChartResultsRepository chartResults) =>
+    new(chartResults, new ChartKeyDetailsRepository(factory), new AshtakavargaRepository(factory),
+        new BhavaStrengthRepository(factory), new PlanetaryStrengthRepository(factory),
+        new AmsabalaRepository(factory), new ArgalaFactRepository(factory),
+        new Ikiastrro.Data.Statistics.HouseStrengthStatisticsRepository(factory), new RuleSetRepository(factory));
+
+// --- Backfill mode: `dotnet run -- backfill-strength-statistics` ---
+// Rebuilds tbl_Fact_HouseStrengthStatistics (migration 156) for every saved person from facts
+// already in the database — the Life Matters strength statistics, every chart x 12 signs. Chart
+// generation keeps it current from then on; this is for people generated before migration 156.
+if (args.Length > 0 && args[0] == "backfill-strength-statistics")
+{
+    var statisticsService = NewHouseStrengthStatisticsService(connectionFactory, chartResultsRepo);
+    var everyone = birthDetailsRepo.GetAll().ToList();
+    Console.WriteLine($"backfill-strength-statistics: {everyone.Count} person(s).");
+    foreach (var person in everyone)
+        Console.WriteLine($"  {person.Name}: {statisticsService.Recompute(person.Id)} rows written.");
+    return;
+}
 
 // --- One-off backfill mode: `dotnet run -- backfill-analytics` ---
 // Unconditionally re-derives all four analytics tables (KeyDetails/HouseLords/Conjunctions/Aspects)

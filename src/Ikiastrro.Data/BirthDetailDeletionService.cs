@@ -56,6 +56,7 @@ public class BirthDetailDeletionService
     private readonly KpSubLordChainRepository? _kpSubLordChainRepo;
     private readonly ArgalaFactRepository? _argalaFactRepo;
     private readonly GrahaDrishtiStrengthRepository? _grahaDrishtiStrengthRepo;
+    private readonly Statistics.HouseStrengthStatisticsRepository? _strengthStatisticsRepo;
 
     public BirthDetailDeletionService(
         ChartConjunctionsRepository conjunctionsRepo,
@@ -74,7 +75,8 @@ public class BirthDetailDeletionService
         BirthDetailsRepository birthDetailsRepo,
         KpSubLordChainRepository? kpSubLordChainRepo = null,
         ArgalaFactRepository? argalaFactRepo = null,
-        GrahaDrishtiStrengthRepository? grahaDrishtiStrengthRepo = null)
+        GrahaDrishtiStrengthRepository? grahaDrishtiStrengthRepo = null,
+        Statistics.HouseStrengthStatisticsRepository? strengthStatisticsRepo = null)
     {
         _conjunctionsRepo = conjunctionsRepo;
         _multiGrahaConjunctionsRepo = multiGrahaConjunctionsRepo;
@@ -93,6 +95,7 @@ public class BirthDetailDeletionService
         _kpSubLordChainRepo = kpSubLordChainRepo;
         _argalaFactRepo = argalaFactRepo;
         _grahaDrishtiStrengthRepo = grahaDrishtiStrengthRepo;
+        _strengthStatisticsRepo = strengthStatisticsRepo;
     }
 
     public void DeleteBirthDetail(int birthDetailId)
@@ -111,6 +114,7 @@ public class BirthDetailDeletionService
         _kpSubLordChainRepo?.DeleteByBirthDetailId(birthDetailId);     // FK_Fact_KpSubLordChain_ChartResult (no cascade); optional, see class doc comment
         _argalaFactRepo?.DeleteByBirthDetailId(birthDetailId);         // FK_Fact_Argala_ChartResult (no cascade); optional, see class doc comment
         _grahaDrishtiStrengthRepo?.DeleteByBirthDetailId(birthDetailId); // FK_Fact_GrahaDrishtiStrengths_ChartResult (no cascade); optional, see class doc comment
+        _strengthStatisticsRepo?.DeleteByBirthDetailId(birthDetailId);   // FK_Fact_HouseStrengthStatistics_ChartResult (no cascade); optional, see class doc comment
         _dashaPeriodsRepo.DeleteByBirthDetailId(birthDetailId);
         _chartResultsRepo.DeleteByBirthDetailId(birthDetailId);
         _birthDetailsRepo.UnlinkAyanamsaBenchmarkCases(birthDetailId);  // release the FK, don't delete the benchmark case

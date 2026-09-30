@@ -1,5 +1,5 @@
 using Ikiastrro.Data;
-using Ikiastrro.Web.Components.LifeMatters;
+using Ikiastrro.Data.Statistics;
 
 namespace Ikiastrro.Web.Tests;
 
@@ -174,7 +174,7 @@ public sealed class LifeMatterStatisticsTests
             new Ikiastrro.Core.Models.ChartKeyDetail { Planet = "Saturn", Sign = "Pisces", PointKind = "Graha" },
         };
 
-        var facts = Ikiastrro.Web.Components.Charts.ArgalaFacts.Live("D10", "Aries", grahas);
+        var facts = ArgalaFacts.Live("D10", "Aries", grahas);
         var house1 = new LifeMatterStatistics("D10", "Aries", [], [], [], facts).ForSign("Aries").Argala;
 
         Assert.All(facts, f => Assert.Equal("D10", f.ChartType));

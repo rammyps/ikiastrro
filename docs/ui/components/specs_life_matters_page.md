@@ -169,3 +169,21 @@ Argala, the strength label, Argala pairing), `SindHovGridTests`, `ChartSnapshotT
 (golden). No bUnit test drives the page itself; verified in the browser against the dev DB
 (Ramakrishnan, person 4) on 2026-09-29: area → matter drill-down, Career in D10 against D1,
 Wealth in D2, full-width layout.
+
+## Saved statistics (2026-10-01)
+
+`LifeMatterStatistics` / `HouseStatistics` now live in `Ikiastrro.Data.Statistics` (moved from the
+Web project) so the page and the CLI share one implementation; `ArgalaFacts` moved to
+`Ikiastrro.Data` with them. `HouseStrengthStatisticsService` saves every generated chart × 12 signs
+to `tbl_Fact_HouseStrengthStatistics` (migration 156), queryable through
+`vw_ChartHouseStrengthStatistics`:
+
+- Filled at the end of `ChartGenerationService.GenerateAll` and `RecomputeAnalytics`; people
+  generated earlier are filled by CLI `backfill-strength-statistics`.
+- Deleted first by `GenerateAll` and by `BirthDetailDeletionService` (FK to `tbl_ChartResults`,
+  no cascade).
+- Axes are saved for the sign's **lord only**. A matter's kārakas join Capacity / Consistency on
+  the page, but kāraka resolution is matter- and chart-specific, so it is not stored; join
+  `vw_ChartShadbala` / `vw_ChartAmsabala` for a kāraka's own figures.
+- The page still computes live from the same class, so the saved lord-only rows and the page's
+  lord-only figures cannot disagree.

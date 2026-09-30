@@ -273,6 +273,10 @@ geometric composite, which stays Tier 2). Indices are centred on each measure's 
 "100 = average" form, to keep the page's 0–100% display. The planet-first `Context_p` with §2's
 ownership/placement/kāraka weights is still open.
 
+**Saved as data 2026-10-01:** the per-sign statistics (every chart × 12 signs, lord-only axes) are
+persisted in `tbl_Fact_HouseStrengthStatistics` / `vw_ChartHouseStrengthStatistics` (migration
+156) at chart generation, so they can be queried across people.
+
 ### Tier 2 — later, genuine new engine work, only after Tier 1 ships and is reviewed
 
 - Varga-lord dispositor condition (cheap — same live `DignityStatus` lookup Tier 0 already uses)

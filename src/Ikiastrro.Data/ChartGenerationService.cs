@@ -47,6 +47,7 @@ public class ChartGenerationService
     private readonly AmsabalaSchemeRepository _amsabalaSchemeRepo;
     private readonly KpSubLordChainRepository? _kpSubLordChainRepo;
     private readonly ArgalaFactRepository? _argalaFactRepo;
+    private readonly Statistics.HouseStrengthStatisticsService? _strengthStatistics;
     private readonly GrahaDrishtiStrengthRepository? _grahaDrishtiStrengthRepo;
 
     // Amsabala's scheme groups/names (tbl_Rule_AmsabalaGroup/Name) are the same for the whole
@@ -83,7 +84,8 @@ public class ChartGenerationService
         AmsabalaRepository amsabalaRepo, AmsabalaSchemeRepository amsabalaSchemeRepo,
         KpSubLordChainRepository? kpSubLordChainRepo = null,
         ArgalaFactRepository? argalaFactRepo = null,
-        GrahaDrishtiStrengthRepository? grahaDrishtiStrengthRepo = null)
+        GrahaDrishtiStrengthRepository? grahaDrishtiStrengthRepo = null,
+        Statistics.HouseStrengthStatisticsService? strengthStatistics = null)
     {
         _orchestrator = orchestrator;
         _dashaService = dashaService;
@@ -108,6 +110,7 @@ public class ChartGenerationService
         _amsabalaSchemeRepo = amsabalaSchemeRepo;
         _kpSubLordChainRepo = kpSubLordChainRepo;
         _argalaFactRepo = argalaFactRepo;
+        _strengthStatistics = strengthStatistics;
         _grahaDrishtiStrengthRepo = grahaDrishtiStrengthRepo;
     }
 
@@ -139,12 +142,15 @@ public class ChartGenerationService
         _kpSubLordChainRepo?.DeleteByBirthDetailId(birthDetails.Id); // FK_Fact_KpSubLordChain_ChartResult (no cascade); optional until Web/Cli composition roots register it
         _argalaFactRepo?.DeleteByBirthDetailId(birthDetails.Id);     // FK_Fact_Argala_ChartResult (no cascade); optional, same reason — was missing entirely, broke rebuild-all once backfill-argala had populated rows
         _grahaDrishtiStrengthRepo?.DeleteByBirthDetailId(birthDetails.Id);
+        _strengthStatistics?.Delete(birthDetails.Id);                // FK_Fact_HouseStrengthStatistics_ChartResult (no cascade)
         foreach (var calc in _orchestrator.Calculators)
             _chartResultsRepo.DeleteByBirthDetailIdAndChartType(birthDetails.Id, calc.ChartType);
 
         var written = PersistCharts(birthDetails, _orchestrator.CalculateAll(birthDetails, ayanamsa), activeRuleSetId, codeToChartTypeId, ayanamsa);
 
         _dashaService.ComputeAndStore(birthDetails, ayanamsa);
+        // Last: reads the Ashtakavarga / Bhava Bala / Ṣaḍbala / Amsabala / Argala facts just written.
+        _strengthStatistics?.Recompute(birthDetails.Id);
         return new GenerationReport(written, DashaWritten: true, Skipped: Array.Empty<string>());
     }
 
@@ -221,6 +227,7 @@ public class ChartGenerationService
                 input.ChartType == "D1" ? _orchestrator.CalculateAll(birthDetails, ayanamsa).Select(c => c.Input).ToList() : new[] { input });
             written.Add(result.ChartType);
         }
+        _strengthStatistics?.Recompute(birthDetails.Id);
         return new GenerationReport(written, DashaWritten: false, Skipped: Array.Empty<string>());
     }
 

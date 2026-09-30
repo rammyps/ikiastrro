@@ -4,7 +4,7 @@ using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Models;
 using Ikiastrro.Data;
 
-namespace Ikiastrro.Web.Components.LifeMatters;
+namespace Ikiastrro.Data.Statistics;
 
 /// <summary>Three-way reading of one strength statistic, plus None when there is nothing to read.
 /// Strong/Weak are the app's existing bands, not outcome judgments.</summary>
@@ -28,6 +28,7 @@ public sealed record ArgalaPair(
 public sealed record ArgalaSummary(IReadOnlyList<ArgalaPair> Pairs)
 {
     public int Holds => Pairs.Count(p => p.Verdict == ArgalaVerdict.Holds);
+    public int Contested => Pairs.Count(p => p.Verdict == ArgalaVerdict.Contested);
     public int Obstructed => Pairs.Count(p => p.Verdict == ArgalaVerdict.Obstructed);
     public int Net => Holds - Obstructed;
     public bool Any => Pairs.Any(p => p.ArgalaPlanets.Count > 0 || p.ObstructingPlanets.Count > 0);
@@ -130,7 +131,7 @@ public sealed class LifeMatterStatistics
 
     /// <param name="argala">House-target Argala facts for <paramref name="chartType"/>; rows for other
     /// charts are ignored. Only D1 is persisted today, so a varga's rows come from
-    /// <see cref="Ikiastrro.Web.Components.Charts.ArgalaFacts.ForChart"/>.</param>
+    /// <see cref="ArgalaFacts.ForChart"/>.</param>
     /// <param name="bhavaComponents">D1's tbl_Fact_BhavaStrengthComponent rows, for independent
     /// Bhava Bala; none means Bhava Bala's part of Context can't be read.</param>
     /// <param name="amsabala">The person's Amsabala rows (all schemes); only

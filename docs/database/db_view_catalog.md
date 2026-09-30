@@ -90,6 +90,11 @@ pending) · `vw_ChartAmsabala` (`db/101`, repository ready, UI pending) ·
 **Not needed:** `tbl_Rule_Exaltation` — the Uchcha Bindu sign+degree per graha is already in
 `tbl_Rule_GrahaDignity` and `tbl_SignAttributes` (see row above).
 
+**Saved Life Matters statistics:** `vw_ChartHouseStrengthStatistics` over
+`tbl_Fact_HouseStrengthStatistics` (`db/156`) — one row per person × chart × sign, lord-only axes;
+the flat, queryable form of `LifeMatterStatistics` for cross-person statistics and export. No UI
+reads it yet (the page computes the same figures live).
+
 **Strength cut-offs:** `tbl_Rule_StrengthBand` (`db/154`, `db/155`) — Strong/Moderate lower bounds for
 Ṣaḍbala %, Bhava Bala, SAV, BAV and chart-relative independent Bhava Bala; read in code through its mirror `StrengthBands` (Key Inference 3.1–3.3,
 Life Matters).
