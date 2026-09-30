@@ -48,7 +48,7 @@ IF EXISTS (
     THROW 51000, 'Vimsopaka scheme weights must total 20.', 1;
 
 IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE ScriptName = '157_seed_vimsopaka_weights.sql')
-    INSERT dbo.SchemaMigrations (ScriptName, Description)
+    INSERT dbo.SchemaMigrations (ScriptName, Note)
     VALUES ('157_seed_vimsopaka_weights.sql',
             'Seed BPHS Vimshopaka weights: Shadvarga, Saptavarga, Dasavarga, Shodasavarga');
 
