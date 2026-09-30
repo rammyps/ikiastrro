@@ -5,11 +5,10 @@
 @* Argala / Virodhargala — PVR sec.10.5-10.6 (SRC_PVR_INTEGRATED), pp.104-107. One row per house
    (Exercise 16's own scope), same 8-position shape as the book's own worked table for Chart 5
    (docs/research/domain/argala-virodhargala-drishti-lifematters.md §4): 2nd/4th/11th/5th cause
-   argala, 12th/10th/3rd/9th obstruct it (virodhargala). Computed live from this chart's own
-   occupancy (ArgalaCalculator/ArgalaFactBuilder.BuildOccupancy) — not read from tbl_Fact_Argala,
-   so it works for every chart, not just the 3 dev charts backfill-argala has populated so far
-   (that table isn't wired into ChartGenerationService yet). Same "live calculator over a fact
-   table" choice 2.2's exaltation table already made. SignificanceNotes (tbl_Rule_Argala,
+   argala, 12th/10th/3rd/9th obstruct it (virodhargala). Reads house-target tbl_Fact_Argala rows
+   via ArgalaFacts.ForChart — the same rows Life Matters reads, so the two pages cannot disagree;
+   stored for D1 by ChartGenerationService, computed live (same ArgalaFactBuilder) for a varga.
+   Grahas supplies only the dignity tie-break for the Net column (sec.10.7). SignificanceNotes (tbl_Rule_Argala,
    migration 129) surface as header tooltips on the 4 argala columns; the 4 virodhargala columns
    have no PVR gloss to show. Cell/badge markup is written as literal Razor elements (not
    MarkupString) so Blazor's CSS-isolation scope attribute actually lands on them — a MarkupString
@@ -53,7 +52,7 @@ else
                         </td>
                         @foreach (var offset in ArgalaOffsetOrder)
                         {
-                            var occupants = Occupants(row.Evaluation, offset);
+                            var occupants = row.Occupants(offset);
                             <td>
                                 @if (occupants.Count == 0)
                                 {
@@ -67,7 +66,7 @@ else
                         }
                         @foreach (var offset in VirodhargalaOffsetOrder)
                         {
-                            var occupants = Occupants(row.Evaluation, offset);
+                            var occupants = row.Occupants(offset);
                             <td>
                                 @if (occupants.Count == 0)
                                 {
@@ -76,7 +75,7 @@ else
                                 else
                                 {
                                     @string.Join(", ", occupants)
-                                    @if (offset == 3 && row.Evaluation.ThirdHouseExceptionApplied)
+                                    @if (offset == 3 && row.ThirdHouseExceptionApplied)
                                     {
                                         <span class="at-exception" title="2+ malefics here act as argala, not virodhargala (sec.10.6 exception)">&rarr;arg</span>
                                     }
@@ -96,6 +95,8 @@ else
 }
 
 @code {
+    /// <summary>House-target Argala rows for this chart — pass <see cref="ArgalaFacts.ForChart"/>'s result.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ArgalaFactRow> Facts { get; set; } = Array.Empty<ArgalaFactRow>();
     [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> Grahas { get; set; } = Array.Empty<ChartKeyDetail>();
     [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
     [Parameter] public IReadOnlyDictionary<int, string> SignificanceNotes { get; set; } = new Dictionary<int, string>();
@@ -103,15 +104,20 @@ else
     private static readonly int[] ArgalaOffsetOrder = { 2, 4, 11, 5 };
     private static readonly int[] VirodhargalaOffsetOrder = { 12, 10, 3, 9 };
 
-    private sealed record HouseRow(int HouseNumber, ZodiacName Sign, ArgalaEvaluation Evaluation,
-        ComparisonResult Compare, bool CountedAntiZodiacally);
+    private sealed record HouseRow(int HouseNumber, ZodiacName Sign, IReadOnlyList<ArgalaFactRow> Facts,
+        ComparisonResult Compare, bool ThirdHouseExceptionApplied, bool CountedAntiZodiacally)
+    {
+        /// <summary>Occupants at an offset regardless of side — the sec.10.6 exception stores the
+        /// 3rd-from position as ARGALA, so a fixed "3rd" column has to check both.</summary>
+        public IReadOnlyList<PlanetName> Occupants(int offset) => Planets(Facts.Where(f => f.HouseOffset == offset));
+    }
 
     private IReadOnlyList<HouseRow> Rows => BuildRows();
 
     private List<HouseRow> BuildRows()
     {
         var ascendant = Enum.Parse<ZodiacName>(AscendantSign);
-        var occupancy = ArgalaFactBuilder.BuildOccupancy(Grahas);
+        var factsByHouse = Facts.Where(f => f.TargetKind == "House").ToLookup(f => (int)f.TargetHouseNumber);
         var dignityByPlanet = Grahas
             .Where(k => k.Planet != "Ascendant" && Enum.TryParse<PlanetName>(k.Planet, out _))
             .ToDictionary(k => Enum.Parse<PlanetName>(k.Planet), k => k.DignityStatus);
@@ -119,19 +125,19 @@ else
         var rows = new List<HouseRow>();
         for (var house = 1; house <= 12; house++)
         {
-            var evaluation = Evaluate(ascendant, house, occupancy);
-            var compare = Compare(evaluation, p => ChartViewModel.DignityScore(dignityByPlanet.GetValueOrDefault(p)));
-            rows.Add(new HouseRow(house, evaluation.Target, evaluation, compare, evaluation.CountedAntiZodiacally));
+            var facts = factsByHouse[house].ToList();
+            var compare = Compare(
+                Planets(facts.Where(f => f.RelationTypeCode == "ARGALA")),
+                Planets(facts.Where(f => f.RelationTypeCode == "VIRODHARGALA")),
+                p => ChartViewModel.DignityScore(dignityByPlanet.GetValueOrDefault(p)));
+            rows.Add(new HouseRow(house, HouseEngine.GetHouseSign(ascendant, house), facts, compare,
+                facts.Any(f => f.ExceptionApplied), facts.Any(f => f.CountedAntiZodiacally)));
         }
         return rows;
     }
 
-    /// <summary>Looks a position up by offset regardless of which side it currently sits on —
-    /// the sec.10.6 exception moves the 3rd-from position from Virodhargala into Argala, so a
-    /// fixed "3rd" column has to check both lists.</summary>
-    private static IReadOnlyList<PlanetName> Occupants(ArgalaEvaluation evaluation, int offset) =>
-        evaluation.Argala.Concat(evaluation.Virodhargala)
-            .FirstOrDefault(p => p.Position.HouseOffset == offset)?.Occupants ?? Array.Empty<PlanetName>();
+    private static IReadOnlyList<PlanetName> Planets(IEnumerable<ArgalaFactRow> facts) =>
+        facts.Select(f => Enum.Parse<PlanetName>(f.OccupantPlanet)).OrderBy(p => p).ToList();
 
     private static string NetLabel(ComparisonResult compare) => compare.Dominant switch
     {

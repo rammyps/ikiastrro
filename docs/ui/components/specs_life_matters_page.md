@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-29
+last_updated: 2026-10-01
 workstream: ui
 component: LifeMatters page
 route: /life-matters/{id}
@@ -87,8 +87,8 @@ chart's Lagna:
 | Statistic | In D1 | In a varga | Strong | Weak | Band source |
 |---|---|---|---|---|---|
 | Sarva Ashtakavarga | D1 SAV | that varga's own SAV (every varga totals 337) | > 30 | < 25 | cited rule used by `AshtakavargaChart` |
-| Bhava Bala | D1 house rupas | nothing to read (D1-only computation) | ≥ 7 | < 5 | `HouseStrengthChart` band (unsourced) |
-| Lord Ṣaḍbala | sign lord's % of minimum | the varga sign's lord, same planet figure | ≥ 110 | < 90 | `PlanetaryStateTable` band (unsourced) |
+| Bhava Bala | D1 house rupas | nothing to read (D1-only computation) | ≥ 7 | < 5 | `StrengthBands.BhavaBalaRupas` (project heuristic) |
+| Lord Ṣaḍbala | sign lord's % of minimum | the varga sign's lord, same planet figure | ≥ 100 | < 80 | `StrengthBands.ShadbalaPercentOfMinimum` (100% = BPHS required minimum; 80% heuristic) |
 | Argala | pairs holding minus obstructed | same, from the varga's own placements | > 0 | < 0 | count comparison |
 
 **Strength %** (`HouseStatistics.StrengthPercent`): the mean of the readable signals, each on a
@@ -129,7 +129,7 @@ All reads happen once per person in `OnParametersSet`; every selection after tha
 | Bhava Bala | `BhavaStrengthRepository.GetSummaryByBirthDetailId` | `vw_ChartBhavaBala` |
 | Ṣaḍbala | `PlanetaryStrengthRepository.GetSummaryByBirthDetailId` | `vw_ChartShadbala` |
 | Avastha | `PlanetaryStateRepository.GetByBirthDetailId`, `PlanetaryStateRuleRepository.GetAllStates`, `PostureStateInterpretationRepository.GetByRuleSet` | `tbl_Fact_PlanetaryState(+Flag)` |
-| Argala | `ArgalaFactRepository.GetByBirthDetailId`; a chart with no stored rows (every varga, and D1 generated before db/128) uses `LifeMatterStatistics.LiveArgala` | `tbl_Fact_Argala`, or `ArgalaFactBuilder` live |
+| Argala | `ArgalaFactRepository.GetByBirthDetailId`; a chart with no stored rows (every varga, and D1 generated before db/128) uses `ArgalaFacts.ForChart` (shared with Key Inference's ArgalaTable) | `tbl_Fact_Argala`, or `ArgalaFactBuilder` live |
 
 `LifeMatterFocusResolver.Resolve` runs once per step at load (pure). `LifeMatterStatistics` is
 built lazily once per chart type and cached.

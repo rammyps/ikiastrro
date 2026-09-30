@@ -57,22 +57,16 @@ public record ExaltationRow(
 public static class ChartViewModel
 {
     /// <summary>
-    /// Classical Uchcha Bindu (deep-exaltation degree) per BPHS/PVR, as an absolute nirayana degree
-    /// (Aries 0° = 0). The 7 classical grahas only — Rahu/Ketu have no classical exaltation point.
-    /// Not yet a DB column (key-inference.md's round-2 spec: a real build adds a small
-    /// <c>tbl_Rule_Exaltation</c> instead of hard-coding these 7 constants here).
+    /// Classical Uchcha Bindu (deep-exaltation degree) as an absolute nirayana degree (Aries 0° = 0),
+    /// read off <see cref="AstroMath.DeepExaltationPoints"/> — the one shared copy every engine uses,
+    /// which CLI <c>verify-dignity</c> checks against <c>tbl_SignAttributes</c> and
+    /// <c>tbl_Rule_GrahaDignity</c>'s EXALTED rows. The 7 classical grahas only — Rahu/Ketu have
+    /// no classical exaltation point.
     /// </summary>
     private static readonly IReadOnlyDictionary<string, double> ExaltationAbsoluteDegrees =
-        new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Sun"] = 10,      // Aries 10°
-            ["Moon"] = 33,     // Taurus 3°
-            ["Mars"] = 298,    // Capricorn 28°
-            ["Mercury"] = 165, // Virgo 15°
-            ["Jupiter"] = 95,  // Cancer 5°
-            ["Venus"] = 357,   // Pisces 27°
-            ["Saturn"] = 200,  // Libra 20°
-        };
+        AstroMath.DeepExaltationPoints.ToDictionary(
+            kv => kv.Key.ToString(), kv => (int)kv.Value.Sign * 30 + kv.Value.Degree,
+            StringComparer.OrdinalIgnoreCase);
 
     private static readonly string[] ZodiacSignsFromAries =
         { "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",

@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-29
+last_updated: 2026-10-01
 workstream: database
 togaf: C — Data Architecture
 reflects: yoga source-variant UI and LifeMatter 7x7 matrix through migrations 148-149
@@ -57,7 +57,7 @@ read-only, no recompute.
 | 1 · D1 / Transit | `vw_ChartPlanetEvidence` (D1, for the grid) | same, + `tbl_TransitPositionReference` for the transit toggle | `Natal_Transit_Comp_WheelRepository` / `AstrologerEvidenceRepository` · `GocharaRepository` | table now includes `Nakshatra`/`NakshatraPada` inline (moved from Planet Dignity) |
 | 2.1 · About Houses | derived: graha count per house | `tbl_Chart_HouseLords` + `tbl_Chart_Conjunctions`/`tbl_Chart_MultiGrahaConjunction(+Member)` + `tbl_Chart_Aspects` | `ChartHouseLordsRepository` · `ChartConjunctionsRepository` · `ChartMultiGrahaConjunctionRepository` · `ChartAspectsRepository` | + 3 supporting cards below |
 | 2.1 → supporting cards | — | `tbl_Chart_KeyDetails` WHERE `PointKind IN ('Arudha','Upagraha','SpecialLagna')` | `ChartKeyDetailsRepository` | Arudha padas / Upagrahas / Special Lagnas — computed, first time surfaced |
-| 2.2 · About Planets | derived: closeness-to-exaltation % | `tbl_Chart_KeyDetails` (+ `vw_ChartMoonContext` facts card) | `ChartKeyDetailsRepository` · `AstrologerEvidenceRepository` | exaltation point / Δ / closeness need a new **`tbl_Rule_Exaltation`** (7 rows) — not built |
+| 2.2 · About Planets | derived: closeness-to-exaltation % | `tbl_Chart_KeyDetails` (+ `vw_ChartMoonContext` facts card) | `ChartKeyDetailsRepository` · `AstrologerEvidenceRepository` | exaltation point / Δ / closeness read `AstroMath.DeepExaltationPoints`, the verified mirror of `tbl_Rule_GrahaDignity`/`tbl_SignAttributes` — no separate exaltation table |
 | 3 · Strength | `vw_ChartShadbala` (%-of-minimum/composition bar inline in 3.1's table) | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` (3.1) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (3.2) | `PlanetaryStrengthRepository`/`BhavaStrengthRepository` (new `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`, `PlanetStrengthChart`/`HouseStrengthChart`) | built 2026-09-14; first UI consumer of both views outside `AstrologerEvidenceRepository`'s generic dynamic-row dump |
 | 4 · Planet-Chart | derived: Vaiśeṣikāṁśa stacked bar, from `tbl_Chart_KeyDetails.DignityStatus` over 16 vargas | `tbl_Chart_KeyDetails.Sign` across the 16 divisional `ChartType`s (Ṣoḍaśavarga grid) | `ChartKeyDetailsRepository` | Vargottama (`tbl_Fact_Vargottama`) + Varga-Dignity highlights are inline tags, not tables |
 | 5 · Ashtakavarga | `vw_ChartAshtakavarga` (SAV bar) | `vw_ChartAshtakavarga` (BAV grid) + `tbl_Fact_AshtakavargaPinda` (Piṇḍa) | `AshtakavargaRepository` (read + write, merged onto `master` `b6603ba` 2026-09-16) | live — `verify-ashtakavarga` all-pass; every saved person backfilled via `recompute-keydetails` |
@@ -87,9 +87,12 @@ pending) · `vw_ChartAmsabala` (`db/101`, repository ready, UI pending) ·
 `tbl_Fact_AshtakavargaPinda` (`db/074`) are live in `KeyInference.razor` "3.3 ASTAVARGA" as of
 `master` `b6603ba` (2026-09-16) — see row 5 above.
 
-**Not yet created:** `tbl_Rule_Exaltation` (7 rows — the classical Uchcha Bindu sign+degree
-per graha, needed for step 2.2's closeness-to-exaltation column) — a `workstream/database`
-follow-up, still hard-coded in the `key-inference-v2.html` mockup only.
+**Not needed:** `tbl_Rule_Exaltation` — the Uchcha Bindu sign+degree per graha is already in
+`tbl_Rule_GrahaDignity` and `tbl_SignAttributes` (see row above).
+
+**Strength cut-offs:** `tbl_Rule_StrengthBand` (`db/154`) — Strong/Moderate lower bounds for
+Ṣaḍbala %, Bhava Bala and SAV; read in code through its mirror `StrengthBands` (Key Inference 3.1–3.3,
+Life Matters).
 
 **Done — `db/079_add_yoga_type_and_rule.sql`:** `tbl_Rule_Yoga.FormationFamilyCode` (unused
 since migration 48) is now the Type axis (`SUN`/`MOON`/`LAGNA`/`COMBINATION`, CHECK-constrained);

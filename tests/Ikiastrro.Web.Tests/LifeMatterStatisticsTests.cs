@@ -58,11 +58,11 @@ public sealed class LifeMatterStatisticsTests
         Assert.Equal(expected, LifeMatterStatistics.BhavaBand((decimal)rupas));
 
     [Theory]
-    [InlineData(110.0, StrengthBand.Strong)]
-    [InlineData(109.9, StrengthBand.Middle)]
-    [InlineData(90.0, StrengthBand.Middle)]
-    [InlineData(89.9, StrengthBand.Weak)]
-    public void ShadbalaBand_MatchesPlanetaryStateTableStrongAndWeak(double percent, StrengthBand expected) =>
+    [InlineData(100.0, StrengthBand.Strong)]   // Parāśara's required minimum (SRC_BPHS_27)
+    [InlineData(99.9, StrengthBand.Middle)]
+    [InlineData(80.0, StrengthBand.Middle)]
+    [InlineData(79.9, StrengthBand.Weak)]
+    public void ShadbalaBand_MatchesPlanetStrengthChart(double percent, StrengthBand expected) =>
         Assert.Equal(expected, LifeMatterStatistics.ShadbalaBand((decimal)percent));
 
     [Fact]
@@ -166,7 +166,7 @@ public sealed class LifeMatterStatisticsTests
             new Ikiastrro.Core.Models.ChartKeyDetail { Planet = "Saturn", Sign = "Pisces", PointKind = "Graha" },
         };
 
-        var facts = LifeMatterStatistics.LiveArgala("D10", "Aries", grahas);
+        var facts = Ikiastrro.Web.Components.Charts.ArgalaFacts.Live("D10", "Aries", grahas);
         var house1 = new LifeMatterStatistics("D10", "Aries", [], [], [], facts).ForSign("Aries").Argala;
 
         Assert.All(facts, f => Assert.Equal("D10", f.ChartType));

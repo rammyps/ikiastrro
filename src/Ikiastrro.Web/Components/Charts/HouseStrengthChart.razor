@@ -15,9 +15,9 @@
     </div>
 
     <div class="hsc-legend">
-        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-strong"></span>&ge;7.00 Strong</span>
-        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-moderate"></span>5.00&ndash;6.99 Moderate</span>
-        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-weak"></span>&lt;5.00 Weak</span>
+        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-strong"></span>&ge;@(Band.StrongFrom.ToString("0.00")) Strong</span>
+        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-moderate"></span>@(Band.ModerateFrom.ToString("0.00"))&ndash;@((Band.StrongFrom - 0.01m).ToString("0.00")) Moderate</span>
+        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-weak"></span>&lt;@(Band.ModerateFrom.ToString("0.00")) Weak</span>
     </div>
 
     <div class="hsc-colheads">
@@ -132,13 +132,14 @@
         if (!_expanded.Add(house)) _expanded.Remove(house);
     }
 
-    /// <summary>Presentation-only threshold band over Bhava Bala Rūpas (no `tbl_Rule_*` source
-    /// yet, same status as the classical exaltation constants in ChartViewModel — see
-    /// key-inference.md's sourcing-status table): &ge;7 strong, 5&ndash;6.99 moderate, below weak.</summary>
-    private static (string Label, string CssClass) StatusOf(decimal rupas) => rupas switch
+    /// <summary>StrengthBands.BhavaBalaRupas (tbl_Rule_StrengthBand, migration 154). No classical
+    /// cut-off exists for Bhava Bala, so both boundaries are SRC_IKIASTRRO_SYNTHESIS heuristics.</summary>
+    private static readonly StrengthBandScale Band = StrengthBands.BhavaBalaRupas;
+
+    private static (string Label, string CssClass) StatusOf(decimal rupas) => Band.Classify(rupas) switch
     {
-        >= 7 => ("Strong", "hsc-status-strong"),
-        >= 5 => ("Moderate", "hsc-status-moderate"),
+        StrengthTier.Strong => ("Strong", "hsc-status-strong"),
+        StrengthTier.Moderate => ("Moderate", "hsc-status-moderate"),
         _ => ("Weak", "hsc-status-weak"),
     };
 

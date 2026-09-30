@@ -23,6 +23,7 @@
 @inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
 @inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
 @inject Ikiastrro.Data.ArgalaRuleRepository ArgalaRuleRepo
+@inject Ikiastrro.Data.ArgalaFactRepository ArgalaFactRepo
 @inject Ikiastrro.Data.RasiNakshatraCombinationRepository RasiNakshatraCombinationRepo
 @inject Ikiastrro.Data.GrahaDrishtiStrengthRepository GrahaDrishtiStrengthRepo
 @inject Ikiastrro.Data.PlanetaryStateRepository PlanetaryStateRepo
@@ -210,7 +211,7 @@ else
                     <HouseLordFindingsTable Rows="natalChart.HouseLordInterpretations" />
 
                     <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
-                    <ArgalaTable Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
+                    <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
                                 </div>
                             }
                             @if (_activeTab == 3)
@@ -594,6 +595,7 @@ else
     private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
     private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
     private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
+    private IReadOnlyList<Ikiastrro.Data.ArgalaFactRow> _argalaFacts = Array.Empty<Ikiastrro.Data.ArgalaFactRow>();
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
     private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
     private IReadOnlyList<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact> _planetaryStates = Array.Empty<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact>();
@@ -691,6 +693,7 @@ else
         _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
         _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
         _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
+        _argalaFacts = ArgalaFactRepo.GetByBirthDetailId(Id);
         _rasiNakshatraCombinations = RasiNakshatraCombinationRepo.GetAll(1);
         _grahaDrishtiStrengths = GrahaDrishtiStrengthRepo.GetByBirthDetailId(Id);
         // AgeStateId is populated for D1 only (PlanetaryStateFact's own doc comment), so this

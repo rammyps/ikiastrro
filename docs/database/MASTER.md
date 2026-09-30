@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-16
+last_updated: 2026-10-01
 workstream: database
 togaf: C — Data Architecture
 safe: Solution Intent (fixed) — data model
@@ -55,9 +55,9 @@ Publishes to the CLI and UI streams under
   (seeded or unseeded, zero reads) — full per-table breakdown in
   [`rules-engine.md`](rules-engine.md), wiring backlog in
   [`../../decisions/003-rules-audit-content-model-ephemeris-interpreter.md`](../../decisions/003-rules-audit-content-model-ephemeris-interpreter.md).
-  `tbl_Rule_Exaltation` doesn't exist yet — a normal Phase-1 job, exaltation degrees are already
-  hardcoded in `RamanYogaBatchFiveEvaluator.DeepExaltation`/`RamanDhanaYogaEvaluator`, ready to
-  transcribe, same pattern as `db/079`.
+  There is no `tbl_Rule_Exaltation`, by design: exaltation degrees live in
+  `tbl_Rule_GrahaDignity` (EXALTED rows) and `tbl_SignAttributes`, mirrored in code by
+  `AstroMath.DeepExaltationPoints` (see the audit below).
 - **2026-09-11 rule-mapping audit** — every calculator under `Engines/` (`workstream/cli`)
   cross-referenced against `tbl_Rule_Catalog` (38 tables). Full write-up, including the
   "Formulas computed in C#/SQL with no `tbl_Rule_*` citation at all" section, is in
@@ -65,7 +65,8 @@ Publishes to the CLI and UI streams under
   - The exaltation degrees above were duplicated **four** independent times in C# (one had no
     shared field name — found by grepping the magic numbers) — consolidated onto one shared
     `AstroMath.DeepExaltationPoints` constant; no new table needed, `tbl_Rule_GrahaDignity`
-    already carries the degree. `tbl_Rule_Exaltation` itself still doesn't exist (unchanged).
+    already carries the degree. The last private copy (`ChartViewModel`, Key Inference 1.2) moved
+    onto it 2026-10-01; a separate `tbl_Rule_Exaltation` was dropped as a duplicate.
   - Vimshottari Dasha's own core table (9-planet order, 120-year cycle, per-lord years) had
     **no `tbl_Rule_*` row anywhere** — closed: new `tbl_Rule_VimshottariPeriod` (migration 085,
     SRC_PVR_INTEGRATED §16.2 Table 38, verified against the raw extract).
@@ -157,7 +158,11 @@ Publishes to the CLI and UI streams under
   Minimum/Maximum/`PercentOfMinimum`/`PercentOfMaximum` live via `JOIN` instead of the
   `tbl_Fact_PlanetaryStrength.MinimumRequiredRupas` stored column, which `InsertAll` never
   populates (only a one-time 071 backfill ever did) — every chart computed since then had a
-  silently-NULL minimum until this fix.
+  silently-NULL minimum until this fix. **`db/154`** (2026-10-01) adds `tbl_Rule_StrengthBand`:
+  the app's one set of Strong/Moderate cut-offs for Ṣaḍbala % of minimum (100 `SRC_BPHS_27` /
+  80 `SRC_IKIASTRRO_SYNTHESIS`), Bhava Bala Rūpas (7 / 5, both synthesis) and Sarvāṣṭakavarga
+  bindus (31 / 25, `SRC_PVR_INTEGRATED`), one `SourceRefCode` per boundary — a verified mirror of
+  Core `StrengthBands`, checked by `verify-strength` Phase 3.
 - **`FEAT-ASHTAKAVARGA-01`** — migrations 074–078: production `dbo` schema
   (`tbl_Rule_AshtakavargaContribution` — 56-row Parāśari matrix, SAV total 337;
   `tbl_Rule_AshtakavargaReduction` — Ṭrikoṇa / Ekādhipatya / Sodhya-Piṇḍa;

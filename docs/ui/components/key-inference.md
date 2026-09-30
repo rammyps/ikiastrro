@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-24
+last_updated: 2026-10-01
 workstream: ui
 component: KeyInference
 route: /key-inference/{id}
@@ -77,7 +77,7 @@ from Core rather than duplicating the rule in SQL.
 
 | Field | Where | Status |
 |---|---|---|
-| **Exaltation point** | 2.2 | Classical Uchcha Bindu constants (Sun 10° Ari · Moon 3° Tau · Mars 28° Cap · Mercury 15° Vir · Jupiter 5° Can · Venus 27° Pis · Saturn 20° Lib). Rahu/Ketu excluded — no classical exaltation point. **Not a DB column yet** — a real build adds a small `tbl_Rule_Exaltation` (7 rows) rather than hard-coding the constants in a view. |
+| **Exaltation point** | 2.2 | Classical Uchcha Bindu (Sun 10° Ari · Moon 3° Tau · Mars 28° Cap · Mercury 15° Vir · Jupiter 5° Can · Venus 27° Pis · Saturn 20° Lib). Rahu/Ketu excluded — no classical exaltation point. **Already DB-backed** — `tbl_Rule_GrahaDignity` (EXALTED rows, PVR-cited) and `tbl_SignAttributes.ExaltedDegree`; `ChartViewModel.BuildExaltationRows` reads `AstroMath.DeepExaltationPoints`, the shared copy CLI `verify-dignity` checks against both. No separate `tbl_Rule_Exaltation` — it would duplicate them. |
 | **Δ from exaltation / Closeness %** | 2.2 | Derived: `Δ = min(|natal − exalt|, 360 − |natal − exalt|)` in absolute zodiacal degrees; `closeness% = round((1 − Δ/180) × 100)` (100% = exact exaltation, 0% = exact debilitation point). Computed from `tbl_Chart_KeyDetails.NirayanaLongitudeDegrees` + the exaltation rule table above — no new fact table needed, a read-time calculation. |
 | **Yoga Type** (Sun / Moon / Lagna / combination — which reference point the yoga is judged from) | 6 | **DB-backed (`db/079`).** `tbl_Rule_Yoga.FormationFamilyCode`, exposed as `vw_ChartYogaEvaluations.YogaTypeCode`; constrained to `SUN`/`MOON`/`LAGNA`/`COMBINATION`. Seeded for 146 of 223 `YogaCode`s from the evaluator predicate — the rest read `NULL` (no predicate exists to derive from; see [`yoga.md`](yoga.md#2-yogas-round-2-columns--source-is-column-1-variant-dropped)). |
 | **Yoga Rule** (one-line classical rule, e.g. *"7th lord in 5th"*) | 6 | **DB-backed (`db/079`).** New `tbl_Rule_Yoga.ShortFormationRule` column, exposed as `vw_ChartYogaEvaluations.YogaRule`; short-form, hand-transcribed per `YogaCode` from the actual predicate (not `CalculationNarrative`, which stays prose-length and unused here). Same 146/223 coverage as Type. |
@@ -107,8 +107,9 @@ flow above instead of sitting in a side panel:
   `Natal_Transit_Comp_WheelMath` reused as-is); the "D1 Birth" tab keeps the plain South-Indian
   grid + position table. `MainLayout`'s standalone TRANSIT nav tab was removed to match — Home's
   "open person" / post-generate navigation now lands on `/key-inference/{id}`.
-- `tbl_Rule_Exaltation` is still a `workstream/database` follow-up once this flow is approved.
-  The `tbl_Rule_Yoga` Type/Rule fields landed in `db/079` — see the sourcing-status table above.
+- ~~`tbl_Rule_Exaltation`~~ **Dropped (2026-10-01):** the exaltation points were already in the
+  database (see the sourcing-status table). The `tbl_Rule_Yoga` Type/Rule fields landed in
+  `db/079`.
 - **Decided (2026-09-14):** 2.1 About Houses built as three tables, not the mockup's one merged
   "house lords & occupancy" table. Top row, side by side: `AspectsTable` (left, aspects grouped
   by the house they land in) and `HouseConjunctionsTable` (right, multi-graha groups per house —
@@ -124,11 +125,11 @@ flow above instead of sitting in a side panel:
   see `argala-virodhargala-drishti-lifematters.md` §4), plus a Net column (`ArgalaCalculator
   .Compare`'s count-then-dignity-sum verdict) — **column order House · Sign · Net · (argala ·
   virodhargala offsets), Net moved up from last to 3rd 2026-09-22 (rammyps's correction)**.
-  Computed LIVE off `lc.Grahas` via
-  `ArgalaCalculator`/new `ArgalaFactBuilder.BuildOccupancy` (Core) — not read from
-  `tbl_Fact_Argala`, since that fact table isn't wired into `ChartGenerationService` yet and only
-  covers the 3 backfilled dev charts; live computation works for every chart, the same
-  "compute at render time, don't require a backfill" choice 2.2's exaltation table already made.
+  **Reads `tbl_Fact_Argala` (2026-10-01)** through `ArgalaFacts.ForChart` — the same rows Life
+  Matters reads, so the two pages cannot disagree. `ChartGenerationService` persists D1's rows;
+  a varga (or a D1 not regenerated since migration 128) gets the same `ArgalaFactBuilder` output
+  computed live. The Net column's count comparison uses `ArgalaCalculator.Compare`'s flat-list
+  overload over those rows.
   New `ArgalaRuleRepository.GetArgalaSignificanceNotes` (`tbl_Rule_Argala.SignificanceNote`,
   migration 129) feeds the 4 argala column headers' hover tooltips; the 4 virodhargala columns
   have none (PVR gives no parallel gloss for them in sec.10.7). The 3rd-from column shows a small
@@ -139,8 +140,8 @@ flow above instead of sitting in a side panel:
   the Current Transit tab's Gochara/Dasha, since only this page needs it) above the "Planets —
   dignity, kāraka, exaltation" table (new `PlanetDignityTable`), reading one new
   `ChartViewModel.BuildExaltationRows` (Core) over `lc.KeyDetails` — the classical Uchcha Bindu
-  constants from the sourcing-status table above, hard-coded there exactly as decided
-  (`tbl_Rule_Exaltation` remains a `workstream/database` follow-up). Rahu/Ketu appear in the
+  constants from the sourcing-status table above, read (since 2026-10-01) from the shared
+  `AstroMath.DeepExaltationPoints`. Rahu/Ketu appear in the
   table with "—" in the three exaltation-derived columns.
 - **Dropped (2026-09-14, rammyps):** the closeness-to-exaltation bar chart (`ExaltationClosenessChart`)
   built alongside the table above was removed from the page the same day — 2.2 is table-only
@@ -168,8 +169,9 @@ flow above instead of sitting in a side panel:
   `vw_ChartShadbala`/`vw_ChartBhavaBala` plus the two `tbl_Fact_*Component` tables (previously
   only reachable through `AstrologerEvidenceRepository`'s generic dynamic-row query). Status
   thresholds (Planet: ≥100%/80–99%/&lt;80% Strong/Moderate/Weak; House: ≥7/5–6.99/&lt;5 Rūpas)
-  and the whole `--bala-*` component-category palette are presentation-only, no `tbl_Rule_*`
-  source yet — same status as the 2.2 exaltation constants above. 3.1 ranks strongest-first
+  are now `StrengthBands` (Core), mirrored in `tbl_Rule_StrengthBand` (migration 154, checked by
+  `verify-strength`) — see "2026-10-01 — strength cut-offs" below. The `--bala-*`
+  component-category palette stays presentation-only. 3.1 ranks strongest-first
   (PercentOfMinimum desc, not the mockup's unexplained order) and offers a Performance/
   Composition bar toggle (Composition reuses the per-row expand's stacked-Bala-share bar,
   clamped so a negative Dṛk/other share never draws past 100% of the track — a real bug hit
@@ -429,3 +431,23 @@ live against a running instance before moving to the next):
     Piṇḍa" would even mean. Full convention + the compound-selector specificity trap hit building
     this: `docs/ui/design-language.md` "Rank/score badge convention."
   every tab, active or not, just the opposite colour pairing. See `design-language.md` "Tabs".
+
+## 2026-10-01 — strength cut-offs sourced and shared
+
+- One set of Strong / Moderate / Weak cut-offs for the whole app: `StrengthBands`
+  (`src/Ikiastrro.Core/Engines/Strength/StrengthBands.cs`), mirrored in `tbl_Rule_StrengthBand`
+  (migration 154) with one `SourceRefCode` per boundary; CLI `verify-strength` checks the two agree.
+  3.1 Planet Strength, 3.2 House Strength, 3.3's Sarvāṣṭakavarga bar and Life Matters all read it.
+
+| Scale | Strong from | Moderate from | Source |
+|---|---|---|---|
+| Ṣaḍbala % of required minimum | 100% | 80% | 100% = Parāśara's required minimum (`SRC_BPHS_27`); 80% is ours (`SRC_IKIASTRRO_SYNTHESIS`) |
+| Bhava Bala Rūpas | 7 | 5 | both ours (`SRC_IKIASTRRO_SYNTHESIS`) — no classical cut-off found |
+| Sarvāṣṭakavarga bindus | 31 (above 30) | 25 | `SRC_PVR_INTEGRATED` (`docs/research/domain/transit-events.md`) |
+
+- Life Matters used to call Ṣaḍbala Strong at 110% and Weak under 90%, so the same planet could
+  read differently on the two pages; rammyps chose 100% / 80% everywhere. Its middle label is now
+  MOD (was ADEQ).
+- The 5-band Capacity scale (75/90/110/130%, `stat_strength.md` §1.1) in 3.1's Capacity column and
+  `PlanetaryStateTable` is a separate scale and is unchanged.
+

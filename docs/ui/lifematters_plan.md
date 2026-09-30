@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-29
+last_updated: 2026-10-01
 status: approved
 phase: 1A/1B/2 (in progress; 0B specs retrofitted — see note below)
 ---
@@ -385,7 +385,7 @@ Inference read paths to dossier ingredients — all in `lifematters_claude_resea
     a lagna are "sourced"; otherwise its Lagna houses are re-counted from the lagna. Supersedes
     the earlier Category → Step picker with separate lagna tracks.
 13. **(2026-09-29) D1 is read through strength statistics.** Sarva Ashtakavarga (>30 / <25, the
-    cited band), Bhava Bala (7 / 5 rupas), the lord's Ṣaḍbala (110% / 90% of minimum), Argala /
+    cited band), Bhava Bala (7 / 5 rupas), the lord's Ṣaḍbala (100% / 80% of minimum since 2026-10-01 — the shared `StrengthBands`), Argala /
     Virodhargala (`tbl_Fact_Argala`, count comparison) and avastha drive signals, filters and a
     "Strongest first" sort. Bhava Bala and Ashtakavarga move from Phase 4 into v1. Decision 7
     still holds: signals describe strength (capacity) and never set `Contribution`, and the sort

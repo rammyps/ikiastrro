@@ -17,6 +17,7 @@ using Ikiastrro.Core.Engines.Karakas;
 using Ikiastrro.Core.Geocoding;
 using Ikiastrro.Core.Models;
 using Ikiastrro.Core.Engines.Relationships;
+using Ikiastrro.Core.Engines.Strength;
 using Ikiastrro.Core.Transits;
 using Ikiastrro.Data;
 
@@ -1179,6 +1180,22 @@ if (args.Length > 0 && args[0] == "verify-strength")
         {
             foreach (var s in stored)
                 Check($"persisted {s.Planet}/{s.SubComponentCode}", s.ValueVirupas, Component(s.Planet, s.SubComponentCode));
+        }
+    }
+
+    Console.WriteLine("\n-- Phase 3: StrengthBands (Core) == tbl_Rule_StrengthBand (migration 154) --");
+    using (var conn = connectionFactory.CreateOpenConnection())
+    {
+        var bands = conn.Query<(string ScaleCode, string BandCode, decimal LowerBound, string SourceRefCode)>(
+            @"SELECT ScaleCode, BandCode, LowerBound, SourceRefCode
+              FROM dbo.tbl_Rule_StrengthBand WHERE RuleSetId = 1 AND IsActive = 1").ToList();
+        Check("tbl_Rule_StrengthBand row count", bands.Count, StrengthBands.All.Count * 2);
+        foreach (var scale in StrengthBands.All)
+        {
+            var strong = bands.SingleOrDefault(b => b.ScaleCode == scale.ScaleCode && b.BandCode == "STRONG");
+            var moderate = bands.SingleOrDefault(b => b.ScaleCode == scale.ScaleCode && b.BandCode == "MODERATE");
+            Check($"{scale.ScaleCode} STRONG", $"{strong.LowerBound:0.###} {strong.SourceRefCode}", $"{scale.StrongFrom:0.###} {scale.StrongSourceRefCode}");
+            Check($"{scale.ScaleCode} MODERATE", $"{moderate.LowerBound:0.###} {moderate.SourceRefCode}", $"{scale.ModerateFrom:0.###} {scale.ModerateSourceRefCode}");
         }
     }
 

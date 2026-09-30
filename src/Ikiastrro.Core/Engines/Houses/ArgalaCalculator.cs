@@ -142,11 +142,16 @@ public static class ArgalaCalculator
     /// number. dignityScore is injected (not looked up internally) so this calculator stays
     /// degree-independent and pure, like RasiDrishtiCalculator.
     /// </summary>
-    public static ComparisonResult Compare(ArgalaEvaluation evaluation, Func<PlanetName, int> dignityScore)
-    {
-        var argalaOccupants = evaluation.Argala.SelectMany(p => p.Occupants).ToList();
-        var virodhOccupants = evaluation.Virodhargala.SelectMany(p => p.Occupants).ToList();
+    public static ComparisonResult Compare(ArgalaEvaluation evaluation, Func<PlanetName, int> dignityScore) =>
+        Compare(evaluation.Argala.SelectMany(p => p.Occupants).ToList(),
+            evaluation.Virodhargala.SelectMany(p => p.Occupants).ToList(), dignityScore);
 
+    /// <summary>The same comparison over flat occupant lists — for a caller reading persisted
+    /// tbl_Fact_Argala rows (one row per occupant) rather than a live <see cref="ArgalaEvaluation"/>.</summary>
+    public static ComparisonResult Compare(
+        IReadOnlyList<PlanetName> argalaOccupants, IReadOnlyList<PlanetName> virodhOccupants,
+        Func<PlanetName, int> dignityScore)
+    {
         if (argalaOccupants.Count != virodhOccupants.Count)
         {
             var dominant = argalaOccupants.Count > virodhOccupants.Count ? RelationType.Argala : RelationType.Virodhargala;

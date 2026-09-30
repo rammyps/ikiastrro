@@ -113,17 +113,17 @@
         _ => "av-moderate",
     };
 
-    /// <summary>Sarvāṣṭavarga sign-total banding (2026-09-25) — the one Ashtakavarga threshold
-    /// with an actual classical citation on file: docs/research/domain/transit-events.md's
-    /// Ashtakavarga row ("SAV &gt;30 favorable and &lt;25 unfavorable"). 25-30 reads as the
+    /// <summary>Sarvāṣṭavarga sign-total banding — StrengthBands.SarvaAshtakavargaBindus
+    /// (tbl_Rule_StrengthBand, migration 154; SRC_PVR_INTEGRATED via docs/research/domain/
+    /// transit-events.md, "SAV &gt;30 favorable and &lt;25 unfavorable"). 25-30 reads as the
     /// moderate middle band, matching the same 3-color convention as the rank badges/Bhinnashtavarga
     /// above. Deliberately NOT applied to the Piṇḍa table below — Rāśi/Graha/Śodhya Piṇḍa are
     /// multiplier/remainder values used to locate a target nakshatra or sign (same source), not
     /// strength scores, so there is no cited threshold to band them by.</summary>
-    private static string SavBand(int totalBindus) => totalBindus switch
+    private static string SavBand(int totalBindus) => StrengthBands.SarvaAshtakavargaBindus.Classify(totalBindus) switch
     {
-        > 30 => "av-high",
-        < 25 => "av-zero",
+        StrengthTier.Strong => "av-high",
+        StrengthTier.Weak => "av-zero",
         _ => "av-moderate",
     };
 

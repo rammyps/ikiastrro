@@ -12,7 +12,7 @@ public sealed record ArgalaFactRow(string ChartType, string TargetKind, string T
 
 /// <summary>Persists tbl_Fact_Argala rows (migration 128) — ArgalaFactBuilder's flattened output
 /// for one chart. Delete-then-reinsert per chart, same pattern as the analytics backfill modes
-/// (ChartGenerationService.RecomputeAnalytics), since this isn't yet wired into that pipeline.</summary>
+/// (ChartGenerationService.RecomputeAnalytics), which writes D1's rows on every GenerateAll.</summary>
 public sealed class ArgalaFactRepository
 {
     private readonly SqlConnectionFactory _connectionFactory;

@@ -270,9 +270,9 @@ else
                     </div>
                 }
                 <p class="lm-note">Bands: SAV above 30 favourable, below 25 unfavourable (the app's cited
-                    Ashtakavarga rule; every varga's SAV also totals 337). Bhava Bala 7+/under 5 rupas and
-                    Ṣaḍbala 110%+/under 90% of the minimum are the app's presentation bands, not yet sourced
-                    rules. Argala in a varga is computed from that varga's placements. Strength %: SAV out of
+                    Ashtakavarga rule; every varga's SAV also totals 337). Ṣaḍbala is strong at 100% of its required
+                    minimum (Parāśara's own line) and weak under 80%; that 80% floor and Bhava Bala's 7+/under
+                    5 rupas are the app's own heuristics, not classical rules. Argala in a varga is computed from that varga's placements. Strength %: SAV out of
                     56 bindus, Bhava Bala out of 12 rupas, lord Ṣaḍbala out of 200% of its minimum, Argala as
                     the share of pairs that hold; averaged over whichever can be read.</p>
             }
@@ -454,14 +454,13 @@ else
         _selectedLifeMatterId = StepsIn(_area).FirstOrDefault()?.LifeMatterId;
     }
 
-    // Persisted Argala where chart generation stored it (D1, for charts generated since db/128);
-    // otherwise the same ArgalaFactBuilder run live on the chart's own placements.
+    // Persisted Argala where chart generation stored it (D1), else live — ArgalaFacts.ForChart,
+    // the same source Key Inference's ArgalaTable reads.
     private LifeMatterStatistics StatsFor(string chartType)
     {
         if (_statsByChart.TryGetValue(chartType, out var stats)) return stats;
         var chart = _data!.Charts[chartType];
-        IReadOnlyList<ArgalaFactRow> argala = _argala.Where(r => r.ChartType == chartType).ToList();
-        if (argala.Count == 0) argala = LifeMatterStatistics.LiveArgala(chartType, chart.AscendantSign, chart.Grahas);
+        var argala = ArgalaFacts.ForChart(_argala, chartType, chart.AscendantSign, chart.Grahas);
         return _statsByChart[chartType] = new LifeMatterStatistics(chartType, chart.AscendantSign,
             _ashtakavarga, _bhavaBala, _shadbala, argala);
     }
@@ -667,7 +666,7 @@ else
             "Bhava Bala" => st.BhavaBalaRupas is null
                 ? @<span class="lm-muted">@(chart.ChartType == "D1" ? "not computed" : "D1 only")</span>
                 : @<span>@Meter((double)st.BhavaBalaRupas.Value, 12, 7) @st.BhavaBalaRupas.Value.ToString("0.00") rupas @Band(st.BhavaBand, "STRONG", "MOD", "WEAK")</span>,
-            "Lord" => @<span>@st.LordPlanet@(st.LordShadbalaPercent is { } pct ? $" · Ṣaḍbala {pct:0}%" : "") @Band(st.LordShadbalaBand, "STRONG", "ADEQ", "WEAK")</span>,
+            "Lord" => @<span>@st.LordPlanet@(st.LordShadbalaPercent is { } pct ? $" · Ṣaḍbala {pct:0}%" : "") @Band(st.LordShadbalaBand, "STRONG", "MOD", "WEAK")</span>,
             "Lord's dignity" => @<span>@(chart.Grahas.FirstOrDefault(g => g.Planet == st.LordPlanet)?.DignityStatus ?? "—") <span class="lm-muted">in @chart.ChartType</span></span>,
             "Occupants" => @<span>@(string.Join(", ", chart.Grahas.Where(g => g.Sign == st.Sign && g.Planet != "Ascendant").Select(g => g.Planet)) is { Length: > 0 } occ ? occ : "none")</span>,
             "Argala" => @<span>@ArgalaText(st.Argala)</span>,

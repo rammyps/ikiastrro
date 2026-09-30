@@ -1,3 +1,4 @@
+using Ikiastrro.Core.Engines.Strength;
 using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Models;
@@ -66,10 +67,9 @@ public sealed record HouseStatistics(
 /// queried per sign. In a varga: SAV is that varga's own Sarva Ashtakavarga (still 337 bindus in
 /// total, so the same bands apply); Argala is the varga's own occupancy; the lord is the varga
 /// sign's lord, and its Ṣaḍbala is the planet's (Ṣaḍbala exists only once per planet); Bhava Bala
-/// is a D1 house computation and reads as nothing in a varga. Bands reuse the thresholds the app already shows elsewhere: SAV above 30 favourable and
-/// below 25 unfavourable (AshtakavargaChart's cited rule), Bhava Bala 7+/under 5 rupas
-/// (HouseStrengthChart) and Ṣaḍbala 110%+/under 90% of the required minimum (PlanetaryStateTable's
-/// strong/weak bands). They describe strength, not outcomes.
+/// is a D1 house computation and reads as nothing in a varga. Bands are StrengthBands — the same cut-offs Key Inference step 3 shows: SAV above 30
+/// favourable and below 25 unfavourable, Bhava Bala 7+/under 5 rupas, Ṣaḍbala 100%+/under 80% of
+/// the required minimum. They describe strength, not outcomes.
 /// </summary>
 public sealed class LifeMatterStatistics
 {
@@ -97,7 +97,7 @@ public sealed class LifeMatterStatistics
 
     /// <param name="argala">House-target Argala facts for <paramref name="chartType"/>; rows for other
     /// charts are ignored. Only D1 is persisted today, so a varga's rows come from
-    /// <see cref="LiveArgala"/>.</param>
+    /// <see cref="Ikiastrro.Web.Components.Charts.ArgalaFacts.ForChart"/>.</param>
     public LifeMatterStatistics(
         string chartType,
         string ascendantSign,
@@ -120,15 +120,6 @@ public sealed class LifeMatterStatistics
             .Where(r => r.ChartType == chartType && r.TargetKind == "House")
             .ToLookup(r => (int)r.TargetHouseNumber);
     }
-
-    /// <summary>House-target Argala rows computed from a chart's own graha positions — the same
-    /// ArgalaFactBuilder chart generation persists for D1, run live for a varga that has no stored rows.</summary>
-    public static IReadOnlyList<ArgalaFactRow> LiveArgala(string chartType, string ascendantSign, IEnumerable<ChartKeyDetail> grahas) =>
-        ArgalaFactBuilder.BuildForHouses(Enum.Parse<ZodiacName>(ascendantSign), ArgalaFactBuilder.BuildOccupancy(grahas))
-            .Select(f => new ArgalaFactRow(chartType, f.TargetKind, f.TargetKey, (byte)f.TargetHouseNumber,
-                f.RelationTypeCode, (byte)f.HouseOffset, f.IsPrimary, f.OccupantPlanet.ToString(),
-                f.ExceptionApplied, f.CountedAntiZodiacally, null))
-            .ToList();
 
     public HouseStatistics ForSign(string sign)
     {
@@ -172,28 +163,21 @@ public sealed class LifeMatterStatistics
         }
     }
 
-    public static StrengthBand SavBand(int? bindus) => bindus switch
-    {
-        null => StrengthBand.None,
-        > 30 => StrengthBand.Strong,
-        < 25 => StrengthBand.Weak,
-        _ => StrengthBand.Middle
-    };
+    // The three bands read StrengthBands (tbl_Rule_StrengthBand, migration 154) — the same cut-offs
+    // Key Inference step 3 shows, so a planet or house never gets two different labels.
+    public static StrengthBand SavBand(int? bindus) => ToBand(StrengthBands.SarvaAshtakavargaBindus.Classify(bindus));
 
-    public static StrengthBand BhavaBand(decimal? rupas) => rupas switch
-    {
-        null => StrengthBand.None,
-        >= 7 => StrengthBand.Strong,
-        >= 5 => StrengthBand.Middle,
-        _ => StrengthBand.Weak
-    };
+    public static StrengthBand BhavaBand(decimal? rupas) => ToBand(StrengthBands.BhavaBalaRupas.Classify(rupas));
 
-    public static StrengthBand ShadbalaBand(decimal? percentOfMinimum) => percentOfMinimum switch
+    public static StrengthBand ShadbalaBand(decimal? percentOfMinimum) =>
+        ToBand(StrengthBands.ShadbalaPercentOfMinimum.Classify(percentOfMinimum));
+
+    private static StrengthBand ToBand(StrengthTier tier) => tier switch
     {
-        null => StrengthBand.None,
-        >= 110 => StrengthBand.Strong,
-        < 90 => StrengthBand.Weak,
-        _ => StrengthBand.Middle
+        StrengthTier.Strong => StrengthBand.Strong,
+        StrengthTier.Moderate => StrengthBand.Middle,
+        StrengthTier.Weak => StrengthBand.Weak,
+        _ => StrengthBand.None,
     };
 
     // 0–100 strength indices. Each scale puts the ordinary middle at about 50, so the four can be

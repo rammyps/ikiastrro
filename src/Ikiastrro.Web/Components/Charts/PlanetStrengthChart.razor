@@ -16,9 +16,9 @@
     @if (_mode == BarMode.Performance)
     {
         <div class="psc-legend">
-            <span class="psc-legend-item"><span class="psc-dot psc-status-strong"></span>&ge;100% Strong</span>
-            <span class="psc-legend-item"><span class="psc-dot psc-status-moderate"></span>80&ndash;99% Moderate</span>
-            <span class="psc-legend-item"><span class="psc-dot psc-status-weak"></span>&lt;80% Weak</span>
+            <span class="psc-legend-item"><span class="psc-dot psc-status-strong"></span>&ge;@(Band.StrongFrom.ToString("0"))% Strong</span>
+            <span class="psc-legend-item"><span class="psc-dot psc-status-moderate"></span>@(Band.ModerateFrom.ToString("0"))&ndash;@((Band.StrongFrom - 1).ToString("0"))% Moderate</span>
+            <span class="psc-legend-item"><span class="psc-dot psc-status-weak"></span>&lt;@(Band.ModerateFrom.ToString("0"))% Weak</span>
         </div>
     }
     else
@@ -190,14 +190,16 @@
         if (!_expanded.Add(planet)) _expanded.Remove(planet);
     }
 
-    /// <summary>Classical Parasari %-of-minimum bands (mirrors the mockup's traffic-light read):
-    /// &ge;100% strong, 80&ndash;99% moderate, below weak. Presentation-only threshold, not a DB rule.</summary>
-    private static (string Label, string CssClass) StatusOf(decimal? percent) => percent switch
+    /// <summary>StrengthBands.ShadbalaPercentOfMinimum (tbl_Rule_StrengthBand, migration 154): Strong
+    /// from Parāśara's required minimum (SRC_BPHS_27), Moderate floor a project heuristic.</summary>
+    private static readonly StrengthBandScale Band = StrengthBands.ShadbalaPercentOfMinimum;
+
+    private static (string Label, string CssClass) StatusOf(decimal? percent) => Band.Classify(percent) switch
     {
-        null => ("—", "psc-status-none"),
-        _ when percent >= 100 => ("Strong", "psc-status-strong"),
-        _ when percent >= 80 => ("Moderate", "psc-status-moderate"),
-        _ => ("Weak", "psc-status-weak"),
+        StrengthTier.Strong => ("Strong", "psc-status-strong"),
+        StrengthTier.Moderate => ("Moderate", "psc-status-moderate"),
+        StrengthTier.Weak => ("Weak", "psc-status-weak"),
+        _ => ("—", "psc-status-none"),
     };
 
     /// <summary>0-200% scale mapped to a 0-100% bar width, clamped so a planet far over its
@@ -207,8 +209,8 @@
 
     /// <summary>"Capacity" — Shadbala %-of-minimum capped at 150% (docs/research/domain/
     /// stat_strength.md §1.1 S*), so a planet already far past its requirement doesn't visually
-    /// dominate. Distinct from the Strong/Moderate/Weak Status column (this table's own Parasari
-    /// 100%/80% thresholds) — the coarser 5-band CapacityBand below is the statistics doc's scale,
+    /// dominate. Distinct from the Strong/Moderate/Weak Status column (this table's own StrengthBands
+    /// cut-offs) — the coarser 5-band CapacityBand below is the statistics doc's scale,
     /// kept for future cross-measure (Shadbala/Amsabala/Bhavabala) comparison, not a replacement
     /// for Status.</summary>
     private static decimal CapacityScore(decimal percentOfMinimum) => Math.Min(percentOfMinimum, 150);
