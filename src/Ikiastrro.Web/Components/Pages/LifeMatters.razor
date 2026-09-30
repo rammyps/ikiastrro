@@ -33,11 +33,13 @@
 @inject ActivePerson Active
 
 
-@* docs/ui/components/specs_life_matters_page.md. Area pills drill straight into the area's matters;
-   a matter opens in the main chart in its own varga (its PrimaryChartsText / divisional subject),
-   read from the chosen lagna. Statistics follow the chart shown and sit beside D1: D1 is the
-   promise, the matter's varga the confirmation (tbl_Dim_DivisionalSubject.PrimaryConfirmationChartId).
-   LifeMatterStatistics supplies both; Argala in a varga is computed live. *@
+@* docs/ui/components/specs_life_matters_page.md "Customer flow". Three levels: EXPLORE (area →
+   question), UNDERSTAND (one answer card: the selected question's support, D1 foundation vs the
+   matter's own chart, strongest and limiting factors) and INVESTIGATE (the chart, perspectives,
+   the lagna × chart matrix, Argala, planet strength and provenance as expandable sections).
+   A matter opens in its own varga (PrimaryChartsText / divisional subject), read from the chosen
+   lagna; D1 is the promise, the varga the confirmation. LifeMatterStatistics supplies every
+   figure; LifeMatterReading only puts them into words. *@
 
 <PageTitle>@(_data?.Person.Name ?? "Life Matters") · Life Matters</PageTitle>
 
@@ -53,6 +55,7 @@ else
 {
     var d1 = _data.Charts["D1"];
     var question = LifeMatterQuestions.Get(_question);
+    var perspective = LifeMatterReading.PerspectiveName(question);
     var areaSteps = StepsIn(_area);
     var step = areaSteps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
     var chartType = step is null ? "D1" : ChartTypeFor(step);
@@ -60,241 +63,374 @@ else
     var read = step is null || displayed is null ? null : Read(step, _question, chartType);
     var d1Read = step is null ? null : Read(step, _question, "D1");
     var theme = LifeMatterQuestions.AreaTheme(_area, CategoryName(_area));
+    var areaLabel = LifeMatterQuestions.AreaLabel(_area, CategoryName(_area));
+    var readPct = ReadPercent(read);
+    var askText = step is null ? question.Ask(theme) : question.AskOf(step.MatterText, theme);
 
     <div class="lm-full" hidden></div>
 
+    @* ---------------- Sticky context: where the reader is ---------------- *@
+    <div class="lm-context" aria-label="Current selection">
+        <span class="lm-crumb">@areaLabel</span>
+        <span class="lm-crumb-sep" aria-hidden="true">→</span>
+        <span class="lm-crumb lm-crumb-matter">@(step?.MatterText ?? "Choose a question")</span>
+        <span class="lm-crumb-sep" aria-hidden="true">→</span>
+        <span class="lm-crumb" title="@ChartName(chartType)">@chartType</span>
+        <span class="lm-crumb-sep" aria-hidden="true">→</span>
+        <span class="lm-crumb">@perspective</span>
+        <span class="lm-context-pct">@Pct(readPct, "Selected question")</span>
+    </div>
 
-    <div class="lm-chart-row">
-        @* ---------------- Main chart ---------------- *@
-        <section class="lm-chart-col" aria-label="Chart">
-            <div class="lm-chart">
-                @if (displayed is null)
-                {
-                    <EmptyState Message="@($"{chartType} not generated for this person")" Cli="backfill-charts" />
-                }
-                else if (step is not null)
-                {
-                    var trackSign = ResolveReferenceSign(displayed, _question);
-                    <SindHovGrid AscendantSign="@displayed.AscendantSign"
-                                 PlanetsBySign="PlanetsBySign(displayed)"
-                                 SpecialPointsBySign="SpecialPointsBySign(displayed, step)"
-                                 HouseFoci="QuestionHouseFoci(displayed, step)"
-                                 SpecialPointFocusCodes="SpecialPointCodes(step)"
-                                 PinnedSign="_pinnedSign"
-                                 PinnedSignChanged="s => _pinnedSign = s"
-                                 TrackSign="@(_question == "LAGNA" ? null : trackSign)"
-                                 TrackTag="@question.Tag"
-                                 TrackLabel="@question.Label"
-                                 AspectedBySign="ChartViewModel.BuildAspectedByMicro(displayed.KeyDetails, displayed.Aspects)"
-                                 SavBySign="SavBySign(chartType)"
-                                 KarakaPlanets="KarakaPlanets(displayed, step)"
-                                 CenterTitle="@step.MatterText"
-                                 CenterNote="@(read is null ? question.Label + " not available" : $"{string.Join(" & ", read.Items.Select(i => i.SpecialPoint ?? Ordinal(i.House)))} from {question.Label}")"
-                                 CenterMeta="@($"{displayed.ChartType} · Lagna {DisplaySign(displayed.AscendantSign)}{(trackSign is not null && _question != "LAGNA" ? $" · {question.Tag} {DisplaySign(trackSign)}" : "")}")" />
-                }
-            </div>
-        </section>
-
-
-        @* ---------------- Area → matter drill-down ---------------- *@
-        <nav class="lm-level lm-picker" aria-label="Area and matter">
-            <div class="lm-pills" role="tablist" aria-label="Area">
+    <div class="lm-top">
+        @* ================= 1 · EXPLORE ================= *@
+        <nav class="lm-explore" aria-label="Choose a life area and question">
+            <p class="lm-step"><b>1</b> Choose a life area</p>
+            <div class="lm-pills" role="tablist" aria-label="Life area">
                 @foreach (var area in _categories)
                 {
-                    var core = CoreHouses(area.CategoryCode);
                     <button type="button" role="tab" class="lm-pill" aria-selected="@Aria(area.CategoryCode == _area)"
-                            title="Core house @string.Join(" & ", core.Select(Ordinal)) from Lagna, in D1"
+                            title="Area overview — @string.Join(" & ", CoreHouses(area.CategoryCode).Select(Ordinal)) house of the main birth chart"
                             @onclick="() => SelectArea(area.CategoryCode)">
                         @LifeMatterQuestions.AreaLabel(area.CategoryCode, area.CategoryName)
                         @Strength(AreaStats(area.CategoryCode))
                     </button>
                 }
             </div>
-            <div class="lm-drill" role="listbox" aria-label="@($"{LifeMatterQuestions.AreaLabel(_area, CategoryName(_area))} matters")">
-                @foreach (var s in areaSteps)
+
+            <p class="lm-step"><b>2</b> Pick a question about @theme</p>
+            @{
+                var selectedIndex = areaSteps.ToList().FindIndex(s => s.LifeMatterId == _selectedLifeMatterId);
+                var showAll = _showAllMatters || selectedIndex >= LifeMatterReading.PrimaryMatterCount;
+                var visible = showAll ? areaSteps : areaSteps.Take(LifeMatterReading.PrimaryMatterCount).ToList();
+            }
+            <div class="lm-drill" role="listbox" aria-label="@($"{areaLabel} questions")">
+                @foreach (var s in visible)
                 {
-                    var home = HomeChart(s);
-                    var homeRead = Read(s, _question, home);
+                    var homeRead = Read(s, _question, HomeChart(s));
                     <button type="button" role="option" class="lm-matter" aria-selected="@Aria(s.LifeMatterId == _selectedLifeMatterId)"
-                            title="@($"{s.MatterText} — read in {home} from {question.Label}")"
+                            title="@($"{s.MatterText} — read in the {ChartName(HomeChart(s))}")"
                             @onclick="() => SelectStep(s.LifeMatterId)">
                         <span class="lm-matter-name">@s.MatterText</span>
-                        <span class="lm-matter-meta"><span class="lm-chart-tag">@home</span>@ReadStrength(homeRead)</span>
+                        @ReadStrength(homeRead)
                     </button>
                 }
             </div>
-            <div class="lm-controls">
-                <span class="lm-label">Chart</span>
-                <div class="lm-chips" role="group" aria-label="Chart shown">
-                    @foreach (var c in step is null ? ["D1"] : ChartChoices(step))
-                    {
-                        <button type="button" class="lm-chip" aria-pressed="@Aria(c == chartType)"
-                                title="@_data.Charts[c].Label" @onclick="() => SelectChart(c)">
-                            @c@(step is not null && c == HomeChart(step) && c != "D1" ? " · own" : "")
-                        </button>
-                    }
-                </div>
-            </div>
-            @if (step is not null)
+            @if (areaSteps.Count > LifeMatterReading.PrimaryMatterCount && selectedIndex < LifeMatterReading.PrimaryMatterCount)
             {
-                @* The lagna questions are the drill-down below the matter: each asks the area from one
-                   lagna, names the houses it reads for this matter, and gives the strength in the shown chart. *@
-                <div class="lm-questions" role="listbox" aria-label="Question (lagna)">
-                    @foreach (var q in LifeMatterQuestions.All)
-                    {
-                        var qRead = Read(step, q.ReferenceCode, chartType);
-                        var reference = _references.FirstOrDefault(r => r.ReferenceCode == q.ReferenceCode);
-                        <button type="button" role="option" class="lm-q @(qRead?.Sourced == true ? "sourced" : "")"
-                                aria-selected="@Aria(q.ReferenceCode == _question)" disabled="@(qRead is null)"
-                                title="@($"{q.Label}{(qRead is null ? $" — not computed in {chartType} yet" : $" — {reference?.Perspective}")}")"
-                                @onclick="() => SelectQuestion(q.ReferenceCode)">
-                            <span class="lm-chart-tag">@q.Tag</span>
-                            <span class="lm-q-text">@(step is null ? q.Ask(theme) : q.AskOf(step.MatterText, theme))</span>
-                            <span class="lm-q-reads">@(qRead is null ? "" : ReadsText(qRead))</span>
-                            <span class="lm-q-src">@(qRead is null ? "" : qRead.Sourced ? "sourced" : "re-counted")</span>
-                            @ReadStrength(qRead)
-                        </button>
-                    }
-                </div>
+                <button type="button" class="lm-more" aria-expanded="@Aria(showAll)" @onclick="() => _showAllMatters = !_showAllMatters">
+                    @(showAll ? "Fewer questions" : $"More questions ({areaSteps.Count - LifeMatterReading.PrimaryMatterCount})")
+                </button>
             }
-            <p class="lm-legend">Strength % is the mean of SAV, Bhava Bala (D1 only), lord Ṣaḍbala and Argala,
-                each on a 0–100 scale where the ordinary middle is about 50%. Hover a figure for the breakdown.
-                <b>Sourced</b> questions read this matter's own seeded houses on that lagna; <b>re-counted</b>
-                ones count its Lagna houses from that lagna instead.</p>
         </nav>
-    </div>
 
-    @* ---------------- Statistics: D1 promise vs the matter's varga ---------------- *@
-    <section class="lm-panel lm-stats" aria-label="Statistics">
-        <p class="lm-eyebrow">@(step is null ? question.Ask(theme) : question.AskOf(step.MatterText, theme))</p>
-        <h2 class="lm-question">@(step?.MatterText ?? "Choose a matter")</h2>
-        @if (step is not null)
-        {
-            var summaryCharts = SummaryCharts(step);
-            <h3>Summary · every lagna question in every chart this matter reads</h3>
-            <p class="lm-note">@SummaryNote(step) Click a figure to show that lagna in that chart.</p>
-            <div class="lm-scroll">
-                <table class="lm-table lm-matrix">
-                    <thead>
-                        <tr>
-                            <th>Question</th>
-                            <th>Reads</th>
-                            @foreach (var c in summaryCharts)
-                            {
-                                <th class="num" title="@_data.Charts[c].Label">@c<span class="lm-col-role">@ChartRole(step, c)</span></th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var q in LifeMatterQuestions.All)
-                        {
-                            var qD1 = Read(step, q.ReferenceCode, "D1");
-                            <tr class="@(q.ReferenceCode == _question ? "selected" : "") @(qD1?.Sourced == true ? "sourced" : "")">
-                                <th scope="row">
-                                    <button type="button" class="lm-q-link" @onclick="() => SelectQuestion(q.ReferenceCode)">
-                                        <span class="lm-chart-tag">@q.Tag</span> @(step is null ? q.Ask(theme) : q.AskOf(step.MatterText, theme))
-                                    </button>
-                                </th>
-                                <td class="lm-muted">@(qD1 is null ? "—" : $"{ReadsText(qD1)} · {(qD1.Sourced ? "sourced" : "re-counted")}")</td>
-                                @foreach (var c in summaryCharts)
-                                {
-                                    var cell = Read(step, q.ReferenceCode, c);
-                                    <td class="num">
-                                        <button type="button" class="lm-cell" disabled="@(cell is null)"
-                                                aria-pressed="@Aria(q.ReferenceCode == _question && c == chartType)"
-                                                aria-label="@($"{q.Label} in {c}")"
-                                                @onclick="() => SelectCell(q.ReferenceCode, c)">
-                                            @ReadStrength(cell)
-                                        </button>
-                                    </td>
-                                }
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            var detailCharts = DetailCharts(step, chartType);
-            <h3>Detail · @question.Label · @string.Join(" · ", detailCharts)</h3>
-            <p class="lm-note">@(read?.Sourced == true ? "Sourced focus" : "Lagna houses re-counted") from @question.Label ·
-                D1 is the promise, the matter's own charts the confirmation.</p>
-
-            var reads = detailCharts.Select(c => (Chart: c, Read: Read(step, _question, c))).ToList();
-            @if (reads.All(r => r.Read is null))
+        @* ================= 2 · UNDERSTAND ================= *@
+        <section class="lm-answer" aria-label="Answer">
+            <p class="lm-step"><b>3</b> Your answer</p>
+            @if (step is null)
             {
-                <p class="lm-note">@question.Label is not available for this person yet.</p>
-            }
-            else if (reads.All(r => r.Read is null || r.Read.Items.Count == 0))
-            {
-                <p class="lm-note">Relevant evidence not yet structured for this matter.</p>
+                <p class="lm-note">Choose a question to see how well it is supported.</p>
             }
             else
             {
-                var keys = reads.SelectMany(r => r.Read?.Items ?? []).Select(ItemKey).Distinct().ToList();
-                @foreach (var key in keys)
+                var band = LifeMatterReading.Band(readPct);
+                var home = HomeChart(step);
+                var factors = LifeMatterReading.Factors(read?.Items.Select(i => i.Stats).ToList() ?? [], chartType);
+                var strongest = LifeMatterReading.Strongest(factors);
+                var limiting = LifeMatterReading.Limiting(factors);
+                var areaPct = AreaStats(_area).StrengthPercent;
+
+                <p class="lm-kicker">Selected question</p>
+                <h1 class="lm-question">@askText</h1>
+
+                <div class="lm-score lm-tone-@band.Tone">
+                    <span class="lm-big">@(readPct is null ? "—" : $"{readPct}%")</span>
+                    <span class="lm-score-words"><b>@band.Label</b><span>@band.Meaning</span></span>
+                    <button type="button" class="lm-info" aria-expanded="@Aria(_showExplain)" aria-controls="lm-explain"
+                            @onclick="() => _showExplain = !_showExplain">
+                        <span aria-hidden="true">i</span><span class="lm-sr">What does this figure mean?</span>
+                    </button>
+                </div>
+                @if (_showExplain)
                 {
-                    var items = reads.Select(r => (r.Chart, Item: r.Read?.Items.FirstOrDefault(i => ItemKey(i) == key))).ToList();
-                    var head = items.First(i => i.Item is not null).Item!;
-                    <h3>@(head.SpecialPoint is null ? $"{Ordinal(head.House)} house" : head.SpecialPoint) from @question.Label</h3>
-                    <div class="lm-scroll">
-                        <table class="lm-table lm-cmp">
-                            <thead><tr><th></th>
-                                @foreach (var (c, _) in items)
-                                {
-                                    <th>@c · @(c == "D1" ? "promise" : ChartRole(step, c))</th>
-                                }
-                            </tr></thead>
-                            <tbody>
-                                @foreach (var row in StatRows)
-                                {
-                                    <tr>
-                                        <th scope="row">@row</th>
-                                        @foreach (var (c, item) in items)
-                                        {
-                                            <td>@Cell(row, item, _data.Charts[c])</td>
-                                        }
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                    <div class="lm-explain" id="lm-explain">
+                        <p>The figure is how well this part of life is supported in the chart, on a scale where
+                            <b>50% is the ordinary midpoint</b>. It averages three things equally:</p>
+                        <ul>
+                            <li><b>Strength of the ruling planets</b> — @Percent(Axis(read, 0))</li>
+                            <li><b>Consistency across the divisional charts</b> — @Percent(Axis(read, 1))</li>
+                            <li><b>The house's own setting</b> (its support, its ruler's comfort there, its strength
+                                and the help or hindrance of other planets) — @Percent(Axis(read, 2))</li>
+                        </ul>
+                        @if (read is { Items.Count: > 1 })
+                        {
+                            <p>This question reads @ReadsText(read); the figure is their average.</p>
+                        }
                     </div>
-                    @if (items.Count > 1)
+                }
+
+                <dl class="lm-compare">
+                    <div>
+                        <dt>Foundation <span>main birth chart · D1</span></dt>
+                        <dd>@Pct(ReadPercent(d1Read), "Main birth chart")<span>@LifeMatterReading.Band(ReadPercent(d1Read)).Label</span></dd>
+                    </div>
+                    @if (home != "D1")
                     {
-                        <p class="lm-agree">@string.Join(" · ", items.Select(i => $"{i.Chart} {(i.Item?.Stats.StrengthPercent is { } p ? $"{p}%" : "not read")}"))</p>
+                        var homePct = ReadPercent(Read(step, _question, home));
+                        <div>
+                            <dt>Confirmation <span>@ChartName(home) · @home</span></dt>
+                            <dd>@Pct(homePct, ChartName(home))<span>@LifeMatterReading.Band(homePct).Label</span></dd>
+                        </div>
+                    }
+                    @if (chartType != "D1" && chartType != home)
+                    {
+                        <div>
+                            <dt>Chart shown <span>@ChartName(chartType) · @chartType</span></dt>
+                            <dd>@Pct(readPct, ChartName(chartType))<span>@band.Label</span></dd>
+                        </div>
+                    }
+                </dl>
+
+                <div class="lm-factors">
+                    <div>
+                        <h3>Strongest factors</h3>
+                        @if (strongest.Count == 0)
+                        {
+                            <p class="lm-note">No factor reaches the midpoint.</p>
+                        }
+                        else
+                        {
+                            <ul>@foreach (var f in strongest) { <li>@Factor(f)</li> }</ul>
+                        }
+                    </div>
+                    <div>
+                        <h3>Limiting or uncertain</h3>
+                        @if (limiting.Count == 0)
+                        {
+                            <p class="lm-note">Every factor is at or above the midpoint.</p>
+                        }
+                        else
+                        {
+                            <ul>@foreach (var f in limiting) { <li>@Factor(f)</li> }</ul>
+                        }
+                    </div>
+                </div>
+
+                <p class="lm-area-line">
+                    <span class="lm-kicker">Area overview</span>
+                    @areaLabel @Pct(areaPct, "Area overview") —
+                    the area's core @string.Join(" & ", CoreHouses(_area).Select(Ordinal)) house@(CoreHouses(_area).Count > 1 ? "s" : "") in the main birth chart,
+                    before any single question.
+                </p>
+
+                <div class="lm-refine">
+                    <div class="lm-refine-row">
+                        <span class="lm-label">Read from</span>
+                        <div class="lm-chips" role="group" aria-label="Perspective">
+                            @foreach (var (code, name) in LifeMatterReading.PrimaryPerspectives)
+                            {
+                                var pRead = Read(step, code, chartType);
+                                <button type="button" class="lm-chip @(pRead?.Sourced == true ? "sourced" : "")"
+                                        aria-pressed="@Aria(code == _question)" disabled="@(pRead is null)"
+                                        title="@PerspectiveTitle(code, pRead, chartType)"
+                                        @onclick="() => SelectQuestion(code)">
+                                    @name @Pct(ReadPercent(pRead), name)
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    <details class="lm-advanced" open="@(!LifeMatterReading.IsPrimaryPerspective(_question))">
+                        <summary>Advanced perspectives</summary>
+                        <div class="lm-chips" role="group" aria-label="Advanced perspective">
+                            @foreach (var q in LifeMatterQuestions.All.Where(q => !LifeMatterReading.IsPrimaryPerspective(q.ReferenceCode)))
+                            {
+                                var qRead = Read(step, q.ReferenceCode, chartType);
+                                <button type="button" class="lm-chip @(qRead?.Sourced == true ? "sourced" : "")"
+                                        aria-pressed="@Aria(q.ReferenceCode == _question)" disabled="@(qRead is null)"
+                                        title="@PerspectiveTitle(q.ReferenceCode, qRead, chartType)"
+                                        @onclick="() => SelectQuestion(q.ReferenceCode)">
+                                    @q.Label @Pct(ReadPercent(qRead), q.Label)
+                                </button>
+                            }
+                        </div>
+                    </details>
+                    <div class="lm-refine-row">
+                        <span class="lm-label">Chart</span>
+                        <div class="lm-chips" role="group" aria-label="Relevant charts">
+                            @foreach (var c in RelevantCharts(step))
+                            {
+                                <button type="button" class="lm-chip" aria-pressed="@Aria(c == chartType)"
+                                        title="@($"{ChartName(c)} · {_data.Charts[c].Label}")" @onclick="() => SelectChart(c)">
+                                    @ChartShort(c) <span class="lm-chip-code">@c</span>
+                                </button>
+                            }
+                        </div>
+                        <label class="lm-all-charts">
+                            <span class="lm-sr">All charts</span>
+                            <select value="@(RelevantCharts(step).Contains(chartType) ? "" : chartType)"
+                                    @onchange="e => SelectChart(e.Value?.ToString() is { Length: > 0 } v ? v : home)">
+                                <option value="" disabled>All charts…</option>
+                                @foreach (var c in AllCharts())
+                                {
+                                    <option value="@c">@c · @ChartShort(c)</option>
+                                }
+                            </select>
+                        </label>
+                    </div>
+                    <p class="lm-note">A gold edge marks a perspective whose houses the classical texts name for this
+                        question; the others count the same houses from that point.</p>
+                </div>
+
+                <p class="lm-disclaimer">Strength shows <b>capacity</b> — how well this part of life is supported —
+                    not a prediction of what will happen. A strong figure is not by itself a favourable outcome.</p>
+            }
+        </section>
+    </div>
+
+    @* ================= 3 · INVESTIGATE ================= *@
+    @if (step is not null)
+    {
+        <section class="lm-investigate" aria-label="Investigate">
+            <p class="lm-step"><b>4</b> Investigate the evidence</p>
+
+            <details class="lm-section" open>
+                <summary>Chart <span>@ChartName(chartType) · @chartType · from @question.Label</span></summary>
+                <div class="lm-chart">
+                    @if (displayed is null)
+                    {
+                        <EmptyState Message="@($"{chartType} not generated for this person")" Cli="backfill-charts" />
+                    }
+                    else
+                    {
+                        var trackSign = ResolveReferenceSign(displayed, _question);
+                        <SindHovGrid AscendantSign="@displayed.AscendantSign"
+                                     PlanetsBySign="PlanetsBySign(displayed)"
+                                     SpecialPointsBySign="SpecialPointsBySign(displayed, step)"
+                                     HouseFoci="QuestionHouseFoci(displayed, step)"
+                                     SpecialPointFocusCodes="SpecialPointCodes(step)"
+                                     PinnedSign="_pinnedSign"
+                                     PinnedSignChanged="s => _pinnedSign = s"
+                                     TrackSign="@(_question == "LAGNA" ? null : trackSign)"
+                                     TrackTag="@question.Tag"
+                                     TrackLabel="@question.Label"
+                                     AspectedBySign="ChartViewModel.BuildAspectedByMicro(displayed.KeyDetails, displayed.Aspects)"
+                                     SavBySign="SavBySign(chartType)"
+                                     KarakaPlanets="KarakaPlanets(displayed, step)"
+                                     CenterTitle="@step.MatterText"
+                                     CenterNote="@(read is null ? question.Label + " not available" : $"{string.Join(" & ", read.Items.Select(i => i.SpecialPoint ?? Ordinal(i.House)))} from {question.Label}")"
+                                     CenterMeta="@($"{displayed.ChartType} · Lagna {DisplaySign(displayed.AscendantSign)}{(trackSign is not null && _question != "LAGNA" ? $" · {question.Tag} {DisplaySign(trackSign)}" : "")}")" />
+                    }
+                </div>
+            </details>
+
+            <details class="lm-section">
+                <summary>Every perspective in every chart <span>@SummaryCharts(step).Count charts × @LifeMatterQuestions.All.Count perspectives</span></summary>
+                @{ var summaryCharts = SummaryCharts(step); }
+                <p class="lm-note">@SummaryNote(step) Choose a figure to show that perspective in that chart.</p>
+                <div class="lm-scroll">
+                    <table class="lm-table lm-matrix">
+                        <thead>
+                            <tr>
+                                <th>Perspective</th>
+                                <th>Houses read</th>
+                                @foreach (var c in summaryCharts)
+                                {
+                                    <th class="num" title="@ChartName(c)">@c<span class="lm-col-role">@ChartRole(step, c)</span></th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var q in LifeMatterQuestions.All)
+                            {
+                                var qD1 = Read(step, q.ReferenceCode, "D1");
+                                <tr class="@(q.ReferenceCode == _question ? "selected" : "") @(qD1?.Sourced == true ? "sourced" : "")">
+                                    <th scope="row">
+                                        <button type="button" class="lm-q-link" @onclick="() => SelectQuestion(q.ReferenceCode)">
+                                            <span class="lm-chart-tag">@q.Tag</span> @q.Label
+                                        </button>
+                                    </th>
+                                    <td class="lm-muted">@(qD1 is null ? "—" : $"{ReadsText(qD1)} · {SourceText(qD1)}")</td>
+                                    @foreach (var c in summaryCharts)
+                                    {
+                                        var cell = Read(step, q.ReferenceCode, c);
+                                        <td class="num">
+                                            <button type="button" class="lm-cell" disabled="@(cell is null)"
+                                                    aria-pressed="@Aria(q.ReferenceCode == _question && c == chartType)"
+                                                    aria-label="@($"{q.Label} in {c}")"
+                                                    @onclick="() => SelectCell(q.ReferenceCode, c)">
+                                                @ReadStrength(cell)
+                                            </button>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+            <details class="lm-section">
+                @{ var detailCharts = DetailCharts(step, chartType); }
+                <summary>House-by-house evidence <span>@question.Label · @string.Join(" · ", detailCharts)</span></summary>
+                <p class="lm-note">@SourceSentence(read, question) The main birth chart (D1) is the foundation; the
+                    question's own charts confirm it.</p>
+                @{ var reads = detailCharts.Select(c => (Chart: c, Read: Read(step, _question, c))).ToList(); }
+                @if (reads.All(r => r.Read is null))
+                {
+                    <p class="lm-note">@question.Label is not available for this person yet.</p>
+                }
+                else if (reads.All(r => r.Read is null || r.Read.Items.Count == 0))
+                {
+                    <p class="lm-note">Relevant evidence not yet structured for this question.</p>
+                }
+                else
+                {
+                    var keys = reads.SelectMany(r => r.Read?.Items ?? []).Select(ItemKey).Distinct().ToList();
+                    @foreach (var key in keys)
+                    {
+                        var items = reads.Select(r => (r.Chart, Item: r.Read?.Items.FirstOrDefault(i => ItemKey(i) == key))).ToList();
+                        var head = items.First(i => i.Item is not null).Item!;
+                        <h3>@(head.SpecialPoint is null ? $"{Ordinal(head.House)} house" : head.SpecialPoint) from @question.Label</h3>
+                        <div class="lm-scroll">
+                            <table class="lm-table lm-cmp">
+                                <thead><tr><th></th>
+                                    @foreach (var (c, _) in items)
+                                    {
+                                        <th>@c · @(c == "D1" ? "foundation" : ChartRole(step, c))</th>
+                                    }
+                                </tr></thead>
+                                <tbody>
+                                    @foreach (var row in StatRows)
+                                    {
+                                        <tr>
+                                            <th scope="row">@row.Label@if (row.Technical is not null) {<span class="lm-tech">@row.Technical</span>}</th>
+                                            @foreach (var (c, item) in items)
+                                            {
+                                                <td>@Cell(row.Key, item, _data.Charts[c])</td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    @if (read?.Sourced == true && FocusNote(step) is { } note)
+                    {
+                        <div class="lm-focus-note">
+                            <h3>Why @question.Label</h3>
+                            <p><InterpretationText StandardText="@note.StandardText" ShortText="@note.ShortText" /></p>
+                        </div>
                     }
                 }
-                @if (read?.Sourced == true && FocusNote(step) is { } note)
-                {
-                    <div class="lm-focus-note">
-                        <h3>Why @question.Label</h3>
-                        <p><InterpretationText StandardText="@note.StandardText" ShortText="@note.ShortText" /></p>
-                    </div>
-                }
-                <p class="lm-note">Strength % is the mean of three axes, each counting equally. Capacity: Ṣaḍbala of
-                    the lord and the matter's kārakas (the required minimum reads 50%). Consistency: the same planets'
-                    Shodasavarga Amsabala. Context: SAV out of 56 bindus, the lord's own BAV in the sign out of 8,
-                    Bhava Bala and Argala. Bhava Bala here is Dig + Drik only — its Bhavadhipati part is the lord's
-                    Ṣaḍbala, already in Capacity — scored against this chart's 12 houses (the chart's mean reads 50%).
-                    Bands: SAV above 30 / below 25 and BAV 5+ / 3 or fewer (PVR); Ṣaḍbala strong at 100% of its
-                    required minimum (Parāśara) and weak under 80%; Bhava Bala strong or weak beyond one standard
-                    deviation of the chart's houses. The 80% floor and the Bhava Bala band are the app's own
-                    heuristics, not classical rules. Argala in a varga is computed from that varga's placements.</p>
-            }
-        }
-    </section>
+            </details>
 
-    @* ---------------- Analysis ---------------- *@
-    <section class="lm-level" aria-label="Analysis">
-        <p class="lm-eyebrow"><b>Analysis</b> <span>@step?.MatterText · from @question.Label · @chartType</span></p>
-        <div class="lm-cards">
-            <section class="lm-panel" aria-label="Argala and Virodhargala">
-                <h2>Argala &amp; Virodhargala · @chartType</h2>
-                <p class="lm-note">Intervention on each focus house in @chartType@(chartType == "D1" ? "" : ", computed from its own placements").
-                    A pair holds when its argala planets outnumber the obstructing ones; planet strength is not
+            <details class="lm-section">
+                <summary>Help or hindrance from other planets <span>Argala &amp; Virodhargala · @chartType</span></summary>
+                <p class="lm-note">Planets placed to intervene on each house in @chartType@(chartType == "D1" ? "" : ", from that chart's own placements").
+                    An intervention holds when its planets outnumber the obstructing ones; planet strength is not
                     compared yet.</p>
                 @if (read is null || read.Items.Count == 0)
                 {
-                    <p class="lm-note">No focus house to analyse.</p>
+                    <p class="lm-note">No house to analyse.</p>
                 }
                 else
                 {
@@ -304,13 +440,13 @@ else
                         <h3>@Ordinal(item.House) house · @DisplaySign(item.Stats.Sign)</h3>
                         @if (!arg.Any)
                         {
-                            <p class="lm-note">No planets in argala or virodhargala positions.</p>
+                            <p class="lm-note">No planet intervenes on this house.</p>
                         }
                         else
                         {
                             <div class="lm-scroll">
                                 <table class="lm-table">
-                                    <thead><tr><th>Pair</th><th>Argala from</th><th>Virodhargala from</th><th>Result</th></tr></thead>
+                                    <thead><tr><th>Pair</th><th>Helping (Argala)</th><th>Obstructing (Virodhargala)</th><th>Result</th></tr></thead>
                                     <tbody>
                                     @foreach (var pair in arg.Pairs.Where(p => p.ArgalaPlanets.Count > 0 || p.ObstructingPlanets.Count > 0))
                                     {
@@ -327,19 +463,15 @@ else
                         }
                     }
                 }
-            </section>
+            </details>
 
-            <section class="lm-panel" aria-label="Relationships">
-                <h2>Karaka relationships · @chartType</h2>
-                @{ IReadOnlyList<(string PlanetA, string PlanetB, string? Relationship)> relationships = displayed is null || step is null ? [] : KarakaRelationships(displayed, step); }
-                @if (relationships.Count == 0)
-                {
-                    <p class="lm-note">Fewer than two karaka planets to relate for this matter.</p>
-                }
-                else
-                {
-                    <p class="lm-note">Compound relationship (Naisargika + Tatkalika) between this matter's karakas in
-                        @chartType — <code>DignityEngine.EvaluatePairRelationship</code>.</p>
+            @{ IReadOnlyList<(string PlanetA, string PlanetB, string? Relationship)> relationships = displayed is null ? [] : KarakaRelationships(displayed, step); }
+            @if (relationships.Count > 0)
+            {
+                <details class="lm-section">
+                    <summary>How the significator planets relate <span>Kāraka relationships · @chartType</span></summary>
+                    <p class="lm-note">Compound relationship (natural + temporary) between this question's significator
+                        planets in @chartType.</p>
                     <table class="lm-table">
                         <thead><tr><th>Planet</th><th>Planet</th><th>Relationship</th></tr></thead>
                         <tbody>
@@ -349,29 +481,47 @@ else
                         }
                         </tbody>
                     </table>
-                }
-            </section>
+                </details>
+            }
 
-            <section class="lm-panel lm-card-wide" aria-label="Planet strength and avastha">
-                <h2>Planet strength &amp; avastha · D1</h2>
+            <details class="lm-section">
                 @{ var planetRows = PlanetRows(read ?? d1Read, step); }
+                <summary>Planet strength &amp; condition <span>Ṣaḍbala &amp; Avastha · D1</span></summary>
                 @if (planetRows.Count == 0)
                 {
-                    <p class="lm-note">No lord or karaka planets for this matter.</p>
+                    <p class="lm-note">No ruling or significator planets for this question.</p>
                 }
                 else
                 {
-                    <p class="lm-note">The focus signs' lords in @chartType and the matter's karakas (@string.Join(", ", planetRows.Select(r => r.Planet))).
-                        Avastha and Ṣaḍbala are computed once per planet, from D1 — Key Inference's own table.</p>
+                    <p class="lm-note">The rulers of this question's houses in @chartType and its significator planets
+                        (@string.Join(", ", planetRows.Select(r => r.Planet))). Condition (Avastha) and Ṣaḍbala are
+                        computed once per planet, from D1.</p>
                     <PlanetaryStateTable Rows="planetRows" StateNames="_stateNames"
                                          PostureInterpretations="_postureInterpretations"
                                          KeyDetails="d1.KeyDetails" Strengths="_shadbala" />
                 }
-            </section>
-        </div>
-        <p class="lm-disclaimer">Statistics show strength (capacity), not outcomes. A strong house or planet is
-            not by itself a favourable result for this matter.</p>
-    </section>
+            </details>
+
+            <details class="lm-section">
+                <summary>How these figures are calculated <span>method &amp; sources</span></summary>
+                <p class="lm-note">Strength % is the mean of three axes, each counting equally. Capacity: Ṣaḍbala of
+                    the lord and the matter's kārakas (the required minimum reads 50%). Consistency: the same planets'
+                    Shodasavarga Amsabala. Context: SAV out of 56 bindus, the lord's own BAV in the sign out of 8,
+                    Bhava Bala and Argala. Bhava Bala here is Dig + Drik only — its Bhavadhipati part is the lord's
+                    Ṣaḍbala, already in Capacity — scored against this chart's 12 houses (the chart's mean reads 50%).
+                    Bands: SAV above 30 / below 25 and BAV 5+ / 3 or fewer (PVR); Ṣaḍbala strong at 100% of its
+                    required minimum (Parāśara) and weak under 80%; Bhava Bala strong or weak beyond one standard
+                    deviation of the chart's houses. The 80% floor and the Bhava Bala band are the app's own
+                    heuristics, not classical rules. Argala in a varga is computed from that varga's placements.</p>
+                <p class="lm-note">The words beside a figure are the app's display bands around the 50% midpoint:
+                    65%+ strong, 55%+ good, 45–54% moderate, 35–44% limited, under 35% weak.</p>
+                <p class="lm-note">Perspectives: a <b>classical</b> perspective reads the houses the texts name for this
+                    question from that lagna (sourced); a <b>counted</b> one counts the question's Lagna houses from that
+                    lagna instead (re-counted). The area overview reads the area's most-used house from Lagna in D1.
+                    @SummaryNote(step)</p>
+            </details>
+        </section>
+    }
 }
 
 @code {
@@ -411,6 +561,8 @@ else
     private string? _chartOverride;   // null = the matter's own varga
     private string? _pinnedSign;
     private int? _loadedId;
+    private bool _showAllMatters;   // "More questions" opened for the current area
+    private bool _showExplain;      // the answer card's "i" explanation
 
     protected override void OnParametersSet()
     {
@@ -488,6 +640,7 @@ else
         _selectedLifeMatterId = StepsIn(categoryCode).FirstOrDefault()?.LifeMatterId;
         _chartOverride = null;
         _pinnedSign = null;
+        _showAllMatters = false;
     }
 
     // A new matter opens in its own varga; selecting the current one keeps it (no deselect).
@@ -524,6 +677,22 @@ else
     /// varga order — any matter can be looked at in any chart.</summary>
     private IReadOnlyList<string> ChartChoices(LifeMatterStepRow step) =>
         MatterCharts(step).Append("D1").Concat(AllCharts()).Distinct().ToList();
+
+    /// <summary>The "Relevant charts" chips: the matter's own charts, D1, and the shown chart when it
+    /// was picked from "All charts" — the other generated charts stay in that menu.</summary>
+    private IReadOnlyList<string> RelevantCharts(LifeMatterStepRow step) =>
+        MatterCharts(step).Append("D1").Distinct().ToList();
+
+    // Customer name of a chart from tbl_Dim_ChartType.ChartShortDescription: "Wealth", "Main birth chart".
+    private string ChartShort(string chartType)
+    {
+        if (chartType == "D1") return "Main";
+        var description = _data!.ChartTypes.FirstOrDefault(t => t.Code == chartType)?.ChartShortDescription;
+        return string.IsNullOrWhiteSpace(description) ? chartType : description.Split('/')[0].Trim();
+    }
+
+    private string ChartName(string chartType) =>
+        chartType == "D1" ? "main birth chart" : $"{ChartShort(chartType).ToLowerInvariant()} chart";
 
     private IEnumerable<string> AllCharts() =>
         _data!.Charts.Keys.OrderBy(VargaNumber).ThenBy(c => c.Length);
@@ -661,9 +830,23 @@ else
 
     // ---------------- statistics table ----------------
 
-    private static readonly string[] StatRows =
-        ["Sign", "SAV", "Bhava Bala", "Lord", "Lord's dignity", "Kārakas", "Occupants", "Argala",
-         "Capacity", "Consistency", "Context", "Strength"];
+    private sealed record StatRow(string Key, string Label, string? Technical);
+
+    private static readonly StatRow[] StatRows =
+    [
+        new("Sign", "Sign", null),
+        new("SAV", "Support the house receives", "SAV"),
+        new("Bhava Bala", "Strength of the house", "Bhava Bala"),
+        new("Lord", "Ruling planet", "lord · Ṣaḍbala · BAV · Amsabala"),
+        new("Lord's dignity", "Ruler's dignity", null),
+        new("Kārakas", "Significator planets", "kārakas"),
+        new("Occupants", "Planets in the house", null),
+        new("Argala", "Help or hindrance", "Argala"),
+        new("Capacity", "Planet strength", "Capacity"),
+        new("Consistency", "Consistency", "Amsabala"),
+        new("Context", "House setting", "Context"),
+        new("Strength", "Overall support", null),
+    ];
 
     private RenderFragment Cell(string row, ReadItem? item, LoadedChart? chart)
     {
@@ -688,6 +871,21 @@ else
             "Argala" => @<span>@ArgalaText(st.Argala)</span>,
             _ => Strength(st)
         };
+    }
+
+    // "classical" (the texts name this perspective's houses for the matter) or "counted".
+    private static string SourceText(SubRead read) => read.Sourced ? "classical" : "counted";
+
+    private static string SourceSentence(SubRead? read, LifeMatterQuestion question) => read?.Sourced == true
+        ? $"The classical texts name these houses from {question.Label} for this question."
+        : $"The question's houses from Lagna, counted from {question.Label} instead.";
+
+    private string PerspectiveTitle(string referenceCode, SubRead? read, string chartType)
+    {
+        var question = LifeMatterQuestions.Get(referenceCode);
+        if (read is null) return $"{question.Label} — not available in {chartType}";
+        var perspective = _references.FirstOrDefault(r => r.ReferenceCode == referenceCode)?.Perspective;
+        return $"{question.Label}: {ReadsText(read)} house ({SourceText(read)}){(perspective is null ? "" : $" — {perspective}")}";
     }
 
     // "10th, A10" — the houses (from the chosen lagna) and special points a read covers.
@@ -880,6 +1078,16 @@ else
     private static RenderFragment Strength(HouseStatistics st) => Pct(st.StrengthPercent, Breakdown(st));
 
     // A read's figure is the mean over its focus houses and points.
+    private static int? ReadPercent(SubRead? read) =>
+        read is null ? null : LifeMatterStatistics.Mean(read.Items.Select(i => i.Stats.StrengthPercent));
+
+    // One axis (0 Capacity, 1 Consistency, 2 Context) averaged over a read's houses.
+    private static int? Axis(SubRead? read, int axis) =>
+        read is null ? null : LifeMatterStatistics.Mean(read.Items.Select(i => i.Stats.Axes[axis]));
+
+    private static RenderFragment Factor(StrengthFactor f) =>
+        @<span class="lm-factor">@Pct(f.Percent, f.Technical)<span><b>@f.Name</b> <span class="lm-muted">@f.Detail</span><span class="lm-tech">@f.Technical</span></span></span>;
+
     private static RenderFragment ReadStrength(SubRead? read) => read is null
         ? Pct(null, "Not available")
         : Pct(LifeMatterStatistics.Mean(read.Items.Select(i => i.Stats.StrengthPercent)),

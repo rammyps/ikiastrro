@@ -23,47 +23,67 @@ page runs edge to edge: it renders a hidden `.lm-full` marker and `MainLayout.ra
 the centered column's max width for `.ik-page:has(.lm-full)` (16px side padding). No page
 heading; the active header pill names the page.
 
-## Layout
+## Layout — customer flow
 
-One row, then two full-width blocks:
+Rebuilt 2026-10-01 from the Life Matters UX audit (`reports/life-matters-audit/`): the answer
+comes first, the evidence is one click away. Wording and bands come from `LifeMatterReading.cs`
+(presentation only); every number from `LifeMatterStatistics`.
 
-1. **Chart (left, ≤560px)** — `SindHovGrid` for the selected matter in the selected chart.
-2. **Picker (right, sticky under the app bar, sized to stay in view without scrolling)**:
-   - **Area pills** — the 11 `tbl_Rule_LifeMatterReference` categories, each with the strength %
-     of its **core house** in D1 (the house most often seeded as a Lagna focus across the
-     area's matters; house 1 when none).
-   - **Matter tiles** — the selected area's matters open directly under the pills. Each tile
-     shows the matter, its own chart tag (e.g. `D10`) and its strength % in that chart from
-     the selected lagna. Clicking a tile shows the matter in the main chart.
-   - **Chart chips** — the matter's own charts (the first marked `· own`), then D1, then every
-     other generated chart in varga order: any matter can be viewed in any chart. A new matter
-     always opens in its own chart.
-   - **Questions** — the drill-down under the matter: one row per lagna perspective (LAG, MO, SU,
-     AL, PAAKA, KL, HL, GL, SL, IL, PP; copy in `LifeMatterQuestions.cs`), asked of the matter
-     itself ("Enemies from power?"; a matter already worded as a question keeps the area form,
-     "How is my identity from power?"). Each row names the houses/points it reads ("10th, A10"),
-     whether they are **sourced** (lagna-gold rule) or **re-counted**, and the strength % in the
-     shown chart. Tooltips are `tbl_Dim_HouseReference.Perspective`; a lagna that can't be
-     resolved in the shown chart is disabled.
-3. **Statistics (full width)** — the question and the matter, then:
-   - **Summary** — every lagna question (rows) × every chart the matter reads (columns), each cell
-     the strength %. Columns: **D1 · promise**, each chart the matter names (`own`, `also named`),
-     then **D40** (auspicious / inauspicious), **D45** and **D60** (all indications) for every
-     matter — BPHS ch. 6, Santhanam vol. 1 p. 92, see
+0. **Context bar** (sticky under the app bar; at the very top on phones) —
+   `Area → Question → Chart → Perspective` and the selected question's %.
+1. **Explore** (left on desktop):
+   - **Area pills** — the 11 `tbl_Rule_LifeMatterReference` categories, each with its
+     **area overview** %: the strength of its **core house** in D1 (the house most often seeded as
+     a Lagna focus across the area's matters; house 1 when none). On phones the pills scroll
+     sideways in one row.
+   - **Questions** — the area's first 5 matters (`LifeMatterReading.PrimaryMatterCount`) with their
+     % in their own chart; the rest behind **More questions (n)**. Selecting a later question keeps
+     the full list open. A new question always opens in its own chart.
+2. **Understand** — one answer card:
+   - The selected question ("Accumulated wealth overall?"), its % large, and its band in words
+     (`LifeMatterReading.Band`, around the 50% midpoint: 65+ strong, 55+ good, 45–54 moderate,
+     35–44 limited, under 35 weak — the app's display copy, not classical cut-offs).
+   - An **i** button (tappable, `aria-expanded`) opens the explanation: 50% is the ordinary
+     midpoint, and the figure's three axes (ruling planets' strength, consistency, the house's
+     setting) with their values. It replaces hover-only tooltips as the way to learn what a figure
+     means.
+   - **Foundation** (D1) vs **Confirmation** (the question's own chart), plus **Chart shown** when
+     another chart is selected.
+   - **Strongest factors** and **Limiting or uncertain** — two each, from six signals in customer
+     words with the technical name beneath (`LifeMatterReading.Factors`): ruling planets' strength
+     (Ṣaḍbala), consistency (Amsabala), support the house receives (SAV), ruler's comfort in the
+     house (BAV), strength of the house itself (Bhava Bala), help or hindrance from other planets
+     (Argala). A signal a chart does not measure fills in as uncertain.
+   - **Area overview** line, labelled separately from the selected question so the two numbers
+     are never confused.
+   - **Read from** — Overall (Lagna), Mind, Soul, Public image; the other seven lagnas under
+     **Advanced perspectives** (open when one of them is selected). A gold edge marks a
+     perspective whose houses the texts name for this question (sourced); the rest count the
+     same houses from that point.
+   - **Chart** — **relevant charts** only (the question's own charts, then D1, named "Wealth ·
+     D2", "Main · D1" from `tbl_Dim_ChartType.ChartShortDescription`) plus an **All charts…** menu
+     with every generated chart.
+   - The capacity-not-outcome statement.
+3. **Investigate** — collapsible sections (`<details>`), the chart open by default, the rest
+   closed:
+   - **Chart** — `SindHovGrid` for the question in the shown chart from the chosen lagna.
+   - **Every perspective in every chart** — lagna (rows) × chart (columns) %. Columns: D1, each
+     chart the matter names (`own`, `also named`), then D40 (auspicious / inauspicious), D45 and
+     D60 (all indications) for every matter — BPHS ch. 6, Santhanam vol. 1 p. 92, see
      `docs/research/domain/life-matters-unified-model.md` §2.1. A matter seeded `Relevant varga`
-     (Loss) shows every generated chart. Clicking a cell selects that lagna and that chart;
-     clicking a question selects the lagna only.
-   - **Detail** — per focus house, one column each for D1, the matter's own charts and the shown
-     chart when it is none of those. Rows: sign (house from that chart's Lagna), SAV (meter with
-     the 28 tick, banded), Bhava Bala (D1 only), lord and its Ṣaḍbala %, the lord's dignity in
-     that chart, occupants, Argala outcome counts, strength %. Under each table one line lists
-     the strength % per chart ("D1 64% · D6 66% · D8 47%"). A sourced special-lagna focus adds
-     the "Why <lagna>" note (`tbl_Content_Interpretation`, SubjectType `LIFE_MATTER_FOCUS`, key
-     `{LifeMatterCode}_{ReferenceCode}`).
-4. **Analysis (full width)** — Argala & Virodhargala per focus house in the shown chart; karaka
-   relationships in the shown chart (`DignityEngine.EvaluatePairRelationship`); planet strength &
-   avastha (`PlanetaryStateTable`, D1, the focus lords then karakas). Closing line: statistics
-   show strength (capacity), not outcomes.
+     (Loss) shows every generated chart. A cell selects that lagna and chart.
+   - **House-by-house evidence** — per focus house, one column each for D1, the question's own
+     charts and the shown chart. Rows in customer words with the technical name beneath (support
+     the house receives · SAV, strength of the house · Bhava Bala, ruling planet, significator
+     planets, help or hindrance · Argala, the three axes, overall support). A sourced
+     special-lagna focus adds the "Why <lagna>" note (`tbl_Content_Interpretation`, SubjectType
+     `LIFE_MATTER_FOCUS`, key `{LifeMatterCode}_{ReferenceCode}`).
+   - **Help or hindrance from other planets** — Argala & Virodhargala pairs per focus house.
+   - **How the significator planets relate** — kāraka pair relationships
+     (`DignityEngine.EvaluatePairRelationship`), **rendered only when the question has two or
+     more kārakas** (20 of 106 matters); otherwise the section is absent, not empty.
+   - **Planet strength & condition** — `PlanetaryStateTable` (D1, focus lords then kārakas).
+   - **How these figures are calculated** — the method, bands and sources.
 
 ### Which chart is a matter's own
 
@@ -104,8 +124,8 @@ Raw Bhava Bala is still shown on the detail row as "total", not scored. `Indepen
 planet once); Context is the mean of its readable parts. **Strength %**
 (`HouseStatistics.StrengthPercent`) is the mean of the readable axes, so each axis counts
 equally however many signals it holds. A read covering several houses/points shows their mean.
-The detail table shows Capacity, Consistency and Context as rows above Strength; tooltips carry the
-per-planet and per-part breakdowns. Presentation scales, not sourced rules; it describes strength,
+The evidence table shows Capacity, Consistency and Context as rows above overall support; the answer
+card's **i** panel shows the axes in words. Presentation scales, not sourced rules; it describes strength,
 never outcomes.
 
 Reference resolution (`ResolveReferenceSign`, per chart): Lagna = Ascendant; Chandra/Surya =
@@ -156,19 +176,25 @@ strength label).
 
 ## Responsive and accessibility
 
-Desktop: chart (≤560px) beside the sticky picker; statistics and analysis full width below.
-Below 1150px the picker moves above the chart and stops being sticky; below 900px the analysis
-cards are one column. Area pills are `role="tab"`, matter tiles `role="option"` in a listbox,
-chart and lagna chips are `aria-pressed` toggles. Strength labels always carry a word, never
-colour alone.
+Desktop: Explore beside the answer card, Investigate full width below. Below 1000px the answer
+card drops under Explore. Phones (≤760px): `MainLayout`'s app bar wraps to two rows (tabs, then
+the person switcher and SAVED CHARTS) and scrolls away instead of being fixed, so the tabs no
+longer overlap the person's name (app-wide; `tokens.css` drops MudBlazor's matching top padding).
+The context bar then sticks to the very top, the area pills scroll sideways and the factor lists
+stack. Area pills are `role="tab"`, questions `role="option"` in a listbox, perspective and chart
+chips `aria-pressed` toggles, the **i** button and More questions `aria-expanded`. Every figure
+carries a word band, never colour alone.
 
 ## Tests
 
-`LifeMatterStatisticsTests` (bands, per-sign D1 reads, varga SAV and empty Bhava Bala, live varga
-Argala, the strength label, Argala pairing), `SindHovGridTests`, `ChartSnapshotTests.SindHovGrid`
-(golden). No bUnit test drives the page itself; verified in the browser against the dev DB
-(Ramakrishnan, person 4) on 2026-09-29: area → matter drill-down, Career in D10 against D1,
-Wealth in D2, full-width layout.
+`LifeMatterReadingTests` (word bands around 50%, strongest / limiting factors with unmeasured ones
+as uncertain, the four primary perspectives), `LifeMatterStatisticsTests` (bands, per-sign D1
+reads, varga SAV and empty Bhava Bala, live varga Argala, Argala pairing), `SindHovGridTests`,
+`ChartSnapshotTests.SindHovGrid` (golden). No bUnit test drives the page itself; the customer flow
+was verified in the browser against the dev DB (Ramya, person 2) on 2026-10-01 at desktop and
+390px widths: area → question → More questions, the i panel, All charts menu, Advanced
+perspectives, the kāraka section hidden for single-kāraka questions, no horizontal scroll, page
+height about 1,900px desktop / 2,700px phone (was about 3,000 / 5,000).
 
 ## Saved statistics (2026-10-01)
 

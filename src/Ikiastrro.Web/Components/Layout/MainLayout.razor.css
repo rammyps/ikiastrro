@@ -308,9 +308,23 @@
     .ik-tagline { display: none; }
 }
 
+/* Phones: five tabs plus the person's name cannot share one 64px row — they overlapped each other
+   and hid the person switcher (Life Matters audit, 2026-10-01). The bar becomes two rows: the
+   tabs on top (scrolling sideways if they still don't fit), the person switcher and SAVED CHARTS
+   below. It is taller than --ik-appbar-h, so it stops being fixed and scrolls away with the page
+   (tokens.css drops the main content's matching top padding at the same width). */
 @media (max-width: 760px) {
-    .ik-appbar-scope ::deep .ik-appbar .mud-toolbar { gap: 6px; padding-inline: 8px; }
+    .ik-appbar-scope ::deep .ik-appbar { position: static; height: auto; }
+    .ik-appbar-scope ::deep .ik-appbar .mud-toolbar {
+        height: auto;
+        min-height: 0;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px 8px;
+        padding: 6px 8px;
+    }
+    .ik-header-start { grid-column: 1 / -1; overflow-x: auto; scrollbar-width: none; }
+    .ik-appbar-person { justify-self: start; align-items: flex-start; }
     .ik-header-start, .ik-globalnav, .ik-tabs { gap: 4px; }
-    .ik-headtab { min-width: 58px; min-height: 34px; padding: 4px 7px; letter-spacing: 0.02em; }
+    .ik-headtab { min-width: 58px; min-height: 34px; padding: 4px 9px; letter-spacing: 0.02em; flex: none; }
 }
 

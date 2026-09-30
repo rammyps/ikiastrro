@@ -238,6 +238,12 @@ body {
     min-width: 0;
 }
 
+/* Phones: the app bar wraps to two rows and scrolls with the page instead of being fixed
+   (MainLayout.razor.css), so MudBlazor's top padding reserving room under a fixed bar goes. */
+@media (max-width: 760px) {
+    .mud-layout .mud-main-content { padding-top: 0; }
+}
+
 h1, h2, h3 {
     font-family: var(--font-interface);
     font-weight: 400;
