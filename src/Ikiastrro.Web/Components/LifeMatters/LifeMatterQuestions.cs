@@ -6,6 +6,14 @@ namespace Ikiastrro.Web.Components.LifeMatters;
 public sealed record LifeMatterQuestion(string ReferenceCode, string Label, string Tag, string Angle)
 {
     public string Ask(string theme) => Angle.Length == 0 ? $"How is {theme} overall?" : $"How is {theme} {Angle}?";
+
+    /// <summary>The question asked of one matter: "Enemies from power?". Matters already worded as a
+    /// question ("Who am I", "What I think of myself") fall back to the area's <see cref="Ask"/>.</summary>
+    public string AskOf(string matterText, string areaTheme) =>
+        matterText.Length == 0 || matterText.StartsWith("Who ", StringComparison.Ordinal)
+            || matterText.StartsWith("What ", StringComparison.Ordinal) || matterText.StartsWith("How ", StringComparison.Ordinal)
+            ? Ask(areaTheme)
+            : $"{matterText} {(Angle.Length == 0 ? "overall" : Angle)}?";
 }
 
 /// <summary>Display copy for the Life Matters question layer. Areas are the tbl_Rule_LifeMatterReference

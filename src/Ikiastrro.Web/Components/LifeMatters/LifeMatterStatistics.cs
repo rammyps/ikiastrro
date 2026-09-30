@@ -46,6 +46,18 @@ public sealed record HouseStatistics(
 
     /// <summary>The four signals in fixed display order: SAV · Bhava Bala · lord Ṣaḍbala · Argala.</summary>
     public IReadOnlyList<StrengthBand> Bands => [SavBand, BhavaBand, LordShadbalaBand, ArgalaBand];
+
+    /// <summary>The four signals as 0–100 indices, same order as <see cref="Bands"/>; null where
+    /// nothing can be read. See <see cref="LifeMatterStatistics.SavIndex"/> and siblings.</summary>
+    public IReadOnlyList<int?> Percents =>
+    [
+        LifeMatterStatistics.SavIndex(SavBindus), LifeMatterStatistics.BhavaIndex(BhavaBalaRupas),
+        LifeMatterStatistics.ShadbalaIndex(LordShadbalaPercent), LifeMatterStatistics.ArgalaIndex(Argala)
+    ];
+
+    /// <summary>The mean of the readable signal indices — the page's one strength figure. Null
+    /// when no signal can be read.</summary>
+    public int? StrengthPercent => LifeMatterStatistics.Mean(Percents);
 }
 
 /// <summary>
@@ -183,6 +195,35 @@ public sealed class LifeMatterStatistics
         < 90 => StrengthBand.Weak,
         _ => StrengthBand.Middle
     };
+
+    // 0–100 strength indices. Each scale puts the ordinary middle at about 50, so the four can be
+    // averaged: SAV out of the 56 bindus a sign can hold (28, the average, is 50%); Bhava Bala out
+    // of 12 rupas (the page's meter scale); Ṣaḍbala % of minimum out of 200 (the minimum is 50%);
+    // Argala as the share of pairs that hold (contested counts half, obstruction-only is 50%).
+    // Presentation scales, not sourced rules — strength, never an outcome.
+    public static int? SavIndex(int? bindus) => bindus is { } b ? Index(b / 56.0) : null;
+
+    public static int? BhavaIndex(decimal? rupas) => rupas is { } r ? Index((double)r / 12) : null;
+
+    public static int? ShadbalaIndex(decimal? percentOfMinimum) => percentOfMinimum is { } p ? Index((double)p / 200) : null;
+
+    public static int? ArgalaIndex(ArgalaSummary argala)
+    {
+        if (!argala.Any) return null;
+        var judged = argala.Pairs.Where(p => p.Verdict is not null).ToList();
+        if (judged.Count == 0) return 50;
+        var score = judged.Sum(p => p.Verdict switch { ArgalaVerdict.Holds => 1.0, ArgalaVerdict.Contested => 0.5, _ => 0.0 });
+        return Index(score / judged.Count);
+    }
+
+    /// <summary>Rounded mean of the non-null values; null when there are none.</summary>
+    public static int? Mean(IEnumerable<int?> values)
+    {
+        var read = values.Where(v => v is not null).Select(v => v!.Value).ToList();
+        return read.Count == 0 ? null : (int)Math.Round(read.Average(), MidpointRounding.AwayFromZero);
+    }
+
+    private static int Index(double ratio) => (int)Math.Round(Math.Clamp(ratio, 0, 1) * 100, MidpointRounding.AwayFromZero);
 
     public static StrengthLean Lean(IReadOnlyList<StrengthBand> bands)
     {

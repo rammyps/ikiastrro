@@ -29,26 +29,37 @@ One row, then two full-width blocks:
 
 1. **Chart (left, ≤560px)** — `SindHovGrid` for the selected matter in the selected chart.
 2. **Picker (right, sticky under the app bar, sized to stay in view without scrolling)**:
-   - **Area pills** — the 11 `tbl_Rule_LifeMatterReference` categories, each with the strength
-     label of its **core house** in D1 (the house most often seeded as a Lagna focus across the
+   - **Area pills** — the 11 `tbl_Rule_LifeMatterReference` categories, each with the strength %
+     of its **core house** in D1 (the house most often seeded as a Lagna focus across the
      area's matters; house 1 when none).
    - **Matter tiles** — the selected area's matters open directly under the pills. Each tile
-     shows the matter, its own chart tag (e.g. `D10`) and its strength label in that chart from
+     shows the matter, its own chart tag (e.g. `D10`) and its strength % in that chart from
      the selected lagna. Clicking a tile shows the matter in the main chart.
-   - **Chart chips** — the matter's own charts (the first marked `· own`), then D1 and D9. A new
-     matter always opens in its own chart.
-   - **Read from chips** — the lagna perspectives by tag: LAG, MO, SU, AL, PAAKA, KL, HL, GL, SL,
-     IL, PP (copy in `LifeMatterQuestions.cs`; tooltips are `tbl_Dim_HouseReference.Perspective`).
-     A lagna that can't be resolved in the shown chart is disabled.
-3. **Statistics (full width)** — the question ("How is career from power?"), the matter, and per
-   focus house a table: **D1 · promise** beside **the matter's chart · confirmation** (one column
-   when D1 is shown). Rows: sign (house from that chart's Lagna), SAV (meter with the 28 tick,
-   banded), Bhava Bala (D1 only), lord and its Ṣaḍbala %, the lord's dignity in that chart,
-   occupants, Argala outcome counts, strength label. Under each table one line compares the two
-   strength readings ("D1 and D10 read the same: Strong." / "D1 reads Strong, D10 reads Leans
-   weak."). A sourced special-lagna focus adds the "Why <lagna>" note
-   (`tbl_Content_Interpretation`, SubjectType `LIFE_MATTER_FOCUS`, key
-   `{LifeMatterCode}_{ReferenceCode}`).
+   - **Chart chips** — the matter's own charts (the first marked `· own`), then D1, then every
+     other generated chart in varga order: any matter can be viewed in any chart. A new matter
+     always opens in its own chart.
+   - **Questions** — the drill-down under the matter: one row per lagna perspective (LAG, MO, SU,
+     AL, PAAKA, KL, HL, GL, SL, IL, PP; copy in `LifeMatterQuestions.cs`), asked of the matter
+     itself ("Enemies from power?"; a matter already worded as a question keeps the area form,
+     "How is my identity from power?"). Each row names the houses/points it reads ("10th, A10"),
+     whether they are **sourced** (lagna-gold rule) or **re-counted**, and the strength % in the
+     shown chart. Tooltips are `tbl_Dim_HouseReference.Perspective`; a lagna that can't be
+     resolved in the shown chart is disabled.
+3. **Statistics (full width)** — the question and the matter, then:
+   - **Summary** — every lagna question (rows) × every chart the matter reads (columns), each cell
+     the strength %. Columns: **D1 · promise**, each chart the matter names (`own`, `also named`),
+     then **D40** (auspicious / inauspicious), **D45** and **D60** (all indications) for every
+     matter — BPHS ch. 6, Santhanam vol. 1 p. 92, see
+     `docs/research/domain/life-matters-unified-model.md` §2.1. A matter seeded `Relevant varga`
+     (Loss) shows every generated chart. Clicking a cell selects that lagna and that chart;
+     clicking a question selects the lagna only.
+   - **Detail** — per focus house, one column each for D1, the matter's own charts and the shown
+     chart when it is none of those. Rows: sign (house from that chart's Lagna), SAV (meter with
+     the 28 tick, banded), Bhava Bala (D1 only), lord and its Ṣaḍbala %, the lord's dignity in
+     that chart, occupants, Argala outcome counts, strength %. Under each table one line lists
+     the strength % per chart ("D1 64% · D6 66% · D8 47%"). A sourced special-lagna focus adds
+     the "Why <lagna>" note (`tbl_Content_Interpretation`, SubjectType `LIFE_MATTER_FOCUS`, key
+     `{LifeMatterCode}_{ReferenceCode}`).
 4. **Analysis (full width)** — Argala & Virodhargala per focus house in the shown chart; karaka
    relationships in the shown chart (`DignityEngine.EvaluatePairRelationship`); planet strength &
    avastha (`PlanetaryStateTable`, D1, the focus lords then karakas). Closing line: statistics
@@ -80,11 +91,13 @@ chart's Lagna:
 | Lord Ṣaḍbala | sign lord's % of minimum | the varga sign's lord, same planet figure | ≥ 110 | < 90 | `PlanetaryStateTable` band (unsourced) |
 | Argala | pairs holding minus obstructed | same, from the varga's own placements | > 0 | < 0 | count comparison |
 
-**Strength label** (`LifeMatterStatistics.Lean`): the four signals combined as strong count minus
-weak count, shown as one label instead of four swatches: **Strong** (≥ +2, solid green), **Leans
-strong** (+1, green outline), **Mixed** (0), **Leans weak** (−1, red outline), **Weak** (≤ −2,
-solid red), **Not read** (no signal available). The per-statistic breakdown is the label's
-tooltip and `aria-label`. It describes strength, never outcomes.
+**Strength %** (`HouseStatistics.StrengthPercent`): the mean of the readable signals, each on a
+0–100 index whose ordinary middle is about 50% — SAV out of 56 bindus (28 → 50%), Bhava Bala
+out of 12 rupas, lord Ṣaḍbala % of minimum out of 200 (the minimum → 50%), Argala as the share
+of judged pairs that hold (contested counts half; obstruction only → 50%). A read covering
+several houses/points shows their mean. It replaces the Strong … Weak label (the bands stay on
+the detail rows); the per-signal breakdown is the tooltip and `aria-label`. Presentation scales,
+not sourced rules; it describes strength, never outcomes.
 
 Reference resolution (`ResolveReferenceSign`, per chart): Lagna = Ascendant; Chandra/Surya =
 Moon/Sun sign; Arudha/Hora/Ghati/Sree/Indu/Pranapada = the chart's persisted

@@ -185,4 +185,42 @@ public sealed class LifeMatterStatisticsTests
     [InlineData(StrengthLean.None, StrengthBand.None, StrengthBand.None, StrengthBand.None, StrengthBand.None)]
     public void Lean_SummarisesTheFourSignalsAsOneReading(StrengthLean expected, StrengthBand a, StrengthBand b, StrengthBand c, StrengthBand d) =>
         Assert.Equal(expected, LifeMatterStatistics.Lean([a, b, c, d]));
+
+    [Theory]
+    [InlineData(28, 50)]   // the average SAV sits at the middle
+    [InlineData(56, 100)]
+    [InlineData(17, 30)]
+    public void SavIndex_IsBindusOutOf56(int bindus, int expected) =>
+        Assert.Equal(expected, LifeMatterStatistics.SavIndex(bindus));
+
+    [Theory]
+    [InlineData(100.0, 50)] // exactly the required minimum is the middle
+    [InlineData(250.0, 100)] // capped
+    public void ShadbalaIndex_IsPercentOfMinimumOutOf200(double percent, int expected) =>
+        Assert.Equal(expected, LifeMatterStatistics.ShadbalaIndex((decimal)percent));
+
+    [Fact]
+    public void StrengthPercent_AveragesOnlyTheReadableSignals()
+    {
+        var libra = Build().ForSign("Libra"); // SAV 17 → 30, Bhava 6.41 → 53, Venus 116.35% → 58, no Argala
+
+        Assert.Equal([30, 53, 58, null], libra.Percents);
+        Assert.Equal(47, libra.StrengthPercent);
+        Assert.Null(Build().ForSign("Gemini").StrengthPercent);
+    }
+
+    [Fact]
+    public void ArgalaIndex_IsTheShareOfPairsThatHold()
+    {
+        // House 1: Moon on the 2nd holds (nothing on the 12th); Jupiter on the 4th is obstructed by Saturn + Rahu on the 10th.
+        var stats = Build(
+        [
+            Fact(1, "ARGALA", 2, "Moon"),
+            Fact(1, "ARGALA", 4, "Jupiter"),
+            Fact(1, "VIRODHARGALA", 10, "Saturn"),
+            Fact(1, "VIRODHARGALA", 10, "Rahu"),
+        ]).ForSign("Aries");
+
+        Assert.Equal(50, LifeMatterStatistics.ArgalaIndex(stats.Argala));
+    }
 }

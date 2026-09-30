@@ -407,3 +407,14 @@ Inference read paths to dossier ingredients — all in `lifematters_claude_resea
     minus weak signals), still never an outcome. This supersedes the filters and "Strongest
     first" of decision 13 and the question column of decision 12. The page is full width, with
     no heading.
+
+17. **(2026-10-01) Strength %, lagna questions × every chart.** The user found the summary did
+    not include all the charts and asked for percentages instead of Strong … Weak. The strength
+    label became a 0–100% index (mean of SAV/56, Bhava Bala/12, lord Ṣaḍbala/200%, Argala hold
+    share). The lagna chips became matter-specific questions ("Enemies from power?") that show
+    the houses read, sourced vs re-counted, and a %. The Statistics section gained a summary
+    matrix of every lagna question × every chart the matter reads: D1, each named chart (not only
+    the first), and D40/D45/D60 for every matter per BPHS ch. 6 (Khavedamsa: auspicious and
+    inauspicious; Akshavedamsa and Shashtiamsa: all indications). `Relevant varga` (Loss) reads
+    every chart. Chart chips offer all generated charts. No new seed rows; the worksheet's
+    maternal/paternal D40/D45 claim stays rejected (unified-model §2.1).
