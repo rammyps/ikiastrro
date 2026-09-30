@@ -11,6 +11,11 @@ public enum StrengthBand { Strong, Middle, Weak, None }
 
 public enum ArgalaVerdict { Holds, Contested, Obstructed }
 
+/// <summary>One overall reading of the four signals (strong count minus weak count): ±2 or more is
+/// Strong/Weak, ±1 leans that way, 0 is Mixed; None when no signal can be read. A strength summary,
+/// never an outcome.</summary>
+public enum StrengthLean { Strong, LeansStrong, Mixed, LeansWeak, Weak, None }
+
 /// <summary>One Argala pair on a house: planets intervening from <see cref="ArgalaOffset"/> and
 /// the planets obstructing them from <see cref="ObstructionOffset"/>. <see cref="Verdict"/> is null
 /// when only obstructing planets are present (nothing to obstruct).</summary>
@@ -178,6 +183,19 @@ public sealed class LifeMatterStatistics
         < 90 => StrengthBand.Weak,
         _ => StrengthBand.Middle
     };
+
+    public static StrengthLean Lean(IReadOnlyList<StrengthBand> bands)
+    {
+        if (bands.All(b => b == StrengthBand.None)) return StrengthLean.None;
+        return SortKey(bands) switch
+        {
+            >= 2 => StrengthLean.Strong,
+            1 => StrengthLean.LeansStrong,
+            0 => StrengthLean.Mixed,
+            -1 => StrengthLean.LeansWeak,
+            _ => StrengthLean.Weak
+        };
+    }
 
     /// <summary>Order key for "Strongest first": strong signals minus weak ones. A sort aid only —
     /// the page never presents it as a score.</summary>

@@ -247,6 +247,10 @@
    keeps the full 28px. */
 .ik-page-tight-top { padding-top: 12px; }
 
+/* Life Matters runs edge to edge (rammyps, 2026-09-29 — "make the chart from end to end"): the
+   page drops a hidden `.lm-full` marker, and the shared centered column gives way to full width. */
+.ik-page:has(.lm-full) { max-width: none; padding-inline: 16px; }
+
 /* Full-bleed band, same shape as .ik-appbar's own toolbar (bar spans the viewport, its content
    sits in the shared centered column) — same vertical padding as the app bar's toolbar so the
    page reads as bookended top and bottom. Brand lockup pinned bottom-left (rammyps, 2026-09-26

@@ -137,4 +137,52 @@ public sealed class LifeMatterStatisticsTests
     [Fact]
     public void SortKey_IsStrongMinusWeak() =>
         Assert.Equal(1, LifeMatterStatistics.SortKey([StrengthBand.Strong, StrengthBand.Strong, StrengthBand.Weak, StrengthBand.None]));
+
+    [Fact]
+    public void ForSign_InAVarga_ReadsThatVargasSavAndLeavesBhavaBalaEmpty()
+    {
+        var d1 = Build();
+        var d9 = new LifeMatterStatistics("D9", "Aries",
+            [new AshtakavargaRow("D1", "SUN", 7, 7, 2, 17), new AshtakavargaRow("D9", "SUN", 7, 7, 6, 40)],
+            [new BhavaBalaSummaryRow(7, "Libra", "Venus", 1, "Aries", "Enemy", 384.5m, 6.41m)],
+            [new ShadbalaSummaryRow("Venus", 0, 0, 0, 0, 0, 0, 0, 384m, 6.40m, 5.5m, 116.35m)],
+            []).ForSign("Libra");
+
+        Assert.Equal(17, d1.ForSign("Libra").SavBindus);
+        Assert.Equal(40, d9.SavBindus);
+        Assert.Null(d9.BhavaBalaRupas);                 // Bhava Bala is a D1 house computation
+        Assert.Equal(StrengthBand.None, d9.BhavaBand);
+        Assert.Equal(116.35m, d9.LordShadbalaPercent);  // one Ṣaḍbala per planet
+    }
+
+    [Fact]
+    public void LiveArgala_BuildsHouseFactsFromTheChartsOwnPlacements()
+    {
+        // Aries lagna; Jupiter in Taurus is in the 2nd from house 1, Saturn in Pisces the 12th.
+        var grahas = new[]
+        {
+            new Ikiastrro.Core.Models.ChartKeyDetail { Planet = "Ascendant", Sign = "Aries", PointKind = "Graha" },
+            new Ikiastrro.Core.Models.ChartKeyDetail { Planet = "Jupiter", Sign = "Taurus", PointKind = "Graha" },
+            new Ikiastrro.Core.Models.ChartKeyDetail { Planet = "Saturn", Sign = "Pisces", PointKind = "Graha" },
+        };
+
+        var facts = LifeMatterStatistics.LiveArgala("D10", "Aries", grahas);
+        var house1 = new LifeMatterStatistics("D10", "Aries", [], [], [], facts).ForSign("Aries").Argala;
+
+        Assert.All(facts, f => Assert.Equal("D10", f.ChartType));
+        var pair = Assert.Single(house1.Pairs, p => p.ArgalaOffset == 2);
+        Assert.Equal(["Jupiter"], pair.ArgalaPlanets);
+        Assert.Equal(["Saturn"], pair.ObstructingPlanets);
+        Assert.Equal(ArgalaVerdict.Contested, pair.Verdict);
+    }
+
+    [Theory]
+    [InlineData(StrengthLean.Strong, StrengthBand.Strong, StrengthBand.Strong, StrengthBand.Middle, StrengthBand.None)]
+    [InlineData(StrengthLean.LeansStrong, StrengthBand.Strong, StrengthBand.Middle, StrengthBand.Middle, StrengthBand.None)]
+    [InlineData(StrengthLean.Mixed, StrengthBand.Strong, StrengthBand.Weak, StrengthBand.Middle, StrengthBand.Middle)]
+    [InlineData(StrengthLean.LeansWeak, StrengthBand.Weak, StrengthBand.Middle, StrengthBand.None, StrengthBand.None)]
+    [InlineData(StrengthLean.Weak, StrengthBand.Weak, StrengthBand.Weak, StrengthBand.Weak, StrengthBand.Strong)]
+    [InlineData(StrengthLean.None, StrengthBand.None, StrengthBand.None, StrengthBand.None, StrengthBand.None)]
+    public void Lean_SummarisesTheFourSignalsAsOneReading(StrengthLean expected, StrengthBand a, StrengthBand b, StrengthBand c, StrengthBand d) =>
+        Assert.Equal(expected, LifeMatterStatistics.Lean([a, b, c, d]));
 }

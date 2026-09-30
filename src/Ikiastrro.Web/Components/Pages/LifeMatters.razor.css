@@ -12,24 +12,13 @@
 .lm-unavailable p { color: var(--brand-muted); }
 .lm-unavailable a { color: var(--brand-midnight); }
 
-.lm-top, .lm-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
-.lm-top { margin: 4px 0 18px; }
-.lm-chart-control { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: var(--font-size-meta); }
+.lm-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
 .lm-label { font-size: var(--font-size-meta); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .lm-muted { color: var(--brand-muted); }
 
 .lm-level { display: flex; flex-direction: column; gap: 8px; min-width: 0; margin-bottom: 18px; }
 .lm-eyebrow { margin: 0; font-size: var(--font-size-meta); color: var(--brand-muted); letter-spacing: 0.02em; }
 .lm-eyebrow b { color: var(--brand-midnight); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; margin-right: 6px; }
-
-.lm-seg { display: inline-flex; border: 1px solid var(--brand-midnight); }
-.lm-seg button {
-    border: 0; background: var(--brand-surface); color: var(--brand-midnight); cursor: pointer;
-    padding: 4px 10px; font: 700 var(--font-size-meta) / 1.4 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: 0.08em; text-transform: uppercase;
-}
-.lm-seg button + button { border-left: 1px solid var(--brand-midnight); }
-.lm-seg button[aria-pressed="true"] { background: var(--brand-sunrise); }
 
 .lm-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .lm-pill {
@@ -40,46 +29,23 @@
 }
 .lm-pill:hover { background: var(--brand-peach); }
 .lm-pill[aria-selected="true"], .lm-pill[aria-pressed="true"] { background: var(--brand-sunrise); border-color: var(--brand-midnight); }
-.lm-count { color: var(--brand-muted); font-weight: 600; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 
-/* Four fixed signal slots: SAV · Bhava Bala · lord Ṣaḍbala · Argala */
-.lm-sig { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 9px; gap: 2px; vertical-align: middle; }
-.lm-sig i { display: block; width: 9px; height: 9px; border-radius: 2px; border: 1px solid var(--brand-midnight); background: var(--brand-surface); }
-.lm-sig i.strong { background: var(--status-strong); border-color: var(--status-strong); }
-.lm-sig i.weak { background: var(--status-weak); border-color: var(--status-weak); }
-.lm-sig i.none { border-style: dashed; border-color: var(--brand-line); }
+/* One strength label: solid for Strong/Weak, outlined for leaning, plain for Mixed */
+.lm-strength {
+    display: inline-block; flex: none; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--brand-line);
+    font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+    color: var(--brand-midnight);
+}
+.lm-strength.strong { background: var(--status-strong); border-color: var(--status-strong); color: var(--brand-surface); }
+.lm-strength.leansstrong { border-color: var(--status-strong); color: var(--status-strong); }
+.lm-strength.mixed { border-color: var(--brand-midnight); }
+.lm-strength.leansweak { border-color: var(--status-weak); color: var(--status-weak); }
+.lm-strength.weak { background: var(--status-weak); border-color: var(--status-weak); color: var(--brand-surface); }
+.lm-strength.none { border-style: dashed; color: var(--brand-muted); font-weight: 600; }
 .lm-legend { margin: 0; font-size: var(--font-size-meta); color: var(--brand-muted); }
 
-.lm-filterbar {
-    display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; padding: 10px 12px;
-    border: 1px solid var(--brand-line); background: var(--brand-surface);
-}
-.lm-filter-opts { justify-content: flex-start; }
-.lm-link { border: 0; background: none; padding: 0; cursor: pointer; color: var(--brand-muted); text-decoration: underline; font-size: var(--font-size-meta); }
 .lm-note { margin: 0; font-size: var(--font-size-meta); color: var(--brand-muted); }
 
-.lm-layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 20px; align-items: start; }
-
-/* Level 2 */
-.lm-questions { border: 1px solid var(--brand-midnight); background: var(--brand-surface); }
-.lm-q {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; width: 100%;
-    padding: 10px 12px; border: 0; border-bottom: 1px solid var(--brand-peach);
-    background: transparent; color: var(--brand-midnight); text-align: left; cursor: pointer; font: inherit;
-}
-.lm-q:hover { background: var(--brand-peach); }
-.lm-q[aria-selected="true"] { background: var(--brand-sunrise); }
-.lm-q:disabled { cursor: not-allowed; opacity: 0.5; }
-.lm-q:focus-visible, .lm-pick:focus-visible { outline: 3px solid var(--brand-midnight); outline-offset: -3px; }
-.lm-q-text { font-weight: 700; font-size: var(--font-size-support); }
-.lm-q[aria-selected="true"] .lm-q-text { font-weight: 800; }
-.lm-q-sub { grid-column: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: var(--font-size-meta); color: var(--brand-muted); }
-.lm-q-right { grid-row: 1 / span 2; grid-column: 2; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 4px; }
-.lm-q-right .lm-count { font-size: 10px; font-weight: 700; }
-.lm-src-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--house-lagna); display: inline-block; }
-
-/* Level 3 */
-.lm-main-col { gap: 16px; }
 .lm-panel { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px; border: 1px solid var(--brand-midnight); background: var(--brand-surface); }
 .lm-panel h2 { margin: 0; font: 800 var(--font-size-support) / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
 .lm-panel h3 { margin: 6px 0 0; font: 800 var(--font-size-meta) / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-muted); }
@@ -90,13 +56,6 @@
 .lm-table th, .lm-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--brand-peach); vertical-align: top; }
 .lm-table thead th { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-muted); border-bottom: 1px solid var(--brand-midnight); white-space: nowrap; }
 .lm-table .num { text-align: right; white-space: nowrap; }
-.lm-kv th { font-weight: 600; color: var(--brand-muted); white-space: nowrap; width: 1%; }
-.lm-pick { cursor: pointer; }
-.lm-pick:hover td { background: var(--brand-peach); }
-.lm-pick.is-selected td { background: var(--brand-sunrise); }
-.lm-pick.is-selected td:first-child { font-weight: 800; }
-.lm-pick.is-dim td { opacity: 0.4; }
-.lm-kind { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--house-lagna); margin-left: 4px; }
 
 .lm-band { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 3px; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; }
 .lm-band.strong { background: var(--status-strong); color: var(--brand-surface); }
@@ -111,18 +70,58 @@
 .lm-focus-note { border-left: 3px solid var(--house-lagna); padding-left: 10px; }
 .lm-focus-note p { margin: 4px 0 0; font-size: var(--font-size-support); }
 
-.lm-chart-row { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 20px; align-items: start; }
+/* Chart on the left; area pills, matter tiles and chart/lagna chips on the right, compact enough to
+   stay in view without scrolling (sticky under the app bar while the chart scrolls). */
+.lm-chart-row { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap: 20px; align-items: start; margin-bottom: 18px; }
+.lm-picker { position: sticky; top: 72px; gap: 8px; margin-bottom: 0; }
+.lm-picker .lm-pill { padding: 4px 9px; gap: 5px; }
+.lm-picker .lm-pills { gap: 4px; }
 
-/* Level 4 */
+/* Area → matter drill-down: the selected area's matters open directly under the pills */
+.lm-drill {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 4px;
+    padding: 6px; border: 1px solid var(--brand-midnight); background: var(--brand-surface);
+}
+.lm-matter {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0;
+    padding: 5px 8px; border: 1px solid var(--brand-line); background: transparent; color: var(--brand-midnight);
+    text-align: left; cursor: pointer; font: 600 var(--font-size-meta) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+}
+.lm-matter:hover { background: var(--brand-peach); }
+.lm-matter[aria-selected="true"] { background: var(--brand-sunrise); border-color: var(--brand-midnight); font-weight: 800; }
+.lm-matter:focus-visible, .lm-chip:focus-visible, .lm-pill:focus-visible { outline: 3px solid var(--brand-midnight); outline-offset: -3px; }
+.lm-matter-meta { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.lm-chart-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; padding: 0 4px; border: 1px solid var(--brand-midnight); }
+
+/* Chart and lagna chips above the main chart */
+.lm-controls { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px 10px; }
+.lm-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.lm-chip {
+    padding: 3px 9px; border: 1px solid var(--brand-line); border-radius: 999px; cursor: pointer;
+    background: var(--brand-surface); color: var(--brand-midnight);
+    font: 700 var(--font-size-meta) / 1.4 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.lm-chip:hover { background: var(--brand-peach); }
+.lm-chip[aria-pressed="true"] { background: var(--brand-sunrise); border-color: var(--brand-midnight); }
+.lm-chip:disabled { cursor: not-allowed; opacity: 0.4; }
+
+/* D1 promise vs varga confirmation */
+.lm-cmp th[scope="row"] { font-weight: 600; color: var(--brand-muted); white-space: nowrap; width: 1%; }
+.lm-cmp td { width: 50%; }
+.lm-agree { margin: 2px 0 6px; font-size: var(--font-size-meta); font-weight: 700; border-left: 3px solid var(--brand-sunrise); padding-left: 8px; }
+
+/* Analysis */
 .lm-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); grid-auto-flow: row dense; gap: 16px; }
 .lm-card-wide { grid-column: 1 / -1; }
 .lm-disclaimer { margin: 0; font-size: var(--font-size-meta); color: var(--brand-muted); border-left: 3px solid var(--brand-sunrise); padding-left: 10px; }
 
+.lm-stats { margin-bottom: 18px; }
+
 @media (max-width: 1150px) {
     .lm-chart-row { grid-template-columns: 1fr; }
+    .lm-picker { position: static; order: -1; }
 }
 
 @media (max-width: 900px) {
-    .lm-layout { grid-template-columns: 1fr; }
     .lm-cards { grid-template-columns: 1fr; }
 }

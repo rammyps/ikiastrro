@@ -395,4 +395,15 @@ Inference read paths to dossier ingredients — all in `lifematters_claude_resea
     it is reworked. The table and view stay in the database.
 15. **(2026-09-29) Chart look.** `SindHovGrid` adopts `SouthIndianGrid_Detailed`'s visuals (dignity
     dots, `(R)`/`(D)`, combust, aspects, Sanskrit names) plus a gold house-from-track badge for
-    the question's lagna and a D1 SAV chip; statistics stay D1 whichever chart is shown.
+    the question's lagna and a SAV chip. Statistics follow the shown chart (decision 16).
+16. **(2026-09-29) Drill-down in the matter's own varga; D1 as promise.** The user found "too many
+    drop downs": area pills now open straight into matter tiles, and a matter opens in the main
+    chart in its own varga (divisional subject's confirmation chart, then `PrimaryChartsText`).
+    Chart and lagna are chips; the question column, sub-question table, filters, sorts and varga
+    dropdown are gone. Statistics are computed per chart: varga SAV, live varga Argala
+    (`ArgalaFactBuilder`, pure sign arithmetic on stored placements, no ephemeris call), the
+    lord's Ṣaḍbala, and Bhava Bala in D1 only. They are shown beside D1 as promise vs.
+    confirmation. The four signal swatches became one strength label (Strong … Weak, strong
+    minus weak signals), still never an outcome. This supersedes the filters and "Strongest
+    first" of decision 13 and the question column of decision 12. The page is full width, with
+    no heading.

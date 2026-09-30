@@ -10,96 +10,96 @@ reflects: src/Ikiastrro.Web/Components/Pages/LifeMatters.razor(.css) · Componen
 
 # Specification — LifeMatters page
 
-The Life Matters page reads one area of life at a time, asks it from each lagna perspective, and
-backs every answer with D1 strength statistics. Plan, decisions and history:
-[`../lifematters_plan.md`](../lifematters_plan.md) (decisions 12–15 set this structure on
-2026-09-29). Mockup it was built from: https://claude.ai/artifact/874M2VxM9ou4RxgHjddBn8 (v3).
+The Life Matters page reads one matter of life at a time in the chart that matter belongs to,
+from a chosen lagna, and backs it with strength statistics compared against D1. Plan, decisions
+and history: [`../lifematters_plan.md`](../lifematters_plan.md). Mockup of the earlier
+four-level version: https://claude.ai/artifact/874M2VxM9ou4RxgHjddBn8.
 
 ## Route and navigation
 
 `/life-matters/{id}`, the `LIFE MATTERS` pill in `MainLayout`'s header between `KEY INFERENCE`
-and `NUMEROLOGY`. Unknown person or no D1 chart → "No saved charts found for that person."
+and `NUMEROLOGY`. Unknown person or no D1 chart → "No saved charts found for that person." The
+page runs edge to edge: it renders a hidden `.lm-full` marker and `MainLayout.razor.css` drops
+the centered column's max width for `.ik-page:has(.lm-full)` (16px side padding). No page
+heading; the active header pill names the page.
 
-## Levels
+## Layout
 
-1. **Area** — the `tbl_Rule_LifeMatterReference` categories (11), as pills. Each pill shows the
-   area's four D1 signals for its **core house**: the house most often seeded as a Lagna focus
-   across the area's matters (ties shown, e.g. Wealth `H2·11`; the first is used for signals;
-   house 1 when an area has none). "Area order | Strongest first" sorts by signal count.
-2. **Question** — one per lagna perspective, phrased from the area's theme:
-   "How is the self from power?" is the self read from Ghati Lagna. Perspectives, in order:
-   Lagna (overall), Chandra (mind), Surya (soul), Arudha (as the world sees it), Paaka (body),
-   Karakamsa (inner self), Hora (wealth), Ghati (power), Sree (prosperity), Indu
-   (wealth-yielding capacity), Pranapada (vitality). Copy lives in
-   `LifeMatterQuestions.cs`; each question's tooltip and gloss are `tbl_Dim_HouseReference.
-   Perspective` (read by `LifeMatterFocusRepository.GetHouseReferences`), plus its
-   `AppliesInVarga` note when not `Any`. A red dot marks a lagna that at least one of the area's
-   matters has a seeded focus on. A lagna whose point isn't persisted for this person (Indu,
-   Pranapada until their `IL`/`PP` points exist) is disabled, "not computed yet". Each row shows
-   the lagna's sign, the core house from it, its signals, and the sub-question count (or
-   "n/m match" under filters). "Lagna order | Strongest first".
-3. **Sub-questions** — the area's matters, each read from the selected question's lagna:
-   - **Houses**: the matter's own seeded houses on that lagna when it has any (**sourced**);
-     otherwise its Lagna houses (or other house foci) re-counted from this lagna. Special-point
-     foci (`A2`, `A10`, `AL`, `GA_AK` …) are placed where they fall, as "A10 in 7th".
-   - Table columns: sub-question · house(s) · sign · SAV (banded) · Bhava Bala · lord and its
-     Ṣaḍbala % · Argala outcome counts · four signals. Rows are keyboard-selectable; rows failing
-     the active filters are dimmed, not hidden. A matter with no focus rows reads "Focus not yet
-     structured for this matter".
-   - Below the table: the chart and a **D1 statistics** panel per focus house (SAV meter with
-     the 28 average tick, Bhava Bala meter with the 7-rupa tick, lord Ṣaḍbala, occupants).
-     When the question's lagna is the matter's own seeded focus, the panel adds a "Why <lagna>"
-     note: the `tbl_Content_Interpretation` row with SubjectType `LIFE_MATTER_FOCUS` and key
-     `{LifeMatterCode}_{ReferenceCode}` (db/153 seeds Indu → WEALTH_11, Pranapada →
-     SELF_HEALTH_02 / TROUBLE_LOSS_07). No row, no note.
-4. **D1 analysis** — for the selected sub-question and question:
-   - **Argala & Virodhargala** per focus house, from `tbl_Fact_Argala` (D1): pairs 2/12, 4/10,
-     11/3, secondary 5/9, and a malefic 3rd/11th pair when present; planets on each side, an
-     exception flag, and Holds / Contested / Obstructed / obstruction-only.
-   - **Planet strength & avastha** — `PlanetaryStateTable` (Key Inference's own avastha table,
-     Capacity carries Ṣaḍbala) scoped to the focus houses' lords then the matter's karakas, D1.
-   - **Karaka relationships** — `DignityEngine.EvaluatePairRelationship` for every karaka pair
-     in the displayed chart.
-   - A closing line: statistics show strength (capacity), not outcomes.
+One row, then two full-width blocks:
 
-## Signals and bands
+1. **Chart (left, ≤560px)** — `SindHovGrid` for the selected matter in the selected chart.
+2. **Picker (right, sticky under the app bar, sized to stay in view without scrolling)**:
+   - **Area pills** — the 11 `tbl_Rule_LifeMatterReference` categories, each with the strength
+     label of its **core house** in D1 (the house most often seeded as a Lagna focus across the
+     area's matters; house 1 when none).
+   - **Matter tiles** — the selected area's matters open directly under the pills. Each tile
+     shows the matter, its own chart tag (e.g. `D10`) and its strength label in that chart from
+     the selected lagna. Clicking a tile shows the matter in the main chart.
+   - **Chart chips** — the matter's own charts (the first marked `· own`), then D1 and D9. A new
+     matter always opens in its own chart.
+   - **Read from chips** — the lagna perspectives by tag: LAG, MO, SU, AL, PAAKA, KL, HL, GL, SL,
+     IL, PP (copy in `LifeMatterQuestions.cs`; tooltips are `tbl_Dim_HouseReference.Perspective`).
+     A lagna that can't be resolved in the shown chart is disabled.
+3. **Statistics (full width)** — the question ("How is career from power?"), the matter, and per
+   focus house a table: **D1 · promise** beside **the matter's chart · confirmation** (one column
+   when D1 is shown). Rows: sign (house from that chart's Lagna), SAV (meter with the 28 tick,
+   banded), Bhava Bala (D1 only), lord and its Ṣaḍbala %, the lord's dignity in that chart,
+   occupants, Argala outcome counts, strength label. Under each table one line compares the two
+   strength readings ("D1 and D10 read the same: Strong." / "D1 reads Strong, D10 reads Leans
+   weak."). A sourced special-lagna focus adds the "Why <lagna>" note
+   (`tbl_Content_Interpretation`, SubjectType `LIFE_MATTER_FOCUS`, key
+   `{LifeMatterCode}_{ReferenceCode}`).
+4. **Analysis (full width)** — Argala & Virodhargala per focus house in the shown chart; karaka
+   relationships in the shown chart (`DignityEngine.EvaluatePairRelationship`); planet strength &
+   avastha (`PlanetaryStateTable`, D1, the focus lords then karakas). Closing line: statistics
+   show strength (capacity), not outcomes.
 
-Four fixed slots, always in this order: **SAV · Bhava Bala · lord Ṣaḍbala · Argala**. Each is
-strong / middle / weak / nothing-to-read (`StrengthBand`), computed by `LifeMatterStatistics`:
+### Which chart is a matter's own
 
-| Signal | Strong | Weak | Source of the band |
-|---|---|---|---|
-| Sarva Ashtakavarga bindus of the sign | > 30 | < 25 | cited rule already used by `AshtakavargaChart` |
-| Bhava Bala rupas of that house from the D1 Lagna | ≥ 7 | < 5 | `HouseStrengthChart` presentation band (unsourced) |
-| Ṣaḍbala % of required minimum, sign lord | ≥ 110 | < 90 | `PlanetaryStateTable` strong/weak bands (unsourced) |
-| Argala: pairs holding minus pairs obstructed | > 0 | < 0 | count comparison; planet strength not compared yet |
+`MatterCharts`: the divisional subject's confirmation chart
+(`tbl_Dim_DivisionalSubject.PrimaryConfirmationChartId` via `tbl_Rule_LifeMatterSubject`) first,
+then every `D<n>` named in `PrimaryChartsText` ("D6/D8", "D16, confirmed in D1"), limited to
+charts generated for the person. No chart → D1. So career opens in D10, marriage in D9, illness
+in D6, education in D24, spirituality in D20.
 
-All statistics are D1 and sign-based, so a house counted from any lagna reads the same facts
-(e.g. the 1st from Ghati Lagna in Pisces reads Pisces' SAV and the Bhava Bala of the D1 house
-Pisces occupies). "Strongest first" sorts by strong-minus-weak and is never shown as a score.
+### Houses read
 
-## Filters
+The matter's own seeded houses on the chosen lagna when it has any (**sourced**); otherwise its
+Lagna houses (or other house foci) re-counted from that lagna. Special-point foci (`A10`, `AL`,
+`GA_AK` …) are placed where they fall in each chart.
 
-Nine D1-statistic pills, each with a count for the selected area × question: SAV above 30, SAV
-below 25, Bhava Bala 7+, lord Ṣaḍbala 110%+, lord Ṣaḍbala under 90%, Argala holds, Argala
-obstructed, lord in Yuva (Bālādi), lord awake (Jagrat). Match All / Any, Clear. A sub-question
-matches when any of its focus houses passes each selected filter.
+## Statistics per chart
+
+`LifeMatterStatistics(chartType, ascendantSign, …)` answers per sign, read as a house from that
+chart's Lagna:
+
+| Statistic | In D1 | In a varga | Strong | Weak | Band source |
+|---|---|---|---|---|---|
+| Sarva Ashtakavarga | D1 SAV | that varga's own SAV (every varga totals 337) | > 30 | < 25 | cited rule used by `AshtakavargaChart` |
+| Bhava Bala | D1 house rupas | nothing to read (D1-only computation) | ≥ 7 | < 5 | `HouseStrengthChart` band (unsourced) |
+| Lord Ṣaḍbala | sign lord's % of minimum | the varga sign's lord, same planet figure | ≥ 110 | < 90 | `PlanetaryStateTable` band (unsourced) |
+| Argala | pairs holding minus obstructed | same, from the varga's own placements | > 0 | < 0 | count comparison |
+
+**Strength label** (`LifeMatterStatistics.Lean`): the four signals combined as strong count minus
+weak count, shown as one label instead of four swatches: **Strong** (≥ +2, solid green), **Leans
+strong** (+1, green outline), **Mixed** (0), **Leans weak** (−1, red outline), **Weak** (≤ −2,
+solid red), **Not read** (no signal available). The per-statistic breakdown is the label's
+tooltip and `aria-label`. It describes strength, never outcomes.
+
+Reference resolution (`ResolveReferenceSign`, per chart): Lagna = Ascendant; Chandra/Surya =
+Moon/Sun sign; Arudha/Hora/Ghati/Sree/Indu/Pranapada = the chart's persisted
+`AL`/`HL`/`GL`/`SL`/`IL`/`PP` point (vargas carry their own); Paaka = sign of the D1 Lagna lord in
+that chart; Karakamsa = the Atmakaraka's D9 sign, for every chart; Graha Lagnas = that graha's
+sign.
 
 ## Chart
 
-`SindHovGrid` ([`specs_sind_hov_grid.md`](specs_sind_hov_grid.md)) with the
-`SouthIndianGrid_Detailed` look. Chart control: **D1** (default) · **Auto** (the matter's
-Subject varga, retaining the last chart when unmapped) · **Varga** (any generated chart).
-Statistics stay D1 whichever chart is shown; SAV chips are drawn only on D1. The question's
-lagna is the grid's track: gold house-from-track badges and a tag on its sign (not drawn for
-Lagna itself). Focus signs fill sunrise with a ◆; cells can be hovered, pinned (click/Enter) and
-cleared (Escape). Cell labels: Arudha padas, HL/GL/SL/IL/PP, and `GA_AK` when a matter asks for it.
-Uncomputed varga → the shared `EmptyState` with the `backfill-charts` CLI hint.
-
-Reference resolution (`ResolveReferenceSign`): Lagna = Ascendant; Chandra/Surya = Moon/Sun sign;
-Arudha/Hora/Ghati/Sree/Indu/Pranapada = the persisted `AL`/`HL`/`GL`/`SL`/`IL`/`PP` point; Paaka
-= sign of the D1 Lagna lord; Karakamsa = the Atmakaraka's D9 sign, for every chart; Graha Lagnas
-= that graha's sign.
+`SindHovGrid` ([`specs_sind_hov_grid.md`](specs_sind_hov_grid.md)), `SouthIndianGrid_Detailed`
+look. The chosen lagna is the grid's track (gold house-from-track badges, a tag on its sign; not
+drawn for Lagna itself). SAV chips show the shown chart's own SAV. Focus signs fill sunrise with
+a ◆; cells can be hovered, pinned (click/Enter) and cleared (Escape). Cell labels: Arudha padas,
+HL/GL/SL/IL/PP, and `GA_AK` when a matter asks for it. An ungenerated chart → the shared
+`EmptyState` with the `backfill-charts` CLI hint.
 
 ## Data (one page-load snapshot)
 
@@ -116,29 +116,34 @@ All reads happen once per person in `OnParametersSet`; every selection after tha
 | Bhava Bala | `BhavaStrengthRepository.GetSummaryByBirthDetailId` | `vw_ChartBhavaBala` |
 | Ṣaḍbala | `PlanetaryStrengthRepository.GetSummaryByBirthDetailId` | `vw_ChartShadbala` |
 | Avastha | `PlanetaryStateRepository.GetByBirthDetailId`, `PlanetaryStateRuleRepository.GetAllStates`, `PostureStateInterpretationRepository.GetByRuleSet` | `tbl_Fact_PlanetaryState(+Flag)` |
-| Argala | `ArgalaFactRepository.GetByBirthDetailId` | `tbl_Fact_Argala` |
+| Argala | `ArgalaFactRepository.GetByBirthDetailId`; a chart with no stored rows (every varga, and D1 generated before db/128) uses `LifeMatterStatistics.LiveArgala` | `tbl_Fact_Argala`, or `ArgalaFactBuilder` live |
 
-`LifeMatterFocusResolver.Resolve` runs once per step at load (pure).
+`LifeMatterFocusResolver.Resolve` runs once per step at load (pure). `LifeMatterStatistics` is
+built lazily once per chart type and cached.
 
 ## Removed on 2026-09-29
 
 The yoga card and the Yoga × LifeMatter 7×7 matrix view (`vw_YogaLifeMatter7x7`): the user
 judged the mapping not meaningful; yogas return only after that mapping is reworked. The House
 condition card became the D1 statistics panel; the Planet condition card became Planet strength
-& avastha.
+& avastha. Also removed the same day, when the page became a drill-down (the user found "too many drop
+downs"): the Question column, the sub-question table, the nine D1-statistic filter pills with
+Match All/Any, both "Strongest first" toggles, the D1/Auto/Varga chart control with its varga
+dropdown, the LIFE MATTERS heading, and the four coloured signal squares (replaced by one
+strength label).
 
 ## Responsive and accessibility
 
-Desktop: questions column (360px) beside sub-questions; chart (≤520px) beside the statistics
-panel. Below 1150px the chart and panel stack; below 900px the whole layout is one column.
-Area pills and question options carry explicit `aria-label`s (visible text, not their hover
-tooltips); signal strips are `role="img"` with a spoken summary; bands always carry a word
-(FAV / MID / UNFAV …), not colour alone.
+Desktop: chart (≤560px) beside the sticky picker; statistics and analysis full width below.
+Below 1150px the picker moves above the chart and stops being sticky; below 900px the analysis
+cards are one column. Area pills are `role="tab"`, matter tiles `role="option"` in a listbox,
+chart and lagna chips are `aria-pressed` toggles. Strength labels always carry a word, never
+colour alone.
 
 ## Tests
 
-`LifeMatterStatisticsTests` (bands, per-sign D1 reads, Argala pairing), `SindHovGridTests`
-(interaction + track badge + detailed cell content), `ChartSnapshotTests.SindHovGrid` (golden).
-No bUnit test drives the page itself yet; verified in the browser against the dev DB
-(Ramakrishnan, person 4) on 2026-09-29: area/question/sub-question switching, a filter, the
-Ghati Lagna track, and the D9 chart.
+`LifeMatterStatisticsTests` (bands, per-sign D1 reads, varga SAV and empty Bhava Bala, live varga
+Argala, the strength label, Argala pairing), `SindHovGridTests`, `ChartSnapshotTests.SindHovGrid`
+(golden). No bUnit test drives the page itself; verified in the browser against the dev DB
+(Ramakrishnan, person 4) on 2026-09-29: area → matter drill-down, Career in D10 against D1,
+Wealth in D2, full-width layout.
