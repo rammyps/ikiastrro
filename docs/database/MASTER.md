@@ -128,8 +128,10 @@ Publishes to the CLI and UI streams under
   **done** on `workstream/cli` — see that workstream's `MASTER.md`; `tbl_Rule_PanchangaFormula`
   and `tbl_Rule_PostureStateFormula` (migration 083) were registered in `tbl_Rule_Catalog` by
   migration 084 after `verify-rules` caught them missing (a leftover gap from these two turns).
-- **`FEAT-DATA-04`** — ayanāṁśa default fixed (migration 054 repoints `tbl_Rule_Ayanamsa`
-  from Jagannatha mode 26 to Lahiri mode 1; `verify-vargas` / `verify-jaimini` green).
+- **`FEAT-DATA-04`** — ayanāṁśa **locked to Traditional Lahiri** (migration 054 repointed
+  `tbl_Rule_Ayanamsa` from Jagannatha mode 26 to Lahiri mode 1; `decisions/004` (2026-10-01)
+  removed the UI picker and the generation parameter, and `AyanamsaRuleRepository` now refuses
+  any other default).
   Still open: the reference benchmark harness — `tbl_Dim_AyanamsaBenchmarkCases` is empty
   while `tbl_Dim_AyanamsaBenchmarkPositions` (10) + `tbl_Dim_DashaBenchmarkPeriods` (9) are
   orphaned on `CaseId = 1`; re-seed `BENCH_RAMAKRISHNAN_P_JHORA_1981`

@@ -44,13 +44,9 @@
                     {
                         <div class="sp-menu-panel sp-menu-panel-wide">
                             <div class="sp-prefs-body">
-                                <MudSelect T="string" Label="Choose Ayanāṁśa" Value="_ayanamsaCode"
-                                           ValueChanged="OnAyanamsaChanged" Dense="true" Variant="Variant.Outlined">
-                                    @foreach (var a in AyanamsaDefinition.Catalog)
-                                    {
-                                        <MudSelectItem T="string" Value="@a.Code">@AyanamsaLabel(a)</MudSelectItem>
-                                    }
-                                </MudSelect>
+                                @* Fixed, not a choice (decisions/004-ayanamsa-traditional-lahiri.md): every chart
+                                   is generated with tbl_Rule_Ayanamsa's one default. *@
+                                <p class="sp-prefs-fixed"><span>Ayanāṁśa</span> @_ayanamsaName <em>fixed for every chart</em></p>
                                 <MudSelect T="string" Label="Choose Chart Type" Value="_chartStyle"
                                            ValueChanged="OnChartStyleChanged" Dense="true" Variant="Variant.Outlined">
                                     <MudSelectItem T="string" Value="@("south-indian")">South Indian — default</MudSelectItem>
@@ -214,11 +210,10 @@
     private string? _error;
     private string? _openMenu;   // "settings" | "preferences" | "import" | "export" | null
 
-    // --- Preferences (moved here from Home.razor) — in-memory for this session only, same as
-    // before the move; a new person added from Home always uses the DB's active default ayanamsa. ---
-    private string _ayanamsaCode = AyanamsaDefinition.Default.Code;
+    // --- Preferences (moved here from Home.razor) — chart style is in-memory for this session only.
+    // The ayanamsa is shown, not chosen: it is locked (decisions/004). ---
     private string _chartStyle = "south-indian";
-    private AyanamsaDefinition _activeDefault = AyanamsaDefinition.Default;
+    private string _ayanamsaName = AyanamsaDefinition.Default.DisplayName;
 
     // --- import/build state ---
     private string? _importStatus;
@@ -267,19 +262,11 @@
         // header state behind (rammyps, 2026-09-25 bug report).
         Active.Clear();
         Load();
-        try
-        {
-            _activeDefault = AyanamsaRules.GetActiveDefault();
-            _ayanamsaCode = _activeDefault.Code;
-        }
-        catch { /* fall back to AyanamsaDefinition.Default */ }
+        try { _ayanamsaName = AyanamsaRules.GetActiveDefault().DisplayName; }
+        catch (InvalidOperationException ex) { _ayanamsaName = ex.Message; }   // a non-Lahiri default is refused
     }
 
-    private string AyanamsaLabel(AyanamsaDefinition a) =>
-        a.Code == _activeDefault.Code ? $"{a.DisplayName} — default" : a.DisplayName;
-
     // Selecting a preference applies it and collapses the panel.
-    private void OnAyanamsaChanged(string value) { _ayanamsaCode = value; _openMenu = null; }
     private void OnChartStyleChanged(string value) { _chartStyle = value; _openMenu = null; }
 
     private void Load()

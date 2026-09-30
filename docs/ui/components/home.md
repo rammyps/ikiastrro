@@ -26,10 +26,9 @@ footer. The Ganesha / Navagraha illustration is a **first-class part of the Home
 
 - **Preferences — top-left of the content area.** A collapsed disclosure (`MudCollapse` behind
   a text button). Expands **in place on Home**; nothing navigates. Three selector groups:
-  1. **Choose Ayanāṁśa** — `MudSelect` over `AyanamsaDefinition.Catalog` (**21 systems**);
-     default is the active `tbl_Rule_Ayanamsa` row, **Lahiri, fixed**, shown as *Default (Lahiri)*.
-     The choice is passed to `ChartGenerationService.GenerateAll(birth, ayanamsa)` for the next
-     generation. (`docs/ui/MASTER.md` NFR-UI-03)
+  1. **Ayanāṁśa** — not a choice: shown read-only as *Traditional Lahiri — fixed for every chart*
+     (Saved Charts → Preferences). Locked by `decisions/004-ayanamsa-traditional-lahiri.md`;
+     `ChartGenerationService` takes no ayanāṁśa argument. (`docs/ui/MASTER.md` NFR-UI-03)
   2. **Choose Chart style** — `MudSelect`: *South Indian* (default) · *North Indian (Planned)* ·
      *West Indian (Planned)*. All three are listed so the setting is forward-compatible, but
      **North Indian and West Indian are `Disabled` `MudSelectItem`s** — they cannot be picked,
@@ -113,12 +112,9 @@ the selector is called "done":
 
 | Question | Current answer |
 |---|---|
-| Where is the choice stored? | Per-browser `localStorage` now. DB-backed per-person default is a `database`-workstream follow-up. |
-| Scope | Per-browser, applied to the **next explicit generation**. Not per-person, not per-generation-history. |
-| Effect on existing charts | None — already-generated charts keep their stored ayanāṁśa; the choice only feeds the next `ChartGenerationService.GenerateAll`. |
-| How is the active choice surfaced? | The selected item shows in the collapsed disclosure's summary line (e.g. *Ayanāṁśa: Default (Lahiri)*). |
-| `localStorage` unavailable | Fall back to the DB default (active `tbl_Rule_Ayanamsa` row = Lahiri); the selector still works for the session. |
-| Does changing it regenerate anything? | **No.** It affects only the next explicit generation the user triggers. |
+| Where is it set? | Nowhere in the UI — `tbl_Rule_Ayanamsa`'s one default, which must be Traditional Lahiri (`decisions/004`). |
+| Effect on existing charts | None — every stored chart already uses Traditional Lahiri. |
+| Can a user change it? | **No.** Changing it is a project decision: supersede decision 004, migrate the default, `rebuild-all`. |
 
 ## Design system
 

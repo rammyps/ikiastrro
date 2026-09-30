@@ -13,10 +13,11 @@ Every calculation ikiastrro performs, its convention, and its source. All code i
 
 - **Engine:** `SwissEphNet` (`SwissEphemerisProvider`), **Moshier analytical mode** — no
   ephemeris data files.
-- **Sidereal / ayanāṁśa:** selectable. `AyanamsaDefinition` catalogues 22 systems, each with
-  its Swiss `swe_set_sid_mode` id; `tbl_Rule_Ayanamsa` holds the system default. Current
-  default **`Lahiri`** (Swiss mode 1, ~23.595° for 1981 — the JHora reference frame; migration
-  054). True Chitrapaksha (mode 27) is closer still but needs `sefstars.txt`, which the
+- **Sidereal / ayanāṁśa:** **locked to Traditional Lahiri** (Swiss mode 1, 23.5959° for the
+  1981 benchmark vs JHora's 23.5950°, 3.4″ apart) — `decisions/004-ayanamsa-traditional-lahiri.md`.
+  `AyanamsaDefinition` still catalogues 22 systems and `tbl_Rule_Ayanamsa` keeps them for
+  provenance, but generation takes no ayanāṁśa argument and `AyanamsaRuleRepository` refuses any
+  default other than `AYANAMSA_LAHIRI`. True Chitrapaksha (mode 27) is closer still but needs `sefstars.txt`, which the
   file-less Moshier build omits. Every `tbl_ChartResults` row records `AyanamshaDegrees` +
   `SiderealTimeHours`.
 - **Nodes:** Rahu = **mean node** (`SE_MEAN_NODE`); Ketu = Rahu + 180° (derived, never stored

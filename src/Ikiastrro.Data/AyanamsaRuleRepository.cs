@@ -3,7 +3,9 @@ using Ikiastrro.Core.Engines.Astronomy;
 
 namespace Ikiastrro.Data;
 
-/// <summary>Loads the active calculation preference from tbl_Rule_Ayanamsa.</summary>
+/// <summary>Loads the fixed ayanamsa from tbl_Rule_Ayanamsa (its one IsDefault row, UX_Rule_Ayanamsa_Default).
+/// Locked to Traditional Lahiri (decisions/004-ayanamsa-traditional-lahiri.md): a different default
+/// would silently disagree with every stored chart, so it is refused rather than used.</summary>
 public sealed class AyanamsaRuleRepository
 {
     private readonly SqlConnectionFactory _connectionFactory;
@@ -23,6 +25,10 @@ public sealed class AyanamsaRuleRepository
 
         if (!row.IsImplemented)
             throw new InvalidOperationException($"The active default ayanamsa '{row.Code}' is not implemented.");
+        if (row.Code != AyanamsaDefinition.Default.Code)
+            throw new InvalidOperationException(
+                $"The ayanamsa is locked to {AyanamsaDefinition.Default.DisplayName} ({AyanamsaDefinition.Default.Code}), " +
+                $"but tbl_Rule_Ayanamsa's default is '{row.Code}'. See decisions/004-ayanamsa-traditional-lahiri.md.");
 
         return new AyanamsaDefinition(row.Code, row.DisplayName, row.SwissSiderealMode, row.IsTropical,
             row.CorrectionDegrees, row.CorrectionDirection);

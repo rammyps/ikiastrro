@@ -102,11 +102,10 @@ The Preferences selector lists all three for forward-compatibility, but **North 
 Indian are shown disabled and labelled "Planned"** until their renderer ships — an unrenderable
 style can never be stored as the active choice.
 
-### NFR-UI-03 — Ayanāṁśa choice
+### NFR-UI-03 — Ayanāṁśa · **locked**
 
-Preferences exposes the **full ayanāṁśa catalogue — 21 systems** (`AyanamsaDefinition.Catalog`),
-with **Lahiri fixed as the default** (the active `tbl_Rule_Ayanamsa` row). Chart generation
-takes the chosen system for that person's next run; the project baseline is unchanged.
+The ayanāṁśa is **Traditional Lahiri for every chart** and is not user-selectable
+(`decisions/004-ayanamsa-traditional-lahiri.md`). Saved Charts → Preferences shows it read-only.
 
 ### NFR-UI-04 — Localisation (Tamil) · **deferred (backlog: Later)**
 
