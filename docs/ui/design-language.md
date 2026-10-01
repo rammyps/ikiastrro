@@ -10,8 +10,15 @@ One language, everywhere. Detail on colours/type: [`brand.md`](brand.md).
 
 ## The rules
 
-- **MudBlazor is the component system.** Light theme. Every page uses `MudLayout` /
+- **MudBlazor is the component system.** Every page uses `MudLayout` /
   `MudAppBar` / `MudMainContent` and MudBlazor controls for chrome, forms, tables, dialogs.
+- **Appearance is user-selectable.** Saved Charts → Settings → Preferences offers
+  **Default Light**, **Cosmic Light**, and **Cosmic Dark**. Default Light preserves the approved
+  cream/navy master palette. The Cosmos modes use the adaptive Alabaster/Slate/Teal and
+  Obsidian/Platinum/Aurora systems through `html[data-theme]`, with the user's choice stored
+  in `localStorage`. Legacy `light` and `dark` values are migrated automatically. Component CSS
+  consumes semantic tokens and must work in all three modes; never add a light-only or
+  dark-only surface.
 - **Tokens, not raw values.** `wwwroot/css/tokens.css` holds real `:root` custom properties
   (the `--brand-*` set + semantic astrology tokens). Components read them via `var(--…)` —
   never a raw hex, never a CSS named colour, never an inline `<style>` in `.razor` markup.

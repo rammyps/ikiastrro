@@ -1,12 +1,12 @@
 .ntw { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--font-interface); }
 .ntw-transit { fill: var(--brand-midnight); stroke: var(--brand-midnight); stroke-width: 3; }
-.ntw-nak { fill: #fff; stroke: var(--brand-midnight); stroke-width: 2; }
+.ntw-nak { fill: var(--brand-surface); stroke: var(--grid-stroke); stroke-width: 2; }
 .ntw-nak-sector { stroke: none; }
-.ntw-nak-sector-orange { fill: #fff; }
-.ntw-nak-sector-blue { fill: #fff; }
+.ntw-nak-sector-orange { fill: var(--brand-surface); }
+.ntw-nak-sector-blue { fill: var(--brand-surface); }
 .ntw-nak-boundary { stroke: var(--brand-midnight); stroke-width: .75; opacity: .55; }
 .ntw-natal { fill: var(--brand-sunrise); stroke: var(--brand-midnight); stroke-width: 2; }
-.ntw-core { fill: #fff; stroke: var(--brand-midnight); stroke-width: 1; }
+.ntw-core { fill: var(--brand-surface); stroke: var(--grid-stroke); stroke-width: 1; }
 .ntw-sign-line { stroke: var(--brand-midnight); stroke-width: 2.2; }
 .ntw-nak-line { stroke: var(--brand-midnight); stroke-width: 1.2; }
 .ntw-pada-line { stroke: var(--brand-muted); stroke-width: .55; opacity: .7; }

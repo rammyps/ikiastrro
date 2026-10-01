@@ -35,7 +35,15 @@
     gap: 8px;
 }
 .ik-header-start { min-width: 0; }
-.ik-header-save { justify-self: end; }
+.ik-header-actions {
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ik-header-save { display: flex; }
+
 
 /* One pill language for every header tab, matching the Key Inference master rail. */
 .ik-headtab {
@@ -48,7 +56,7 @@
     padding: 5px 14px;
     border-radius: 999px;
     border: 0;
-    background: rgb(255 250 242 / 0.48);
+    background: var(--brand-surface-soft);
     color: var(--brand-midnight);
     /* Level 3 — Primary UI (docs/ui/design-language.md "Typography"): navigation is exactly
        --font-size-control, not a bespoke multiplier of it. */
@@ -59,11 +67,11 @@
     text-align: center;
 }
 
-.ik-headtab:hover { background: rgb(255 250 242 / 0.7); }
+.ik-headtab:hover { background: var(--brand-peach); }
 
 .ik-headtab.is-here {
-    background: var(--brand-midnight);
-    color: var(--brand-sunrise);
+    background: var(--cosmos-accent);
+    color: var(--cosmos-accent-fg);
 }
 
 /* Lives only in the footer now (rammyps, 2026-09-26) — no longer a grid item of the app bar
@@ -83,7 +91,7 @@
     height: 40px;
     padding: 4px;
     border-radius: 10px;
-    background: var(--brand-midnight);
+    background: var(--cosmos-architecture);
     object-fit: contain;
     flex: none;
 }
@@ -185,7 +193,7 @@
     background: var(--brand-surface);
     border: 1px solid var(--brand-line);
     border-radius: 10px;
-    box-shadow: 0 8px 24px rgb(15 32 65 / 0.18);
+    box-shadow: 0 8px 24px var(--shadow);
 }
 
 .ik-person-menu li + li { margin-top: 2px; }
@@ -293,7 +301,7 @@
 }
 
 #blazor-error-ui {
-    background: lightyellow;
+    background: var(--status-moderate-bg);
     bottom: 0;
     box-shadow: 0 -1px 2px rgb(0 0 0 / 0.2);
     display: none;
@@ -324,6 +332,7 @@
     }
     .ik-header-start { grid-column: 1 / -1; overflow-x: auto; scrollbar-width: none; }
     .ik-appbar-person { justify-self: start; align-items: flex-start; }
+    .ik-header-actions { justify-self: end; }
     .ik-header-start, .ik-globalnav, .ik-tabs { gap: 4px; }
     .ik-headtab { min-width: 58px; min-height: 34px; padding: 4px 9px; letter-spacing: 0.02em; flex: none; }
 }

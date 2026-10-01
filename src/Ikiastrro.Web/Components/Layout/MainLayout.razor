@@ -3,11 +3,12 @@
 @inject ActivePerson Active
 @inject NavigationManager Nav
 @inject BirthDetailsRepository BirthDetailsRepo
+@inject IJSRuntime JS
 
 @* MudBlazor providers must sit in the interactive render scope (this layout is rendered by
    the InteractiveServer <Routes>). Kept out of App.razor, which is static SSR — see the note
    there. Without this, every MudSelect / MudDatePicker / MudTimePicker popover fails to open. *@
-<MudThemeProvider Theme="Ikiastrro.Web.Components.IkiastrroTheme.Value" />
+<MudThemeProvider Theme="_mudTheme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -73,9 +74,11 @@
                 </div>
             </div>
         }
-        <nav class="ik-header-save" aria-label="Saved charts">
-            <a href="/charts" class="ik-headtab @(CurrentPath == "/charts" ? "is-here" : "")"><span>SAVED</span> <span>CHARTS</span></a>
-        </nav>
+        <div class="ik-header-actions">
+            <nav class="ik-header-save" aria-label="Saved charts">
+                <a href="/charts" class="ik-headtab @(CurrentPath == "/charts" ? "is-here" : "")"><span>SAVED</span> <span>CHARTS</span></a>
+            </nav>
+        </div>
     </MudAppBar>
     </div>
     <MudMainContent>
@@ -123,6 +126,20 @@
         Active.Changed += OnShellChanged;
         Nav.LocationChanged += OnLocationChanged;
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var theme = await JS.InvokeAsync<string>("ikiastrroTheme.initialize");
+        _isDarkMode = theme == "cosmic-dark";
+        _mudTheme = theme == "default-light" ? IkiastrroTheme.DefaultLight : IkiastrroTheme.Cosmos;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private bool _isDarkMode;
+    private MudTheme _mudTheme = IkiastrroTheme.DefaultLight;
 
     private void OnShellChanged() => InvokeAsync(StateHasChanged);
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
