@@ -57,8 +57,19 @@ public static class VargaChartComputer
             });
         }
 
+        // Arudha padas (bhava and graha) are computed inside this chart from its own placements
+        // (PVR sec.9.2 / 9.5 — "in the divisional chart of interest"), not projected from D1. They
+        // are produced only when the D1 seeds carry them, so callers that pass no seeds get none.
+        // Every other special point (special lagnas, upagrahas, Punya Saham) is a real longitude
+        // and is projected as before.
+        seeds ??= Array.Empty<SpecialPointSeed>();
         var specialPoints = SpecialPointProjector.Project(
-            seeds ?? Array.Empty<SpecialPointSeed>(), rule, divisionFactor, lagnaSign);
-        return new ChartAnalysisInput(ChartType: "", lagnaSign, planetPositions) { SpecialPoints = specialPoints };
+            seeds.Where(s => !SpecialPointProjector.IsArudha(s.PointKind)), rule, divisionFactor, lagnaSign);
+        var chart = new ChartAnalysisInput(ChartType: "", lagnaSign, planetPositions);
+        if (seeds.Any(s => s.PointKind == "Arudha"))
+            specialPoints.AddRange(SpecialPointProjector.InChart(ArudhaCalculator.Compute(chart), lagnaSign));
+        if (seeds.Any(s => s.PointKind == "GrahaArudha"))
+            specialPoints.AddRange(SpecialPointProjector.InChart(GrahaArudhaCalculator.Compute(chart), lagnaSign));
+        return chart with { SpecialPoints = specialPoints };
     }
 }

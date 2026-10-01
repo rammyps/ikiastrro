@@ -117,9 +117,10 @@ The inspector must distinguish the sign's overlapping nakshatra spans, each occu
 nakshatra/pada, and a focused special point's own nakshatra. Never label these collectively as
 “the house's nakshatra.”
 
-Special points are computed from D1 sidereal longitude and projected into every Varga. In a
-non-D1 chart, label this explicitly, for example: “A12 projected into D9 from its D1-derived
-longitude.” Do not imply independent recalculation in that Varga.
+Special lagnas and upagrahas are computed from D1 sidereal longitude and projected into every
+Varga; label that in a non-D1 chart. Arudha padas (bhava and graha) are computed inside each
+Varga from its own placements (PVR §9.2 / §9.5; since 2026-10-01), so a Varga's A12 is that
+Varga's own pada.
 
 ## Simplified evidence projections
 

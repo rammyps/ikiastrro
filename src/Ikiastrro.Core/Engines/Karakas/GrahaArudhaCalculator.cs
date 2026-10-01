@@ -16,7 +16,10 @@ namespace Ikiastrro.Core.Engines.Karakas;
 /// which one to use, per PVR sec.15.5.2.
 ///
 /// SRC_PVR_INTEGRATED sec.9.5 "Computation of Graha Arudhas" (verified against the raw book
-/// extract, incl. worked Example 30). Emitted as PointKind "GrahaArudha", Code "GA_&lt;Planet&gt;"
+/// extract, incl. worked Example 30). Step (1) reads "the sign containing the planet of interest
+/// in the divisional chart of interest", so this runs inside each chart on that chart's own
+/// placements and degrees (VargaChartComputer, since 2026-10-01) — PVR's note on Rahu's and
+/// Ketu's padas "in divisional charts" follows from that without a rule of its own. Emitted as PointKind "GrahaArudha", Code "GA_&lt;Planet&gt;"
 /// (e.g. "GA_Sun" .. "GA_Ketu").
 ///
 /// Degree-in-sign: PVR's text only fixes the pada's sign, not a degree — it has no continuous-
@@ -52,7 +55,7 @@ public static class GrahaArudhaCalculator
             if (fromPlanetSign == 1 || fromPlanetSign == 7)
                 pada = HouseEngine.GetHouseSign(pada, 10);
 
-            var degreeInSign = AstroMath.GetDegreesInSign(placement.NirayanaLongitudeDegrees!.Value);
+            var degreeInSign = AstroMath.GetDegreesInSign(placement.VargaLongitudeDegrees ?? placement.NirayanaLongitudeDegrees!.Value);
             var longitude = (int)pada * 30.0 + degreeInSign;
             seeds.Add(new SpecialPointSeed($"GA_{graha}", "GrahaArudha", AstroMath.Normalize(longitude)));
         }

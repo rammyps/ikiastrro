@@ -1043,7 +1043,7 @@ else
         var label = item.SpecialPoint ?? $"{Ordinal(item.House)} house";
         if (onPada && item.SpecialPoint is null)
         {
-            var lord = Enum.Parse<PlanetName>(HouseEngine.GetSignLord(target));
+            var lord = Ikiastrro.Core.Engines.Karakas.StrongerCoLord.For(target, chart.ToAnalysisInput());
             target = Ikiastrro.Core.Engines.Karakas.ArudhaCalculator.PadaOf(target, placements[lord]);
             label = _question == "LAGNA"
                 ? $"{(item.House == 1 ? "AL" : $"A{item.House}")}, the {Ordinal(item.House)}'s Āruḍha"

@@ -129,7 +129,7 @@ Regenerate: `d2 --theme 0 --pad 20 docs/artifacts/diagrams/dotnet_engine_map.d2 
 | `ArudhaCalculator.cs` | Arudha Lagna + the 12 Bhāva Arudhas |
 | `HoraLagnaCalculator.cs` | Horā Lagna |
 | `UpagrahaCalculator.cs` | Gulika / Maandi (day/night-part ruler arrays) |
-| `SpecialPointSeed.cs`, `SpecialPointProjector.cs`, `SpecialPointCalculator.cs` | D1 longitude of each special point, projected into every varga's own zodiac |
+| `SpecialPointSeed.cs`, `SpecialPointProjector.cs`, `SpecialPointCalculator.cs` | D1 longitude of each special point, projected into every varga's own zodiac — except arudha padas, which `VargaChartComputer` computes inside each varga (`SpecialPointProjector.InChart`) |
 | `ISthiraKarakaSource.cs`, `INaisargikaKarakaSource.cs` | **interface only** — Sthira / Naisargika Karaka, built in Plan 2 |
 
 ### PlanetaryStates (4 files) — the "avastha" engine (renamed from `Calculators`/`Models`)

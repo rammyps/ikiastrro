@@ -19,7 +19,7 @@ public static class VimsopakaRead
     public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, decimal>> Compute(
         IReadOnlyDictionary<string, LoadedChart> charts, IReadOnlyList<VimsopakaWeight> weights)
     {
-        var inputs = charts.Values.Select(ToInput).ToList();
+        var inputs = charts.Values.Select(c => c.ToAnalysisInput()).ToList();
         var byPlanet = new Dictionary<string, Dictionary<string, decimal>>(StringComparer.OrdinalIgnoreCase);
         foreach (var scheme in weights.GroupBy(w => w.SchemeCode, StringComparer.OrdinalIgnoreCase))
         {
@@ -37,16 +37,4 @@ public static class VimsopakaRead
     public static string WeightsText(IReadOnlyList<VimsopakaWeight> weights, string scheme) =>
         string.Join(" · ", weights.Where(w => w.SchemeCode.Equals(scheme, StringComparison.OrdinalIgnoreCase))
             .Select(w => $"{w.VargaChartType} {w.Weight:0.##}"));
-
-    private static ChartAnalysisInput ToInput(LoadedChart chart) =>
-        new(chart.ChartType, Enum.Parse<ZodiacName>(chart.AscendantSign),
-            chart.Grahas.Where(k => k.Planet != "Ascendant").Select(k => new PlanetPosition
-            {
-                Planet = k.Planet,
-                Sign = k.Sign,
-                PointKind = k.PointKind,
-                NirayanaLongitudeDegrees = k.NirayanaLongitudeDegrees,
-                VargaLongitudeDegrees = k.VargaLongitudeDegrees,
-                HouseNumber = k.HouseNumberFromLagna,
-            }).ToList());
 }

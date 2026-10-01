@@ -151,9 +151,9 @@ the bādhaka. Deferred: a sourced per-matter "read from the Āruḍha" flag (PVR
 dealings, A5 for distinctions), standard placement results (step 6), yogada, and graha-dṛṣṭi
 strength onto a house (stored dṛṣṭi strength is planet-to-planet).
 
-Stored varga padas (`tbl_Chart_KeyDetails` PointKind `Arudha` in D2…D60) are the D1 padas
-projected into the varga by longitude, so they differ from a pada computed inside the varga
-(Ramya's D2 A2: stored Cancer, computed Taurus); D1 agrees.
+Stored varga padas (`tbl_Chart_KeyDetails` PointKind `Arudha` in D2…D60) are computed inside
+each varga since 2026-10-01 (`docs/cli/calculations.md` §12), so they agree with the pada this
+section computes; both use the stronger co-lord for Scorpio / Aquarius.
 
 ### Which chart is a matter's own
 

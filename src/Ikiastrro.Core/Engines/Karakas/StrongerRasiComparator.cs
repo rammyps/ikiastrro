@@ -16,21 +16,23 @@ namespace Ikiastrro.Core.Engines.Karakas;
 ///
 /// (1) More planets occupying the rasi wins.
 /// (2) More of {Jupiter, Mercury, the rasi's own lord} occupying/aspecting (rasi drishti) the
-///     rasi wins. "The rasi's own lord": this project's classical-sole-lord convention
-///     (<see cref="HouseEngine.GetSignLord"/>) — same known Aquarius/Scorpio (Saturn-vs-Rahu,
-///     Mars-vs-Ketu) simplification already documented on <see cref="ArudhaCalculator"/>.
+///     rasi wins. For Aquarius and Scorpio both co-lords count (Saturn and Rahu, Mars and Ketu):
+///     PVR's Exercise 26 answer — "Aq is aspected by co-lord Rahu (though Saturn is the
+///     primary/stronger lord, Rahu's aspect also counts)".
 /// (3) A rasi containing an exalted planet (<see cref="DignityEngine"/>'s "Exalted" status,
 ///     which already carries PVR's own Moon-under-3°/Mercury-under-15° exaltation-segment rule)
 ///     wins.
 /// (4) The rasi whose lord sits in a rasi of different oddity (odd/even) than the rasi itself
-///     wins over one whose lord sits in a rasi of the same oddity. PVR notes this rule always
+///     wins over one whose lord sits in a rasi of the same oddity. For Aquarius / Scorpio the
+///     lord is the stronger co-lord (<see cref="StrongerCoLord"/>, sec.15.5.1) — PVR's own
+///     Narayana-dasa example: "Aq is an odd sign and its stronger lord is also in an odd sign". PVR notes this rule always
 ///     resolves the tie when comparing a single planet's own 2 owned signs (their oddity always
 ///     differs) — so rules 5/6 exist for completeness and for reuse outside graha arudha, but
 ///     are not expected to fire from <see cref="GrahaArudhaCalculator"/>.
 /// (5) Natural strength: Dual > Fixed > Movable.
 /// (6) Longer advancement of the rasi's own lord within the lord's occupied sign wins (measured
-///     from the end of the sign for Rahu/Ketu) — unreachable under this project's classical-sole-
-///     lord convention (the lord is never Rahu/Ketu), kept faithful to the book text regardless.
+///     from the end of the sign for Rahu/Ketu). PVR's note: "In the case of Aq and Sc, we use the
+///     stronger lord" — so Rahu/Ketu can be the lord here when they are the stronger co-lord.
 /// </summary>
 public static class StrongerRasiComparator
 {
@@ -55,8 +57,8 @@ public static class StrongerRasiComparator
         // Rule 2: occupied/aspected by Jupiter, Mercury, or the rasi's own lord.
         int SpecialInfluenceCount(ZodiacName s)
         {
-            var lord = Enum.Parse<PlanetName>(HouseEngine.GetSignLord(s));
-            var specials = new HashSet<PlanetName> { PlanetName.Jupiter, PlanetName.Mercury, lord };
+            var specials = new HashSet<PlanetName> { PlanetName.Jupiter, PlanetName.Mercury };
+            specials.UnionWith(Lords(s));
             return specials.Count(p => Influences(p, s));
         }
         winner = WinnerOf(a, b, SpecialInfluenceCount);
@@ -68,7 +70,7 @@ public static class StrongerRasiComparator
             .Any(p => DignityEngine.Evaluate(
                 p.Planet,
                 Enum.Parse<ZodiacName>(p.Sign),
-                p.NirayanaLongitudeDegrees is { } lon ? AstroMath.GetDegreesInSign(lon) : null,
+                p.VargaLongitudeDegrees is null && p.NirayanaLongitudeDegrees is { } lon ? AstroMath.GetDegreesInSign(lon) : null,
                 signByPlanet).DignityStatus == "Exalted");
         var (exaltedA, exaltedB) = (HasExalted(a), HasExalted(b));
         if (exaltedA != exaltedB) return exaltedA ? a : b;
@@ -77,7 +79,7 @@ public static class StrongerRasiComparator
         bool IsOddSign(ZodiacName s) => (int)s % 2 == 0; // 0-based enum: Aries(0) is the 1st (odd) sign
         bool LordInDifferentOddity(ZodiacName s)
         {
-            var lord = HouseEngine.GetSignLord(s);
+            var lord = StrongerCoLord.For(s, d1).ToString();
             var lordSign = signByPlanet[lord];
             return IsOddSign(s) != IsOddSign(lordSign);
         }
@@ -95,13 +97,12 @@ public static class StrongerRasiComparator
         if (winner is not null) return winner.Value;
 
         // Rule 6: the rasi's own lord's advancement within its occupied sign (from the sign's
-        // end for Rahu/Ketu — never actually the lord here, per this project's classical-sole-
-        // lord convention, but kept faithful to the book text).
+        // end for Rahu/Ketu, which are the lord of Aq / Sc when they are the stronger co-lord).
         double LordAdvancement(ZodiacName s)
         {
-            var lord = HouseEngine.GetSignLord(s);
+            var lord = StrongerCoLord.For(s, d1).ToString();
             var placement = planets.First(p => p.Planet == lord);
-            var degreeInSign = AstroMath.GetDegreesInSign(placement.NirayanaLongitudeDegrees!.Value);
+            var degreeInSign = AstroMath.GetDegreesInSign(placement.VargaLongitudeDegrees ?? placement.NirayanaLongitudeDegrees!.Value);
             return lord is "Rahu" or "Ketu" ? 30.0 - degreeInSign : degreeInSign;
         }
         winner = WinnerOf(a, b, LordAdvancement);
@@ -109,6 +110,14 @@ public static class StrongerRasiComparator
         // resolves this for a single planet's 2 owned signs, so this is defensive-only.
         return winner ?? a;
     }
+
+    /// <summary>Both co-lords of Aquarius (Saturn, Rahu) and Scorpio (Mars, Ketu); the one lord otherwise.</summary>
+    private static IEnumerable<PlanetName> Lords(ZodiacName sign) => sign switch
+    {
+        ZodiacName.Aquarius => [PlanetName.Saturn, PlanetName.Rahu],
+        ZodiacName.Scorpio => [PlanetName.Mars, PlanetName.Ketu],
+        _ => [Enum.Parse<PlanetName>(HouseEngine.GetSignLord(sign))],
+    };
 
     private static ZodiacName? WinnerOf<T>(ZodiacName a, ZodiacName b, Func<ZodiacName, T> score)
         where T : IComparable<T>
