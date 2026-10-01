@@ -9,9 +9,9 @@
 .yg-controls .yg-toggle { display: flex; flex-direction: row; align-items: center; gap: 6px; padding-bottom: 7px; }
 .yg code { font-size: .72rem; white-space: nowrap; }
 .yg-status { display: inline-flex; padding: 2px 7px; border-radius: 999px; font-size: .7rem; font-weight: 700; }
-.yg-status-present { background: #e3f4e8; color: #176536; }
-.yg-status-absent { background: #f1f2f3; color: var(--brand-muted); }
-.yg-status-pending { background: #fff2cc; color: #795b00; }
+.yg-status-present { background: var(--status-strong-bg); color: var(--status-strong); }
+.yg-status-absent { background: var(--brand-surface-soft); color: var(--brand-muted); }
+.yg-status-pending { background: var(--status-moderate-bg); color: var(--brand-midnight); }
 .yg-empty { margin: 0; padding: 18px 16px; color: var(--brand-muted); font-size: .85rem; }
 /* Table format standardized onto "1.1 D1-Birth Chart"'s PlanetPositionsTable (.ppt) reference
    (docs/ui/design-language.md — standard table format, 2026-09-22). */
@@ -43,7 +43,7 @@
     font: inherit; padding: 8px; border: 1px solid var(--brand-line); border-radius: 8px;
     resize: vertical;
 }
-.yg-edit-error { margin: 0; color: #b3261e; font-size: .8rem; }
+.yg-edit-error { margin: 0; color: var(--danger); font-size: .8rem; }
 .yg-edit-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .yg-edit-actions .btn-cancel {
     padding: 8px 14px; border-radius: 8px; border: 1px solid var(--brand-line);

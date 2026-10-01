@@ -4,8 +4,8 @@ using Ikiastrro.Core.Models;
 
 namespace Ikiastrro.Data;
 
-/// <summary>One chart's house-target Argala / Virodhargala rows, shared by Key Inference's
-/// ArgalaTable and Life Matters so both pages read the same facts. Stored tbl_Fact_Argala rows
+/// <summary>One chart's house-target Argala / Virodhargala rows, shared by Astro Facts's
+/// ArgalaTable and Key Inference so both pages read the same facts. Stored tbl_Fact_Argala rows
 /// win (ChartGenerationService persists them for D1); a chart with none stored — every varga,
 /// and any D1 not regenerated since migration 128 — gets the same ArgalaFactBuilder output live.</summary>
 public static class ArgalaFacts

@@ -1,4 +1,4 @@
-/* Same table frame as Key Inference's transit positions table (.ki-table). */
+/* Same table frame as Astro Facts's transit positions table (.ki-table). */
 .go { margin-top: 18px; color: var(--brand-midnight); }
 .go-head { margin: 0 0 6px; font: 800 .82rem/1.3 'Manrope', 'Segoe UI', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
 .go-head span { margin-left: 6px; color: var(--brand-muted); font-weight: 600; text-transform: none; letter-spacing: 0; }

@@ -7,7 +7,7 @@ namespace Ikiastrro.Data;
 
 /// <summary>tbl_Rule_VimsopakaWeight (migration 157, BPHS) and tbl_Rule_GocharaVedha (migration 158,
 /// PVR ch.26.3) — the rule rows <see cref="VimsopakaCalculator"/> and
-/// <see cref="GocharaVedhaCalculator"/> take, read by Key Inference.</summary>
+/// <see cref="GocharaVedhaCalculator"/> take, read by Astro Facts.</summary>
 public sealed class TransitStrengthRuleRepository
 {
     private readonly SqlConnectionFactory _connectionFactory;

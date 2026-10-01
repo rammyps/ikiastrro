@@ -1,14 +1,14 @@
 ---
 last_updated: 2026-09-22
-reflects: Core, D1/D9/D10 persistence, and first Key Inference Relationships UI slice implemented
+reflects: Core, D1/D9/D10 persistence, and first Astro Facts Relationships UI slice implemented
 ---
 
 # Sign and planetary aspects
 
 Deferred implementation note for connecting Rasi drishti, Graha drishti, conjunction,
-combustion, and dispositor chains in **Key Inference**. No implementation is included here.
+combustion, and dispositor chains in **Astro Facts**. No implementation is included here.
 
-## Intended Key Inference structure
+## Intended Astro Facts structure
 
 Rename `2.1 ABOUT HOUSES` to `2.1 RELATIONSHIPS`, use one shared varga selector, and provide:
 
@@ -97,7 +97,7 @@ per chart type).
    `ChartAspect` facts remain canonical and separate.
 5. **Implemented (first UI slice):** relationship summary and strength matrix with sticky
    identity columns, heat colouring, focus-body selection, and cell evidence detail, for whichever
-   varga the shared Key Inference chart picker selects.
+   varga the shared Astro Facts chart picker selects.
 6. Connect selected results to Rasi drishti, conjunction, combustion, and dispositor chains.
 7. **Implemented 2026-09-24:** each varga's rows are recomputed independently from that varga's
    own longitudes (not reused D1 percentages) and `verify-graha-drishti` confirms every

@@ -55,7 +55,7 @@ footer. The Ganesha / Navagraha illustration is a **first-class part of the Home
     birth line · *View chart →* — styled like the person rows.
   - **`＋ Add New`** sits below the results (always available).
   - **Selecting a person identifies the active person** → the `TRANSIT`, `ALL CHARTS` and
-    `KEY INFERENCE` nav tabs appear in the header (hidden until now — every inner page is
+    `ASTRO FACTS` nav tabs appear in the header (hidden until now — every inner page is
     per-person) and it **lands on `/transit-wheel/{id}`**. The context band's person name is a
     `▾` control back here to switch person; `HOME` keeps the person active.
 - The **Ganesha / Navagraha illustration** is the right column of the two-column Home layout

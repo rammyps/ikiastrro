@@ -1,13 +1,13 @@
 ---
 last_updated: 2026-09-22
-reflects: Key Inference Moon context with persisted Paksha Bala
+reflects: Astro Facts Moon context with persisted Paksha Bala
 component: LunarPhaseCard
-route: /key-inference/{id}
+route: /astro-facts/{id}
 ---
 
 # LunarPhaseCard
 
-Moon-context summary inside Key Inference 2.2 About Planets. It combines existing persisted
+Moon-context summary inside Astro Facts 2.2 About Planets. It combines existing persisted
 facts rather than introducing a second lunar calculator.
 
 ## Content

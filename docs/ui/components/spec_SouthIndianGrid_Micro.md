@@ -1,8 +1,10 @@
 ---
+
+> **Replaced on the page** by SIND-UNI-3 (Astro Facts → Spl Lagnas grid view, rendered by `KarakaPolarWheel`): see [`spec_SIND-UNI_GridChart.md`](spec_SIND-UNI_GridChart.md) (2026-10-01). `PolarGridLagnaSelect` still renders this grid for its own `View="south"` and its tests; nothing on a page asks for that any more.
 last_updated: 2026-09-17
 workstream: ui
 component: SouthIndianGrid_Micro
-route: /key-inference/{id} (embedded, step "4. Spl Lagnas" Grid view — see specs_KI_spllagna.md)
+route: /astro-facts/{id} (embedded, step "4. Spl Lagnas" Grid view — see specs_KI_spllagna.md)
 togaf: C — component spec (built)
 catalogued_in: chart-catalog.md
 ---
@@ -15,7 +17,7 @@ catalogued_in: chart-catalog.md
 > of an existing chart module is a new module with its own suffixed name, never a rewrite in
 > place"): `SouthIndianGrid_Detailed` is untouched and keeps every other consumer (`AllCharts`,
 > `VargaView`, the D1/D9 `SouthIndianTemplate`). This component has exactly **one** consumer: the
-> Grid view of `PolarGridLagnaSelect`, embedded in Key Inference step "4. Spl Lagnas" — tab-level
+> Grid view of `PolarGridLagnaSelect`, embedded in Astro Facts step "4. Spl Lagnas" — tab-level
 > contract in [`specs_KI_spllagna.md`](specs_KI_spllagna.md); component-level contract for
 > `PolarGridLagnaSelect` itself (the Chart select / Wheel-Grid toggle / Lagna checkboxes / the
 > new Grid-display checkboxes below) stays in

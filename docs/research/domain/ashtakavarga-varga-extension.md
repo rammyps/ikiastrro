@@ -70,8 +70,8 @@ second calculation engine:
 ## 2. Cross-varga bindu comparison chart — By House / By Sign, % stacked bar
 
 Requested directly: "a summary stacked bar chart to compare house & sign vs different vargas, %
-across vargas." This is the same *shape* of chart Key Inference 3.4 Amsabala already built for
-Vimśopaka-style varga-group comparison — [[key-inference]] describes it as "a stacked equal-width
+across vargas." This is the same *shape* of chart Astro Facts 3.4 Amsabala already built for
+Vimśopaka-style varga-group comparison — [[astro-facts]] describes it as "a stacked equal-width
 bar per graha, built from `tbl_Rule_AmsabalaGroup`'s actual seeded membership... one segment per
 varga in that scheme" — generalized here from *one bar per graha* to *one bar per house or per
 sign*, and from Vimśopaka weight to Ashtakavarga bindu count.
@@ -101,7 +101,7 @@ mainly as a sanity check on whichever recompute-vs-lookup decision (a)/(b) lands
 
 - 12 equal-width bars (houses 1–12, or signs Aries–Pisces per toggle), each stacked to a fixed
   100%-height track — same normalization discipline as `PlanetStrengthChart.SharePercent`'s
-  clamp-to-100% fix already documented in [[key-inference]] (a real bug hit building that
+  clamp-to-100% fix already documented in [[astro-facts]] (a real bug hit building that
   component; this chart should reuse the same clamped-share helper rather than re-deriving it).
 - One segment per varga included in the comparison — default to the same varga groupings already
   seeded in `tbl_Rule_AmsabalaGroup` (Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga)

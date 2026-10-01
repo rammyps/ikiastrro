@@ -3,15 +3,15 @@ last_updated: 2026-09-09
 workstream: ui
 component: TimePeriods
 routes:
-  - /key-inference#time-period-dasha
-  - /key-inference#saturn-time-period
+  - /astro-facts#time-period-dasha
+  - /astro-facts#saturn-time-period
 togaf: C — component spec
 ---
 
 # Component — time periods (daśā & Saturn)
 
-Two **headers** on the Key Inference page, alongside — not part of — the round-2 6-step flow
-([`key-inference.md`](key-inference.md#the-flow) covers the flow itself). Read-only over
+Two **headers** on the Astro Facts page, alongside — not part of — the round-2 6-step flow
+([`astro-facts.md`](astro-facts.md#the-flow) covers the flow itself). Read-only over
 persisted rows and one table-valued function; no new calculation
 ([`../../architecture/domain-contracts.md`](../../architecture/domain-contracts.md)).
 

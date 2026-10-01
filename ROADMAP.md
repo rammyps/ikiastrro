@@ -63,7 +63,7 @@ Close the gap between verified engine logic and what the web app actually shows 
   live-computed "Sub-Lord Chain (L2–L7)" column; the Web-generation gap
   (`tbl_Fact_KpSubLordChain` never populated for Web-created charts) is closed
   (`Ikiastrro.Web/Program.cs` registers `KpSubLordChainRepository`);
-  `tvf_Chart_DashaLordRelationship`'s join extended to L2–L7 (migration 131). New Key Inference
+  `tvf_Chart_DashaLordRelationship`'s join extended to L2–L7 (migration 131). New Astro Facts
   tab "1.1 ABOUT SIGNS & NAKSHATRAS" (`RasiNakshatraTable`) surfaces `tbl_Rule_RasiNakshatraCombination`
   (migration 124, 36 rows) — one row per graha, expand-to-reveal the narrative fields. Both
   slices browser-verified. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
@@ -108,7 +108,7 @@ Scoped, not started. Ordering set at the next ICE pass.
 - **Compound Maitrī, sambandha** · `FEAT-RELATIONSHIP-04` — argala/virodhargala split out and
   built 2026-09-19: rule layer (`ArgalaCalculator` + `tbl_Rule_Argala`, migration 127), fact
   layer (`tbl_Fact_Argala` migration 128 + `ArgalaFactBuilder`/`ArgalaFactRepository` +
-  `backfill-argala` CLI mode), and a live Key Inference 2.1 "Argala & Virodhargala" table
+  `backfill-argala` CLI mode), and a live Astro Facts 2.1 "Argala & Virodhargala" table
   (`ArgalaTable`, computed off `ChartKeyDetail`) all done, 28/28 tests. **Bug found + fixed
   2026-09-22:** `tbl_Fact_Argala` had no delete-wiring at all, so once `backfill-argala` had run,
   every RECALCULATE and person-delete threw `FK_Fact_Argala_ChartResult` — fixed, matching

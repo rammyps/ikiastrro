@@ -150,7 +150,7 @@ static Ikiastrro.Data.Statistics.HouseStrengthStatisticsService NewHouseStrength
 
 // --- Backfill mode: `dotnet run -- backfill-strength-statistics` ---
 // Rebuilds tbl_Fact_HouseStrengthStatistics (migration 156) for every saved person from facts
-// already in the database — the Life Matters strength statistics, every chart x 12 signs. Chart
+// already in the database — the Key Inference strength statistics, every chart x 12 signs. Chart
 // generation keeps it current from then on; this is for people generated before migration 156.
 if (args.Length > 0 && args[0] == "backfill-strength-statistics")
 {

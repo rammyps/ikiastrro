@@ -32,7 +32,7 @@ any topic is judged; step 7 loops once per life-domain the astrologer cares abou
 | 3 | **Strength & quality** | How strong is each planet, absolutely and cross-varga? | `ShadbalaCalculator` (Sthāna+Dig+Kāla, incl. Dina/Horā/Tribhāga Bala), Bhāva Bala | `/charts/{id}/evidence` §7–8 | 🟢 live (Shadbala/Bhāva Bala) · 🔴 Vimśopaka/Vaiśeṣikāṁśa not built (reserved seam) |
 | 4 | **Avasthā (condition)** | What state is each planet in — age, alertness, posture, mood? | `AgeStateCalculator`, `WakefulnessStateCalculator`, `PostureStateCalculator` | `/charts/{id}/evidence` §6 | 🟢 live (Bālādi/Jāgradādi/Sayanādi) · 🔴 Dīptādi/Lajjitādi not built (source precedence ambiguous) |
 | 5 | **Jaimini overlay** | Who is the self, minister, spouse-significator, …? Where is the Ātma Kāraka in D9? | `CharaKarakaCalculator`, `ArudhaCalculator`, `SpecialPointCalculator` (BL/GL/HL/SL) | none dedicated yet | 🟢 engine live · 🔴 UI strip planned |
-| 6 | **Yoga scan** | Which classical combinations are present, and how strong? | Yoga engine (Raman + PVR corpus), source-qualified, `NOT_EVALUATED` where P0 context is missing | `/charts/{id}/evidence` §9; v2 Key Inference → YOGAS | 🟢 engine live · 🔴 Key Inference route planned |
+| 6 | **Yoga scan** | Which classical combinations are present, and how strong? | Yoga engine (Raman + PVR corpus), source-qualified, `NOT_EVALUATED` where P0 context is missing | `/charts/{id}/evidence` §9; v2 Astro Facts → YOGAS | 🟢 engine live · 🔴 Astro Facts route planned |
 | 7 | **Divisional confirmation** (loop per domain: D9 marriage, D10 career, D60 karma, …) | Does the varga confirm or deny what D1 promised for this topic? | full loop in [`method.md`](method.md) §2 | `/charts/{id}/varga/{code}` (VargaView) | 🟢 live |
 | 8 | **Ashṭakavarga** | Sign by sign, where does transit favour accumulate? | `AshtakavargaCalculator` — BAV/SAV/Śodhya Piṇḍa | none yet | 🟢 engine live · 🔴 UI table over `vw_ChartAshtakavarga` planned |
 | 9 | **Timing** | When — which daśā, which transit, which caution window? | `VimshottariDashaCalculator`, `PlanetTransitEventFinder`, Sade Sati/Kantaka/Ashtama | `/charts/{id}/timing`, `/transit-wheel/{id}` | 🟢 live |
@@ -161,7 +161,7 @@ Cross-referenced against [`../../ui/MASTER.md`](../../ui/MASTER.md) (2026-09-11)
 - No dedicated screen for step 8 (Ashṭakavarga) — `vw_ChartAshtakavarga` exists, un-rendered.
 - Step 3's Vimśopaka/Vaiśeṣikāṁśa and step 4's Dīptādi/Lajjitādi have **no engine yet**, so
   there's nothing for a screen to show.
-- The v2 `/key-inference/{id}` route (KEY INFERENCE · YOGAS · TIME PERIOD (DASHA) · SATURN
+- The v2 `/astro-facts/{id}` route (ASTRO FACTS · YOGAS · TIME PERIOD (DASHA) · SATURN
   TIME PERIOD) is the planned home for steps 6 and 9's *summarised* view; today those live
   only in the raw `/charts/{id}/evidence` tables and `/charts/{id}/timing`.
 

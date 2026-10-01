@@ -1,15 +1,15 @@
 ---
 last_updated: 2026-09-29
-reflects: variant-aware yoga UI; LifeMatter matrix consumed only by the Life Matters page
+reflects: variant-aware yoga UI; LifeMatter matrix consumed only by the Key Inference page
 workstream: ui
 component: YogaEvaluationTable
-route: /key-inference/{id} — step 5 · Yogas
+route: /astro-facts/{id} — step 5 · Yogas
 togaf: C — component spec
 ---
 
 # Component — yogas
 
-**Step 5 · Yogas** of the [Key Inference](key-inference.md) flow — built 2026-09-16/17 as a
+**Step 5 · Yogas** of the [Astro Facts](astro-facts.md) flow — built 2026-09-16/17 as a
 single `YogaEvaluationTable` component, a materially smaller shape than the round-2 plan below
 (§ As-built): no coverage donut, no visible per-source-variant row list, no Source-as-column-1
 layout. Mostly read-only: it renders persisted yoga-evaluation rows and adds no new *evaluation*
@@ -27,7 +27,7 @@ remain visible in the header.
 
 The table now renders Set, Yoga, Variant, Status, Rule, Interpretation and Source. The Yoga
 tab deliberately does not expose its LifeMatter mapping; that connection is consumed as a
-filter on the Life Matters page instead. Set comes from `YogaSetCode`/`YogaSetName`; Variant uses `VariantDisplayName` with
+filter on the Key Inference page instead. Set comes from `YogaSetCode`/`YogaSetName`; Variant uses `VariantDisplayName` with
 `SourceVariantCode` as its stable fallback. Status distinguishes Present, Evaluated,
 Partial and Not evaluated rather than collapsing those states into one concept row.
 
@@ -40,7 +40,7 @@ has seven ranked `tbl_Rule_YogaLifeMatterPath` rows, each directly referencing
 `tbl_Rule_LifeMatterFocus`. `vw_YogaLifeMatter7x7` exposes Area and SA1-SA6; generated rows
 start as `PROPOSED` and can be promoted to `REVIEWED` or `VERIFIED` after source review.
 `YogaEvaluationRepository.GetLifeMatterPathsByBirthDetailId` joins the matrix to the chart's
-evaluated variants. `LifeMatters.razor` matches the selected Step's `MatterText` to `SubArea1`
+evaluated variants. `KeyInference.razor` matches the selected Step's `MatterText` to `SubArea1`
 and then joins by exact `SourceRefCode` + `SourceVariantCode`, so only relevant present yoga
 variants appear for that Life Matter.
 
@@ -61,7 +61,7 @@ Yoga + Rule + Interpretation + Source columns, sorted Type-first.
 | Type | `YogaTypeCode` (`tbl_Rule_Yoga.FormationFamilyCode`, via `vw_ChartYogaEvaluations`) — **column 1**, not Yoga. Default sort order is Lagna → Sun → Moon → Combination (rammyps's directive), any other `YogaTypeCode` that shows up follows alphabetically after those four. |
 | Yoga | `YogaCode`, title-cased and `YOGA_` stripped for display |
 | Rule | `YogaRule` (`tbl_Rule_Yoga.ShortFormationRule`) — a one-line classical rule, now source-specific where a `YogaCode`'s sources genuinely disagree (`db/119`, e.g. `YOGA_BUDHA_ADITYA`: Raman needs Sun–Mercury >10°, PVR only needs same-sign). Two secondary lines under Rule when applicable: the chart's Lagna lord (`Lagna lord: <planet>`, only for `YogaTypeCode = LAGNA`, from `WorkspaceData.Charts["D1"].HouseLords`, no new query) and `Notes` (`vw_ChartYogaEvaluations.Notes` — the engine's per-chart "what matched" text, e.g. Budha Aditya's combustion caveat; only populated by `SourceAttributedYogaEngine`/`VerifiedSourceYogaEngine`/`PvrChapter11YogaEvaluator`/`PvrChapter11NumberedYogaEvaluator` today, blank for the other evaluators). |
-| Interpretation | `tbl_Content_Interpretation` (`db/080`, source-override support `db/121`) via `InterpretationRepository`, resolved source-specific-with-generic-fallback. **Editable by any user** — an `EditIconButton` opens an inline Standard/Short text editor; Save is gated by the shared `ConfirmDialog` ("This will be visible to everyone using this tool."), then round-trips through `KeyInference.razor`'s `OnSaveInterpretation` callback to `InterpretationRepository.Upsert` (the table component itself injects no repository, keeping it presentational like every other chart component — the page owns the write, same as `SavedCharts.razor`'s edit flow). A local override dictionary shows the save immediately without waiting for the page to re-fetch. |
+| Interpretation | `tbl_Content_Interpretation` (`db/080`, source-override support `db/121`) via `InterpretationRepository`, resolved source-specific-with-generic-fallback. **Editable by any user** — an `EditIconButton` opens an inline Standard/Short text editor; Save is gated by the shared `ConfirmDialog` ("This will be visible to everyone using this tool."), then round-trips through `AstroFacts.razor`'s `OnSaveInterpretation` callback to `InterpretationRepository.Upsert` (the table component itself injects no repository, keeping it presentational like every other chart component — the page owns the write, same as `SavedCharts.razor`'s edit flow). A local override dictionary shows the save immediately without waiting for the page to re-fetch. |
 | Source | `SourceRefCode`, title-cased and `SRC_` stripped for display |
 
 A header line above the table reads "*N* formed of *M* evaluated (*K* not yet evaluated)".
@@ -122,6 +122,6 @@ the shared `EditIconButton`/`ConfirmDialog` components (`Components/Shared`), sa
 when present, Interpretation resolves source-specific-then-generic, and the edit → confirm →
 save flow round-trips through `OnSaveInterpretation` without touching a repository (the
 component takes no DB dependency, so this is a pure presentational test). LifeMatter filtering
-is owned by the Life Matters page rather than this component. No regression in
+is owned by the Key Inference page rather than this component. No regression in
 `verify-*` (evaluation itself is still read-only). Counts reconciled against the yoga engine's
 own CLI output.

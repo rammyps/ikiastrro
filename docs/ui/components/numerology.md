@@ -21,11 +21,11 @@ saved `Name`, alongside the letter-by-letter breakdown.
 ## Page contract
 
 - Route `/numerology/{id}` — a per-person page, same shape as `AllCharts` (`/charts/{id}`) and
-  `KeyInference` (`/key-inference/{id}`): resolves the person via `BirthDetailsRepository
+  `AstroFacts` (`/astro-facts/{id}`): resolves the person via `BirthDetailsRepository
   .GetById(id)`, calls `Active.Set(...)` to populate the header/band, and shows a "no saved
   person found" state (with a link back to `/`) when the id doesn't resolve.
 - Header tab: **NUMEROLOGY**, added to the per-person nav strip in `MainLayout.razor` alongside
-  **ALL CHARTS** / **KEY INFERENCE**. Single word, so it renders as plain text like `HOME`
+  **ALL CHARTS** / **ASTRO FACTS**. Single word, so it renders as plain text like `HOME`
   rather than the two-word stacked-span pill those two use.
 - No inputs, no controls — the page is read-only and fully determined by the active person's
   `Name`; there is no free-text "type any name" form like the `ikinumero` prototype had.
@@ -47,7 +47,7 @@ saved `Name`, alongside the letter-by-letter breakdown.
 
 ## Visual contract
 
-Matches the `AllCharts`/`KeyInference` canvas-card look: `--brand-canvas` card on the warm
+Matches the `AllCharts`/`AstroFacts` canvas-card look: `--brand-canvas` card on the warm
 canvas, `--brand-line` border, `--brand-midnight` heading in caps (`num-heading`), Manrope only,
 `--font-size-control`-derived sizes only — no raw hex/px literals. The root number is the one
 accent element, in `--brand-sunset`; the compound total stays midnight. Per-letter tiles are

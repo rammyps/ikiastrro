@@ -16,7 +16,7 @@ public sealed record LifeMatterQuestion(string ReferenceCode, string Label, stri
             : $"{matterText} {(Angle.Length == 0 ? "overall" : Angle)}?";
 }
 
-/// <summary>Display copy for the Life Matters question layer. Areas are the tbl_Rule_LifeMatterReference
+/// <summary>Display copy for the Key Inference question layer. Areas are the tbl_Rule_LifeMatterReference
 /// categories; each is asked from every lagna perspective, and its matters become sub-questions.</summary>
 public static class LifeMatterQuestions
 {

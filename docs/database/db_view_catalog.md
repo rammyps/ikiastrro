@@ -21,7 +21,7 @@ row in the same change that adds or repoints a table component.
 | UI component / page | Source view · TVF · table | Repository | Columns surfaced | Defined by |
 |---|---|---|---|---|
 | `PlanetPositionsTable` — `Pages/VargaView.razor` | `vw_ChartPlanetEvidence` | `AstrologerEvidenceRepository` | House · Planet · Motion · Degree · Sign · Nakṣatra · Nak. Pada · dignity | baseline + varga migrations |
-| **Life Matters** — `Pages/LifeMatters.razor` (D1 statistics panel, sub-question table, Argala card, signals) | `vw_ChartAshtakavarga` (SAV + BAV) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` · `vw_ChartShadbala` · `vw_ChartAmsabala` · `tbl_Fact_Argala` · `tbl_Fact_PlanetaryState(+Flag)` · `tbl_Rule_LifeMatterReference` / `tbl_Rule_LifeMatterFocus` / `tbl_Dim_HouseReference` | `AshtakavargaRepository` · `BhavaStrengthRepository` · `PlanetaryStrengthRepository` · `ArgalaFactRepository.GetByBirthDetailId` (first reader of `tbl_Fact_Argala`) · `PlanetaryStateRepository` · `LifeMatterReferenceRepository.GetAllSteps` · `LifeMatterFocusRepository.GetHouseReferences` | SAV bindus per sign · Bhava Bala rupas per house · Ṣaḍbala % of minimum · Argala/Virodhargala pairs · avastha states — all D1; see [`../ui/components/specs_life_matters_page.md`](../ui/components/specs_life_matters_page.md) | db/128 (Argala) + strength / Ashtakavarga migrations |
+| **Key Inference** — `Pages/KeyInference.razor` (D1 statistics panel, sub-question table, Argala card, signals) | `vw_ChartAshtakavarga` (SAV + BAV) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` · `vw_ChartShadbala` · `vw_ChartAmsabala` · `tbl_Fact_Argala` · `tbl_Fact_PlanetaryState(+Flag)` · `tbl_Rule_LifeMatterReference` / `tbl_Rule_LifeMatterFocus` / `tbl_Dim_HouseReference` | `AshtakavargaRepository` · `BhavaStrengthRepository` · `PlanetaryStrengthRepository` · `ArgalaFactRepository.GetByBirthDetailId` (first reader of `tbl_Fact_Argala`) · `PlanetaryStateRepository` · `LifeMatterReferenceRepository.GetAllSteps` · `LifeMatterFocusRepository.GetHouseReferences` | SAV bindus per sign · Bhava Bala rupas per house · Ṣaḍbala % of minimum · Argala/Virodhargala pairs · avastha states — all D1; see [`../ui/components/specs_key_inference_page.md`](../ui/components/specs_key_inference_page.md) | db/128 (Argala) + strength / Ashtakavarga migrations |
 | `HouseLordshipTable` — `Pages/VargaView.razor` | `tbl_Chart_HouseLords` (per `ChartResultId` + `ChartType`) | `ChartHouseLordsRepository` | House · lord · lord's house / sign | baseline |
 | `ConjunctionsTable` — `Pages/VargaView.razor` | `tbl_Chart_Conjunctions` / `tbl_Chart_MultiGrahaConjunction(+Member)` | `ChartConjunctionsRepository`, `ChartMultiGrahaConjunctionRepository` | planet set · sign · house | baseline |
 | **Transit landing — D1 Birth tab** — `Pages/Natal_Transit_Comp_Wheel.razor` | `vw_ChartPlanetEvidence` (`ChartType = 'D1'`) | `Natal_Transit_Comp_WheelRepository` | House · Planet · Motion · Degree · Sign · Nakṣatra · Nak. Pada | baseline + varga migrations |
@@ -43,12 +43,12 @@ dedicated view:
 | `SouthIndianGrid_Detailed`, `MiniGrid`, `D1TemplateGrid`, `PolarWheel`, `ChartFrame`, `VargottamaStrip` | `tbl_ChartResults` + `tbl_Chart_KeyDetails` (+ `tbl_Chart_Aspects`, `tbl_Fact_Vargottama`) via `WorkspaceData.Load` |
 | `Natal_Transit_Comp_WheelChart` | D1 `vw_ChartPlanetEvidence` (natal points) + `tbl_TransitPositionReference` via `GocharaRepository` (transit points) |
 
-## Key Inference page — step ⇄ source (planned, round 2)
+## Astro Facts page — step ⇄ source (planned, round 2)
 
-`KeyInference.razor` at `/key-inference/{id}` is **not built yet**. Superseded 2026-09-11: the
+`AstroFacts.razor` at `/astro-facts/{id}` is **not built yet**. Superseded 2026-09-11: the
 flat 13-sub-tab shape is replaced by a 6-step flow (spec:
-[`../ui/components/key-inference.md`](../ui/components/key-inference.md); mockup:
-[`../artifacts/ui/v2-mockup/key-inference-v2.html`](../artifacts/ui/v2-mockup/key-inference-v2.html)).
+[`../ui/components/astro-facts.md`](../ui/components/astro-facts.md); mockup:
+[`../artifacts/ui/v2-mockup/astro-facts-v2.html`](../artifacts/ui/v2-mockup/astro-facts-v2.html)).
 This maps each step's chart + table to the persisted view / table it reads — every one
 read-only, no recompute.
 
@@ -61,8 +61,8 @@ read-only, no recompute.
 | 3 · Strength | `vw_ChartShadbala` (%-of-minimum/composition bar inline in 3.1's table) | `vw_ChartShadbala` + `tbl_Fact_PlanetaryStrengthComponent` (3.1) · `vw_ChartBhavaBala` + `tbl_Fact_BhavaStrengthComponent` (3.2) | `PlanetaryStrengthRepository`/`BhavaStrengthRepository` (new `GetSummaryByBirthDetailId`/`GetComponentsByBirthDetailId`, `PlanetStrengthChart`/`HouseStrengthChart`) | built 2026-09-14; first UI consumer of both views outside `AstrologerEvidenceRepository`'s generic dynamic-row dump |
 | 4 · Planet-Chart | derived: Vaiśeṣikāṁśa stacked bar, from `tbl_Chart_KeyDetails.DignityStatus` over 16 vargas | `tbl_Chart_KeyDetails.Sign` across the 16 divisional `ChartType`s (Ṣoḍaśavarga grid) | `ChartKeyDetailsRepository` | Vargottama (`tbl_Fact_Vargottama`) + Varga-Dignity highlights are inline tags, not tables |
 | 5 · Ashtakavarga | `vw_ChartAshtakavarga` (SAV bar) | `vw_ChartAshtakavarga` (BAV grid) + `tbl_Fact_AshtakavargaPinda` (Piṇḍa) | `AshtakavargaRepository` (read + write, merged onto `master` `b6603ba` 2026-09-16) | live — `verify-ashtakavarga` all-pass; every saved person backfilled via `recompute-keydetails` |
-| 5 · Yoga | `YogaEvaluationTable` | `vw_ChartYogaEvaluations` + `vw_YogaLifeMatter7x7` | `YogaEvaluationRepository.GetByBirthDetailId` + `GetLifeMatterPathsByBirthDetailId` | Source-variant rows expose Set/Yoga/Variant/Status/Rule/Interpretation/Source; expandable Life matters renders seven ranked Area→SA1→…→SA6 paths per variant. Migrations `148`–`149`; UI live in Key Inference. |
-| 3.4 · Amsabala | — | `vw_ChartAmsabala` (per-planet named amsa across 4 varga-group schemes) | `AmsabalaRepository` (new, `db/101`, 2026-09-16) | Distinct from Vimśopaka Bala (`tbl_Rule_VimsopakaWeight`, still empty/reserved — PVR never publishes its numeric weight table, a separate open sourcing gap). Amsabala is the amsa-naming layer only, verified against PVR's worked Example 27 in `AmsabalaCalculatorTests`. Every saved person backfilled via `recompute-keydetails`; UI sub-tab pending (Key Inference Phase 2) |
+| 5 · Yoga | `YogaEvaluationTable` | `vw_ChartYogaEvaluations` + `vw_YogaLifeMatter7x7` | `YogaEvaluationRepository.GetByBirthDetailId` + `GetLifeMatterPathsByBirthDetailId` | Source-variant rows expose Set/Yoga/Variant/Status/Rule/Interpretation/Source; expandable Life matters renders seven ranked Area→SA1→…→SA6 paths per variant. Migrations `148`–`149`; UI live in Astro Facts. |
+| 3.4 · Amsabala | — | `vw_ChartAmsabala` (per-planet named amsa across 4 varga-group schemes) | `AmsabalaRepository` (new, `db/101`, 2026-09-16) | Distinct from Vimśopaka Bala (`tbl_Rule_VimsopakaWeight`, still empty/reserved — PVR never publishes its numeric weight table, a separate open sourcing gap). Amsabala is the amsa-naming layer only, verified against PVR's worked Example 27 in `AmsabalaCalculatorTests`. Every saved person backfilled via `recompute-keydetails`; UI sub-tab pending (Astro Facts Phase 2) |
 
 `Chara Karaka` (`tbl_Chart_KeyDetails.CharaKaraka`, D1) moved from its own sub-tab into the
 step 2.2 Planets table as a column.
@@ -80,24 +80,24 @@ Present in `schema.md` but with no UI table consumer today — listed so a new b
 deliberate row here, not a silent add: `vw_Chart_Consolidated`,
 `vw_NakshatraPadaDetails`, `vw_Dignity_Legend`.
 
-Spoken-for by the **planned** Key Inference page above, but not yet read by shipped code:
+Spoken-for by the **planned** Astro Facts page above, but not yet read by shipped code:
 `vw_ChartShadbala` · `vw_ChartBhavaBala` · `vw_ChartYogaEvaluations` (repository ready, UI
 pending) · `vw_ChartAmsabala` (`db/101`, repository ready, UI pending) ·
 `vw_ChartMoonContext`. `vw_ChartAshtakavarga` (BAV grid + SAV per sign; `db/074`) +
-`tbl_Fact_AshtakavargaPinda` (`db/074`) are live in `KeyInference.razor` "3.3 ASTAVARGA" as of
+`tbl_Fact_AshtakavargaPinda` (`db/074`) are live in `AstroFacts.razor` "3.3 ASTAVARGA" as of
 `master` `b6603ba` (2026-09-16) — see row 5 above.
 
 **Not needed:** `tbl_Rule_Exaltation` — the Uchcha Bindu sign+degree per graha is already in
 `tbl_Rule_GrahaDignity` and `tbl_SignAttributes` (see row above).
 
-**Saved Life Matters statistics:** `vw_ChartHouseStrengthStatistics` over
+**Saved Key Inference statistics:** `vw_ChartHouseStrengthStatistics` over
 `tbl_Fact_HouseStrengthStatistics` (`db/156`) — one row per person × chart × sign, lord-only axes;
 the flat, queryable form of `LifeMatterStatistics` for cross-person statistics and export. No UI
 reads it yet (the page computes the same figures live).
 
 **Strength cut-offs:** `tbl_Rule_StrengthBand` (`db/154`, `db/155`) — Strong/Moderate lower bounds for
-Ṣaḍbala %, Bhava Bala, SAV, BAV and chart-relative independent Bhava Bala; read in code through its mirror `StrengthBands` (Key Inference 3.1–3.3,
-Life Matters).
+Ṣaḍbala %, Bhava Bala, SAV, BAV and chart-relative independent Bhava Bala; read in code through its mirror `StrengthBands` (Astro Facts 3.1–3.3,
+Key Inference).
 
 **Done — `db/079_add_yoga_type_and_rule.sql`:** `tbl_Rule_Yoga.FormationFamilyCode` (unused
 since migration 48) is now the Type axis (`SUN`/`MOON`/`LAGNA`/`COMBINATION`, CHECK-constrained);

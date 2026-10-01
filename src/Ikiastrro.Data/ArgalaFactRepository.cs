@@ -18,7 +18,7 @@ public sealed class ArgalaFactRepository
     private readonly SqlConnectionFactory _connectionFactory;
     public ArgalaFactRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
 
-    /// <summary>Every stored Argala / Virodhargala fact for one person, all charts — Life Matters' D1
+    /// <summary>Every stored Argala / Virodhargala fact for one person, all charts — Key Inference' D1
     /// Argala analysis. The first read path for this table; before it, rows were only written by
     /// chart generation.</summary>
     public IReadOnlyList<ArgalaFactRow> GetByBirthDetailId(int birthDetailId)

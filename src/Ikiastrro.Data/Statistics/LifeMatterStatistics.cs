@@ -89,7 +89,7 @@ public sealed record HouseStatistics(
 }
 
 /// <summary>
-/// Statistics for the Life Matters page, built once per person per chart (D1 or any varga) from
+/// Statistics for the Key Inference page, built once per person per chart (D1 or any varga) from
 /// persisted facts (vw_ChartAshtakavarga, vw_ChartBhavaBala + tbl_Fact_BhavaStrengthComponent,
 /// vw_ChartShadbala, vw_ChartAmsabala, tbl_Fact_Argala) and queried per sign. In a varga: SAV and
 /// the lord's BAV are that varga's own Ashtakavarga; Argala is the varga's own occupancy; the lord
@@ -242,7 +242,7 @@ public sealed class LifeMatterStatistics
     }
 
     // The three bands read StrengthBands (tbl_Rule_StrengthBand, migration 154) — the same cut-offs
-    // Key Inference step 3 shows, so a planet or house never gets two different labels.
+    // Astro Facts step 3 shows, so a planet or house never gets two different labels.
     public static StrengthBand SavBand(int? bindus) => ToBand(StrengthBands.SarvaAshtakavargaBindus.Classify(bindus));
 
     public static StrengthBand BavBand(int? bindus) => ToBand(StrengthBands.BhinnaAshtakavargaBindus.Classify(bindus));

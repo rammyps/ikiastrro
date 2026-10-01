@@ -3,7 +3,7 @@ using Ikiastrro.Data;
 
 namespace Ikiastrro.Web.Components.LifeMatters;
 
-/// <summary>One life matter read from a house — a Key Inference house row's link into Life Matters.</summary>
+/// <summary>One life matter read from a house — a Astro Facts house row's link into Key Inference.</summary>
 public sealed record HouseMatterLink(string MatterCode, string MatterText, string AreaName);
 
 /// <summary>

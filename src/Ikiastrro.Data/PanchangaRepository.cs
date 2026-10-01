@@ -3,7 +3,7 @@ using Ikiastrro.Core.Engines.Panchanga;
 
 namespace Ikiastrro.Data;
 
-/// <summary>Key Inference "Birth Pañchāṅga" card — one row from `vw_ChartPanchanga` (db/081), the
+/// <summary>Astro Facts "Birth Pañchāṅga" card — one row from `vw_ChartPanchanga` (db/081), the
 /// D1-only birth-moment Tithi/Karana/NityaYoga/Weekday/HoraLord plus sunrise/sunset/Janma Ghatis.
 /// Null fields (KaranaName/NityaYogaName's Meaning) mirror the view's own nullable columns.</summary>
 public sealed record ChartPanchangaRow(

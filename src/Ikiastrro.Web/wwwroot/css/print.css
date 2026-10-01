@@ -9,7 +9,7 @@
     .print-head { break-after: avoid; }
     .print-minis > * , table tr, .chart, .mini-chart, .cd9-chart, .wheel { break-inside: avoid; }
 
-    /* --- All-charts gallery (/charts/{id}, and Key Inference's embedded "7. ALL CHARTS" tab)
+    /* --- All-charts gallery (/charts/{id}, and Astro Facts's embedded "7. ALL CHARTS" tab)
        print: the charts and nothing else, on a light ground (the card's own --brand-* palette is
        parchment, not the dark PrintChart theme). Scoped with :has() so PrintChart above keeps its
        dark body. Class names matched to Components/Charts/AllChartsGrid.razor (2026-09-24 —
@@ -18,7 +18,7 @@
     body:has(.ac-grid) { background: #ffffff !important; color: #2a2118 !important; }
 
     /* Strip everything that isn't a chart: site nav, the person identity band, this page's own
-       Print button, and (when printed from inside Key Inference) the master/sub tab rails. */
+       Print button, and (when printed from inside Astro Facts) the master/sub tab rails. */
     body:has(.ac-grid) .ik-appbar-scope,
     body:has(.ac-grid) .ik-band,
     body:has(.ac-grid) .ik-footer,

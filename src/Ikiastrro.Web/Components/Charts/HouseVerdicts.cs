@@ -13,10 +13,10 @@ namespace Ikiastrro.Web.Components.Charts;
 public sealed record HouseVerdictRow(int House, ZodiacName Sign, HouseBeneficMaleficResult Raman, TargetInfluenceReading Influences);
 
 /// <summary>
-/// Key Inference About Houses' "What acts on each house" table, for the chart in the picker.
+/// Astro Facts About Houses' "What acts on each house" table, for the chart in the picker.
 /// Argala comes from <see cref="ArgalaFacts.ForChart"/> through
-/// <see cref="LifeMatterStatistics.BuildArgala"/> — the same facts and verdicts Life Matters
-/// uses — so a house reads the same here as in Life Matters' "What acts on it" (with no kāraka,
+/// <see cref="LifeMatterStatistics.BuildArgala"/> — the same facts and verdicts Key Inference
+/// uses — so a house reads the same here as in Key Inference' "What acts on it" (with no kāraka,
 /// since no life matter is chosen). Computed live; nothing stored.
 /// </summary>
 public static class HouseVerdicts

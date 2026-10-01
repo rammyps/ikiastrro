@@ -111,7 +111,7 @@
 
     private static string BirthLine(BirthDetails p) => $"{p.DateOfBirth:dd/MM/yyyy} · {p.PlaceCity}";
 
-    private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/key-inference/{p.Id}");
+    private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/astro-facts/{p.Id}");
 
     // A search that matches no saved person IS the intent to add that person: reveal the
     // Add-New form, pre-filled from the search text (docs/ui/components/home.md). Retract it
@@ -199,7 +199,7 @@
 
             BirthDetailsRepo.Insert(birth);
             ChartGenerationService.GenerateAll(birth);   // uses the DB's active-default ayanamsa
-            Nav.NavigateTo($"/key-inference/{birth.Id}");
+            Nav.NavigateTo($"/astro-facts/{birth.Id}");
         }
         catch (Exception ex)
         {

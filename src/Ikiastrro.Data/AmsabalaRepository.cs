@@ -8,7 +8,7 @@ public sealed record AmsabalaRow(string PlanetCode, string SchemeCode, byte Grou
 /// <summary>
 /// Persists AmsabalaCalculator's per-planet, per-scheme amsa (migration 101) on the D1
 /// <c>tbl_ChartResults</c> row, mirroring AshtakavargaRepository. Also the read model for
-/// Key Inference 3.4, backed by vw_ChartAmsabala.
+/// Astro Facts 3.4, backed by vw_ChartAmsabala.
 /// </summary>
 public sealed class AmsabalaRepository
 {

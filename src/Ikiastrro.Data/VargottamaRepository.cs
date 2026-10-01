@@ -11,7 +11,7 @@ public sealed class VargottamaRepository
     private readonly SqlConnectionFactory _connectionFactory;
     public VargottamaRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
 
-    /// <summary>Read model for Key Inference 3.4's Vargottama tab — one row per planet, D1 vs D9
+    /// <summary>Read model for Astro Facts 3.4's Vargottama tab — one row per planet, D1 vs D9
     /// sign and whether they match, already computed/persisted by VargottamaDetector via
     /// ChartGenerationService (no re-derivation from LoadedChart needed).</summary>
     public IReadOnlyList<VargottamaRow> GetByBirthDetailId(int birthDetailId)

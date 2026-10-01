@@ -1,6 +1,6 @@
 ---
 last_updated: 2026-10-01
-reflects: master (Life Matters three-axis statistics, see "Build roadmap" below)
+reflects: master (Key Inference three-axis statistics, see "Build roadmap" below)
 ---
 
 # Planet strength statistics — normalization framework & build roadmap
@@ -234,8 +234,8 @@ across overlapping schemes.
 
 ## 6 · Build roadmap
 
-This section is the confirmed, in-progress build plan (not a proposal) — see the Key Inference
-step-6 redesign (`docs/ui/components/key-inference.md`, 2026-09-16 evening changelog entry) for
+This section is the confirmed, in-progress build plan (not a proposal) — see the Astro Facts
+step-6 redesign (`docs/ui/components/astro-facts.md`, 2026-09-16 evening changelog entry) for
 the shipping UI work this roadmap's Tier 0 rides alongside.
 
 **Confirmed feasible with zero new migrations** (verified against the codebase, not assumed):
@@ -263,7 +263,7 @@ already exists — no new fact tables, no new migrations.
   independent Bhavabala per house.
 - Ashtakavarga `N(SAV)`/`N(BAV)` normalization, blended into that context score.
 
-**Built 2026-10-01, house-first rather than planet-first:** Life Matters reads the three axes per
+**Built 2026-10-01, house-first rather than planet-first:** Key Inference reads the three axes per
 *house* (`LifeMatterStatistics` / `HouseStatistics`) — Capacity = Ṣaḍbala of the sign's lord and
 the matter's kārakas, Consistency = their Shodasavarga Amsabala, Context = SAV + the lord's BAV in
 the sign + independent Bhava Bala (as 50 + 10z against the chart's 12 houses, §1.3) + Argala.

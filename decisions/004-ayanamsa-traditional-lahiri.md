@@ -22,7 +22,7 @@ It is not a user preference and not a per-call parameter.
   table and `tbl_Fact_HouseStrengthStatistics` are computed once at generation. Changing the
   ayanāṁśa would silently disagree with all of them until a full regeneration — the problem
   class the 2026-09-13 hardcode decision set out to remove before the population is imported.
-- **Statistics need one frame.** Cross-person statistics (Life Matters) are only comparable when
+- **Statistics need one frame.** Cross-person statistics (Key Inference) are only comparable when
   every chart shares the same zodiac.
 
 ## How it is enforced

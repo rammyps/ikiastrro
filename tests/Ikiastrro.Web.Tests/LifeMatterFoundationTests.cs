@@ -86,13 +86,13 @@ public class LifeMatterHouseIndexTests
         Assert.Single(LifeMatterHouseIndex.ByHouse([Step(1, "A_01", "A")], [House(1, 4), House(1, 4, priority: 2)])[4]);
 }
 
-public class KeyInferenceLinkTests
+public class AstroFactsLinkTests
 {
     [Fact]
     public void D1_is_left_out() =>
-        Assert.Equal("/key-inference/2?step=houses", KeyInferenceLink.Url(2, KeyInferenceLink.Houses, "D1"));
+        Assert.Equal("/astro-facts/2?step=houses", AstroFactsLink.Url(2, AstroFactsLink.Houses, "D1"));
 
     [Fact]
     public void A_varga_is_named() =>
-        Assert.Equal("/key-inference/2?step=houses&chart=D2-US", KeyInferenceLink.Url(2, KeyInferenceLink.Houses, "D2-US"));
+        Assert.Equal("/astro-facts/2?step=houses&chart=D2-US", AstroFactsLink.Url(2, AstroFactsLink.Houses, "D2-US"));
 }

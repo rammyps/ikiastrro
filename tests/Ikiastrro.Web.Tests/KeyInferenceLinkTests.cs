@@ -3,20 +3,20 @@ using Xunit;
 
 namespace Ikiastrro.Web.Tests;
 
-public class LifeMatterLinkTests
+public class KeyInferenceLinkTests
 {
     [Fact]
     public void Url_leaves_out_the_defaults() =>
-        Assert.Equal("/life-matters/2?matter=WEALTH_02", LifeMatterLink.Url(2, "WEALTH_02", "LAGNA", null));
+        Assert.Equal("/key-inference/2?matter=WEALTH_02", KeyInferenceLink.Url(2, "WEALTH_02", "LAGNA", null));
 
     [Fact]
     public void Url_names_the_perspective_by_its_tag_and_the_chart() =>
-        Assert.Equal("/life-matters/2?matter=WEALTH_02&lagna=MO&chart=D2-US",
-            LifeMatterLink.Url(2, "WEALTH_02", "CHANDRA_LAGNA", "D2-US"));
+        Assert.Equal("/key-inference/2?matter=WEALTH_02&lagna=MO&chart=D2-US",
+            KeyInferenceLink.Url(2, "WEALTH_02", "CHANDRA_LAGNA", "D2-US"));
 
     [Fact]
     public void Url_without_a_matter_is_the_bare_page() =>
-        Assert.Equal("/life-matters/7", LifeMatterLink.Url(7, null, "LAGNA", null));
+        Assert.Equal("/key-inference/7", KeyInferenceLink.Url(7, null, "LAGNA", null));
 
     [Theory]
     [InlineData("MO", "CHANDRA_LAGNA")]
@@ -27,7 +27,7 @@ public class LifeMatterLinkTests
     [InlineData("", null)]
     [InlineData(null, null)]
     public void ResolveLagna_accepts_a_tag_or_a_reference_code(string? value, string? expected) =>
-        Assert.Equal(expected, LifeMatterLink.ResolveLagna(value));
+        Assert.Equal(expected, KeyInferenceLink.ResolveLagna(value));
 
     [Theory]
     [InlineData("d10", "D10")]
@@ -35,5 +35,5 @@ public class LifeMatterLinkTests
     [InlineData("D99", null)]
     [InlineData(null, null)]
     public void ResolveChart_matches_only_a_generated_chart(string? value, string? expected) =>
-        Assert.Equal(expected, LifeMatterLink.ResolveChart(value, ["D1", "D2-US", "D10"]));
+        Assert.Equal(expected, KeyInferenceLink.ResolveChart(value, ["D1", "D2-US", "D10"]));
 }

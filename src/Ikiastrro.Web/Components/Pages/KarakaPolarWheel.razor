@@ -1,5 +1,6 @@
 @page "/charts/{Id:int}/karaka-wheel"
 @using Ikiastrro.Web.Components.Workspace
+@using Ikiastrro.Web.Components.LifeMatters
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
@@ -15,7 +16,7 @@
 
 @if (!Embedded)
 {
-    @* Legacy route retained as a redirect so bookmarks land on the canonical Key Inference step. *@
+    @* Legacy route retained as a redirect so bookmarks land on the canonical Astro Facts step. *@
 }
 else if (_data is null || _rules is null)
 {
@@ -32,8 +33,22 @@ else
  </header>
  @if (SelectedChart is { } selected)
  {
-  <PolarGridLagnaSelect Sectors="BuildSectors(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" View="@_view"
-      KeyDetails="selected.KeyDetails" Aspects="selected.Aspects" NaisargikaKarakas="_rules.Primary" />
+  @if (_view == "south")
+  {
+   @* Grid view = SIND-UNI-3 with the special-lagna bars, the same view as Key Inference's chart
+      (docs/ui/components/spec_SIND-UNI_GridChart.md). The wheel stays PolarGridLagnaSelect. *@
+   <div class="karaka-uni">
+    <SindUni3Grid Chart="SindUniBuilder.Build(selected)" ShowSpecialLagnas="true" Title="@selected.ChartType"
+                  Name="@selected.SanskritName" Meta="@($"Lagna {selected.AscendantSign}")"
+                  @bind-PinnedSign="_uniPinned" PrefsKey="spl-lagnas" AriaLabel="@($"{selected.ChartType} special lagnas")" />
+    <a class="karaka-ki" href="@KeyInferenceLink.Url(Id, null, "LAGNA", selected.ChartType)">Read @selected.ChartType in Key Inference →</a>
+   </div>
+  }
+  else
+  {
+   <PolarGridLagnaSelect Sectors="BuildSectors(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" View="@_view"
+       KeyDetails="selected.KeyDetails" Aspects="selected.Aspects" NaisargikaKarakas="_rules.Primary" />
+  }
 
   var lagnaRows = BuildSpecialLagnaRows(selected, _rules.LagnaReferences);
   @if (lagnaRows.Count > 0)
@@ -56,18 +71,18 @@ else
 @code {
  [Parameter] public int Id { get; set; }
  [Parameter] public bool Embedded { get; set; }
- private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1"; private string _view = "polar";
+ private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1"; private string _view = "polar"; private Ikiastrro.Core.Engines.Astronomy.ZodiacName? _uniPinned;
  private IEnumerable<LoadedChart> AvailableCharts => _data?.Charts.Values.OrderBy(c => _data.ChartTypes.FirstOrDefault(t => t.Code == c.ChartType)?.DivisionalFactor ?? int.MaxValue) ?? Enumerable.Empty<LoadedChart>();
  private LoadedChart? SelectedChart => _data?.Charts.GetValueOrDefault(_chartCode);
  protected override void OnParametersSet()
  {
-  if(!Embedded){Nav.NavigateTo($"/key-inference/{Id}?step=karakas",replace:true);return;}
+  if(!Embedded){Nav.NavigateTo($"/astro-facts/{Id}?step=karakas",replace:true);return;}
   _data=WorkspaceData.Load(Id,BirthDetailsRepo,ChartResultsRepo,ChartKeyDetailsRepo,ChartHouseLordsRepo,ChartHouseLordInterpretationRepo,ChartAspectsRepo,ChartConjunctionsRepo,ChartMultiGrahaConjunctionRepo,ChartTypeRepo.GetAll());
   _rules=_data is null ? null : new NaisargikaKarakaRepository(ConnectionFactory).LoadActive();
   if(_data is not null && !_data.Charts.ContainsKey(_chartCode)) _chartCode=_data.Charts.ContainsKey("D1") ? "D1" : _data.Charts.Keys.First();
   if(_data is null){Active.Clear();return;} var p=_data.Person; Active.Set(Id,p.Name,$"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
  }
- private void ChangeChart(ChangeEventArgs e) => _chartCode=e.Value?.ToString()??"D1";
+ private void ChangeChart(ChangeEventArgs e) { _chartCode=e.Value?.ToString()??"D1"; _uniPinned=null; }
  private void ShowPolar() => _view = "polar";
  private void ShowSouth() => _view = "south";
  private static IReadOnlyList<PolarGridLagnaSelect.Sector> BuildSectors(LoadedChart c)
@@ -91,7 +106,7 @@ else
 
  /// <summary>All 6 special lagnas — the 4 persisted ones (BL/HL/GL/SL — tbl_Dim_SpecialLagnas,
  /// tbl_Chart_KeyDetails PointKind='SpecialLagna') plus Paaka Lagna and Karakamsa Lagna, which
- /// have no persisted point at all (LifeMatters.razor's ResolveReferenceSign established the same
+ /// have no persisted point at all (KeyInference.razor's ResolveReferenceSign established the same
  /// "no persisted point needed" reasoning, 2026-09-25): Paaka Lagna is just the D1 Lagna lord's
  /// own placement in whichever chart <paramref name="c"/> is selected, and Karakamsa Lagna is
  /// always the Atmakaraka's D9 placement specifically — never the selected chart — which is why

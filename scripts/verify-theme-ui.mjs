@@ -63,7 +63,7 @@ try {
 
     const results = [];
     for (const mode of Object.keys(expected)) {
-        await evaluate(`(() => { localStorage.setItem('ikiastrro-theme', '${mode}'); location.href='${APP}/key-inference/${PERSON}'; return true; })()`);
+        await evaluate(`(() => { localStorage.setItem('ikiastrro-theme', '${mode}'); location.href='${APP}/astro-facts/${PERSON}'; return true; })()`);
         await waitFor(`document.documentElement.dataset.theme === '${mode}' && document.querySelector('.ik-page')`);
         await delay(750);
 

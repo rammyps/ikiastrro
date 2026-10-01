@@ -40,10 +40,10 @@ selector switches section 3+ between D1 and any stored varga.
 
 MudBlazor tables, shared tokens, tabular numerals. No charts on this page — it is the raw
 evidence surface that the visual pages summarise.
-## Key Inference presentation ownership
+## Astro Facts presentation ownership
 
-The raw evidence page may expose the complete persisted record for inspection. Key Inference is a
-curated workflow and follows `key-inference.md`'s one-owner rule: 1.1 owns position; 2.1 owns house
+The raw evidence page may expose the complete persisted record for inspection. Astro Facts is a
+curated workflow and follows `astro-facts.md`'s one-owner rule: 1.1 owns position; 2.1 owns house
 analysis; 2.2 owns planet role/condition. Context repeated to label a strength, yoga, or varga
 finding is not a second full presentation. Functional nature is calculated only by Core's
 `LagnaFunctionalNature`; no UI component or SQL view reimplements its rules.

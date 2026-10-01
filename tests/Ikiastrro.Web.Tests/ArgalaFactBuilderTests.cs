@@ -84,7 +84,7 @@ public sealed class ArgalaFactBuilderTests
             targets);
     }
 
-    /// <summary>BuildOccupancy (added for the Key Inference 2.1 ArgalaTable, which only has
+    /// <summary>BuildOccupancy (added for the Astro Facts 2.1 ArgalaTable, which only has
     /// ChartKeyDetail rows in hand, not an already-built occupancy map) must reproduce Chart 5's
     /// dictionary exactly — Ascendant excluded, everything else grouped by sign.</summary>
     [Fact]

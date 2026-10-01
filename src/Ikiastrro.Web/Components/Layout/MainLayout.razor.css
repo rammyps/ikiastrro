@@ -21,10 +21,20 @@
     max-width: none;
     width: 100%;
     margin-inline: auto;
-    padding-inline: var(--pad-x);
+    /* Logo flush left, SAVED CHARTS flush right (rammyps, 2026-10-01): a fixed 16px gutter,
+       not the page's --pad-x, so the two ends sit at the bar's edges. */
+    padding-inline: 16px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: 14px;
+}
+
+/* One bar, 10% shorter than MudBlazor's 64px default (rammyps, 2026-10-01): --ik-appbar-h is
+   58px in tokens.css, and the toolbar, the pills and the name all scale to it. */
+.ik-appbar-scope ::deep .ik-appbar,
+.ik-appbar-scope ::deep .ik-appbar .mud-toolbar {
+    height: var(--ik-appbar-h);
+    min-height: var(--ik-appbar-h);
 }
 
 .ik-header-start,
@@ -34,8 +44,11 @@
     align-items: center;
     gap: 8px;
 }
-.ik-header-start { min-width: 0; }
+.ik-header-start { grid-column: 1; min-width: 0; }
+/* Pinned to the third column, so it stays top-right on Home too, where no person block fills
+   the centre column (it used to fall into the centre). */
 .ik-header-actions {
+    grid-column: 3;
     justify-self: end;
     display: flex;
     align-items: center;
@@ -44,23 +57,45 @@
 
 .ik-header-save { display: flex; }
 
+/* Brand mark, far left of the bar: Ganesha icon + "Iki-Astrro", linking home. */
+.ik-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: none;
+    margin-right: 6px;
+    color: var(--brand-midnight);
+    text-decoration: none;
+    font: 700 calc(var(--font-size-heading) * 0.9) / 1 var(--font-interface);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.ik-logo-icon {
+    width: 34px;
+    height: 34px;
+    padding: 3px;
+    border-radius: 9px;
+    background: var(--cosmos-architecture);
+    object-fit: contain;
+}
 
-/* One pill language for every header tab, matching the Key Inference master rail. */
+
+/* One pill language for every header tab, matching the Astro Facts master rail. */
 .ik-headtab {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 82px;
-    min-height: 38px;
-    padding: 5px 14px;
+    min-width: 74px;
+    min-height: 34px;
+    padding: 4px 13px;
     border-radius: 999px;
     border: 0;
     background: var(--brand-surface-soft);
     color: var(--brand-midnight);
     /* Level 3 — Primary UI (docs/ui/design-language.md "Typography"): navigation is exactly
        --font-size-control, not a bespoke multiplier of it. */
-    font: 700 var(--font-size-control) / 0.95 var(--font-interface);
+    font: 700 calc(var(--font-size-control) * 0.9) / 0.95 var(--font-interface);
     letter-spacing: 0.06em;
     text-decoration: none;
     white-space: nowrap;
@@ -112,7 +147,7 @@
     opacity: 0.72;
 }
 
-/* Context band — Key Inference's master step rail only now (`Active.HeaderExtra`); the person
+/* Context band — Astro Facts's master step rail only now (`Active.HeaderExtra`); the person
    name/birth line that used to live here moved up into the app bar itself (`.ik-appbar-person`
    below, rammyps, 2026-09-26 — "once a person's chart is chosen it should be at the top"), so
    MainLayout only renders this band at all when a page has supplied HeaderExtra. Full width,
@@ -142,7 +177,7 @@
    .mud-toolbar`, `minmax(0,1fr) auto minmax(0,1fr)`) — same slot the brand lockup used to
    occupy, now showing the open person's name/DOB instead (rammyps, 2026-09-26). Renders only
    when `Active.Id` is set; on Home this column is simply empty. */
-.ik-appbar-person { min-width: 0; }
+.ik-appbar-person { grid-column: 2; min-width: 0; }
 
 .ik-person {
     display: inline-flex;
@@ -158,7 +193,7 @@
        the markup itself, since this is per-person data, not a fixed label — the accessible
        name (@Active.Name) stays in its original case. The DOB/time/location line that used to
        sit under it is gone (rammyps: "remove the 2nd line") — the app bar shows the name only. */
-    font: 700 var(--font-size-heading) / 1.1 var(--font-interface);
+    font: 700 calc(var(--font-size-heading) * 0.9) / 1.1 var(--font-interface);
     letter-spacing: -0.01em;
     text-transform: uppercase;
 }
@@ -248,14 +283,14 @@
     padding: 28px var(--pad-x) 40px;
 }
 
-/* Key Inference only (`.ik-page-tight-top`, rammyps, 2026-09-26 — "reduce the space between
+/* Astro Facts only (`.ik-page-tight-top`, rammyps, 2026-09-26 — "reduce the space between
    1st-level tabs and its sub-tabs"): when the master step rail band is showing right above this
    page, the page's own top padding is redundant on top of the band's — cuts the combined gap
    between the rail and the page's first sub-tab row roughly in half. Every other page (no band)
    keeps the full 28px. */
 .ik-page-tight-top { padding-top: 12px; }
 
-/* Life Matters runs edge to edge (rammyps, 2026-09-29 — "make the chart from end to end"): the
+/* Key Inference runs edge to edge (rammyps, 2026-09-29 — "make the chart from end to end"): the
    page drops a hidden `.lm-full` marker, and the shared centered column gives way to full width. */
 .ik-page:has(.lm-full) { max-width: none; padding-inline: 16px; }
 
@@ -317,7 +352,7 @@
 }
 
 /* Phones: five tabs plus the person's name cannot share one 64px row — they overlapped each other
-   and hid the person switcher (Life Matters audit, 2026-10-01). The bar becomes two rows: the
+   and hid the person switcher (Key Inference audit, 2026-10-01). The bar becomes two rows: the
    tabs on top (scrolling sideways if they still don't fit), the person switcher and SAVED CHARTS
    below. It is taller than --ik-appbar-h, so it stops being fixed and scrolls away with the page
    (tokens.css drops the main content's matching top padding at the same width). */
@@ -330,9 +365,11 @@
         gap: 6px 8px;
         padding: 6px 8px;
     }
+    .ik-appbar-scope ::deep .ik-appbar .mud-toolbar { height: auto; min-height: 0; }
     .ik-header-start { grid-column: 1 / -1; overflow-x: auto; scrollbar-width: none; }
-    .ik-appbar-person { justify-self: start; align-items: flex-start; }
-    .ik-header-actions { justify-self: end; }
+    .ik-appbar-person { grid-column: 1; justify-self: start; align-items: flex-start; }
+    .ik-header-actions { grid-column: 2; justify-self: end; }
+    .ik-logo-name { display: none; }
     .ik-header-start, .ik-globalnav, .ik-tabs { gap: 4px; }
     .ik-headtab { min-width: 58px; min-height: 34px; padding: 4px 9px; letter-spacing: 0.02em; flex: none; }
 }

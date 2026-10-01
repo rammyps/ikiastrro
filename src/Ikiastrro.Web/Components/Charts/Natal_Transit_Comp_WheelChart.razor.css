@@ -1,5 +1,5 @@
 .ntw { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--font-interface); }
-.ntw-transit { fill: var(--brand-midnight); stroke: var(--brand-midnight); stroke-width: 3; }
+.ntw-transit { fill: var(--transit-band); stroke: var(--transit-band); stroke-width: 3; }
 .ntw-nak { fill: var(--brand-surface); stroke: var(--grid-stroke); stroke-width: 2; }
 .ntw-nak-sector { stroke: none; }
 .ntw-nak-sector-orange { fill: var(--brand-surface); }
@@ -15,8 +15,8 @@
 .ntw-sign { fill: var(--brand-midnight); font-size: 11px; font-weight: 800; }
 .ntw-house { fill: var(--brand-midnight); font-size: 12px; font-weight: 700; }
 .ntw-nak-name { fill: var(--brand-midnight); font-size: 8px; font-weight: 600; }
-.ntw-ring-title { fill: #fff; font-size: 12px; font-weight: 800; letter-spacing: .08em; }
-.ntw-ring-sub { fill: #fff; font-size: 8px; font-weight: 700; }
+.ntw-ring-title { fill: var(--transit-band-fg); font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+.ntw-ring-sub { fill: var(--transit-band-fg); font-size: 8px; font-weight: 700; }
 .ntw-natal-title { fill: var(--brand-midnight); }
 .ntw-brand { fill: var(--brand-midnight); font-size: 28px; font-weight: 700; }
 .ntw-caption { fill: var(--brand-midnight); font-size: 10px; font-weight: 700; letter-spacing: .18em; }

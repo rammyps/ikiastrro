@@ -61,8 +61,8 @@ public sealed class HouseStrengthStatisticsRepository(SqlConnectionFactory conne
 }
 
 /// <summary>
-/// Saves one person's Life Matters strength statistics — every generated chart × 12 signs — from
-/// the same <see cref="LifeMatterStatistics"/> the Life Matters page uses, reading only
+/// Saves one person's Key Inference strength statistics — every generated chart × 12 signs — from
+/// the same <see cref="LifeMatterStatistics"/> the Key Inference page uses, reading only
 /// already-persisted facts (Ashtakavarga, Bhava Bala + components, Ṣaḍbala, Amsabala, Argala).
 /// Axes are read for the sign's lord only (no matter, so no kārakas). Run after chart generation.
 /// </summary>

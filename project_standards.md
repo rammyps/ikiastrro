@@ -184,13 +184,13 @@ recomputes (`docs/architecture/domain-contracts.md`).
   Resolved by hand-merging both sides (commit `b6603ba`); §2.1 adds the ownership table, the
   no-exceptions rule, the pre-build duplication check, and the divergence-check cadence so the
   next parallel-build isn't caught this late.
-- **2026-09-14** — full-app standardization pass (rammyps's directive): Key Inference's nested
+- **2026-09-14** — full-app standardization pass (rammyps's directive): Astro Facts's nested
   tabs (1.1/1.2, 2.1/2.2, 3.1/3.2) now ALL CAPS and restyled onto the master step rail's pill
   look (one tab convention app-wide, not two — see `docs/ui/design-language.md` "Tabs");
   every data-table component (`AspectsTable`, `HouseConjunctionsTable`, `HouseLordshipTable`,
   `HouseLordFindingsTable`, `PlanetDignityTable`, `PlanetPositionsTable`, `ConjunctionsTable`,
   `SadeSatiTable`, `GocharaPanel`, `DataTable`/`EvidenceTable`, the Saved Charts table) now
-  shares Key Inference "2. ABOUT"'s table typography — `font: 500 var(--font-size-control) /
+  shares Astro Facts "2. ABOUT"'s table typography — `font: 500 var(--font-size-control) /
   1.3 Manrope; font-size: 0.86em`, `th` `font-weight: 700` + 2px `--brand-line` bottom border,
   `td` 1px border, `--brand-midnight` text throughout, no forced `nowrap` outside tabular-numeral
   cells. Retired the remaining `--paper-*` / `--ink-*` / `--accent` / `--muted-text` legacy
@@ -201,7 +201,7 @@ recomputes (`docs/architecture/domain-contracts.md`).
   scope attribute (documented MudBlazor gotcha, previously only called out for MudTabs), so the
   brand line was never centred and Saved Charts' right pin was accidental flex behaviour, not
   the intended grid; fixed by wrapping `<MudAppBar>` in a literal `.ik-appbar-scope` div, same
-  pattern as `KeyInference.razor`'s `.ki-wheel`/`.ki-tabs` wrappers. (2) `KeyInference.razor.css`
+  pattern as `AstroFacts.razor`'s `.ki-wheel`/`.ki-tabs` wrappers. (2) `AstroFacts.razor.css`
   hid MudBlazor's tab-underline slider via `.mud-tabs-toolbar-wrapper`, but this MudBlazor
   version renders `.mud-tabs-tabbar-wrapper` — fixed for the slider rule; the sibling
   grid-stretch rule for the master rail turned out to fight MudTabs' own overflow/scroll-arrow

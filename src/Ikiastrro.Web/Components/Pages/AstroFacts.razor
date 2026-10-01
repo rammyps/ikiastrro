@@ -1,0 +1,905 @@
+@page "/astro-facts/{Id:int}"
+@using System.Globalization
+@using Ikiastrro.Web.Components.Workspace
+@using Ikiastrro.Web.Components.LifeMatters
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject ChartResultsRepository ChartResultsRepo
+@inject ChartKeyDetailsRepository ChartKeyDetailsRepo
+@inject ChartHouseLordsRepository ChartHouseLordsRepo
+@inject ChartHouseLordInterpretationRepository ChartHouseLordInterpretationRepo
+@inject ChartAspectsRepository ChartAspectsRepo
+@inject ChartMoonContextRepository ChartMoonContextRepo
+@inject ChartConjunctionsRepository ChartConjunctionsRepo
+@inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
+@inject ChartTypeRepository ChartTypeRepo
+@inject Ikiastrro.Data.GocharaRepository Gochara
+@inject Ikiastrro.Data.Natal_Transit_Comp_WheelRepository D1WheelRepo
+@inject DashaPeriodsRepository DashaRepo
+@inject Ikiastrro.Data.PlanetaryStrengthRepository PlanetaryStrengthRepo
+@inject Ikiastrro.Data.BhavaStrengthRepository BhavaStrengthRepo
+@inject Ikiastrro.Data.AshtakavargaRepository AshtakavargaRepo
+@inject Ikiastrro.Data.AmsabalaRepository AmsabalaRepo
+@inject Ikiastrro.Data.AmsabalaSchemeRepository AmsabalaSchemeRepo
+@inject Ikiastrro.Data.TransitStrengthRuleRepository TransitStrengthRuleRepo
+@inject Ikiastrro.Data.VargottamaRepository VargottamaRepo
+@inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
+@inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
+@inject Ikiastrro.Data.ArgalaRuleRepository ArgalaRuleRepo
+@inject Ikiastrro.Data.ArgalaFactRepository ArgalaFactRepo
+@inject Ikiastrro.Data.RasiNakshatraCombinationRepository RasiNakshatraCombinationRepo
+@inject Ikiastrro.Data.GrahaDrishtiStrengthRepository GrahaDrishtiStrengthRepo
+@inject Ikiastrro.Data.PlanetaryStateRepository PlanetaryStateRepo
+@inject Ikiastrro.Data.PlanetaryStateRuleRepository PlanetaryStateRuleRepo
+@inject Ikiastrro.Data.PostureStateInterpretationRepository PostureStateInterpretationRepo
+@inject Ikiastrro.Data.PanchangaRepository PanchangaRepo
+@inject LifeMatterReferenceRepository LifeMatterReferenceRepo
+@inject LifeMatterFocusRepository LifeMatterFocusRepo
+@inject ActivePerson Active
+
+@* Astro Facts — docs/ui/components/astro-facts.md. Steps 1–4 built (3.4 Amsabala added
+   2026-09-16), 5 (Yogas) and 6 (Vargas) added 2026-09-16; 7 (All Charts) embedded as its own
+   master tab 2026-09-24 (rammyps's directive — no more jumping to a separate page for it) via
+   the shared `AllChartsGrid` component (Components/Charts/**), which also backs the standalone
+   /charts/{id} page (AllCharts.razor) — both render off the same already-loaded WorkspaceData,
+   so this tab needs no extra query. Same South-Indian grid component
+   as /charts (Codex `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not
+   modified) for the "1.1 D1 - BIRTH CHART" tab, chart left / table right (`.ki-d1layout`,
+   2026-09-23). D1's table is back to `PlanetPositionsTable` (`Variant="d1"`, `ShowAnalysis=
+   false` — position only here, 2.2/"1.2 About Planets" owns role/condition) as of 2026-09-23
+   evening (rammyps's call — the transposed planets-as-columns layout tried earlier that day was
+   reverted for being harder to read; the plain planets-as-rows table is easier). The transposed
+   `PlanetPositionsD1Transposed` component (with its Nak Pada Lord column, read off the person's
+   own D9) still exists but is unused now — VargaView is PlanetPositionsTable's only other
+   caller, passing `Variant="varga"`. The standalone /transit-wheel page has
+   been folded into the "1.2 TRANSIT CHART" tab wholesale — wheel chart, date/dasha selector,
+   and Gochara table — reusing its
+   Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath exactly;
+   only the chart shown under a tab now, not a separate route.
+
+   Three tab levels, rebuilt 2026-09-23 evening (rammyps's directive) as plain hand-rolled pill
+   navs — `<button role="tab">` + a private `int` field per level (`_masterTab`/`_activeTab`/
+   `_strengthTab`), no `<MudTabs>` — after three separate rounds earlier in the project of
+   fighting MudTabs' internal DOM just to make it look like a plain pill; the app's own header
+   nav (`.ik-headtab`, MainLayout.razor.css) already proved the plain-markup version of this
+   look works, so the tab strip here now follows it directly. See design-language.md "Tabs" for
+   the full history and the shared `--tab-*` tokens (sunset-fill/navy-text pill, same for active
+   and inactive — the only difference is `aria-selected`).
+   Master rail (7 steps: "1. NATAL CHARTS" .. "7. ALL CHARTS", labels as two stacked `<span>`s
+   each rather than one wrapped string — `MasterSteps`/`MasterNav` in `@code` below) doesn't
+   render in this page's own body at all: it's handed to `Active.SetHeaderExtra` (see
+   `OnParametersSet`) and rendered by `MainLayout` inside the shared person band, to the right
+   of the name, so the tab row no longer costs its own line of vertical space. Because that
+   `<nav>`'s markup physically renders inside MainLayout's tree, `SelectMaster` calls
+   `StateHasChanged()` explicitly after changing `_masterTab` — see that method's own comment.
+   Per-panel heading text (D1-TRANSIT/ABOUT/STRENGTH, plus the "Step N of 6" stepnum line) was
+   dropped from every panel 2026-09-16/09-17, rammyps's call — the tab pill above already names
+   the step, so panels open straight into their content; `.ki-panelbody` carries a flat top
+   margin for the breathing room that heading used to provide. "4. SPL LAGNAS" never had a
+   heading of its own beyond the embedded KarakaPolarWheel's own header.
+   Where a step has sub-views, its own inner plain nav (same `.ki-steptab`/`.ki-steptab-sub`
+   pill, physically in the page body this time, not the band, single line at this level too as
+   of 2026-09-24 — see that class's own comment in the .css file): Natal Charts uses a
+   D1-default chart selector and 1.1 GENERAL / 1.2 ABOUT PLANETS / 1.3 ABOUT HOUSES & SIGN &
+   PLANET ASPECTS (_activeTab, reduced from 4 sub-tabs to 3 on 2026-09-24, rammyps's call — the
+   old 1.3 About Houses and 1.4 Aspected (%) panels are now one merged panel, House
+   lordship/Argala followed by Graha/Rāśi Dṛṣṭi/dispositors/conjunctions in one scroll). Moon
+   context (`LunarPhaseCard`) was pulled back out of the chart view the same day — no longer
+   sticky across every sub-tab — and now sits at the top of 1.2 About Planets, alongside the
+   rest of a planet's condition; "Birth Pañchāṅga" (`PanchangaCard`) stays at the top of
+   1.1 General, where it always was. Both cards render on the app's new dark "card" surface
+   (`--card-*` tokens in tokens.css) instead of the page's light parchment, so each reads as its
+   own distinct fact card rather than blending into the section beneath it — each is a
+   self-contained card shell now (no shared wrapper), so either can be reused standalone
+   elsewhere later. Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/3.3 ASHTAKAVARGA. Every
+   tab text at every level is ALL CAPS.
+   2.2's exaltation-closeness bar + table read ChartViewModel.BuildExaltationRows (Core) over
+   lc.KeyDetails; the Moon-context facts read ChartMoonContextRepository (vw_ChartMoonContext)
+   separately, same "outside WorkspaceData" pattern as the Current Transit tab's Gochara/Dasha
+   loads — only this page needs it. 3.1/3.2 (`PlanetStrengthChart`/`HouseStrengthChart`, own
+   `.razor.css`) read PlanetaryStrengthRepository/BhavaStrengthRepository's new
+   GetSummaryByBirthDetailId/GetComponentsByBirthDetailId over vw_ChartShadbala/
+   vw_ChartBhavaBala + the two component fact tables — same "outside WorkspaceData" pattern,
+   loaded alongside Moon context/Gochara/Dasha in OnParametersSet.
+   5 (`YogaEvaluationTable`) reads YogaEvaluationRepository over vw_ChartYogaEvaluations
+   (db/053+079) — the typed read model built for this step, evaluation itself already runs in
+   ChartGenerationService.PersistAnalytics.
+
+   6 (`AmsabalaTable`, 2026-09-16 redesign, superseding both the original flat `VargaLordsTable`
+   and the standalone "3.4 Amsabala" Strength sub-tab): one scheme-tabbed view —
+   Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga — instead of two different depths of
+   the same varga breakdown living in two different steps. Vargottama is unchanged (D1/D9/Match).
+   Each scheme's graha row is collapsed to just its numeric split (GoodCount/GroupSize + %) by
+   default; expanding it reveals the stacked dignity bar (now full 7-tier —
+   Exalted/Moolatrikona/Own/Great Friend/Friend/Enemy/Great Enemy via
+   `ChartViewModel.DignityTierToken`, not the old binary good/not-good) and a varga-lords detail
+   table underneath (Varga/Sign/Lord/Dignity/0-1 score via `ChartViewModel
+   .DignityScoreNormalized` — for later statistical use, docs/research/domain/stat_strength.md).
+   Still needs no new repository beyond what 3.4 already injected
+   (`AmsabalaRepo`/`AmsabalaSchemeRepo`/`VargottamaRepo`) — the lords/dignity data reads straight
+   off `_data.Charts` (every persisted varga's Grahas + HouseLords, already loaded by
+   WorkspaceData.Load for every chart type), same as the old `VargaLordsTable`/AllCharts.razor's
+   grid. A "3.4"/"amsabala" deep link now routes to step 6 (`_masterTab = 5`) instead of a Strength
+   sub-tab that no longer exists. *@
+
+<PageTitle>Astro Facts — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
+
+@if (_data is null)
+{
+    <section class="ki-unavailable" role="status">
+        <h1 class="ki-heading">ASTRO FACTS</h1>
+        <p>D1 is not computed for this person.</p>
+        <a href="/">Choose a saved person</a>
+    </section>
+}
+else
+{
+    var lc = _data.Charts["D1"];
+
+    @if (_masterTab == 0)
+    {
+        <div class="ki-panelbody" id="ki-panel-0" role="tabpanel" aria-labelledby="ki-tab-0">
+                @if (NatalChart is { } natalChart)
+                {
+                    <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
+                        <div class="ki-gridwrap">
+                            <div class="ki-chart-toolbar">
+                                <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
+                                    @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
+                                </button>
+                                <select class="ki-chart-picker" aria-label="Natal chart" value="@_natalChart" @onchange="OnNatalChartChanged">
+                                    @foreach (var chart in NatalChartOptions)
+                                    {
+                                        <option value="@chart.ChartType">@chart.Label</option>
+                                    }
+                                </select>
+                                <a class="ki-chart-ki" href="@KeyInferenceLink.Url(Id, null, "LAGNA", _natalChart)" title="Read @_natalChart in Key Inference">KEY INFERENCE →</a>
+                            </div>
+                            @if (!_natalChartCollapsed)
+                            {
+                                <SouthIndianGrid_Detailed AscendantSign="@natalChart.AscendantSign" MoonSign="@natalChart.MoonSign" PlanetsBySign="PlanetsBySign(natalChart)" CenterTitle="@natalChart.ChartType">
+                                    <CenterMeta><b>Lagna</b> @Disp(natalChart.AscendantSign)</CenterMeta>
+                                </SouthIndianGrid_Detailed>
+                            }
+                        </div>
+                        <div class="ki-natal-detail ki-subnav-wrap">
+                        <nav class="ki-subnav" role="tablist" aria-label="Natal chart details">
+                            <button type="button" role="tab" id="ki-natal-tab-0" aria-selected="@(_activeTab == 0)" aria-controls="ki-natal-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 0">GENERAL</button>
+                            <button type="button" role="tab" id="ki-natal-tab-1" aria-selected="@(_activeTab == 1)" aria-controls="ki-natal-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 1">ABOUT PLANETS</button>
+                            <button type="button" role="tab" id="ki-natal-tab-2" aria-selected="@(_activeTab == 2)" aria-controls="ki-natal-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 2">ABOUT HOUSES</button>
+                            <button type="button" role="tab" id="ki-natal-tab-3" aria-selected="@(_activeTab == 3)" aria-controls="ki-natal-panel-3" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 3">SIGNS &amp; PLANET ASPECTS</button>
+                        </nav>
+                        <div class="ki-subpanels">
+                            @if (_activeTab == 0)
+                            {
+                                <div id="ki-natal-panel-0" role="tabpanel" aria-labelledby="ki-natal-tab-0">
+<h3 class="ki-sectionhead">Birth Pañchāṅga</h3>
+                    <PanchangaCard Row="_panchanga" UtcOffset="_utcOffset" />
+
+                    <h3 class="ki-sectionhead">Planet positions</h3>
+                    <PlanetPositionsTable Rows="Rows(natalChart)" LagnaSign="@natalChart.AscendantSign" Variant="d1" ShowAnalysis="false" />
+
+                    <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
+                    <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
+                                </div>
+                            }
+                            @if (_activeTab == 1)
+                            {
+                                <div id="ki-natal-panel-1" role="tabpanel" aria-labelledby="ki-natal-tab-1">
+<h3 class="ki-sectionhead">Moon context</h3>
+                    @if (_moon is null)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Moon context not available for this chart yet — run <code>recompute-keydetails</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
+                    }
+
+                    <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
+                    <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
+
+                    <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
+                    <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames"
+                                           PostureInterpretations="_postureInterpretations"
+                                           KeyDetails="natalChart.KeyDetails" Strengths="_shadbala" />
+                                </div>
+                            }
+                            @if (_activeTab == 2)
+                            {
+                                <div id="ki-natal-panel-2" role="tabpanel" aria-labelledby="ki-natal-tab-2">
+<h3 class="ki-sectionhead">House lord placement</h3>
+                    <HouseLordshipTable Rows="natalChart.HouseLords" Occupants="Occupants(natalChart)"
+                                        LifeMatters="_houseMatters" PersonId="Id" ChartType="@natalChart.ChartType" />
+
+                    <h3 class="ki-sectionhead">House lord key findings</h3>
+                    <HouseLordFindingsTable Rows="natalChart.HouseLordInterpretations" />
+
+                    <h3 class="ki-sectionhead">What acts on each house</h3>
+                    <HouseVerdictTable Rows="HouseVerdicts.For(natalChart, ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas))" />
+
+                    <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
+                    <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
+                                </div>
+                            }
+                            @if (_activeTab == 3)
+                            {
+                                <div id="ki-natal-panel-3" role="tabpanel" aria-labelledby="ki-natal-tab-3">
+                    <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
+                    <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="@_natalChart" />
+
+                    @if (NatalChart is { } relationshipChart)
+                    {
+                        <h3 class="ki-sectionhead">Rāśi Dṛṣṭi</h3>
+                        <RasiDrishtiMatrix KeyDetails="relationshipChart.KeyDetails" />
+
+                        <h3 class="ki-sectionhead">Rāśi &amp; graha dispositors</h3>
+                        <DispositorTable ChartType="@relationshipChart.ChartType" AscendantSign="@relationshipChart.AscendantSign" KeyDetails="relationshipChart.KeyDetails" />
+
+                        <h3 class="ki-sectionhead">Conjunctions</h3>
+                        <HouseConjunctionsTable Groups="relationshipChart.MultiGrahaConjunctions" KeyDetails="relationshipChart.KeyDetails" />
+                    }
+                                </div>
+                            }
+                        </div>
+                        </div>
+                    </div>
+                }
+        </div>
+    }
+
+    @if (_masterTab == 1)
+    {
+        <div class="ki-panelbody" id="ki-panel-1" role="tabpanel" aria-labelledby="ki-tab-1">
+@if (_selection is not null)
+                    {
+                        <section class="ki-controls" aria-label="Transit date and dasha filters">
+                            <label class="ki-field">
+                                <span>TRANSIT</span>
+                                <span class="ki-monthyear">
+                                    <select value="@SelMonth" @onchange="OnMonthChanged">
+                                        @for (var m = 1; m <= 12; m++)
+                                        {
+                                            <option value="@m">@m.ToString("00")</option>
+                                        }
+                                    </select>
+                                    <span aria-hidden="true">/</span>
+                                    <select value="@SelYear" @onchange="OnYearChanged">
+                                        @foreach (var y in YearOptions)
+                                        {
+                                            <option value="@y">@y</option>
+                                        }
+                                    </select>
+                                </span>
+                            </label>
+                            <label class="ki-field">
+                                <span>MAHADASHA</span>
+                                <select value="@(_selection.Maha?.Id.ToString() ?? string.Empty)" @onchange="OnMahaChanged">
+                                    <option value="">Select Mahadasha</option>
+                                    @foreach (var period in _selection.Periods)
+                                    {
+                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                                    }
+                                </select>
+                            </label>
+                            <label class="ki-field">
+                                <span>ANTARDASHA</span>
+                                <select value="@(_selection.Antar?.Id.ToString() ?? string.Empty)" @onchange="OnAntarChanged" disabled="@(_selection.Maha is null)">
+                                    <option value="">Select Antardasha</option>
+                                    @foreach (var period in _selection.AntarPeriods)
+                                    {
+                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                                    }
+                                </select>
+                            </label>
+                            <label class="ki-field">
+                                <span>PRATYANTAR</span>
+                                <select value="@(_selection.Pratyantar?.Id.ToString() ?? string.Empty)" @onchange="OnPratyantarChanged" disabled="@(_selection.Antar is null)">
+                                    <option value="">Select Pratyantar</option>
+                                    @foreach (var period in _selection.PratyantarPeriods)
+                                    {
+                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
+                                    }
+                                </select>
+                            </label>
+                        </section>
+                    }
+
+                    <div class="ki-wheel">
+                        @if (_d1.Count > 0)
+                        {
+                            <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
+                                               NatalPoints="@D1WheelPoints"
+                                               TransitPoints="@TransitWheelPoints"
+                                               AsOfUtc="@_asOfUtc" />
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                                Generate a D1 chart for this person first.
+                            </MudAlert>
+                        }
+                    </div>
+
+                    @if (_transitError is not null || _transits.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Transit reference not backfilled — run <code>backfill-planet-transits</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <div class="ki-scroll">
+                            <MudSimpleTable Dense="true" Hover="false" Bordered="false" Class="ki-table">
+                                <thead>
+                                    <tr>
+                                        <th>Planet in<br />Natal House</th><th>House from<br />Natal Planet</th>
+                                        <th>Planet</th><th>Motion</th><th>Degree</th>
+                                        <th>Speed<br />°/day</th><th>In sign<br />since</th>
+                                        <th>In-sign<br />motion</th><th>Next<br />change</th><th>Next-change<br />motion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in TransitRows)
+                                    {
+                                        <tr>
+                                            <td class="num">@(PlanetInNatalHouse(s)?.ToString() ?? "—")</td>
+                                            <td class="num">@(HouseFromNatalPlanet(s)?.ToString() ?? "—")</td>
+                                            <td>@s.Planet</td>
+                                            <td>@s.MotionDirection</td>
+                                            <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
+                                            <td class="num">@s.SpeedDegreesPerDay.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                            <td class="num">@s.InSignSinceUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</td>
+                                            <td>@(s.InSignMotion ?? "—")</td>
+                                            <td class="num">@(s.NextChangeUtc?.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) ?? "—")</td>
+                                            <td>@(s.NextChangeMotion ?? "—")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        </div>
+                        @if (GocharaJudgement is { } gochara)
+                        {
+                            <GocharaTable Reading="gochara" />
+                        }
+                    }
+        </div>
+    }
+
+    @if (_masterTab == 2)
+    {
+        <div class="ki-panelbody" id="ki-panel-2" role="tabpanel" aria-labelledby="ki-tab-2">
+          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
+            @ChartColumn
+            <div class="ki-natal-detail">
+            <div class="ki-subnav-wrap">
+            <nav class="ki-subnav" role="tablist" aria-label="Strength details">
+                <button type="button" role="tab" id="ki-strength-tab-0" aria-selected="@(_strengthTab == 0)" aria-controls="ki-strength-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 0">PLANET STRENGTH</button>
+                <button type="button" role="tab" id="ki-strength-tab-1" aria-selected="@(_strengthTab == 1)" aria-controls="ki-strength-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 1">HOUSE STRENGTH</button>
+                <button type="button" role="tab" id="ki-strength-tab-2" aria-selected="@(_strengthTab == 2)" aria-controls="ki-strength-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 2">ASHTAVARGA</button>
+            </nav>
+            <div class="ki-subpanels">
+                @if (_strengthTab == 0)
+                {
+                    <div id="ki-strength-panel-0" role="tabpanel" aria-labelledby="ki-strength-tab-0">
+                    @if (_shadbala.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Shadbala not computed for this person yet — run <code>recompute-strength</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <PlanetStrengthChart Rows="_shadbala" Components="_shadbalaComponents" />
+                    }
+                    </div>
+                }
+
+                @if (_strengthTab == 1)
+                {
+                    <div id="ki-strength-panel-1" role="tabpanel" aria-labelledby="ki-strength-tab-1">
+                    @if (_bhavaBala.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Bhava Bala not computed for this person yet — run <code>recompute-strength</code>.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <HouseStrengthChart Rows="_bhavaBala" Components="_bhavaBalaComponents" />
+                    }
+                    </div>
+                }
+
+                @if (_strengthTab == 2)
+                {
+                    <div id="ki-strength-panel-2" role="tabpanel" aria-labelledby="ki-strength-tab-2">
+                    @if (_ashtakavarga.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                            Ashtavarga has not been computed for these charts yet — recalculate the saved chart.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" Charts="_data.Charts" @bind-SelectedChart="_natalChart" />
+                    }
+                    </div>
+                }
+            </div>
+            </div>
+            </div>
+          </div>
+        </div>
+    }
+
+    @if (_masterTab == 3)
+    {
+        <div class="ki-panelbody" id="ki-panel-3" role="tabpanel" aria-labelledby="ki-tab-3">
+            <KarakaPolarWheel Id="@Id" Embedded="true" />
+        </div>
+    }
+
+    @if (_masterTab == 4)
+    {
+        <div class="ki-panelbody" id="ki-panel-4" role="tabpanel" aria-labelledby="ki-tab-4">
+          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
+            @ChartColumn
+            <div class="ki-natal-detail">
+            <div class="ki-stephead">
+                <h1 class="ki-heading">YOGAS</h1>
+            </div>
+
+            @if (_yogaEvaluations.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                    Yogas have not been evaluated for this chart yet.
+                </MudAlert>
+            }
+            else
+            {
+                <YogaEvaluationTable Rows="_yogaEvaluations" LagnaLordPlanet="@LagnaLord" Interpretations="_interpretations"
+                                     OnSaveInterpretation="SaveInterpretation" />
+            }
+            </div>
+          </div>
+        </div>
+    }
+
+    @if (_masterTab == 5)
+    {
+        <div class="ki-panelbody" id="ki-panel-5" role="tabpanel" aria-labelledby="ki-tab-5">
+          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
+            @ChartColumn
+            <div class="ki-natal-detail">
+            @if (_amsabala.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                    Vargas have not been computed for this chart yet.
+                </MudAlert>
+            }
+            else
+            {
+                <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" @bind-SelectedChart="_natalChart" />
+            }
+            <VimsopakaTable Charts="_data.Charts" Weights="_vimsopakaWeights" />
+            </div>
+          </div>
+        </div>
+    }
+
+    @if (_masterTab == 6)
+    {
+        <div class="ki-panelbody" id="ki-panel-6" role="tabpanel" aria-labelledby="ki-tab-6">
+            <h1 class="ki-heading">7. ALL CHARTS</h1>
+            <AllChartsGrid Data="_data" />
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "step")] public string? Step { get; set; }
+
+    /// <summary>Opens the chart picker on this chart (e.g. <c>?step=houses&amp;chart=D9</c> — a Life
+    /// Matters "full table" link, AstroFactsLink); ignored when the person has no such chart.</summary>
+    [Parameter, SupplyParameterFromQuery(Name = "chart")] public string? Chart { get; set; }
+
+    /// <summary>House number -> the life matters read from it; the About Houses table's links
+    /// into Key Inference.</summary>
+    private IReadOnlyDictionary<int, IReadOnlyList<HouseMatterLink>> _houseMatters = new Dictionary<int, IReadOnlyList<HouseMatterLink>>();
+
+    private int _masterTab;
+    private int _activeTab;
+    private int _strengthTab;
+
+    /// <summary>Master step rail — handed to <c>Active.SetHeaderExtra</c> (see
+    /// <see cref="OnParametersSet"/>) so it renders inside MainLayout's context band, below the
+    /// app bar (rammyps, 2026-09-23 evening: reclaim the vertical space the rail used to take
+    /// as its own row in the page body). As of 2026-09-26 the band holds only this rail — the
+    /// person name/birth line that used to share the row moved up into the app bar itself
+    /// (MainLayout.razor's `.ik-appbar-person`), so the rail now simply fills the band's full
+    /// width. Plain markup, not MudTabs — see docs/ui/design-language.md "Tabs" for why. Single
+    /// line, no step numbers (rammyps's call, 2026-09-23 evening — the numbered two-line pills
+    /// from earlier that day were dropped); labels shortened 2026-09-26 ("NATAL CHARTS"/
+    /// "TRANSIT CHARTS" -> "NATAL"/"TRANSIT" — the rail reads as steps of one flow, not a list
+    /// of noun phrases, so the repeated "CHARTS" was redundant with "ALL CHARTS" already
+    /// present). The fragment's markup physically renders inside MainLayout's tree, but its
+    /// <c>@onclick</c> handlers are bound to THIS page (Blazor ties an event callback to the
+    /// component whose .razor file declares it), so a click re-renders only this page's body —
+    /// never MainLayout. That's why the pills' active color used to lag until something else
+    /// re-rendered the layout (e.g. clicking ASTRO FACTS in the app bar again, 2026-09-28
+    /// fix). <see cref="SelectMaster"/> therefore re-hands the rail via
+    /// <c>Active.SetHeaderExtra</c>, whose <c>Changed</c> event makes MainLayout re-render and
+    /// repaint the pills, and also calls <c>StateHasChanged()</c> for this page's own
+    /// <c>@if (_masterTab == N)</c> panels.</summary>
+    private static readonly string[] MasterSteps =
+    {
+        "NATAL",
+        "TRANSIT",
+        "STRENGTH",
+        "SPL LAGNAS",
+        "YOGAS",
+        "VARGAS",
+        "ALL CHARTS",
+    };
+
+    private void SelectMaster(int index)
+    {
+        if (_masterTab == index) return;
+        _masterTab = index;
+        Active.SetHeaderExtra(MasterNav); // repaint the rail's pills in MainLayout
+        StateHasChanged();
+    }
+
+    private RenderFragment MasterNav => @<nav class="ki-master" role="tablist" aria-label="Astro Facts steps">
+        @for (var i = 0; i < MasterSteps.Length; i++)
+        {
+            var index = i;
+            var step = MasterSteps[i];
+            <button type="button" role="tab" id="@($"ki-tab-{index}")" aria-selected="@(_masterTab == index)"
+                    aria-controls="@($"ki-panel-{index}")" class="ki-steptab" @onclick="() => SelectMaster(index)">
+                @step
+            </button>
+        }
+    </nav>;
+
+    /// <summary>The natal-chart toolbar (collapse/expand + chart picker) + grid, shared by every
+    /// master tab that should keep the chart visible on the left (STRENGTH/YOGAS/VARGAS —
+    /// rammyps, 2026-09-25) — same collapse state and chart-picker selection as NATAL CHARTS'
+    /// own inline copy, so switching tabs doesn't reset either. NATAL CHARTS keeps its own inline
+    /// markup (nested inside its `NatalChart is { } natalChart` guard alongside the sub-tabs)
+    /// rather than being refactored onto this fragment, to avoid touching already-shipped,
+    /// working structure for its own sake. `_natalChart` also now drives (and is driven by,
+    /// two-way) AshtakavargaChart's own "Chart" picker in the ASHTAVARGA sub-tab, via
+    /// `@bind-SelectedChart` — see that component's `SelectedChart`/`SelectedChartChanged` doc
+    /// comment and design-language.md "Related chart drop-downs" (2026-09-25). Any other
+    /// component found to carry its own independent copy of "which chart" alongside this rail
+    /// should get the same treatment rather than living as a silently out-of-sync duplicate.</summary>
+    private RenderFragment ChartColumn => @<div class="ki-gridwrap">
+        <div class="ki-chart-toolbar">
+            <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
+                @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
+            </button>
+            <select class="ki-chart-picker" aria-label="Natal chart" value="@_natalChart" @onchange="OnNatalChartChanged">
+                @foreach (var chart in NatalChartOptions)
+                {
+                    <option value="@chart.ChartType">@chart.Label</option>
+                }
+            </select>
+            <a class="ki-chart-ki" href="@KeyInferenceLink.Url(Id, null, "LAGNA", _natalChart)" title="Read @_natalChart in Key Inference">KEY INFERENCE →</a>
+        </div>
+        @if (!_natalChartCollapsed && NatalChart is { } chartForGrid)
+        {
+            <SouthIndianGrid_Detailed AscendantSign="@chartForGrid.AscendantSign" MoonSign="@chartForGrid.MoonSign" PlanetsBySign="PlanetsBySign(chartForGrid)" CenterTitle="@chartForGrid.ChartType">
+                <CenterMeta><b>Lagna</b> @Disp(chartForGrid.AscendantSign)</CenterMeta>
+            </SouthIndianGrid_Detailed>
+        }
+    </div>;
+
+    private WorkspaceData? _data;
+    private string? _transitError;
+    private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();
+    private IReadOnlyList<Ikiastrro.Data.Natal_Transit_Comp_WheelD1Row> _d1 = Array.Empty<Ikiastrro.Data.Natal_Transit_Comp_WheelD1Row>();
+    private Dictionary<string, string> _natalSignByPlanet = new(StringComparer.OrdinalIgnoreCase);
+    private DateTime _asOfUtc = DateTime.UtcNow;
+    private TransitSelection? _selection;
+    private MoonContext? _moon;
+    private IReadOnlyList<Ikiastrro.Data.ShadbalaSummaryRow> _shadbala = Array.Empty<Ikiastrro.Data.ShadbalaSummaryRow>();
+    private IReadOnlyList<Ikiastrro.Data.ShadbalaComponentRow> _shadbalaComponents = Array.Empty<Ikiastrro.Data.ShadbalaComponentRow>();
+    private IReadOnlyList<Ikiastrro.Data.BhavaBalaSummaryRow> _bhavaBala = Array.Empty<Ikiastrro.Data.BhavaBalaSummaryRow>();
+    private IReadOnlyList<Ikiastrro.Data.BhavaBalaComponentRow> _bhavaBalaComponents = Array.Empty<Ikiastrro.Data.BhavaBalaComponentRow>();
+    private IReadOnlyList<Ikiastrro.Data.AshtakavargaRow> _ashtakavarga = Array.Empty<Ikiastrro.Data.AshtakavargaRow>();
+    private IReadOnlyList<Ikiastrro.Data.AshtakavargaPindaRow> _ashtakavargaPinda = Array.Empty<Ikiastrro.Data.AshtakavargaPindaRow>();
+    private IReadOnlyList<Ikiastrro.Data.AmsabalaRow> _amsabala = Array.Empty<Ikiastrro.Data.AmsabalaRow>();
+    private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaGroupMember> _amsabalaGroups = Array.Empty<Ikiastrro.Core.Models.AmsabalaGroupMember>();
+    private IReadOnlyList<Ikiastrro.Data.VargottamaRow> _vargottama = Array.Empty<Ikiastrro.Data.VargottamaRow>();
+    private IReadOnlyList<Ikiastrro.Core.Engines.Strength.VimsopakaWeight> _vimsopakaWeights = Array.Empty<Ikiastrro.Core.Engines.Strength.VimsopakaWeight>();
+    private IReadOnlyList<Ikiastrro.Core.Engines.Transits.GocharaVedhaRule> _vedhaRules = Array.Empty<Ikiastrro.Core.Engines.Transits.GocharaVedhaRule>();
+    private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
+    private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
+    private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
+    private IReadOnlyList<Ikiastrro.Data.ArgalaFactRow> _argalaFacts = Array.Empty<Ikiastrro.Data.ArgalaFactRow>();
+    private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
+    private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
+    private IReadOnlyList<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact> _planetaryStates = Array.Empty<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact>();
+    private IReadOnlyDictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow> _stateNames = new Dictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow>();
+    private IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), Ikiastrro.Data.PostureStateInterpretationRow> _postureInterpretations =
+        new Dictionary<(byte PlanetaryStateId, byte PlanetId), Ikiastrro.Data.PostureStateInterpretationRow>();
+    private Ikiastrro.Data.ChartPanchangaRow? _panchanga;
+    private TimeSpan _utcOffset = TransitSelection.IstOffset;
+    private string _natalChart = "D1";
+    private bool _natalChartCollapsed;
+    private LoadedChart? NatalChart => _data?.Charts.GetValueOrDefault(_natalChart);
+    /// <summary>D1, D2, D2-US, D3, D4 … D60 — numeric divisional order, not the plain string
+    /// order ("D1"/"D10"/"D11"/"D12"/"D16"/"D2"/"D2-US"/"D20"…) the old `OrderBy(ChartType)`
+    /// produced (rammyps, 2026-09-24). <see cref="DivisionalNumber"/> reads the digits straight
+    /// off ChartType rather than joining ChartTypeRow.DivisionalFactor — DisplayOrder in that
+    /// table is a life-significance ordering (D6 before D9 before D10), not a numeric one, so it
+    /// wouldn't produce this sequence either. ThenBy(ChartType) only breaks the D2/D2-US tie.</summary>
+    private IEnumerable<LoadedChart> NatalChartOptions => _data?.Charts.Values
+        .OrderBy(c => DivisionalNumber(c.ChartType))
+        .ThenBy(c => c.ChartType) ?? Enumerable.Empty<LoadedChart>();
+    private static int DivisionalNumber(string chartType)
+    {
+        var digits = new string(chartType.Skip(1).TakeWhile(char.IsDigit).ToArray());
+        return int.TryParse(digits, out var n) ? n : int.MaxValue;
+    }
+    private void OnNatalChartChanged(ChangeEventArgs e) => _natalChart = e.Value?.ToString() ?? "D1";
+
+    private decimal? MoonPakshaBala => _shadbalaComponents.FirstOrDefault(c =>
+        c.Planet.Equals("Moon", StringComparison.OrdinalIgnoreCase) &&
+        c.SubComponentCode.Equals("PAKSHA_BALA", StringComparison.OrdinalIgnoreCase))?.ValueVirupas;
+
+    private string? LagnaLord =>
+        _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
+
+    private void SaveInterpretation(YogaEvaluationTable.InterpretationEditRequest request) =>
+        InterpretationRepo.Upsert(1, "YOGA", request.SubjectCode, request.SourceRefCode, request.StandardText, request.ShortText, request.SourceVariantCode);
+
+    private static readonly string[] SignById =
+        { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
+          "Sagittarius", "Capricorn", "Aquarius", "Pisces" };
+
+    protected override void OnParametersSet()
+    {
+        if (Step is "1" or "natal" or "about") _masterTab = 0;
+        if (Step is "overview" or "general" or "generaldetails" or "signs" or "nakshatras") { _masterTab = 0; _activeTab = 0; }
+        if (Step is "planets") { _masterTab = 0; _activeTab = 1; }
+        if (Step is "houses") { _masterTab = 0; _activeTab = 2; }
+        if (Step is "relationships" or "aspected") { _masterTab = 0; _activeTab = 3; }
+        if (Step is "2" or "transit") _masterTab = 1;
+        if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
+        if (Step is "5" or "yogas") _masterTab = 4;
+        if (Step is "6" or "vargas") _masterTab = 5;
+        if (Step is "7" or "allcharts") _masterTab = 6;
+        if (Step is "3" or "strength") _masterTab = 2;
+        if (Step is "3.3" or "astavarga" or "ashtakavarga")
+        {
+            _masterTab = 2;
+            _strengthTab = 2;
+        }
+        if (Step is "3.4" or "amsabala") _masterTab = 5; // Amsabala/Vargottama moved into step 6 (Vargas)
+
+        _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
+            ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,
+            ChartMultiGrahaConjunctionRepo, ChartTypeRepo.GetAll());
+        if (_data is not null && !_data.Charts.ContainsKey("D1")) _data = null; // no D1 → treat as not found
+
+        if (_data is null)
+        {
+            Active.Clear();
+            return;
+        }
+
+        if (Chart is not null && _data.Charts.Keys.FirstOrDefault(c => string.Equals(c, Chart, StringComparison.OrdinalIgnoreCase)) is { } linkedChart)
+            _natalChart = linkedChart;
+
+        var p = _data.Person;
+        Active.Set(Id, p.Name,
+            $"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
+        Active.SetHeaderExtra(MasterNav);
+
+        var lc = _data.Charts["D1"];
+        _natalSignByPlanet = lc.Grahas
+            .Where(k => !string.IsNullOrWhiteSpace(k.Sign))
+            .GroupBy(k => k.Planet, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().Sign, StringComparer.OrdinalIgnoreCase);
+
+        _d1 = D1WheelRepo.LoadD1Birth(Id);
+        _moon = ChartMoonContextRepo.GetByBirthDetailId(Id);
+        _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _shadbalaComponents = PlanetaryStrengthRepo.GetComponentsByBirthDetailId(Id);
+        _bhavaBala = BhavaStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _bhavaBalaComponents = BhavaStrengthRepo.GetComponentsByBirthDetailId(Id);
+        _ashtakavarga = AshtakavargaRepo.GetByBirthDetailId(Id);
+        _ashtakavargaPinda = AshtakavargaRepo.GetPindaByBirthDetailId(Id);
+        _amsabala = AmsabalaRepo.GetByBirthDetailId(Id);
+        _amsabalaGroups = AmsabalaSchemeRepo.GetGroups(1);
+        _vargottama = VargottamaRepo.GetByBirthDetailId(Id);
+        _vimsopakaWeights = TransitStrengthRuleRepo.GetVimsopakaWeights(1);
+        _vedhaRules = TransitStrengthRuleRepo.GetGocharaVedhaRules(1);
+        _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
+        _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
+        _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
+        _argalaFacts = ArgalaFactRepo.GetByBirthDetailId(Id);
+        _rasiNakshatraCombinations = RasiNakshatraCombinationRepo.GetAll(1);
+        _grahaDrishtiStrengths = GrahaDrishtiStrengthRepo.GetByBirthDetailId(Id);
+        // AgeStateId is populated for D1 only (PlanetaryStateFact's own doc comment), so this
+        // filter is how the page narrows the person's all-chart-types fact list down to D1's
+        // rows without needing D1's ChartResultId (LoadedChart doesn't carry one).
+        _planetaryStates = PlanetaryStateRepo.GetByBirthDetailId(Id).Where(r => r.AgeStateId.HasValue).ToList();
+        _stateNames = PlanetaryStateRuleRepo.GetAllStates();
+        var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
+        _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
+        _panchanga = PanchangaRepo.GetByBirthDetailId(Id);
+        _houseMatters = LifeMatterHouseIndex.ByHouse(LifeMatterReferenceRepo.GetAllSteps(1), LifeMatterFocusRepo.GetFoci(1));
+
+        var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
+            ? parsedOffset
+            : TransitSelection.IstOffset;
+        _utcOffset = offset;
+        _selection = new TransitSelection(DashaRepo.GetTreeByBirthDetailId(Id), offset, DateTimeOffset.UtcNow);
+        _asOfUtc = _selection.ActiveUtc.UtcDateTime;
+
+        LoadTransits();
+    }
+
+    private void LoadTransits()
+    {
+        try
+        {
+            _transits = Gochara.GetSnapshots(_asOfUtc);
+            _transitError = null;
+        }
+        catch (Exception ex)
+        {
+            _transitError = ex.Message;
+            _transits = Array.Empty<PlanetTransitSnapshot>();
+        }
+    }
+
+    private int SelMonth => _selection?.ActiveIst.Month ?? DateTime.UtcNow.Month;
+    private int SelYear => _selection?.ActiveIst.Year ?? DateTime.UtcNow.Year;
+
+    /// <summary>Year options span the loaded dasha tree's full range (birth to the end of the
+    /// last Mahadasha) so the "TRANSIT mm/yyyy" picker's year dropdown never offers a date
+    /// outside what the Mahadasha/Antardasha/Pratyantar dropdowns can resolve.</summary>
+    private IEnumerable<int> YearOptions
+    {
+        get
+        {
+            if (_selection is null || _selection.Periods.Count == 0)
+            {
+                var thisYear = DateTime.UtcNow.Year;
+                return Enumerable.Range(thisYear - 60, 121);
+            }
+            var start = _selection.Periods.Min(p => p.StartDate.Year);
+            var end = _selection.Periods.Max(p => p.EndDate.Year);
+            return Enumerable.Range(start, end - start + 1);
+        }
+    }
+
+    private void OnMonthChanged(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var month)) return;
+        ApplyMonthYear(month, SelYear);
+    }
+
+    private void OnYearChanged(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var year)) return;
+        ApplyMonthYear(SelMonth, year);
+    }
+
+    private void ApplyMonthYear(int month, int year)
+    {
+        if (_selection is null) return;
+        var day = Math.Min(_selection.ActiveIst.Day, DateTime.DaysInMonth(year, month));
+        _selection.SetDate(new DateTime(year, month, day));
+        RefreshSelection();
+    }
+
+    private void OnMahaChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectMaha(id);
+        RefreshSelection();
+    }
+
+    private void OnAntarChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectAntar(id);
+        RefreshSelection();
+    }
+
+    private void OnPratyantarChanged(ChangeEventArgs args)
+    {
+        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
+        _selection.SelectPratyantar(id);
+        RefreshSelection();
+    }
+
+    private void RefreshSelection()
+    {
+        _asOfUtc = _selection!.ActiveUtc.UtcDateTime;
+        LoadTransits();
+    }
+
+    private static string PeriodDates(Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord period) =>
+        $"{period.StartDate:MM/yyyy} – {period.EndDate:MM/yyyy}";
+
+    private static string PlanetGlyph(string planet) =>
+        Ikiastrro.Core.Presentation.ChartViewModel.PlanetGlyph(planet);
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+
+    private static IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> PlanetsBySign(LoadedChart lc) =>
+        lc.Grahas.Where(k => k.Planet != "Ascendant")
+            .GroupBy(k => k.Sign)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<GridPlanetGlyph>)g.Select(k => new GridPlanetGlyph(
+                k.Planet, ChartViewModel.DignityToken(k.DignityStatus),
+                k.IsRetrograde ?? false, k.IsCombust ?? false)).ToList());
+
+    private static IReadOnlyList<PlanetRow> Rows(LoadedChart lc) =>
+        ChartViewModel.BuildPlanetRows(lc.KeyDetails, lc.HouseLords, lc.Aspects);
+
+    private static IReadOnlyList<ExaltationRow> ExaltationRows(LoadedChart lc) =>
+        ChartViewModel.BuildExaltationRows(lc.KeyDetails);
+
+    /// <summary>House number -> comma-joined occupant graha names (Ascendant excluded — not a
+    /// graha) for the "House Lord Placement" table's Occupants column.</summary>
+    private static IReadOnlyDictionary<int, string> Occupants(LoadedChart lc) =>
+        lc.Grahas.Where(k => k.Planet != "Ascendant")
+            .GroupBy(k => k.HouseNumberFromLagna)
+            .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(k => k.Planet)));
+
+    private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> D1WheelPoints => _d1
+        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet, r.LongitudeDegrees,
+            r.DegreesInSignDisplay, r.Sign, r.DignityStatus, r.DeepExaltationDegree, r.CharaKaraka)).ToList();
+
+    private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> TransitWheelPoints => _transits
+        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();
+
+    private IEnumerable<PlanetTransitSnapshot> TransitRows =>
+        _transits.OrderBy(s => Natal_Transit_Comp_WheelMath.PlanetRank(s.Planet.ToString()));
+
+    /// <summary>Houses between this graha's own natal sign and its current transit sign — how far
+    /// it has moved from its own birth position (renamed from "House from D1" 2026-09-23; same
+    /// calculation, clearer name now that "Planet in Natal House" below covers the Lagna-based
+    /// reading).</summary>
+    private int? HouseFromNatalPlanet(PlanetTransitSnapshot s) =>
+        Natal_Transit_Comp_WheelMath.HouseFromD1(
+            _natalSignByPlanet.GetValueOrDefault(s.Planet.ToString()), SignName(s.SignId));
+
+    /// <summary>Which natal house (counted from the natal Lagna) this transiting planet is
+    /// currently passing through — same sign-counting helper as <see cref="HouseFromNatalPlanet"/>,
+    /// just anchored to the natal Ascendant instead of the planet's own natal sign.</summary>
+    private int? PlanetInNatalHouse(PlanetTransitSnapshot s) =>
+        Natal_Transit_Comp_WheelMath.HouseFromD1(
+            _data?.Charts.GetValueOrDefault("D1")?.AscendantSign, SignName(s.SignId));
+
+    /// <summary>The transits on the chosen date judged from the natal Moon (PVR ch.26.3 houses and
+    /// Vedha), with each planet's own D1 BAV bindus in the sign it is crossing. Null without a
+    /// natal Moon sign or transits.</summary>
+    private Ikiastrro.Core.Engines.Transits.GocharaReadingResult? GocharaJudgement
+    {
+        get
+        {
+            if (_transits.Count == 0 || !Enum.TryParse<ZodiacName>(_natalSignByPlanet.GetValueOrDefault("Moon"), out var moon))
+                return null;
+            var signs = _transits.Where(t => t.SignId is >= 1 and <= 12)
+                .GroupBy(t => t.Planet)
+                .ToDictionary(g => g.Key, g => (ZodiacName)(g.First().SignId - 1));
+            var bav = _ashtakavarga.Where(r => r.ChartType == "D1")
+                .GroupBy(r => (r.RecipientCode.ToUpperInvariant(), (int)r.SignNumber))
+                .ToDictionary(g => g.Key, g => (int)g.First().BinduCount);
+            return Ikiastrro.Core.Engines.Transits.GocharaReading.Read(moon, signs, _vedhaRules,
+                (planet, sign) => bav.TryGetValue((planet.ToString().ToUpperInvariant(), (int)sign + 1), out var b) ? b : null);
+        }
+    }
+
+    private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
+}

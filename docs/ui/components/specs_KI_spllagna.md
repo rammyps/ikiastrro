@@ -1,18 +1,18 @@
 ---
 last_updated: 2026-09-17
 workstream: ui
-component: KeyInference step 4 · Spl Lagnas
-route: /key-inference/{id} (step 4)
+component: AstroFacts step 4 · Spl Lagnas
+route: /astro-facts/{id} (step 4)
 togaf: C — tab spec (first of the specs_KI_<step> series)
-reflects: PolarGridLagnaSelect embedded in Key Inference
+reflects: PolarGridLagnaSelect embedded in Astro Facts
 ---
 
-# Key Inference · 4. Spl Lagnas
+# Astro Facts · 4. Spl Lagnas
 
-> First of a new **per-step spec series** for Key Inference (`specs_KI_<step>.md`), one file per
-> step, superseding that step's row in [`key-inference.md`](key-inference.md)'s "The flow" table
+> First of a new **per-step spec series** for Astro Facts (`specs_KI_<step>.md`), one file per
+> step, superseding that step's row in [`astro-facts.md`](astro-facts.md)'s "The flow" table
 > as the detail source. Only step 4 is split out so far — the other steps stay inline in
-> `key-inference.md` until they're split out the same way in later work.
+> `astro-facts.md` until they're split out the same way in later work.
 >
 > This is a **tab-level** spec: what step 4 shows and where its pieces come from. It sits one
 > layer above the **component-level** spec for the embedded chart component itself,
@@ -59,7 +59,7 @@ Lagna as this grid's own ascendant reference), **HN-Moon** (house-from-Moon badg
 ## Special Lagnas table
 
 All 4 — Bhaava/Hora/Ghati/Sree — with Sign/House/Degree/Signifies, not just the ones marked on the
-wheel. Carried over unchanged from `key-inference.md`'s previous step-4 row.
+wheel. Carried over unchanged from `astro-facts.md`'s previous step-4 row.
 
 ## Data contract
 

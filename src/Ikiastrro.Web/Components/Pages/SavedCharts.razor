@@ -247,7 +247,7 @@
 
     private IReadOnlyList<DataTable<Row>.Column> Cols => new[]
     {
-        new DataTable<Row>.Column("Name", r => r.Person.Name, r => @<a href="@($"/key-inference/{r.Person.Id}")">@r.Person.Name</a>),
+        new DataTable<Row>.Column("Name", r => r.Person.Name, r => @<a href="@($"/astro-facts/{r.Person.Id}")">@r.Person.Name</a>),
         new DataTable<Row>.Column("Date of Birth", r => r.Person.DateOfBirth, r => @<text>@r.Person.DateOfBirth.ToString("d MMM yyyy")</text>),
         new DataTable<Row>.Column("Time of Birth", r => r.Person.TimeOfBirth, r => @<text>@r.Person.TimeOfBirth.ToString("HH:mm")</text>),
         new DataTable<Row>.Column("Place", r => r.Person.PlaceCity, r => @<text>@r.Person.PlaceCity, @r.Person.PlaceCountry</text>),
@@ -264,7 +264,7 @@
     protected override void OnInitialized()
     {
         // Like Home, this is a person-list page, not a per-person one — clear whatever the
-        // previously-open person left behind (name/tabs in the app bar, Key Inference's master
+        // previously-open person left behind (name/tabs in the app bar, Astro Facts's master
         // step rail in the band) so navigating here from a person's page doesn't leave stale
         // header state behind (rammyps, 2026-09-25 bug report).
         Active.Clear();

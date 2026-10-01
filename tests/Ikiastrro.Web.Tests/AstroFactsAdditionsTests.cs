@@ -9,9 +9,9 @@ using Xunit;
 
 namespace Ikiastrro.Web.Tests;
 
-/// <summary>Key Inference's About Houses "What acts on each house" (HouseVerdicts) and Vargas
+/// <summary>Astro Facts's About Houses "What acts on each house" (HouseVerdicts) and Vargas
 /// Vimśopaka Bala (VimsopakaRead). Fixture: Aries Lagna, the TargetInfluencesTests placements.</summary>
-public class KeyInferenceAdditionsTests
+public class AstroFactsAdditionsTests
 {
     private static readonly (PlanetName Planet, ZodiacName Sign)[] Placements =
     [

@@ -7,7 +7,7 @@ using Ikiastrro.Web.Components.Workspace;
 namespace Ikiastrro.Web.Components.Charts;
 
 /// <summary>
-/// Vimśopaka Bala for Key Inference's Vargas step, computed live from the person's stored charts
+/// Vimśopaka Bala for Astro Facts's Vargas step, computed live from the person's stored charts
 /// (<see cref="VimsopakaCalculator"/>, weights from tbl_Rule_VimsopakaWeight). Each scheme is
 /// computed on its own, so a person missing one varga loses only the schemes that need it.
 /// </summary>

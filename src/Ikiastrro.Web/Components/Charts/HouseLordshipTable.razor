@@ -33,7 +33,7 @@
                             @if (matters.Count == 0) { <span class="muted">—</span> }
                             @foreach (var m in matters.Take(ShownMatters))
                             {
-                                <a href="@MatterUrl(m)" title="@($"{m.AreaName} — read in Life Matters")">@m.MatterText</a>
+                                <a href="@MatterUrl(m)" title="@($"{m.AreaName} — read in Key Inference")">@m.MatterText</a>
                             }
                             @if (matters.Count > ShownMatters)
                             {
@@ -41,7 +41,7 @@
                                     <summary>@(matters.Count - ShownMatters) more</summary>
                                     @foreach (var m in matters.Skip(ShownMatters))
                                     {
-                                        <a href="@MatterUrl(m)" title="@($"{m.AreaName} — read in Life Matters")">@m.MatterText</a>
+                                        <a href="@MatterUrl(m)" title="@($"{m.AreaName} — read in Key Inference")">@m.MatterText</a>
                                     }
                                 </details>
                             }
@@ -57,25 +57,25 @@
     [Parameter, EditorRequired] public IReadOnlyList<ChartHouseLord> Rows { get; set; } = Array.Empty<ChartHouseLord>();
 
     /// <summary>Optional: house number -> comma-joined occupant graha names. When supplied, adds an
-    /// "Occupants" column — Key Inference's "House Lord Placement" table (2.1 About Houses); left
+    /// "Occupants" column — Astro Facts's "House Lord Placement" table (2.1 About Houses); left
     /// null everywhere else (VargaView's plain disclosure table).</summary>
     [Parameter] public IReadOnlyDictionary<int, string>? Occupants { get; set; }
 
     /// <summary>Optional: house number -> the life matters read from that house (LifeMatterHouseIndex).
     /// When supplied with <see cref="PersonId"/>, adds a "Life matters" column whose entries open
-    /// that matter in Life Matters — Key Inference's About Houses table only.</summary>
+    /// that matter in Key Inference — Astro Facts's About Houses table only.</summary>
     [Parameter] public IReadOnlyDictionary<int, IReadOnlyList<HouseMatterLink>>? LifeMatters { get; set; }
 
     [Parameter] public int PersonId { get; set; }
 
-    /// <summary>The chart this table shows; Life Matters links read the matter in it (left out
+    /// <summary>The chart this table shows; Key Inference links read the matter in it (left out
     /// for D1, so the matter opens in its own varga).</summary>
     [Parameter] public string? ChartType { get; set; }
 
     private const int ShownMatters = 2;
 
     private string MatterUrl(HouseMatterLink m) =>
-        LifeMatterLink.Url(PersonId, m.MatterCode, "LAGNA", ChartType is null or "D1" ? null : ChartType);
+        KeyInferenceLink.Url(PersonId, m.MatterCode, "LAGNA", ChartType is null or "D1" ? null : ChartType);
 
     private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
 }

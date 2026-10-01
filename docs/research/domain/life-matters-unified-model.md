@@ -3,9 +3,9 @@ last_updated: 2026-09-24
 status: research-baseline
 ---
 
-# Life Matters — unified model, sourcing status, and open-question resolutions
+# Key Inference — unified model, sourcing status, and open-question resolutions
 
-Two unconnected things in this project are both called "Life Matters":
+Two unconnected things in this project are both called "Key Inference":
 
 1. `tbl_Rule_LifeMatterReference` (migration 087) — 96 sourced rows bridging specific life
    questions (marriage, career, children, ...) to houses/karakas/vargas. Fully sourced, but no
@@ -243,5 +243,5 @@ first — it's far cheaper when the text layer is intact (most of the library's 
   `res_charakarakas.md` §4's per-karaka chakra-wheel plan (§2.2), add the Sapta-vs-Ashta scheme
   note (§2.4), and move `FEAT-KARAKA-06` off "blocked" in `masterproduct.md`/`ROADMAP.md` to
   reflect that a first, honestly-tiered pass is now unblocked.
-- The separate "Life Matters" UX picker (linking a user's question to a Key Inference flow) is
+- The separate "Key Inference" UX picker (linking a user's question to a Astro Facts flow) is
   unaffected by this doc and remains a later, separate implementation task.

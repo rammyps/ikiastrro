@@ -54,7 +54,7 @@ public static class ArudhaCalculator
 
     /// <summary>The Arudha pada of the house in <paramref name="houseSign"/> whose lord sits in
     /// <paramref name="lordSign"/> — the same rule as <see cref="Compute"/>, for any sign counted
-    /// from any lagna (Life Matters reads the pada of a house counted from the Moon, AL, …).</summary>
+    /// from any lagna (Key Inference reads the pada of a house counted from the Moon, AL, …).</summary>
     public static ZodiacName PadaOf(ZodiacName houseSign, ZodiacName lordSign)
     {
         static ZodiacName Add(ZodiacName z, int n) => (ZodiacName)((((int)z + n) % 12 + 12) % 12);

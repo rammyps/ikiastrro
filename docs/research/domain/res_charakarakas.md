@@ -26,13 +26,13 @@ For each of the 8 chara karakas — AK, AmK, BK, MK, PiK, PK, GK, DK — researc
   sign placement effects) — source TBD, needs a citable reference before it goes in the DB
   (same bar `chara-karaka-life-area-pvr.md` already applies).
 
-## 2. UX plan — "Life Matters" drill-down
+## 2. UX plan — "Key Inference" drill-down
 
-Top-level page: **Life Matters**. Drill-down pattern, applied identically to all 8 chara
+Top-level page: **Key Inference**. Drill-down pattern, applied identically to all 8 chara
 karakas:
 
 ```
-Life Matters
+Key Inference
   -> AK   -> (resolved planet for this chart, e.g. Rahu) -> life-matter interpretation
   -> AmK  -> (resolved planet)                            -> life-matter interpretation
   -> BK   -> ...
@@ -46,7 +46,7 @@ Life Matters
 Each karaka resolves per-chart via `CharaKarakaCalculator` (already implemented — see
 `chara-karaka-life-area-pvr.md`); the interpretation layer is the new part.
 
-## 3. Key Inference pages (per-karaka detail view)
+## 3. Astro Facts pages (per-karaka detail view)
 
 Two-page structure once a karaka is selected and resolved to a planet:
 
@@ -111,7 +111,7 @@ precedent), one row family per chara karaka, carrying the detailed-behavior cont
 file's §1–§4 are scoping reading for:
 
 - Behavioral effects of the karaka itself (temperament/role — §1).
-- Life-matter/house association, feeding the existing "Life Matters" drill-down (§2).
+- Life-matter/house association, feeding the existing "Key Inference" drill-down (§2).
 - Varga + varga-lord + sub-lord resolution inputs (§3 Page 1).
 - Rasi/Nakshatra/Pada/Pada-lord/SubLord-chain resolution inputs (§3 Page 2).
 - Chakra + `<Abbrev>_ChakraLord` resolution inputs (§4).

@@ -102,7 +102,7 @@
     [Parameter, EditorRequired] public IReadOnlyList<VargottamaRow> Vargottama { get; set; } = Array.Empty<VargottamaRow>();
     [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
 
-    /// <summary>Two-way bound to the caller's own chart picker (KeyInference's
+    /// <summary>Two-way bound to the caller's own chart picker (AstroFacts's
     /// `_natalChart`/`ChartColumn`, same convention AshtakavargaChart established 2026-09-25):
     /// clicking a Varga row in the expanded detail table below moves the chart shown on the left
     /// to that divisional chart. Previously this table only ever displayed data — clicking a row

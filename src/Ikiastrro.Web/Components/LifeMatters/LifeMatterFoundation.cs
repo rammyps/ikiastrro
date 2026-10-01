@@ -5,7 +5,7 @@ using Ikiastrro.Web.Components.Workspace;
 namespace Ikiastrro.Web.Components.LifeMatters;
 
 /// <summary>One foundation fact. <c>Tone</c> is "good", "caution" or "weak" (null = neutral);
-/// <c>Step</c> is the Key Inference step that shows it in full.</summary>
+/// <c>Step</c> is the Astro Facts step that shows it in full.</summary>
 public sealed record FoundationItem(string Label, string Value, string Detail, string? Tone, string Step);
 
 /// <summary>
@@ -32,7 +32,7 @@ public static class LifeMatterFoundation
             : asc.DegreesInSignDecimal is { } d ? (double)d : asc.NirayanaLongitudeDegrees % 30.0;
         items.Add(new FoundationItem("Rising sign",
             Disp(d1.AscendantSign) + (ascDegree is { } deg ? $" {deg.ToString("0.#", CultureInfo.InvariantCulture)}°" : ""),
-            "The Lagna: the self every life matter is counted from.", null, KeyInferenceLink.Overview));
+            "The Lagna: the self every life matter is counted from.", null, AstroFactsLink.Overview));
 
         var lord = d1.HouseLords.FirstOrDefault(h => h.HouseNumber == 1);
         if (lord is not null)
@@ -44,7 +44,7 @@ public static class LifeMatterFoundation
                 pct is null ? "Ṣaḍbala not computed yet."
                     : $"Ṣaḍbala {pct.Value.ToString("0", CultureInfo.InvariantCulture)}% of its required minimum: "
                       + (pct >= 100 ? "able to deliver what the chart promises." : "below the minimum, so promises take more effort."),
-                pct is null ? null : pct >= 100 ? "good" : "weak", KeyInferenceLink.Strength));
+                pct is null ? null : pct >= 100 ? "good" : "weak", AstroFactsLink.Strength));
         }
 
         var moon = d1.KeyDetails.FirstOrDefault(k => k.Planet == "Moon");
@@ -54,7 +54,7 @@ public static class LifeMatterFoundation
             var dignity = string.IsNullOrWhiteSpace(moon.DignityStatus) ? "" : $", {moon.DignityStatus}";
             items.Add(new FoundationItem("Moon", Disp(moon.Sign) + nakshatra,
                 $"In the {Ordinal(moon.HouseNumberFromLagna)} house{dignity}: the mind, and the second lagna.",
-                null, KeyInferenceLink.Planets));
+                null, AstroFactsLink.Planets));
         }
 
         if (ascDegree is { } a)
@@ -64,14 +64,14 @@ public static class LifeMatterFoundation
             items.Add(edge < EdgeRiskDegrees
                 ? new FoundationItem("Birth-time check", $"Lagna {e}° from a sign edge",
                     "A birth time a few minutes out would change the rising sign. Confirm the time before trusting any reading.",
-                    "weak", KeyInferenceLink.Overview)
+                    "weak", AstroFactsLink.Overview)
                 : edge < EdgeCautionDegrees
                     ? new FoundationItem("Birth-time check", $"Lagna {e}° from a sign edge",
                         "The rising sign holds for small errors, but the finer charts (D9 and above) need an accurate time.",
-                        "caution", KeyInferenceLink.Overview)
+                        "caution", AstroFactsLink.Overview)
                     : new FoundationItem("Birth-time check", $"Lagna {e}° inside its sign",
                         "Safe from small birth-time errors; the finest charts (D30 and above) still need an accurate time.",
-                        "good", KeyInferenceLink.Overview));
+                        "good", AstroFactsLink.Overview));
         }
 
         return items;

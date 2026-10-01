@@ -1,6 +1,6 @@
 .lunar { display: grid; grid-template-columns: 132px minmax(0,1fr); gap: 22px; align-items: center; padding: 20px; border: 1px solid var(--card-line); border-radius: 12px; background: var(--card-bg); color: var(--card-fg); }
 .lunar-orb { position: relative; width: 112px; aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: #f7e9bd; box-shadow: inset -10px -8px 22px rgb(91 56 36 / .18), 0 8px 24px rgb(33 38 63 / .16); }
-.lunar-shadow { position: absolute; inset: 0; border-radius: 50%; background: var(--brand-midnight); }
+.lunar-shadow { position: absolute; inset: 0; border-radius: 50%; background: var(--lunar-shadow); }
 .lunar-shadow.is-waxing { transform: translateX(calc((100 - var(--illumination)) * -0.32%)); }
 .lunar-shadow.is-waning { transform: translateX(calc((100 - var(--illumination)) * .32%)); }
 .lunar-copy h3 { margin: 1px 0 4px; color: var(--card-fg); font: 800 1.22rem/1.2 var(--font-interface); }

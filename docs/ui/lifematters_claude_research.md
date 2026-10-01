@@ -373,7 +373,7 @@ above 109; the only other hit, migration 110, is an unrelated table name collisi
 
 **Does this block LifeMatters dossier assembly?** Only partially, and less than it first appears.
 `tbl_Rule_InterpretiveFactorDetail` isn't itself a runtime evidence source for the dossier —
-nothing in the Key Inference read-path mapping below cites it; per its own migration comment, it
+nothing in the Astro Facts read-path mapping below cites it; per its own migration comment, it
 exists to make LifeArea/DivisionalSubject/KarakaRole's own prose facts queryable for
 cross-checking ("nothing can query 'which subjects cite Venus' today"). Its real use for
 LifeMatters is as an **audit tool** — cross-checking the Subject/Focus mapping proposals above
@@ -443,7 +443,7 @@ layer"): a persistent, low-key line, not a modal — e.g. *"LifeMatters assemble
 matter; it does not judge natal promise, timing, or outcome."*
 
 **Bhava Bala link-out** (house condition explicitly excludes a Bhava Bala summary in v1): *"See
-Key Inference → Strength for this house's Bhava Bala."* — a link, not a partial number.
+Astro Facts → Strength for this house's Bhava Bala."* — a link, not a partial number.
 
 **Natal-promise conclusions** (`Strongly promised` / `Conditionally promised` / `Mixed` /
 `Weakly indicated` / `Substantially denied` / `Indeterminate`) are Phase 4 — this copy set
@@ -451,7 +451,7 @@ intentionally has no v1 label for them; don't surface partial wording ahead of t
 
 ## Spec consistency, visual/accessibility review, regression review
 
-Unblocked — both component specs now exist (`specs_sind_hov_grid.md`, `specs_life_matters_page.md`,
+Unblocked — both component specs now exist (`specs_sind_hov_grid.md`, `specs_key_inference_page.md`,
 2026-09-25). Reviewed against the actual shipped code (`SindHovGrid.razor(.cs/.css)`,
 `SindHovGridTests.cs`, `LifeMatterFocusResolver.cs`), not just the specs' own prose, so this is
 independent verification, not a restatement.
@@ -472,7 +472,7 @@ The flagged `LifeMatterSignMath.ResolveHouseSign` (Web) / `LifeMatterFocusResolv
 `AstroMath.CountFromSignToSign(origin, sign) == houseNumber` search, just wrapped for a string vs.
 `ZodiacName` input. Collapsing to one is safe housekeeping, not urgent before Phase 3C.
 
-`specs_life_matters_page.md`'s read-path table was checked against the actual `src/Ikiastrro.Data`
+`specs_key_inference_page.md`'s read-path table was checked against the actual `src/Ikiastrro.Data`
 repositories. The Arudha gap is real — no repository or view exposes Arudha placements as queryable
 per-chart evidence; `SpecialPointLabels`/`GrahaArudhaLabels` are grid-render props, not a data read
 path. The Relationships row undersells what exists, one correction: `NaturalRelationshipRuleRepository`
@@ -496,7 +496,7 @@ since a component in isolation can't be reviewed for page-level nav/landmark cor
 ### Regression review — one real finding: `workstream/ui` is stale against `master`
 
 `git diff master..workstream/ui` on shared files turned up `tokens.css`, `MainLayout.razor(.css)`,
-`Add.razor`, `KeyInference.razor(.css)`, `SavedCharts.razor`, and `DataTable.razor.css` all showing
+`Add.razor`, `AstroFacts.razor(.css)`, `SavedCharts.razor`, and `DataTable.razor.css` all showing
 as changed alongside the LifeMatters commits — first read as a possible scope violation (Codex
 touching shell/tokens, which `wkstream_UI_v2.md`'s workstream mechanics explicitly forbid). Checked
 `git merge-base workstream/ui master`: the branch point is `c211206`, and `master` has since gained
@@ -515,9 +515,9 @@ No regression risk found in `SindHovGrid` itself against `SouthIndianGrid_Detail
 it's CSS-isolated, shares no component file, and reuses only the existing `PlanetChip` component
 unmodified.
 
-## Mapping Key Inference read paths to dossier ingredients
+## Mapping Astro Facts read paths to dossier ingredients
 
-From the Phase 0A code audit: `KeyInference.razor`'s code-behind wires roughly twenty
+From the Phase 0A code audit: `AstroFacts.razor`'s code-behind wires roughly twenty
 repositories directly into page state per master tab — there is **no separable evidence-assembly
 service** to import. LifeMatters will call the same repositories directly (or a new service that
 wraps them) rather than reuse an existing bundler. Mapping, dossier ingredient → existing
@@ -534,4 +534,4 @@ read path:
 | Yogas (filtered) | **Resolved (Phase 3B2 build): filtering is not achievable in v1.** `YogaEvaluationRepository.GetByBirthDetailId` reads `vw_ChartYogaEvaluations`, whose columns (`SourceRefCode`, `YogaCode`, `Present`, `EvaluationStatus`, `YogaTypeCode`, `YogaRule`, `Notes`) carry no structured involved-planet/involved-house data — only free text. Built as "every `Present` yoga, unfiltered," honestly labeled, rather than a text-matching heuristic against `YogaRule`. `InterpretationRepository.GetBySubjectType` turned out unneeded. | built, narrowed — same treatment as the Argala correction above |
 | Relationships | **Resolved (Phase 3B2 build): no repository needed.** `DignityEngine.EvaluatePairRelationship(planet, planet, sign, sign)` — already public, static, and reused by Dignity/Shadbala/Yoga engines — computes the compound (Naisargika + Tatkalika) relationship directly from sign placements already in `LoadedChart.Grahas`. `tbl_Rule_CompoundRelationship` and a dedicated repository were never actually necessary. | built |
 | Bhava Bala, Ashtakavarga, Amsabala | `BhavaStrengthRepository`, `AshtakavargaRepository`, `AmsabalaRepository`/`AmsabalaSchemeRepository`/`VargottamaRepository` — all exist, persisted and repository-backed | **Phase 4 deferred**, not v1 (house condition links out instead) |
-| Drill-through (`/key-inference/{id}?step=...&chart=...&house=...`) | `KeyInference.razor` only reads `step` today (if-chain; `about-houses` isn't a recognized value, only `houses` is); no `chart=`/`house=` query param exists | **needs new work** — the plan's example URL isn't supported by the current page |
+| Drill-through (`/astro-facts/{id}?step=...&chart=...&house=...`) | `AstroFacts.razor` only reads `step` today (if-chain; `about-houses` isn't a recognized value, only `houses` is); no `chart=`/`house=` query param exists | **needs new work** — the plan's example URL isn't supported by the current page |

@@ -1,12 +1,12 @@
 # Design QA — shared header and typography standardization
 
 - Source visual truth: `D:\@ClaudeSpace\ikiastrro\UI_SVG_Templates\V2.1-Build\KEY-INFERENCE-TAB-DESIGN-v2.png`
-- Implementation target: `http://127.0.0.1:5161/key-inference/3?step=karakas`
+- Implementation target: `http://127.0.0.1:5161/astro-facts/3?step=karakas`
 - Intended viewport: desktop in-app browser
 - Source pixels: 1240 × 1800
 - Implementation pixels: 812 × 688 browser viewport captures displayed inline in the current task; the browser surface did not expose a file path
 - Density normalization: both reviewed at CSS pixel scale; comparison focused on the shared header, master-step rail and Step 4 heading because the reference depicts Step 2 content.
-- State: Key Inference Step 4 at the 812px in-app browser width; person-level All Charts and Saved Charts routes inspected.
+- State: Astro Facts Step 4 at the 812px in-app browser width; person-level All Charts and Saved Charts routes inspected.
 
 **Findings**
 
@@ -24,9 +24,9 @@
 
 - All four master tabs render as one shared rail and Step 2 → Step 4 switching works.
 - Step 4 loads the complete interactive Karaka wheel and its existing chart/Lagna controls.
-- The legacy `/charts/3/karaka-wheel` route redirects to `/key-inference/3?step=karakas`.
+- The legacy `/charts/3/karaka-wheel` route redirects to `/astro-facts/3?step=karakas`.
 - ALL CHARTS returns to the person-level chart gallery route.
-- Key Inference, All Charts and Saved Chart routes each show the correct active header state.
+- Astro Facts, All Charts and Saved Chart routes each show the correct active header state.
 - The brand line is smaller and centred; SAVED / CHARTS remains anchored at the extreme right.
 - Browser-rendered implementation was captured and inspected successfully; no visible runtime error UI appeared.
 
@@ -40,7 +40,7 @@
 
 **Implementation checklist**
 
-- Keep future Key Inference steps inside the same horizontal master rail.
+- Keep future Astro Facts steps inside the same horizontal master rail.
 - Preserve nested tab styling as a distinct secondary hierarchy.
 - Keep the Karaka wheel canonical inside Step 4 and redirect old bookmarks.
 

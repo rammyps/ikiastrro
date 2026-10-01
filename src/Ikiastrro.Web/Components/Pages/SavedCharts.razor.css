@@ -102,7 +102,7 @@ h1 {
 
 .saved-charts-table ::deep .dt th { padding: 0; border-bottom: 0; }
 
-/* Table typography standardized onto Key Inference "2. ABOUT"'s .ki-table reference — same
+/* Table typography standardized onto Astro Facts "2. ABOUT"'s .ki-table reference — same
    700-weight header, just on the sunset header-row surface this page's mockup calls for. */
 .saved-charts-table ::deep .dt-sort {
     padding: .8rem .9rem;

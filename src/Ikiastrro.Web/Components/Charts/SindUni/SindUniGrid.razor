@@ -1,0 +1,305 @@
+@namespace Ikiastrro.Web.Components.Charts.SindUni
+@using System.Globalization
+@using System.Text.Json
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Strength
+@inject IJSRuntime JS
+
+@* SIND-UNI unified South Indian grid chart — docs/ui/components/spec_SIND-UNI_GridChart.md.
+   One renderer for the three views (SindUni1Grid compact, SindUni2Grid reading, SindUni3Grid
+   micro). Theme tokens only (tokens.css "SIND-UNI chart"); every inner size is in em of the
+   per-view base size, which is a share of the chart's own width (container units). *@
+
+<div class="su su-@ViewName @LayerClasses" style="@(RootStyle)">
+    @if (ShowToolbar)
+    {
+        <div class="su-toolbar @(View != SindUniView.Reading ? "icon-only" : "")">
+            @if (Layers.Count > 0)
+            {
+                <div class="su-group">
+                    @if (View == SindUniView.Reading) { <span class="su-label">Show</span> }
+                    @foreach (var layer in Layers)
+                    {
+                        var on = _layers.Contains(layer.Key);
+                        <button type="button" class="su-layer" aria-pressed="@(on ? "true" : "false")" title="@layer.Label" @onclick="() => ToggleLayer(layer.Key)">
+                            <span class="su-ico @(layer.TextIcon ? "t" : "")">
+                                @if (layer.Key == "orb") { <img src="/images/planets/orb-jupiter.png" alt="" /> } else { @layer.Icon }
+                            </span>
+                            @if (View == SindUniView.Reading) { <span>@layer.Label</span> }
+                        </button>
+                    }
+                </div>
+            }
+            @if (View != SindUniView.Micro)
+            {
+                <div class="su-group">
+                    <label class="su-pick" title="Count houses from">@(View == SindUniView.Reading ? "Houses from" : "From")
+                        <select aria-label="Count houses from" value="@_ref" @onchange="OnRefChanged">
+                            @foreach (var r in SindUniGlyphs.HouseReferences)
+                            {
+                                <option value="@r">@SindUniGlyphs.PlanetGlyph(r) @r</option>
+                            }
+                        </select>
+                    </label>
+                    @if (View == SindUniView.Reading) { <span class="su-label">Lens</span> }
+                    <div class="su-seg" role="group" aria-label="Lens">
+                        @foreach (var lens in Enum.GetValues<SindUniLens>())
+                        {
+                            <button type="button" aria-pressed="@(_lens == lens ? "true" : "false")" @onclick="() => SetLens(lens)">@lens</button>
+                        }
+                    </div>
+                </div>
+            }
+            @if (View == SindUniView.Reading)
+            {
+                <div class="su-group">
+                    <span class="su-label">Preset</span>
+                    <div class="su-seg" role="group" aria-label="Preset">
+                        @foreach (var preset in Presets.Keys)
+                        {
+                            <button type="button" aria-pressed="@(_preset == preset ? "true" : "false")" @onclick="() => ApplyPreset(preset)">@preset</button>
+                        }
+                    </div>
+                </div>
+            }
+            @if (ShowSpecialLagnas)
+            {
+                <div class="su-group">
+                    <span class="su-label">Spl lagnas</span>
+                    @foreach (var kind in SindUniGlyphs.SpecialLagnas)
+                    {
+                        var on = _lagnas.Contains(kind.Code);
+                        <button type="button" class="su-slchip" style="--c:var(@kind.ColorVar)" aria-pressed="@(on ? "true" : "false")" title="@kind.Name" @onclick="() => ToggleLagna(kind.Code)">
+                            <span class="sw"></span>@kind.Code
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <div class="su-chart" role="grid" aria-label="@AriaLabel" @onmouseleave="ClearHover">
+        @foreach (var (sign, pos) in SindUniGlyphs.Position)
+        {
+            var s = Chart[sign];
+            var isAsc = sign == Chart.Ascendant;
+            var isPinned = PinnedSign == sign;
+            var isRelevant = RelevantSigns?.Contains(sign) == true;
+            var lensSource = LensSourceFor(sign);
+            var isTarget = _lens != SindUniLens.Off && PinnedSign == sign && View != SindUniView.Micro;
+            var el = SindUniGlyphs.ElementOf(sign);
+            var two = s.Planets.Count > (View == SindUniView.Micro ? 2 : 3);
+            var bars = View == SindUniView.Micro && ShowSpecialLagnas
+                ? SindUniGlyphs.SpecialLagnas.Where(k => _lagnas.Contains(k.Code) && s.SpecialLagnas.Contains(k.Code)).ToList()
+                : [];
+            var cellStyle = $"grid-column:{pos.Col};grid-row:{pos.Row};--el:var(--el-{el.ToString().ToLowerInvariant()});"
+                + (isTarget ? $"--c:var(--{(_lens == SindUniLens.Aspects ? "cosmos-accent" : "arg")});" : lensSource is not null ? $"--c:{lensSource.Value.Color};" : "");
+            <button type="button" role="gridcell"
+                    class="su-cell @(isAsc ? "asc" : "") @(isPinned ? "pinned" : "") @(isRelevant ? "relevant" : "") @(isTarget ? "target" : "") @(lensSource is not null ? "source" : "")"
+                    style="@cellStyle" data-sign="@sign" data-nature="@s.Verdict"
+                    aria-pressed="@(isPinned ? "true" : "false")" aria-label="@CellLabel(s)"
+                    @onclick="() => Pin(sign)" @onmouseenter="() => Hover(sign)" @onfocus="() => Hover(sign)">
+                <span class="rail" aria-hidden="true"></span>
+                @if (bars.Count > 0)
+                {
+                    <span class="bars" aria-hidden="true">@foreach (var b in bars) { <i style="background:var(@b.ColorVar)" title="@b.Name"></i> }</span>
+                }
+                @if (View != SindUniView.Micro) { <span class="wm" aria-hidden="true">@SindUniGlyphs.SignGlyph(sign)</span> }
+                <span class="top">
+                    <span class="l1" title="@SignSummary(sign)">
+                        <span class="zg">@SindUniGlyphs.SignGlyph(sign)</span>
+                        @if (View != SindUniView.Micro)
+                        {
+                            <span class="ab">@SindUniGlyphs.SignCode(sign)</span>
+                            <span class="attr">
+                                <span style="color:var(--el-@el.ToString().ToLowerInvariant())" title="@el">@SindUniGlyphs.ElementGlyph(el)</span>
+                                <span title="@SindUniGlyphs.ModalityOf(sign)">@SindUniGlyphs.ModalityGlyph(SindUniGlyphs.ModalityOf(sign))</span>
+                                <span class="lord" title="Lord: @HouseLord(sign)">@SindUniGlyphs.PlanetGlyph(HouseLord(sign))</span>
+                            </span>
+                        }
+                    </span>
+                    @if (!string.IsNullOrEmpty(TrackTag) && TrackSign == sign) { <span class="track" title="@TrackLabel">@TrackTag</span> }
+                    @if (lensSource is not null)
+                    {
+                        <span class="lensmark" title="@lensSource.Value.Title">@lensSource.Value.Text</span>
+                    }
+                    else if (s.Verdict is not null)
+                    {
+                        <span class="bm bm-@s.Verdict.ToLowerInvariant()" title="Raman: @VerdictWord(s.Verdict) for this Lagna">@s.Verdict</span>
+                    }
+                </span>
+                @if (View != SindUniView.Micro)
+                {
+                    <span class="l2">
+                        @foreach (var group in SindUniGlyphs.PadasIn(sign).GroupBy(p => p.NakshatraId))
+                        {
+                            <span class="nk" title="@SindUniGlyphs.Nakshatras[group.Key - 1].Name">
+                                @SindUniGlyphs.NakshatraCode(group.Key)
+                                <span class="dots">
+                                    @foreach (var (nid, pada) in group)
+                                    {
+                                        var who = PointsIn(s, nid, pada);
+                                        <i class="@(who.Count > 0 ? "occ" : "") @(who.Count > 1 ? "n" : "")"
+                                           title="@($"{SindUniGlyphs.Nakshatras[nid - 1].Name} pada {pada}{(who.Count > 0 ? ": " + string.Join(", ", who) : "")}")">@(who.Count > 1 ? who.Count.ToString(CultureInfo.InvariantCulture) : "")</i>
+                                    }
+                                </span>
+                            </span>
+                        }
+                    </span>
+                    @if (isAsc && View == SindUniView.Reading)
+                    {
+                        <span class="ascline">ASC @Chart.AscendantDegree @(Chart.AscendantNakshatraId is int an ? "· " + SindUniGlyphs.NakshatraCode(an) : "")<sup>@Chart.AscendantPada</sup></span>
+                    }
+                }
+                <span class="planets @(two ? "two" : "")">
+                    @foreach (var p in s.Planets)
+                    {
+                        var hot = HotPlanets.Contains(p.Planet);
+                        <span class="pl">
+                            <img class="orb" src="/images/planets/orb-@(p.Planet.ToLowerInvariant()).png" alt="" />
+                            <span class="chip @(hot ? "hot" : "") @(KarakaPlanets?.Contains(p.Planet) == true ? "karaka" : "")"
+                                  style="--dc:var(--dignity-@p.DignityToken)"
+                                  title="@($"{p.Planet} · {p.DignityStatus ?? "no dignity"}{(p.IsRetrograde && p.Planet is not ("Rahu" or "Ketu") ? " · retrograde" : "")}{(p.IsCombust ? " · combust" : "")}")">@p.Label</span>
+                            @if (View != SindUniView.Micro)
+                            {
+                                <span class="deg">@p.Degree</span>
+                                @if (p.IsCombust)
+                                {
+                                    <svg class="flame" viewBox="0 0 16 16" role="img" aria-label="Combust"><path fill="currentColor" d="M8.6 1c.3 2.2-1 3.3-2.1 4.6C5.4 6.9 4.3 8.2 4.3 10.1 4.3 12.8 6 15 8.4 15c2.5 0 4.3-2 4.3-4.6 0-1.9-1-3.1-1.8-4-.2 1.2-.8 2-1.6 2.4.4-2.7-.1-5.1-.7-6.8z" /></svg>
+                                }
+                                @if (p.NakshatraId is int nid)
+                                {
+                                    <span class="pn">@SindUniGlyphs.NakshatraCode(nid)<sup>@p.Pada</sup></span>
+                                }
+                                @if (!string.IsNullOrEmpty(p.Karaka)) { <span class="kar">@p.Karaka</span> }
+                            }
+                        </span>
+                    }
+                </span>
+                <span class="bottom">
+                    @if (View != SindUniView.Micro && s.Sav is int sav)
+                    {
+                        <span class="sav sav-@s.SavTier.ToString().ToLowerInvariant()" style="--p:@((sav * 100 / 56).ToString(CultureInfo.InvariantCulture))%" title="Sarvashtakavarga @sav bindus (@s.SavTier)">
+                            <b>@sav</b><i></i>
+                        </span>
+                    }
+                    <span class="tags">
+                        @if (View == SindUniView.Micro && ShowSpecialLagnas)
+                        {
+                            @foreach (var b in bars) { <span class="tag" style="--t:var(@b.ColorVar)" title="@b.Name">@b.Code</span> }
+                        }
+                        else if (View != SindUniView.Micro)
+                        {
+                            @foreach (var a in s.Arudhas)
+                            {
+                                <span class="tag sp @(FocusCodes?.Contains(a) == true ? "is-focus" : "")" style="--t:var(--sl-al)">@a</span>
+                            }
+                        }
+                    </span>
+                    <span class="houses">
+                        <span class="hn l" title="House @s.HouseFromLagna from the Lagna">@s.HouseFromLagna</span>
+                        @if (View != SindUniView.Micro && Chart.PlanetSigns.TryGetValue(_ref, out var refSign))
+                        {
+                            var h = SindUniChart.HouseFrom(refSign, sign);
+                            <span class="hn m" title="House @h from @_ref"><span class="g">@SindUniGlyphs.PlanetGlyph(_ref)</span>@h</span>
+                        }
+                    </span>
+                </span>
+            </button>
+        }
+
+        <div class="su-center">
+            @{ var cardSign = View == SindUniView.Micro && !Interactive ? null : _hover ?? PinnedSign; }
+            @if (cardSign is ZodiacName cs)
+            {
+                var c = Chart[cs];
+                var cel = SindUniGlyphs.ElementOf(cs);
+                var cmod = SindUniGlyphs.ModalityOf(cs);
+                <div class="card" style="--el:var(--el-@cel.ToString().ToLowerInvariant())">
+                    @if (_lens != SindUniLens.Off && PinnedSign is ZodiacName lt)
+                    {
+                        <div class="lensinfo">@LensSummary(lt)</div>
+                    }
+                    <div class="card-hd">
+                        <span class="zg">@SindUniGlyphs.SignGlyph(cs)</span>
+                        <b>@SindUniGlyphs.SignName(cs) · @SindUniGlyphs.SignCode(cs)</b>
+                        @if (c.Verdict is not null) { <span class="bm bm-@c.Verdict.ToLowerInvariant()">@VerdictWord(c.Verdict).ToUpperInvariant()</span> }
+                    </div>
+                    <dl>
+                        <dt>Nature</dt>
+                        <dd><span class="g" style="color:var(--el-@cel.ToString().ToLowerInvariant())">@SindUniGlyphs.ElementGlyph(cel)</span>@cel · <span class="g">@SindUniGlyphs.ModalityGlyph(cmod)</span>@cmod (@SindUniGlyphs.ModalitySanskrit(cmod)) · @(SindUniGlyphs.IsOdd(cs) ? "Odd" : "Even") · Lord @HouseLord(cs)</dd>
+                        <dt>Nakshatras</dt>
+                        <dd>@NakshatraSpan(cs)</dd>
+                        @if (c.VerdictWhy is not null) { <dt>Benefic / malefic</dt><dd class="why">@c.VerdictWhy</dd> }
+                        @if (c.ArgalaNet is not null) { <dt>Argala</dt><dd>@c.ArgalaNet</dd> }
+                        @if (c.Sav is int csav) { <dt>Ashtakavarga</dt><dd class="sav-@c.SavTier.ToString().ToLowerInvariant()">@csav bindus</dd> }
+                        <dt>House</dt>
+                        <dd>@c.HouseFromLagna from the Lagna@(Chart.PlanetSigns.TryGetValue(_ref, out var rs) ? $" · {SindUniChart.HouseFrom(rs, cs)} from the {_ref}" : "")</dd>
+                        @if (c.Planets.Count > 0) { <dt>Occupants</dt><dd>@string.Join(" ", c.Planets.Select(p => p.Label))</dd> }
+                    </dl>
+                </div>
+            }
+            else
+            {
+                <div class="ct">@Title</div>
+                @if (!string.IsNullOrEmpty(Name)) { <div class="who">@Name</div> }
+                @if (View == SindUniView.Micro)
+                {
+                    @if (!string.IsNullOrEmpty(Note)) { <div class="note">@Note</div> }
+                    @if (!string.IsNullOrEmpty(Meta)) { <div class="meta">@Meta</div> }
+                }
+                else
+                {
+                    @if (!string.IsNullOrEmpty(Note)) { <div class="note">@Note</div> }
+                    <div class="meta">@(Meta ?? DefaultMeta)</div>
+                    @if (_lens != SindUniLens.Off && PinnedSign is ZodiacName lt2) { <div class="lensinfo">@LensSummary(lt2)</div> }
+                    else if (View == SindUniView.Reading)
+                    {
+                        <div class="legend">
+                            @foreach (var d in new[] { "Exalted", "Moolatrikona", "Own Sign", "Friend", "Neutral", "Enemy", "Great Enemy", "Debilitated" })
+                            {
+                                <span class="chip" style="--dc:var(--dignity-@SindUniGlyphs.DignityToken(d))">@d</span>
+                            }
+                        </div>
+                    }
+                }
+            }
+        </div>
+
+        @if (_lens != SindUniLens.Off && PinnedSign is ZodiacName target && View != SindUniView.Micro)
+        {
+            <svg class="lens" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                    @foreach (var k in new[] { "arg", "vir", "cosmos-accent" })
+                    {
+                        <marker id="@($"su-{_id}-{k}")" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--@k)" /></marker>
+                    }
+                </defs>
+                @foreach (var (from, color, dash) in LensLines(target))
+                {
+                    var (x1, y1, x2, y2) = Segment(from, target);
+                    <line x1="@F(x1)" y1="@F(y1)" x2="@F(x2)" y2="@F(y2)" stroke="var(--@color)" stroke-width="0.7" stroke-dasharray="@dash" stroke-linecap="round" marker-end="url(#su-@_id-@color)" />
+                }
+            </svg>
+        }
+    </div>
+
+    @if (ShowKey && View != SindUniView.Micro)
+    {
+        <div class="su-key">
+            @foreach (var e in Enum.GetValues<SindUniGlyphs.Element>())
+            {
+                <span><i class="sw" style="background:var(--el-@e.ToString().ToLowerInvariant())"></i><span class="g" style="color:var(--el-@e.ToString().ToLowerInvariant())">@SindUniGlyphs.ElementGlyph(e)</span>@e</span>
+            }
+            <span class="sep"></span>
+            @foreach (var m in Enum.GetValues<SindUniGlyphs.Modality>())
+            {
+                <span><span class="g">@SindUniGlyphs.ModalityGlyph(m)</span>@m</span>
+            }
+            <span class="sep"></span>
+            <span><span class="num">2</span>Points in one pada</span>
+            <span class="sep"></span>
+            <span><span class="bm bm-ben">BEN</span><span class="bm bm-mal">MAL</span><span class="bm bm-mix">MIX</span>Raman's count</span>
+        </div>
+    }
+</div>

@@ -1,689 +1,712 @@
 @page "/key-inference/{Id:int}"
-@using System.Globalization
-@using Ikiastrro.Web.Components.Workspace
+@page "/life-matters/{Id:int}"
+@* /life-matters is this page's old name (Life Matters, renamed Key Inference 2026-10-01), kept for bookmarks. *@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Dignity
+@using Ikiastrro.Core.Engines.Houses
+@using Ikiastrro.Core.Engines.PlanetaryStates
+@using Ikiastrro.Core.LifeMatters
+@using Ikiastrro.Core.Models
+@using Ikiastrro.Core.Presentation
+@using Ikiastrro.Web.Components.Charts
 @using Ikiastrro.Web.Components.LifeMatters
+@using Ikiastrro.Web.Components.Workspace
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
 @inject ChartHouseLordsRepository ChartHouseLordsRepo
 @inject ChartHouseLordInterpretationRepository ChartHouseLordInterpretationRepo
 @inject ChartAspectsRepository ChartAspectsRepo
-@inject ChartMoonContextRepository ChartMoonContextRepo
 @inject ChartConjunctionsRepository ChartConjunctionsRepo
 @inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
 @inject ChartTypeRepository ChartTypeRepo
-@inject Ikiastrro.Data.GocharaRepository Gochara
-@inject Ikiastrro.Data.Natal_Transit_Comp_WheelRepository D1WheelRepo
-@inject DashaPeriodsRepository DashaRepo
-@inject Ikiastrro.Data.PlanetaryStrengthRepository PlanetaryStrengthRepo
-@inject Ikiastrro.Data.BhavaStrengthRepository BhavaStrengthRepo
-@inject Ikiastrro.Data.AshtakavargaRepository AshtakavargaRepo
-@inject Ikiastrro.Data.AmsabalaRepository AmsabalaRepo
-@inject Ikiastrro.Data.AmsabalaSchemeRepository AmsabalaSchemeRepo
-@inject Ikiastrro.Data.TransitStrengthRuleRepository TransitStrengthRuleRepo
-@inject Ikiastrro.Data.VargottamaRepository VargottamaRepo
-@inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
-@inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
-@inject Ikiastrro.Data.ArgalaRuleRepository ArgalaRuleRepo
-@inject Ikiastrro.Data.ArgalaFactRepository ArgalaFactRepo
-@inject Ikiastrro.Data.RasiNakshatraCombinationRepository RasiNakshatraCombinationRepo
-@inject Ikiastrro.Data.GrahaDrishtiStrengthRepository GrahaDrishtiStrengthRepo
-@inject Ikiastrro.Data.PlanetaryStateRepository PlanetaryStateRepo
-@inject Ikiastrro.Data.PlanetaryStateRuleRepository PlanetaryStateRuleRepo
-@inject Ikiastrro.Data.PostureStateInterpretationRepository PostureStateInterpretationRepo
-@inject Ikiastrro.Data.PanchangaRepository PanchangaRepo
 @inject LifeMatterReferenceRepository LifeMatterReferenceRepo
 @inject LifeMatterFocusRepository LifeMatterFocusRepo
+@inject KarakaMatterRepository KarakaMatterRepo
+@inject PlanetaryStateRepository PlanetaryStateRepo
+@inject PlanetaryStateRuleRepository PlanetaryStateRuleRepo
+@inject PostureStateInterpretationRepository PostureStateInterpretationRepo
+@inject PlanetaryStrengthRepository PlanetaryStrengthRepo
+@inject BhavaStrengthRepository BhavaStrengthRepo
+@inject AshtakavargaRepository AshtakavargaRepo
+@inject AmsabalaRepository AmsabalaRepo
+@inject ArgalaFactRepository ArgalaFactRepo
+@inject InterpretationRepository InterpretationRepo
 @inject ActivePerson Active
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 
-@* Key Inference — docs/ui/components/key-inference.md. Steps 1–4 built (3.4 Amsabala added
-   2026-09-16), 5 (Yogas) and 6 (Vargas) added 2026-09-16; 7 (All Charts) embedded as its own
-   master tab 2026-09-24 (rammyps's directive — no more jumping to a separate page for it) via
-   the shared `AllChartsGrid` component (Components/Charts/**), which also backs the standalone
-   /charts/{id} page (AllCharts.razor) — both render off the same already-loaded WorkspaceData,
-   so this tab needs no extra query. Same South-Indian grid component
-   as /charts (Codex `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not
-   modified) for the "1.1 D1 - BIRTH CHART" tab, chart left / table right (`.ki-d1layout`,
-   2026-09-23). D1's table is back to `PlanetPositionsTable` (`Variant="d1"`, `ShowAnalysis=
-   false` — position only here, 2.2/"1.2 About Planets" owns role/condition) as of 2026-09-23
-   evening (rammyps's call — the transposed planets-as-columns layout tried earlier that day was
-   reverted for being harder to read; the plain planets-as-rows table is easier). The transposed
-   `PlanetPositionsD1Transposed` component (with its Nak Pada Lord column, read off the person's
-   own D9) still exists but is unused now — VargaView is PlanetPositionsTable's only other
-   caller, passing `Variant="varga"`. The standalone /transit-wheel page has
-   been folded into the "1.2 TRANSIT CHART" tab wholesale — wheel chart, date/dasha selector,
-   and Gochara table — reusing its
-   Natal_Transit_Comp_WheelRepository/TransitSelection/Natal_Transit_Comp_WheelMath exactly;
-   only the chart shown under a tab now, not a separate route.
 
-   Three tab levels, rebuilt 2026-09-23 evening (rammyps's directive) as plain hand-rolled pill
-   navs — `<button role="tab">` + a private `int` field per level (`_masterTab`/`_activeTab`/
-   `_strengthTab`), no `<MudTabs>` — after three separate rounds earlier in the project of
-   fighting MudTabs' internal DOM just to make it look like a plain pill; the app's own header
-   nav (`.ik-headtab`, MainLayout.razor.css) already proved the plain-markup version of this
-   look works, so the tab strip here now follows it directly. See design-language.md "Tabs" for
-   the full history and the shared `--tab-*` tokens (sunset-fill/navy-text pill, same for active
-   and inactive — the only difference is `aria-selected`).
-   Master rail (7 steps: "1. NATAL CHARTS" .. "7. ALL CHARTS", labels as two stacked `<span>`s
-   each rather than one wrapped string — `MasterSteps`/`MasterNav` in `@code` below) doesn't
-   render in this page's own body at all: it's handed to `Active.SetHeaderExtra` (see
-   `OnParametersSet`) and rendered by `MainLayout` inside the shared person band, to the right
-   of the name, so the tab row no longer costs its own line of vertical space. Because that
-   `<nav>`'s markup physically renders inside MainLayout's tree, `SelectMaster` calls
-   `StateHasChanged()` explicitly after changing `_masterTab` — see that method's own comment.
-   Per-panel heading text (D1-TRANSIT/ABOUT/STRENGTH, plus the "Step N of 6" stepnum line) was
-   dropped from every panel 2026-09-16/09-17, rammyps's call — the tab pill above already names
-   the step, so panels open straight into their content; `.ki-panelbody` carries a flat top
-   margin for the breathing room that heading used to provide. "4. SPL LAGNAS" never had a
-   heading of its own beyond the embedded KarakaPolarWheel's own header.
-   Where a step has sub-views, its own inner plain nav (same `.ki-steptab`/`.ki-steptab-sub`
-   pill, physically in the page body this time, not the band, single line at this level too as
-   of 2026-09-24 — see that class's own comment in the .css file): Natal Charts uses a
-   D1-default chart selector and 1.1 GENERAL / 1.2 ABOUT PLANETS / 1.3 ABOUT HOUSES & SIGN &
-   PLANET ASPECTS (_activeTab, reduced from 4 sub-tabs to 3 on 2026-09-24, rammyps's call — the
-   old 1.3 About Houses and 1.4 Aspected (%) panels are now one merged panel, House
-   lordship/Argala followed by Graha/Rāśi Dṛṣṭi/dispositors/conjunctions in one scroll). Moon
-   context (`LunarPhaseCard`) was pulled back out of the chart view the same day — no longer
-   sticky across every sub-tab — and now sits at the top of 1.2 About Planets, alongside the
-   rest of a planet's condition; "Birth Pañchāṅga" (`PanchangaCard`) stays at the top of
-   1.1 General, where it always was. Both cards render on the app's new dark "card" surface
-   (`--card-*` tokens in tokens.css) instead of the page's light parchment, so each reads as its
-   own distinct fact card rather than blending into the section beneath it — each is a
-   self-contained card shell now (no shared wrapper), so either can be reused standalone
-   elsewhere later. Strength's is 3.1 PLANET STRENGTH/3.2 HOUSE STRENGTH/3.3 ASHTAKAVARGA. Every
-   tab text at every level is ALL CAPS.
-   2.2's exaltation-closeness bar + table read ChartViewModel.BuildExaltationRows (Core) over
-   lc.KeyDetails; the Moon-context facts read ChartMoonContextRepository (vw_ChartMoonContext)
-   separately, same "outside WorkspaceData" pattern as the Current Transit tab's Gochara/Dasha
-   loads — only this page needs it. 3.1/3.2 (`PlanetStrengthChart`/`HouseStrengthChart`, own
-   `.razor.css`) read PlanetaryStrengthRepository/BhavaStrengthRepository's new
-   GetSummaryByBirthDetailId/GetComponentsByBirthDetailId over vw_ChartShadbala/
-   vw_ChartBhavaBala + the two component fact tables — same "outside WorkspaceData" pattern,
-   loaded alongside Moon context/Gochara/Dasha in OnParametersSet.
-   5 (`YogaEvaluationTable`) reads YogaEvaluationRepository over vw_ChartYogaEvaluations
-   (db/053+079) — the typed read model built for this step, evaluation itself already runs in
-   ChartGenerationService.PersistAnalytics.
+@* docs/ui/components/specs_key_inference_page.md "Customer flow". Three levels: EXPLORE (area →
+   question), UNDERSTAND (one answer card: the selected question's support, D1 foundation vs the
+   matter's own chart, strongest and limiting factors) and INVESTIGATE (the chart, perspectives,
+   the lagna × chart matrix, Argala, planet strength and provenance as expandable sections).
+   A matter opens in its own varga (PrimaryChartsText / divisional subject), read from the chosen
+   lagna; D1 is the promise, the varga the confirmation. LifeMatterStatistics supplies every
+   figure; LifeMatterReading only puts them into words. *@
 
-   6 (`AmsabalaTable`, 2026-09-16 redesign, superseding both the original flat `VargaLordsTable`
-   and the standalone "3.4 Amsabala" Strength sub-tab): one scheme-tabbed view —
-   Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga — instead of two different depths of
-   the same varga breakdown living in two different steps. Vargottama is unchanged (D1/D9/Match).
-   Each scheme's graha row is collapsed to just its numeric split (GoodCount/GroupSize + %) by
-   default; expanding it reveals the stacked dignity bar (now full 7-tier —
-   Exalted/Moolatrikona/Own/Great Friend/Friend/Enemy/Great Enemy via
-   `ChartViewModel.DignityTierToken`, not the old binary good/not-good) and a varga-lords detail
-   table underneath (Varga/Sign/Lord/Dignity/0-1 score via `ChartViewModel
-   .DignityScoreNormalized` — for later statistical use, docs/research/domain/stat_strength.md).
-   Still needs no new repository beyond what 3.4 already injected
-   (`AmsabalaRepo`/`AmsabalaSchemeRepo`/`VargottamaRepo`) — the lords/dignity data reads straight
-   off `_data.Charts` (every persisted varga's Grahas + HouseLords, already loaded by
-   WorkspaceData.Load for every chart type), same as the old `VargaLordsTable`/AllCharts.razor's
-   grid. A "3.4"/"amsabala" deep link now routes to step 6 (`_masterTab = 5`) instead of a Strength
-   sub-tab that no longer exists. *@
-
-<PageTitle>Key Inference — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
+<PageTitle>@(_data?.Person.Name ?? "Key Inference") · Key Inference</PageTitle>
 
 @if (_data is null)
 {
-    <section class="ki-unavailable" role="status">
-        <h1 class="ki-heading">KEY INFERENCE</h1>
-        <p>D1 is not computed for this person.</p>
+    <section class="lm-unavailable" role="status">
+        <h1 class="lm-heading">KEY INFERENCE</h1>
+        <p>No saved charts found for that person.</p>
         <a href="/">Choose a saved person</a>
     </section>
 }
 else
 {
-    var lc = _data.Charts["D1"];
+    var d1 = _data.Charts["D1"];
+    var question = LifeMatterQuestions.Get(_question);
+    var perspective = LifeMatterReading.PerspectiveName(question);
+    var areaSteps = StepsIn(_area);
+    var step = areaSteps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
+    var chartType = step is null ? "D1" : ChartTypeFor(step);
+    var displayed = _data.Charts.GetValueOrDefault(chartType);
+    var read = step is null || displayed is null ? null : Read(step, _question, chartType);
+    var d1Read = step is null ? null : Read(step, _question, "D1");
+    var theme = LifeMatterQuestions.AreaTheme(_area, CategoryName(_area));
+    var areaLabel = LifeMatterQuestions.AreaLabel(_area, CategoryName(_area));
+    var readPct = ReadPercent(read);
+    var askText = step is null ? question.Ask(theme) : question.AskOf(step.MatterText, theme);
 
-    @if (_masterTab == 0)
-    {
-        <div class="ki-panelbody" id="ki-panel-0" role="tabpanel" aria-labelledby="ki-tab-0">
-                @if (NatalChart is { } natalChart)
+    <div class="lm-full" hidden></div>
+
+    @* ---------------- Sticky context: where the reader is ---------------- *@
+    <div class="lm-context" aria-label="Current selection">
+        <span class="lm-crumb">@areaLabel</span>
+        <span class="lm-crumb-sep" aria-hidden="true">→</span>
+        <span class="lm-crumb lm-crumb-matter">@(step?.MatterText ?? "Choose a question")</span>
+        <span class="lm-crumb-sep" aria-hidden="true">→</span>
+        <span class="lm-crumb" title="@ChartName(chartType)">@chartType</span>
+        <span class="lm-crumb-sep" aria-hidden="true">→</span>
+        <span class="lm-crumb">@perspective</span>
+        <span class="lm-context-pct">@Pct(readPct, "Selected question")</span>
+        <button type="button" class="lm-copy" @onclick="CopyLink" title="Copy a link to this exact reading">@(_copyStatus ?? "Copy link")</button>
+        @if (_copyFailed)
+        {
+            @* The clipboard needs permission; the link itself is always here to copy by hand. *@
+            <input class="lm-link-field" readonly value="@Nav.Uri" aria-label="Link to this reading" onfocus="this.select()" />
+        }
+    </div>
+
+    @* ---------------- Foundation: what every reading stands on (D1) ---------------- *@
+    <section class="lm-foundation" aria-label="Chart foundation">
+        <p class="lm-kicker">Foundation · main birth chart</p>
+        <ul>
+            @foreach (var f in _foundation)
+            {
+                <li class="lm-found @(f.Tone is null ? null : $"is-{f.Tone}")">
+                    <a href="@AstroFactsLink.Url(Id, f.Step)" title="@($"{f.Detail} Open in Astro Facts.")">
+                        <span class="lm-found-label">@f.Label</span>
+                        <span class="lm-found-value">@f.Value</span>
+                        <span class="lm-found-detail">@f.Detail</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </section>
+
+    <div class="lm-top">
+        @* ================= 1 · EXPLORE ================= *@
+        <nav class="lm-explore" aria-label="Choose a life area and question">
+            <p class="lm-step"><b>1</b> Choose a life area</p>
+            <div class="lm-pills" role="tablist" aria-label="Life area">
+                @foreach (var area in _categories)
                 {
-                    <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
-                        <div class="ki-gridwrap">
-                            <div class="ki-chart-toolbar">
-                                <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
-                                    @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
-                                </button>
-                                <select class="ki-chart-picker" aria-label="Natal chart" value="@_natalChart" @onchange="OnNatalChartChanged">
-                                    @foreach (var chart in NatalChartOptions)
-                                    {
-                                        <option value="@chart.ChartType">@chart.Label</option>
-                                    }
-                                </select>
-                            </div>
-                            @if (!_natalChartCollapsed)
-                            {
-                                <SouthIndianGrid_Detailed AscendantSign="@natalChart.AscendantSign" MoonSign="@natalChart.MoonSign" PlanetsBySign="PlanetsBySign(natalChart)" CenterTitle="@natalChart.ChartType">
-                                    <CenterMeta><b>Lagna</b> @Disp(natalChart.AscendantSign)</CenterMeta>
-                                </SouthIndianGrid_Detailed>
-                            }
-                        </div>
-                        <div class="ki-natal-detail ki-subnav-wrap">
-                        <nav class="ki-subnav" role="tablist" aria-label="Natal chart details">
-                            <button type="button" role="tab" id="ki-natal-tab-0" aria-selected="@(_activeTab == 0)" aria-controls="ki-natal-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 0">GENERAL</button>
-                            <button type="button" role="tab" id="ki-natal-tab-1" aria-selected="@(_activeTab == 1)" aria-controls="ki-natal-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 1">ABOUT PLANETS</button>
-                            <button type="button" role="tab" id="ki-natal-tab-2" aria-selected="@(_activeTab == 2)" aria-controls="ki-natal-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 2">ABOUT HOUSES</button>
-                            <button type="button" role="tab" id="ki-natal-tab-3" aria-selected="@(_activeTab == 3)" aria-controls="ki-natal-panel-3" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 3">SIGNS &amp; PLANET ASPECTS</button>
-                        </nav>
-                        <div class="ki-subpanels">
-                            @if (_activeTab == 0)
-                            {
-                                <div id="ki-natal-panel-0" role="tabpanel" aria-labelledby="ki-natal-tab-0">
-<h3 class="ki-sectionhead">Birth Pañchāṅga</h3>
-                    <PanchangaCard Row="_panchanga" UtcOffset="_utcOffset" />
+                    <button type="button" role="tab" class="lm-pill" aria-selected="@Aria(area.CategoryCode == _area)"
+                            title="Area overview — @string.Join(" & ", CoreHouses(area.CategoryCode).Select(Ordinal)) house of the main birth chart"
+                            @onclick="() => SelectArea(area.CategoryCode)">
+                        @LifeMatterQuestions.AreaLabel(area.CategoryCode, area.CategoryName)
+                        @Strength(AreaStats(area.CategoryCode))
+                    </button>
+                }
+            </div>
 
-                    <h3 class="ki-sectionhead">Planet positions</h3>
-                    <PlanetPositionsTable Rows="Rows(natalChart)" LagnaSign="@natalChart.AscendantSign" Variant="d1" ShowAnalysis="false" />
+            <p class="lm-step"><b>2</b> Pick a question about @theme</p>
+            @{
+                var selectedIndex = areaSteps.ToList().FindIndex(s => s.LifeMatterId == _selectedLifeMatterId);
+                var showAll = _showAllMatters || selectedIndex >= LifeMatterReading.PrimaryMatterCount;
+                var visible = showAll ? areaSteps : areaSteps.Take(LifeMatterReading.PrimaryMatterCount).ToList();
+            }
+            <div class="lm-drill" role="listbox" aria-label="@($"{areaLabel} questions")">
+                @foreach (var s in visible)
+                {
+                    var homeRead = Read(s, _question, HomeChart(s));
+                    <button type="button" role="option" class="lm-matter" aria-selected="@Aria(s.LifeMatterId == _selectedLifeMatterId)"
+                            title="@($"{s.MatterText} — read in the {ChartName(HomeChart(s))}")"
+                            @onclick="() => SelectStep(s.LifeMatterId)">
+                        <span class="lm-matter-name">@s.MatterText</span>
+                        @ReadStrength(homeRead)
+                    </button>
+                }
+            </div>
+            @if (areaSteps.Count > LifeMatterReading.PrimaryMatterCount && selectedIndex < LifeMatterReading.PrimaryMatterCount)
+            {
+                <button type="button" class="lm-more" aria-expanded="@Aria(showAll)" @onclick="() => _showAllMatters = !_showAllMatters">
+                    @(showAll ? "Fewer questions" : $"More questions ({areaSteps.Count - LifeMatterReading.PrimaryMatterCount})")
+                </button>
+            }
+        </nav>
 
-                    <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
-                    <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
-                                </div>
-                            }
-                            @if (_activeTab == 1)
-                            {
-                                <div id="ki-natal-panel-1" role="tabpanel" aria-labelledby="ki-natal-tab-1">
-<h3 class="ki-sectionhead">Moon context</h3>
-                    @if (_moon is null)
-                    {
-                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                            Moon context not available for this chart yet — run <code>recompute-keydetails</code>.
-                        </MudAlert>
-                    }
-                    else
-                    {
-                        <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
-                    }
+        @* ================= 2 · UNDERSTAND ================= *@
+        <section class="lm-answer" aria-label="Answer">
+            <p class="lm-step"><b>3</b> Your answer</p>
+            @if (step is null)
+            {
+                <p class="lm-note">Choose a question to see how well it is supported.</p>
+            }
+            else
+            {
+                var band = LifeMatterReading.Band(readPct);
+                var home = HomeChart(step);
+                var factors = LifeMatterReading.Factors(read?.Items.Select(i => i.Stats).ToList() ?? [], chartType);
+                var strongest = LifeMatterReading.Strongest(factors);
+                var limiting = LifeMatterReading.Limiting(factors);
+                var areaPct = AreaStats(_area).StrengthPercent;
 
-                    <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
-                    <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
+                <p class="lm-kicker">Selected question</p>
+                <h1 class="lm-question">@askText</h1>
 
-                    <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
-                    <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames"
-                                           PostureInterpretations="_postureInterpretations"
-                                           KeyDetails="natalChart.KeyDetails" Strengths="_shadbala" />
-                                </div>
-                            }
-                            @if (_activeTab == 2)
-                            {
-                                <div id="ki-natal-panel-2" role="tabpanel" aria-labelledby="ki-natal-tab-2">
-<h3 class="ki-sectionhead">House lord placement</h3>
-                    <HouseLordshipTable Rows="natalChart.HouseLords" Occupants="Occupants(natalChart)"
-                                        LifeMatters="_houseMatters" PersonId="Id" ChartType="@natalChart.ChartType" />
-
-                    <h3 class="ki-sectionhead">House lord key findings</h3>
-                    <HouseLordFindingsTable Rows="natalChart.HouseLordInterpretations" />
-
-                    <h3 class="ki-sectionhead">What acts on each house</h3>
-                    <HouseVerdictTable Rows="HouseVerdicts.For(natalChart, ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas))" />
-
-                    <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
-                    <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
-                                </div>
-                            }
-                            @if (_activeTab == 3)
-                            {
-                                <div id="ki-natal-panel-3" role="tabpanel" aria-labelledby="ki-natal-tab-3">
-                    <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
-                    <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="@_natalChart" />
-
-                    @if (NatalChart is { } relationshipChart)
-                    {
-                        <h3 class="ki-sectionhead">Rāśi Dṛṣṭi</h3>
-                        <RasiDrishtiMatrix KeyDetails="relationshipChart.KeyDetails" />
-
-                        <h3 class="ki-sectionhead">Rāśi &amp; graha dispositors</h3>
-                        <DispositorTable ChartType="@relationshipChart.ChartType" AscendantSign="@relationshipChart.AscendantSign" KeyDetails="relationshipChart.KeyDetails" />
-
-                        <h3 class="ki-sectionhead">Conjunctions</h3>
-                        <HouseConjunctionsTable Groups="relationshipChart.MultiGrahaConjunctions" KeyDetails="relationshipChart.KeyDetails" />
-                    }
-                                </div>
-                            }
-                        </div>
-                        </div>
+                <div class="lm-score lm-tone-@band.Tone">
+                    <span class="lm-big">@(readPct is null ? "—" : $"{readPct}%")</span>
+                    <span class="lm-score-words"><b>@band.Label</b><span>@band.Meaning</span></span>
+                    <button type="button" class="lm-info" aria-expanded="@Aria(_showExplain)" aria-controls="lm-explain"
+                            @onclick="() => _showExplain = !_showExplain">
+                        <span aria-hidden="true">i</span><span class="lm-sr">What does this figure mean?</span>
+                    </button>
+                </div>
+                @if (_showExplain)
+                {
+                    <div class="lm-explain" id="lm-explain">
+                        <p>The figure is how well this part of life is supported in the chart, on a scale where
+                            <b>50% is the ordinary midpoint</b>. It averages three things equally:</p>
+                        <ul>
+                            <li><b>Strength of the ruling planets</b> — @Percent(Axis(read, 0))</li>
+                            <li><b>Consistency across the divisional charts</b> — @Percent(Axis(read, 1))</li>
+                            <li><b>The house's own setting</b> (its support, its ruler's comfort there, its strength
+                                and the help or hindrance of other planets) — @Percent(Axis(read, 2))</li>
+                        </ul>
+                        @if (read is { Items.Count: > 1 })
+                        {
+                            <p>This question reads @ReadsText(read); the figure is their average.</p>
+                        }
                     </div>
                 }
-        </div>
-    }
 
-    @if (_masterTab == 1)
-    {
-        <div class="ki-panelbody" id="ki-panel-1" role="tabpanel" aria-labelledby="ki-tab-1">
-@if (_selection is not null)
+                <dl class="lm-compare">
+                    <div>
+                        <dt>Foundation <span>main birth chart · D1</span></dt>
+                        <dd>@Pct(ReadPercent(d1Read), "Main birth chart")<span>@LifeMatterReading.Band(ReadPercent(d1Read)).Label</span></dd>
+                    </div>
+                    @if (home != "D1")
                     {
-                        <section class="ki-controls" aria-label="Transit date and dasha filters">
-                            <label class="ki-field">
-                                <span>TRANSIT</span>
-                                <span class="ki-monthyear">
-                                    <select value="@SelMonth" @onchange="OnMonthChanged">
-                                        @for (var m = 1; m <= 12; m++)
-                                        {
-                                            <option value="@m">@m.ToString("00")</option>
-                                        }
-                                    </select>
-                                    <span aria-hidden="true">/</span>
-                                    <select value="@SelYear" @onchange="OnYearChanged">
-                                        @foreach (var y in YearOptions)
-                                        {
-                                            <option value="@y">@y</option>
-                                        }
-                                    </select>
-                                </span>
-                            </label>
-                            <label class="ki-field">
-                                <span>MAHADASHA</span>
-                                <select value="@(_selection.Maha?.Id.ToString() ?? string.Empty)" @onchange="OnMahaChanged">
-                                    <option value="">Select Mahadasha</option>
-                                    @foreach (var period in _selection.Periods)
-                                    {
-                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
-                                    }
-                                </select>
-                            </label>
-                            <label class="ki-field">
-                                <span>ANTARDASHA</span>
-                                <select value="@(_selection.Antar?.Id.ToString() ?? string.Empty)" @onchange="OnAntarChanged" disabled="@(_selection.Maha is null)">
-                                    <option value="">Select Antardasha</option>
-                                    @foreach (var period in _selection.AntarPeriods)
-                                    {
-                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
-                                    }
-                                </select>
-                            </label>
-                            <label class="ki-field">
-                                <span>PRATYANTAR</span>
-                                <select value="@(_selection.Pratyantar?.Id.ToString() ?? string.Empty)" @onchange="OnPratyantarChanged" disabled="@(_selection.Antar is null)">
-                                    <option value="">Select Pratyantar</option>
-                                    @foreach (var period in _selection.PratyantarPeriods)
-                                    {
-                                        <option value="@period.Id">@PlanetGlyph(period.Lord) @period.Lord · @PeriodDates(period)</option>
-                                    }
-                                </select>
-                            </label>
-                        </section>
+                        var homePct = ReadPercent(Read(step, _question, home));
+                        <div>
+                            <dt>Confirmation <span>@ChartName(home) · @home</span></dt>
+                            <dd>@Pct(homePct, ChartName(home))<span>@LifeMatterReading.Band(homePct).Label</span></dd>
+                        </div>
                     }
+                    @if (chartType != "D1" && chartType != home)
+                    {
+                        <div>
+                            <dt>Chart shown <span>@ChartName(chartType) · @chartType</span></dt>
+                            <dd>@Pct(readPct, ChartName(chartType))<span>@band.Label</span></dd>
+                        </div>
+                    }
+                </dl>
 
-                    <div class="ki-wheel">
-                        @if (_d1.Count > 0)
+                <div class="lm-factors">
+                    <div>
+                        <h3>Strongest factors</h3>
+                        @if (strongest.Count == 0)
                         {
-                            <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
-                                               NatalPoints="@D1WheelPoints"
-                                               TransitPoints="@TransitWheelPoints"
-                                               AsOfUtc="@_asOfUtc" />
+                            <p class="lm-note">No factor reaches the midpoint.</p>
                         }
                         else
                         {
-                            <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                                Generate a D1 chart for this person first.
-                            </MudAlert>
+                            <ul>@foreach (var f in strongest) { <li>@Factor(f)</li> }</ul>
                         }
                     </div>
+                    <div>
+                        <h3>Limiting or uncertain</h3>
+                        @if (limiting.Count == 0)
+                        {
+                            <p class="lm-note">Every factor is at or above the midpoint.</p>
+                        }
+                        else
+                        {
+                            <ul>@foreach (var f in limiting) { <li>@Factor(f)</li> }</ul>
+                        }
+                    </div>
+                </div>
 
-                    @if (_transitError is not null || _transits.Count == 0)
+                var acts = Influences(read, displayed, 0, false, step);
+                @if (acts is not null)
+                {
+                    var helpers = TargetInfluenceText.Helpers(acts.Reading);
+                    var hinderers = TargetInfluenceText.Hinderers(acts.Reading);
+                    <div class="lm-acts">
+                        <h3>What acts on the @acts.Label <span>@DisplaySign(acts.Sign) · @chartType</span></h3>
+                        <p><b>Helps</b>
+                            @if (helpers.Count == 0) { <span class="lm-muted">no planet acting on it leans in its favour</span> }
+                            @foreach (var h in helpers) { <span class="lm-act">@h.Planet <em>@TargetInfluenceText.Why(h)</em></span> }
+                        </p>
+                        <p><b>Hinders</b>
+                            @if (hinderers.Count == 0) { <span class="lm-muted">no planet acting on it leans against it</span> }
+                            @foreach (var h in hinderers) { <span class="lm-act">@h.Planet <em>@TargetInfluenceText.Why(h)</em></span> }
+                        </p>
+                    </div>
+                }
+
+                <p class="lm-area-line">
+                    <span class="lm-kicker">Area overview</span>
+                    @areaLabel @Pct(areaPct, "Area overview") —
+                    the area's core @string.Join(" & ", CoreHouses(_area).Select(Ordinal)) house@(CoreHouses(_area).Count > 1 ? "s" : "") in the main birth chart,
+                    before any single question.
+                </p>
+
+                <div class="lm-refine">
+                    <div class="lm-refine-row">
+                        <span class="lm-label">Read from</span>
+                        <div class="lm-chips" role="group" aria-label="Perspective">
+                            @foreach (var (code, name) in LifeMatterReading.PrimaryPerspectives)
+                            {
+                                var pRead = Read(step, code, chartType);
+                                <button type="button" class="lm-chip @(pRead?.Sourced == true ? "sourced" : "")"
+                                        aria-pressed="@Aria(code == _question)" disabled="@(pRead is null)"
+                                        title="@PerspectiveTitle(code, pRead, chartType)"
+                                        @onclick="() => SelectQuestion(code)">
+                                    @name @Pct(ReadPercent(pRead), name)
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    <details class="lm-advanced" open="@(!LifeMatterReading.IsPrimaryPerspective(_question))">
+                        <summary>Advanced perspectives</summary>
+                        <div class="lm-chips" role="group" aria-label="Advanced perspective">
+                            @foreach (var q in LifeMatterQuestions.All.Where(q => !LifeMatterReading.IsPrimaryPerspective(q.ReferenceCode)))
+                            {
+                                var qRead = Read(step, q.ReferenceCode, chartType);
+                                <button type="button" class="lm-chip @(qRead?.Sourced == true ? "sourced" : "")"
+                                        aria-pressed="@Aria(q.ReferenceCode == _question)" disabled="@(qRead is null)"
+                                        title="@PerspectiveTitle(q.ReferenceCode, qRead, chartType)"
+                                        @onclick="() => SelectQuestion(q.ReferenceCode)">
+                                    @q.Label @Pct(ReadPercent(qRead), q.Label)
+                                </button>
+                            }
+                        </div>
+                    </details>
+                    <div class="lm-refine-row">
+                        <span class="lm-label">Chart</span>
+                        <div class="lm-chips" role="group" aria-label="Relevant charts">
+                            @foreach (var c in RelevantCharts(step))
+                            {
+                                <button type="button" class="lm-chip" aria-pressed="@Aria(c == chartType)"
+                                        title="@($"{ChartName(c)} · {_data.Charts[c].Label}")" @onclick="() => SelectChart(c)">
+                                    @ChartShort(c) <span class="lm-chip-code">@c</span>
+                                </button>
+                            }
+                        </div>
+                        <label class="lm-all-charts">
+                            <span class="lm-sr">All charts</span>
+                            <select value="@(RelevantCharts(step).Contains(chartType) ? "" : chartType)"
+                                    @onchange="e => SelectChart(e.Value?.ToString() is { Length: > 0 } v ? v : home)">
+                                <option value="" disabled>All charts…</option>
+                                @foreach (var c in AllCharts())
+                                {
+                                    <option value="@c">@c · @ChartShort(c)</option>
+                                }
+                            </select>
+                        </label>
+                    </div>
+                    <p class="lm-note">A gold edge marks a perspective whose houses the classical texts name for this
+                        question; the others count the same houses from that point.</p>
+                </div>
+
+                <p class="lm-disclaimer">Strength shows <b>capacity</b> — how well this part of life is supported —
+                    not a prediction of what will happen. A strong figure is not by itself a favourable outcome.</p>
+            }
+        </section>
+    </div>
+
+    @* ================= 3 · INVESTIGATE ================= *@
+    @if (step is not null)
+    {
+        <section class="lm-investigate" aria-label="Investigate">
+            <p class="lm-step"><b>4</b> Investigate the evidence</p>
+
+            <details class="lm-section" open>
+                <summary>Chart <span>@ChartName(chartType) · @chartType · from @question.Label</span></summary>
+                <p class="lm-ki-link"><a href="@AstroFactsLink.Url(Id, AstroFactsLink.Overview, chartType)">Planet positions for @chartType in Astro Facts →</a></p>
+                <div class="lm-chart">
+                    @if (displayed is null)
                     {
-                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                            Transit reference not backfilled — run <code>backfill-planet-transits</code>.
-                        </MudAlert>
+                        <EmptyState Message="@($"{chartType} not generated for this person")" Cli="backfill-charts" />
                     }
                     else
                     {
-                        <div class="ki-scroll">
-                            <MudSimpleTable Dense="true" Hover="false" Bordered="false" Class="ki-table">
-                                <thead>
-                                    <tr>
-                                        <th>Planet in<br />Natal House</th><th>House from<br />Natal Planet</th>
-                                        <th>Planet</th><th>Motion</th><th>Degree</th>
-                                        <th>Speed<br />°/day</th><th>In sign<br />since</th>
-                                        <th>In-sign<br />motion</th><th>Next<br />change</th><th>Next-change<br />motion</th>
-                                    </tr>
-                                </thead>
+                        var trackSign = ResolveReferenceSign(displayed, _question);
+                        @* SIND-UNI-3 micro view with the special-lagna bars (docs/ui/components/spec_SIND-UNI_GridChart.md) —
+                           the same view as Astro Facts → Spl Lagnas; keeps SindHovGrid's hover / pin contract. *@
+                        <SindUni3Grid Chart="UniChart(displayed)" ShowSpecialLagnas="true"
+                                      RelevantSigns="RelevantSigns(displayed, step)"
+                                      FocusCodes="SpecialPointCodes(step).ToHashSet()"
+                                      PinnedSign="ToSign(_pinnedSign)"
+                                      PinnedSignChanged="s => _pinnedSign = s?.ToString()"
+                                      TrackSign="@(_question == "LAGNA" ? null : ToSign(trackSign))"
+                                      TrackTag="@question.Tag"
+                                      TrackLabel="@question.Label"
+                                      KarakaPlanets="KarakaPlanets(displayed, step)"
+                                      Title="@step.MatterText"
+                                      Note="@(read is null ? question.Label + " not available" : $"{string.Join(" & ", read.Items.Select(i => i.SpecialPoint ?? Ordinal(i.House)))} from {question.Label}")"
+                                      Meta="@($"{displayed.ChartType} · Lagna {DisplaySign(displayed.AscendantSign)}{(trackSign is not null && _question != "LAGNA" ? $" · {question.Tag} {DisplaySign(trackSign)}" : "")}")"
+                                      AriaLabel="@($"{displayed.ChartType} South Indian chart")"
+                                      PrefsKey="key-inference" />
+                    }
+                </div>
+            </details>
+
+            <details class="lm-section">
+                <summary>Every perspective in every chart <span>@SummaryCharts(step).Count charts × @LifeMatterQuestions.All.Count perspectives</span></summary>
+                <p class="lm-ki-link"><a href="@AstroFactsLink.Url(Id, AstroFactsLink.SpecialLagnas)">The special lagnas in Astro Facts →</a></p>
+                @{ var summaryCharts = SummaryCharts(step); }
+                <p class="lm-note">@SummaryNote(step) Choose a figure to show that perspective in that chart.</p>
+                <div class="lm-scroll">
+                    <table class="lm-table lm-matrix">
+                        <thead>
+                            <tr>
+                                <th>Perspective</th>
+                                <th>Houses read</th>
+                                @foreach (var c in summaryCharts)
+                                {
+                                    <th class="num" title="@ChartName(c)">@c<span class="lm-col-role">@ChartRole(step, c)</span></th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var q in LifeMatterQuestions.All)
+                            {
+                                var qD1 = Read(step, q.ReferenceCode, "D1");
+                                <tr class="@(q.ReferenceCode == _question ? "selected" : "") @(qD1?.Sourced == true ? "sourced" : "")">
+                                    <th scope="row">
+                                        <button type="button" class="lm-q-link" @onclick="() => SelectQuestion(q.ReferenceCode)">
+                                            <span class="lm-chart-tag">@q.Tag</span> @q.Label
+                                        </button>
+                                    </th>
+                                    <td class="lm-muted">@(qD1 is null ? "—" : $"{ReadsText(qD1)} · {SourceText(qD1)}")</td>
+                                    @foreach (var c in summaryCharts)
+                                    {
+                                        var cell = Read(step, q.ReferenceCode, c);
+                                        <td class="num">
+                                            <button type="button" class="lm-cell" disabled="@(cell is null)"
+                                                    aria-pressed="@Aria(q.ReferenceCode == _question && c == chartType)"
+                                                    aria-label="@($"{q.Label} in {c}")"
+                                                    @onclick="() => SelectCell(q.ReferenceCode, c)">
+                                                @ReadStrength(cell)
+                                            </button>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+            <details class="lm-section">
+                @{ var detailCharts = DetailCharts(step, chartType); }
+                <summary>House-by-house evidence <span>@question.Label · @string.Join(" · ", detailCharts)</span></summary>
+                <p class="lm-ki-link"><a href="@AstroFactsLink.Url(Id, AstroFactsLink.Houses, chartType)">House lords and occupants for @chartType in Astro Facts →</a></p>
+                <p class="lm-note">@SourceSentence(read, question) The main birth chart (D1) is the foundation; the
+                    question's own charts confirm it.</p>
+                @{ var reads = detailCharts.Select(c => (Chart: c, Read: Read(step, _question, c))).ToList(); }
+                @if (reads.All(r => r.Read is null))
+                {
+                    <p class="lm-note">@question.Label is not available for this person yet.</p>
+                }
+                else if (reads.All(r => r.Read is null || r.Read.Items.Count == 0))
+                {
+                    <p class="lm-note">Relevant evidence not yet structured for this question.</p>
+                }
+                else
+                {
+                    var keys = reads.SelectMany(r => r.Read?.Items ?? []).Select(ItemKey).Distinct().ToList();
+                    @foreach (var key in keys)
+                    {
+                        var items = reads.Select(r => (r.Chart, Item: r.Read?.Items.FirstOrDefault(i => ItemKey(i) == key))).ToList();
+                        var head = items.First(i => i.Item is not null).Item!;
+                        <h3>@(head.SpecialPoint is null ? $"{Ordinal(head.House)} house" : head.SpecialPoint) from @question.Label</h3>
+                        <div class="lm-scroll">
+                            <table class="lm-table lm-cmp">
+                                <thead><tr><th></th>
+                                    @foreach (var (c, _) in items)
+                                    {
+                                        <th>@c · @(c == "D1" ? "foundation" : ChartRole(step, c))</th>
+                                    }
+                                </tr></thead>
                                 <tbody>
-                                    @foreach (var s in TransitRows)
+                                    @foreach (var row in StatRows)
                                     {
                                         <tr>
-                                            <td class="num">@(PlanetInNatalHouse(s)?.ToString() ?? "—")</td>
-                                            <td class="num">@(HouseFromNatalPlanet(s)?.ToString() ?? "—")</td>
-                                            <td>@s.Planet</td>
-                                            <td>@s.MotionDirection</td>
-                                            <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
-                                            <td class="num">@s.SpeedDegreesPerDay.ToString("0.0000", CultureInfo.InvariantCulture)</td>
-                                            <td class="num">@s.InSignSinceUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</td>
-                                            <td>@(s.InSignMotion ?? "—")</td>
-                                            <td class="num">@(s.NextChangeUtc?.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) ?? "—")</td>
-                                            <td>@(s.NextChangeMotion ?? "—")</td>
+                                            <th scope="row">@row.Label@if (row.Technical is not null) {<span class="lm-tech">@row.Technical</span>}</th>
+                                            @foreach (var (c, item) in items)
+                                            {
+                                                <td>@Cell(row.Key, item, _data.Charts[c])</td>
+                                            }
                                         </tr>
                                     }
                                 </tbody>
-                            </MudSimpleTable>
+                            </table>
                         </div>
-                        @if (GocharaJudgement is { } gochara)
+                    }
+                    @if (read?.Sourced == true && FocusNote(step) is { } note)
+                    {
+                        <div class="lm-focus-note">
+                            <h3>Why @question.Label</h3>
+                            <p><InterpretationText StandardText="@note.StandardText" ShortText="@note.ShortText" /></p>
+                        </div>
+                    }
+                }
+            </details>
+
+            <details class="lm-section">
+                @{ var infl = Influences(read, displayed, _influenceIndex, _influenceOnPada, step); }
+                <summary>What acts on it <span>Influences · @(infl?.Label ?? "—") · @chartType</span></summary>
+                <p class="lm-ki-link"><a href="@AstroFactsLink.Url(Id, AstroFactsLink.Relationships, chartType)">Every aspect and conjunction for @chartType in Astro Facts →</a></p>
+                @if (infl is null || read is null)
+                {
+                    <p class="lm-note">Not available in @chartType.</p>
+                }
+                else
+                {
+                    var current = read.Items[Math.Clamp(_influenceIndex, 0, read.Items.Count - 1)];
+                    <div class="lm-refine-row">
+                        @if (read.Items.Count > 1)
                         {
-                            <GocharaTable Reading="gochara" />
+                            <span class="lm-label">Target</span>
+                            <div class="lm-chips" role="group" aria-label="Which house or point">
+                                @for (var i = 0; i < read.Items.Count; i++)
+                                {
+                                    var index = i;
+                                    var it = read.Items[i];
+                                    <button type="button" class="lm-chip" aria-pressed="@Aria(it == current)" @onclick="() => _influenceIndex = index">
+                                        @(it.SpecialPoint ?? $"{Ordinal(it.House)} house")
+                                    </button>
+                                }
+                            </div>
+                        }
+                        @if (current.SpecialPoint is null)
+                        {
+                            <span class="lm-label">Read</span>
+                            <div class="lm-chips" role="group" aria-label="House or its Āruḍha pada">
+                                <button type="button" class="lm-chip" aria-pressed="@Aria(!_influenceOnPada)" @onclick="() => _influenceOnPada = false"
+                                        title="The house itself: the matter as it is">The house</button>
+                                <button type="button" class="lm-chip" aria-pressed="@Aria(_influenceOnPada)" @onclick="() => _influenceOnPada = true"
+                                        title="The house's Āruḍha pada: the matter as the world sees it">Its Āruḍha</button>
+                            </div>
+                        }
+                    </div>
+                    <p class="lm-note">
+                        @infl.Label in @DisplaySign(infl.Sign). Ruled by <b>@infl.Reading.Lord</b>, placed
+                        @TargetInfluenceText.PositionText(infl.Reading.LordHouseFromTarget, infl.Reading.LordPosition).
+                        Its bādhaka (the planet that can obstruct it) is <b>@infl.Reading.Baadhaka.Baadhaka</b>, lord of
+                        @DisplaySign(infl.Reading.Baadhaka.SthaanaSign.ToString()), the @Ordinal(infl.Reading.Baadhaka.SthaanaOffset) from it.
+                    </p>
+                    <div class="lm-scroll">
+                        <table class="lm-table lm-infl">
+                            <thead><tr><th>Planet</th><th>Where from it</th><th>Reaches it by</th><th>Nature for @chartType Lagna</th><th>Role</th><th>Reads as</th></tr></thead>
+                            <tbody>
+                                @foreach (var p in infl.Reading.Planets)
+                                {
+                                    <tr class="@(p.Touches || p.IsLord ? "is-acting" : null)">
+                                        <td>@p.Planet</td>
+                                        <td>@TargetInfluenceText.PositionText(p.HouseFromTarget, p.Position) <span class="lm-muted">· @DisplaySign(p.Sign.ToString())</span></td>
+                                        <td>@(p.Touches ? string.Join(", ", TargetInfluenceText.Links(p.Links)) : "—")</td>
+                                        <td>@TargetInfluenceText.FunctionalText(p.Functional) <span class="lm-muted">· natural @(p.IsNaturalMalefic ? "malefic" : "benefic")</span></td>
+                                        <td>@InfluenceRole(p)</td>
+                                        <td><span class="lm-lean is-@p.Lean.ToString().ToLowerInvariant()">@TargetInfluenceText.LeanText(p.Lean)</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="lm-note">Where a planet stands counted from the target is PVR's step 5: quadrants (1, 4, 7, 10)
+                        sustain the matter, trines (1, 5, 9) let it prosper, upachayas (3, 6, 10, 11) let it grow, dusthānas
+                        (6, 8, 12) bring obstacles; its bādhaka, and planets in the bādhaka's sign, can create trouble.
+                        Planets that sit in, aspect or intervene on it are in bold; the rest act through their periods.
+                        Nature for the Lagna is shown for judgement, not counted, and none of this changes the strength %.</p>
+                }
+            </details>
+
+            <details class="lm-section">
+                <summary>Help or hindrance from other planets <span>Argala &amp; Virodhargala · @chartType</span></summary>
+                <p class="lm-ki-link"><a href="@AstroFactsLink.Url(Id, AstroFactsLink.Houses, chartType)">Every house's Argala for @chartType in Astro Facts →</a></p>
+                <p class="lm-note">Planets placed to intervene on each house in @chartType@(chartType == "D1" ? "" : ", from that chart's own placements").
+                    An intervention holds when its planets outnumber the obstructing ones; planet strength is not
+                    compared yet.</p>
+                @if (read is null || read.Items.Count == 0)
+                {
+                    <p class="lm-note">No house to analyse.</p>
+                }
+                else
+                {
+                    @foreach (var item in read.Items)
+                    {
+                        var arg = item.Stats.Argala;
+                        <h3>@Ordinal(item.House) house · @DisplaySign(item.Stats.Sign)</h3>
+                        @if (!arg.Any)
+                        {
+                            <p class="lm-note">No planet intervenes on this house.</p>
+                        }
+                        else
+                        {
+                            <div class="lm-scroll">
+                                <table class="lm-table">
+                                    <thead><tr><th>Pair</th><th>Helping (Argala)</th><th>Obstructing (Virodhargala)</th><th>Result</th></tr></thead>
+                                    <tbody>
+                                    @foreach (var pair in arg.Pairs.Where(p => p.ArgalaPlanets.Count > 0 || p.ObstructingPlanets.Count > 0))
+                                    {
+                                        <tr>
+                                            <td>@pair.ArgalaOffset / @pair.ObstructionOffset <span class="lm-muted">@pair.Kind</span></td>
+                                            <td>@(pair.ArgalaPlanets.Count == 0 ? "—" : string.Join(", ", pair.ArgalaPlanets)) <span class="lm-muted">(@Ordinal(pair.ArgalaOffset))</span>@(pair.ExceptionApplied ? " · exception" : "")</td>
+                                            <td>@(pair.ObstructingPlanets.Count == 0 ? "—" : string.Join(", ", pair.ObstructingPlanets)) <span class="lm-muted">(@Ordinal(pair.ObstructionOffset))</span></td>
+                                            <td>@ArgalaResult(pair.Verdict)</td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
                         }
                     }
-        </div>
-    }
-
-    @if (_masterTab == 2)
-    {
-        <div class="ki-panelbody" id="ki-panel-2" role="tabpanel" aria-labelledby="ki-tab-2">
-          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
-            @ChartColumn
-            <div class="ki-natal-detail">
-            <div class="ki-subnav-wrap">
-            <nav class="ki-subnav" role="tablist" aria-label="Strength details">
-                <button type="button" role="tab" id="ki-strength-tab-0" aria-selected="@(_strengthTab == 0)" aria-controls="ki-strength-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 0">PLANET STRENGTH</button>
-                <button type="button" role="tab" id="ki-strength-tab-1" aria-selected="@(_strengthTab == 1)" aria-controls="ki-strength-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 1">HOUSE STRENGTH</button>
-                <button type="button" role="tab" id="ki-strength-tab-2" aria-selected="@(_strengthTab == 2)" aria-controls="ki-strength-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 2">ASHTAVARGA</button>
-            </nav>
-            <div class="ki-subpanels">
-                @if (_strengthTab == 0)
-                {
-                    <div id="ki-strength-panel-0" role="tabpanel" aria-labelledby="ki-strength-tab-0">
-                    @if (_shadbala.Count == 0)
-                    {
-                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                            Shadbala not computed for this person yet — run <code>recompute-strength</code>.
-                        </MudAlert>
-                    }
-                    else
-                    {
-                        <PlanetStrengthChart Rows="_shadbala" Components="_shadbalaComponents" />
-                    }
-                    </div>
                 }
+            </details>
 
-                @if (_strengthTab == 1)
+            @{ IReadOnlyList<(string PlanetA, string PlanetB, string? Relationship)> relationships = displayed is null ? [] : KarakaRelationships(displayed, step); }
+            @if (relationships.Count > 0)
+            {
+                <details class="lm-section">
+                    <summary>How the significator planets relate <span>Kāraka relationships · @chartType</span></summary>
+                    <p class="lm-ki-link"><a href="@AstroFactsLink.Url(Id, AstroFactsLink.Relationships, chartType)">Dṛṣṭi, dispositors and conjunctions for @chartType in Astro Facts →</a></p>
+                    <p class="lm-note">Compound relationship (natural + temporary) between this question's significator
+                        planets in @chartType.</p>
+                    <table class="lm-table">
+                        <thead><tr><th>Planet</th><th>Planet</th><th>Relationship</th></tr></thead>
+                        <tbody>
+                        @foreach (var (pa, pb, rel) in relationships)
+                        {
+                            <tr><td>@pa</td><td>@pb</td><td>@(rel ?? "—")</td></tr>
+                        }
+                        </tbody>
+                    </table>
+                </details>
+            }
+
+            <details class="lm-section">
+                @{ var planetRows = PlanetRows(read ?? d1Read, step); }
+                <summary>Planet strength &amp; condition <span>Ṣaḍbala &amp; Avastha · D1</span></summary>
+                <p class="lm-ki-link"><a href="@AstroFactsLink.Url(Id, AstroFactsLink.Strength)">Full Ṣaḍbala and Bhāva Bala in Astro Facts →</a></p>
+                @if (planetRows.Count == 0)
                 {
-                    <div id="ki-strength-panel-1" role="tabpanel" aria-labelledby="ki-strength-tab-1">
-                    @if (_bhavaBala.Count == 0)
-                    {
-                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                            Bhava Bala not computed for this person yet — run <code>recompute-strength</code>.
-                        </MudAlert>
-                    }
-                    else
-                    {
-                        <HouseStrengthChart Rows="_bhavaBala" Components="_bhavaBalaComponents" />
-                    }
-                    </div>
+                    <p class="lm-note">No ruling or significator planets for this question.</p>
                 }
-
-                @if (_strengthTab == 2)
+                else
                 {
-                    <div id="ki-strength-panel-2" role="tabpanel" aria-labelledby="ki-strength-tab-2">
-                    @if (_ashtakavarga.Count == 0)
-                    {
-                        <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                            Ashtavarga has not been computed for these charts yet — recalculate the saved chart.
-                        </MudAlert>
-                    }
-                    else
-                    {
-                        <AshtakavargaChart Rows="_ashtakavarga" PindaRows="_ashtakavargaPinda" Charts="_data.Charts" @bind-SelectedChart="_natalChart" />
-                    }
-                    </div>
+                    <p class="lm-note">The rulers of this question's houses in @chartType and its significator planets
+                        (@string.Join(", ", planetRows.Select(r => r.Planet))). Condition (Avastha) and Ṣaḍbala are
+                        computed once per planet, from D1.</p>
+                    <PlanetaryStateTable Rows="planetRows" StateNames="_stateNames"
+                                         PostureInterpretations="_postureInterpretations"
+                                         KeyDetails="d1.KeyDetails" Strengths="_shadbala" />
                 }
-            </div>
-            </div>
-            </div>
-          </div>
-        </div>
-    }
+            </details>
 
-    @if (_masterTab == 3)
-    {
-        <div class="ki-panelbody" id="ki-panel-3" role="tabpanel" aria-labelledby="ki-tab-3">
-            <KarakaPolarWheel Id="@Id" Embedded="true" />
-        </div>
-    }
-
-    @if (_masterTab == 4)
-    {
-        <div class="ki-panelbody" id="ki-panel-4" role="tabpanel" aria-labelledby="ki-tab-4">
-          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
-            @ChartColumn
-            <div class="ki-natal-detail">
-            <div class="ki-stephead">
-                <h1 class="ki-heading">YOGAS</h1>
-            </div>
-
-            @if (_yogaEvaluations.Count == 0)
-            {
-                <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                    Yogas have not been evaluated for this chart yet.
-                </MudAlert>
-            }
-            else
-            {
-                <YogaEvaluationTable Rows="_yogaEvaluations" LagnaLordPlanet="@LagnaLord" Interpretations="_interpretations"
-                                     OnSaveInterpretation="SaveInterpretation" />
-            }
-            </div>
-          </div>
-        </div>
-    }
-
-    @if (_masterTab == 5)
-    {
-        <div class="ki-panelbody" id="ki-panel-5" role="tabpanel" aria-labelledby="ki-tab-5">
-          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
-            @ChartColumn
-            <div class="ki-natal-detail">
-            @if (_amsabala.Count == 0)
-            {
-                <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                    Vargas have not been computed for this chart yet.
-                </MudAlert>
-            }
-            else
-            {
-                <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" @bind-SelectedChart="_natalChart" />
-            }
-            <VimsopakaTable Charts="_data.Charts" Weights="_vimsopakaWeights" />
-            </div>
-          </div>
-        </div>
-    }
-
-    @if (_masterTab == 6)
-    {
-        <div class="ki-panelbody" id="ki-panel-6" role="tabpanel" aria-labelledby="ki-tab-6">
-            <h1 class="ki-heading">7. ALL CHARTS</h1>
-            <AllChartsGrid Data="_data" />
-        </div>
+            <details class="lm-section">
+                <summary>How these figures are calculated <span>method &amp; sources</span></summary>
+                <p class="lm-note">Strength % is the mean of three axes, each counting equally. Capacity: Ṣaḍbala of
+                    the lord and the matter's kārakas (the required minimum reads 50%). Consistency: the same planets'
+                    Shodasavarga Amsabala. Context: SAV out of 56 bindus, the lord's own BAV in the sign out of 8,
+                    Bhava Bala and Argala. Bhava Bala here is Dig + Drik only — its Bhavadhipati part is the lord's
+                    Ṣaḍbala, already in Capacity — scored against this chart's 12 houses (the chart's mean reads 50%).
+                    Bands: SAV above 30 / below 25 and BAV 5+ / 3 or fewer (PVR); Ṣaḍbala strong at 100% of its
+                    required minimum (Parāśara) and weak under 80%; Bhava Bala strong or weak beyond one standard
+                    deviation of the chart's houses. The 80% floor and the Bhava Bala band are the app's own
+                    heuristics, not classical rules. Argala in a varga is computed from that varga's placements.</p>
+                <p class="lm-note">The words beside a figure are the app's display bands around the 50% midpoint:
+                    65%+ strong, 55%+ good, 45–54% moderate, 35–44% limited, under 35% weak.</p>
+                <p class="lm-note">Perspectives: a <b>classical</b> perspective reads the houses the texts name for this
+                    question from that lagna (sourced); a <b>counted</b> one counts the question's Lagna houses from that
+                    lagna instead (re-counted). The area overview reads the area's most-used house from Lagna in D1.
+                    @SummaryNote(step)</p>
+            </details>
+        </section>
     }
 }
 
 @code {
     [Parameter] public int Id { get; set; }
-    [Parameter, SupplyParameterFromQuery(Name = "step")] public string? Step { get; set; }
 
-    /// <summary>Opens the chart picker on this chart (e.g. <c>?step=houses&amp;chart=D9</c> — a Life
-    /// Matters "full table" link, KeyInferenceLink); ignored when the person has no such chart.</summary>
-    [Parameter, SupplyParameterFromQuery(Name = "chart")] public string? Chart { get; set; }
+    // Deep link (KeyInferenceLink): ?matter=WEALTH_02&lagna=MO&chart=D9. Read on load and whenever the
+    // URL changes (back/forward, a pasted link); every selection writes the URL back in place.
+    [SupplyParameterFromQuery(Name = "matter")] public string? Matter { get; set; }
+    [SupplyParameterFromQuery(Name = "lagna")] public string? Lagna { get; set; }
+    [SupplyParameterFromQuery(Name = "chart")] public string? Chart { get; set; }
 
-    /// <summary>House number -> the life matters read from it; the About Houses table's links
-    /// into Life Matters.</summary>
-    private IReadOnlyDictionary<int, IReadOnlyList<HouseMatterLink>> _houseMatters = new Dictionary<int, IReadOnlyList<HouseMatterLink>>();
-
-    private int _masterTab;
-    private int _activeTab;
-    private int _strengthTab;
-
-    /// <summary>Master step rail — handed to <c>Active.SetHeaderExtra</c> (see
-    /// <see cref="OnParametersSet"/>) so it renders inside MainLayout's context band, below the
-    /// app bar (rammyps, 2026-09-23 evening: reclaim the vertical space the rail used to take
-    /// as its own row in the page body). As of 2026-09-26 the band holds only this rail — the
-    /// person name/birth line that used to share the row moved up into the app bar itself
-    /// (MainLayout.razor's `.ik-appbar-person`), so the rail now simply fills the band's full
-    /// width. Plain markup, not MudTabs — see docs/ui/design-language.md "Tabs" for why. Single
-    /// line, no step numbers (rammyps's call, 2026-09-23 evening — the numbered two-line pills
-    /// from earlier that day were dropped); labels shortened 2026-09-26 ("NATAL CHARTS"/
-    /// "TRANSIT CHARTS" -> "NATAL"/"TRANSIT" — the rail reads as steps of one flow, not a list
-    /// of noun phrases, so the repeated "CHARTS" was redundant with "ALL CHARTS" already
-    /// present). The fragment's markup physically renders inside MainLayout's tree, but its
-    /// <c>@onclick</c> handlers are bound to THIS page (Blazor ties an event callback to the
-    /// component whose .razor file declares it), so a click re-renders only this page's body —
-    /// never MainLayout. That's why the pills' active color used to lag until something else
-    /// re-rendered the layout (e.g. clicking KEY INFERENCE in the app bar again, 2026-09-28
-    /// fix). <see cref="SelectMaster"/> therefore re-hands the rail via
-    /// <c>Active.SetHeaderExtra</c>, whose <c>Changed</c> event makes MainLayout re-render and
-    /// repaint the pills, and also calls <c>StateHasChanged()</c> for this page's own
-    /// <c>@if (_masterTab == N)</c> panels.</summary>
-    private static readonly string[] MasterSteps =
-    {
-        "NATAL",
-        "TRANSIT",
-        "STRENGTH",
-        "SPL LAGNAS",
-        "YOGAS",
-        "VARGAS",
-        "ALL CHARTS",
-    };
-
-    private void SelectMaster(int index)
-    {
-        if (_masterTab == index) return;
-        _masterTab = index;
-        Active.SetHeaderExtra(MasterNav); // repaint the rail's pills in MainLayout
-        StateHasChanged();
-    }
-
-    private RenderFragment MasterNav => @<nav class="ki-master" role="tablist" aria-label="Key Inference steps">
-        @for (var i = 0; i < MasterSteps.Length; i++)
-        {
-            var index = i;
-            var step = MasterSteps[i];
-            <button type="button" role="tab" id="@($"ki-tab-{index}")" aria-selected="@(_masterTab == index)"
-                    aria-controls="@($"ki-panel-{index}")" class="ki-steptab" @onclick="() => SelectMaster(index)">
-                @step
-            </button>
-        }
-    </nav>;
-
-    /// <summary>The natal-chart toolbar (collapse/expand + chart picker) + grid, shared by every
-    /// master tab that should keep the chart visible on the left (STRENGTH/YOGAS/VARGAS —
-    /// rammyps, 2026-09-25) — same collapse state and chart-picker selection as NATAL CHARTS'
-    /// own inline copy, so switching tabs doesn't reset either. NATAL CHARTS keeps its own inline
-    /// markup (nested inside its `NatalChart is { } natalChart` guard alongside the sub-tabs)
-    /// rather than being refactored onto this fragment, to avoid touching already-shipped,
-    /// working structure for its own sake. `_natalChart` also now drives (and is driven by,
-    /// two-way) AshtakavargaChart's own "Chart" picker in the ASHTAVARGA sub-tab, via
-    /// `@bind-SelectedChart` — see that component's `SelectedChart`/`SelectedChartChanged` doc
-    /// comment and design-language.md "Related chart drop-downs" (2026-09-25). Any other
-    /// component found to carry its own independent copy of "which chart" alongside this rail
-    /// should get the same treatment rather than living as a silently out-of-sync duplicate.</summary>
-    private RenderFragment ChartColumn => @<div class="ki-gridwrap">
-        <div class="ki-chart-toolbar">
-            <button type="button" class="ki-chart-toggle" aria-expanded="@(!_natalChartCollapsed)" @onclick="() => _natalChartCollapsed = !_natalChartCollapsed">
-                @(_natalChartCollapsed ? "EXPAND CHART" : "COLLAPSE CHART")
-            </button>
-            <select class="ki-chart-picker" aria-label="Natal chart" value="@_natalChart" @onchange="OnNatalChartChanged">
-                @foreach (var chart in NatalChartOptions)
-                {
-                    <option value="@chart.ChartType">@chart.Label</option>
-                }
-            </select>
-        </div>
-        @if (!_natalChartCollapsed && NatalChart is { } chartForGrid)
-        {
-            <SouthIndianGrid_Detailed AscendantSign="@chartForGrid.AscendantSign" MoonSign="@chartForGrid.MoonSign" PlanetsBySign="PlanetsBySign(chartForGrid)" CenterTitle="@chartForGrid.ChartType">
-                <CenterMeta><b>Lagna</b> @Disp(chartForGrid.AscendantSign)</CenterMeta>
-            </SouthIndianGrid_Detailed>
-        }
-    </div>;
+    private const byte RuleSetId = 1;
+    private static readonly LifeMatterFocusResolver Resolver = new();
 
     private WorkspaceData? _data;
-    private string? _transitError;
-    private IReadOnlyList<PlanetTransitSnapshot> _transits = Array.Empty<PlanetTransitSnapshot>();
-    private IReadOnlyList<Ikiastrro.Data.Natal_Transit_Comp_WheelD1Row> _d1 = Array.Empty<Ikiastrro.Data.Natal_Transit_Comp_WheelD1Row>();
-    private Dictionary<string, string> _natalSignByPlanet = new(StringComparer.OrdinalIgnoreCase);
-    private DateTime _asOfUtc = DateTime.UtcNow;
-    private TransitSelection? _selection;
-    private MoonContext? _moon;
-    private IReadOnlyList<Ikiastrro.Data.ShadbalaSummaryRow> _shadbala = Array.Empty<Ikiastrro.Data.ShadbalaSummaryRow>();
-    private IReadOnlyList<Ikiastrro.Data.ShadbalaComponentRow> _shadbalaComponents = Array.Empty<Ikiastrro.Data.ShadbalaComponentRow>();
-    private IReadOnlyList<Ikiastrro.Data.BhavaBalaSummaryRow> _bhavaBala = Array.Empty<Ikiastrro.Data.BhavaBalaSummaryRow>();
-    private IReadOnlyList<Ikiastrro.Data.BhavaBalaComponentRow> _bhavaBalaComponents = Array.Empty<Ikiastrro.Data.BhavaBalaComponentRow>();
-    private IReadOnlyList<Ikiastrro.Data.AshtakavargaRow> _ashtakavarga = Array.Empty<Ikiastrro.Data.AshtakavargaRow>();
-    private IReadOnlyList<Ikiastrro.Data.AshtakavargaPindaRow> _ashtakavargaPinda = Array.Empty<Ikiastrro.Data.AshtakavargaPindaRow>();
-    private IReadOnlyList<Ikiastrro.Data.AmsabalaRow> _amsabala = Array.Empty<Ikiastrro.Data.AmsabalaRow>();
-    private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaGroupMember> _amsabalaGroups = Array.Empty<Ikiastrro.Core.Models.AmsabalaGroupMember>();
-    private IReadOnlyList<Ikiastrro.Data.VargottamaRow> _vargottama = Array.Empty<Ikiastrro.Data.VargottamaRow>();
-    private IReadOnlyList<Ikiastrro.Core.Engines.Strength.VimsopakaWeight> _vimsopakaWeights = Array.Empty<Ikiastrro.Core.Engines.Strength.VimsopakaWeight>();
-    private IReadOnlyList<Ikiastrro.Core.Engines.Transits.GocharaVedhaRule> _vedhaRules = Array.Empty<Ikiastrro.Core.Engines.Transits.GocharaVedhaRule>();
-    private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
-    private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
-    private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
-    private IReadOnlyList<Ikiastrro.Data.ArgalaFactRow> _argalaFacts = Array.Empty<Ikiastrro.Data.ArgalaFactRow>();
-    private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
-    private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
-    private IReadOnlyList<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact> _planetaryStates = Array.Empty<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact>();
-    private IReadOnlyDictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow> _stateNames = new Dictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow>();
-    private IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), Ikiastrro.Data.PostureStateInterpretationRow> _postureInterpretations =
-        new Dictionary<(byte PlanetaryStateId, byte PlanetId), Ikiastrro.Data.PostureStateInterpretationRow>();
-    private Ikiastrro.Data.ChartPanchangaRow? _panchanga;
-    private TimeSpan _utcOffset = TransitSelection.IstOffset;
-    private string _natalChart = "D1";
-    private bool _natalChartCollapsed;
-    private LoadedChart? NatalChart => _data?.Charts.GetValueOrDefault(_natalChart);
-    /// <summary>D1, D2, D2-US, D3, D4 … D60 — numeric divisional order, not the plain string
-    /// order ("D1"/"D10"/"D11"/"D12"/"D16"/"D2"/"D2-US"/"D20"…) the old `OrderBy(ChartType)`
-    /// produced (rammyps, 2026-09-24). <see cref="DivisionalNumber"/> reads the digits straight
-    /// off ChartType rather than joining ChartTypeRow.DivisionalFactor — DisplayOrder in that
-    /// table is a life-significance ordering (D6 before D9 before D10), not a numeric one, so it
-    /// wouldn't produce this sequence either. ThenBy(ChartType) only breaks the D2/D2-US tie.</summary>
-    private IEnumerable<LoadedChart> NatalChartOptions => _data?.Charts.Values
-        .OrderBy(c => DivisionalNumber(c.ChartType))
-        .ThenBy(c => c.ChartType) ?? Enumerable.Empty<LoadedChart>();
-    private static int DivisionalNumber(string chartType)
-    {
-        var digits = new string(chartType.Skip(1).TakeWhile(char.IsDigit).ToArray());
-        return int.TryParse(digits, out var n) ? n : int.MaxValue;
-    }
-    private void OnNatalChartChanged(ChangeEventArgs e) => _natalChart = e.Value?.ToString() ?? "D1";
+    private IReadOnlyList<LifeMatterCategoryRow> _categories = [];
+    private IReadOnlyList<LifeMatterStepRow> _allSteps = [];
+    private IReadOnlyList<HouseReferenceRow> _references = [];
+    private Dictionary<int, ResolvedLifeMatterFocus> _resolved = new();
 
-    private decimal? MoonPakshaBala => _shadbalaComponents.FirstOrDefault(c =>
-        c.Planet.Equals("Moon", StringComparison.OrdinalIgnoreCase) &&
-        c.SubComponentCode.Equals("PAKSHA_BALA", StringComparison.OrdinalIgnoreCase))?.ValueVirupas;
+    // Persisted facts, read once; LifeMatterStatistics is built per chart on first use.
+    private IReadOnlyList<AshtakavargaRow> _ashtakavarga = [];
+    private IReadOnlyList<BhavaBalaSummaryRow> _bhavaBala = [];
+    private IReadOnlyList<BhavaBalaComponentRow> _bhavaComponents = [];
+    private IReadOnlyList<AmsabalaRow> _amsabala = [];
+    private IReadOnlyList<ArgalaFactRow> _argala = [];
+    private readonly Dictionary<string, LifeMatterStatistics> _statsByChart = new();
 
-    private string? LagnaLord =>
-        _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
+    private IReadOnlyList<PlanetaryStateFact> _planetaryStates = [];
+    private IReadOnlyDictionary<byte, PlanetaryStateRow> _stateNames = new Dictionary<byte, PlanetaryStateRow>();
+    private IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow> _postureInterpretations =
+        new Dictionary<(byte, byte), PostureStateInterpretationRow>();
+    private IReadOnlyList<ShadbalaSummaryRow> _shadbala = [];
+    private IReadOnlyList<FoundationItem> _foundation = [];
 
-    private void SaveInterpretation(YogaEvaluationTable.InterpretationEditRequest request) =>
-        InterpretationRepo.Upsert(1, "YOGA", request.SubjectCode, request.SourceRefCode, request.StandardText, request.ShortText, request.SourceVariantCode);
+    // Sourced rationale for a matter's special-lagna Focus row, tbl_Content_Interpretation
+    // SubjectType 'LIFE_MATTER_FOCUS' keyed '{LifeMatterCode}_{ReferenceCode}' (db/153). Seeded so
+    // far for the Indu/Pranapada links only; a missing row simply shows nothing.
+    private IReadOnlyList<InterpretationRow> _focusNotes = [];
 
-    private static readonly string[] SignById =
-        { "", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio",
-          "Sagittarius", "Capricorn", "Aquarius", "Pisces" };
+    private string _area = "";
+    private string _question = "LAGNA";
+    private int? _selectedLifeMatterId;
+    private string? _chartOverride;   // null = the matter's own varga
+    private string? _pinnedSign;
+    private int? _loadedId;
+    private bool _showAllMatters;   // "More questions" opened for the current area
+    private bool _showExplain;      // the answer card's "i" explanation
 
     protected override void OnParametersSet()
     {
-        if (Step is "1" or "natal" or "about") _masterTab = 0;
-        if (Step is "overview" or "general" or "generaldetails" or "signs" or "nakshatras") { _masterTab = 0; _activeTab = 0; }
-        if (Step is "planets") { _masterTab = 0; _activeTab = 1; }
-        if (Step is "houses") { _masterTab = 0; _activeTab = 2; }
-        if (Step is "relationships" or "aspected") { _masterTab = 0; _activeTab = 3; }
-        if (Step is "2" or "transit") _masterTab = 1;
-        if (Step is "4" or "karakas" or "spllagnas") _masterTab = 3;
-        if (Step is "5" or "yogas") _masterTab = 4;
-        if (Step is "6" or "vargas") _masterTab = 5;
-        if (Step is "7" or "allcharts") _masterTab = 6;
-        if (Step is "3" or "strength") _masterTab = 2;
-        if (Step is "3.3" or "astavarga" or "ashtakavarga")
+        if (_loadedId == Id)
         {
-            _masterTab = 2;
-            _strengthTab = 2;
+            ApplyQuery();
+            return;
         }
-        if (Step is "3.4" or "amsabala") _masterTab = 5; // Amsabala/Vargottama moved into step 6 (Vargas)
+        _loadedId = Id;
+        _statsByChart.Clear();
+        _chartOverride = null;
+        _question = "LAGNA";
 
         _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
             ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,
             ChartMultiGrahaConjunctionRepo, ChartTypeRepo.GetAll());
-        if (_data is not null && !_data.Charts.ContainsKey("D1")) _data = null; // no D1 → treat as not found
+        if (_data is not null && !_data.Charts.ContainsKey("D1")) _data = null;
 
         if (_data is null)
         {
@@ -691,213 +714,669 @@ else
             return;
         }
 
-        if (Chart is not null && _data.Charts.Keys.FirstOrDefault(c => string.Equals(c, Chart, StringComparison.OrdinalIgnoreCase)) is { } linkedChart)
-            _natalChart = linkedChart;
-
         var p = _data.Person;
         Active.Set(Id, p.Name,
             $"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
-        Active.SetHeaderExtra(MasterNav);
+        Active.SetHeaderExtra(null);
 
-        var lc = _data.Charts["D1"];
-        _natalSignByPlanet = lc.Grahas
-            .Where(k => !string.IsNullOrWhiteSpace(k.Sign))
-            .GroupBy(k => k.Planet, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.First().Sign, StringComparer.OrdinalIgnoreCase);
+        // One page-load snapshot; every Area/matter/chart/lagna switch after this is client-side.
+        _categories = LifeMatterReferenceRepo.GetCategories(RuleSetId);
+        _allSteps = LifeMatterReferenceRepo.GetAllSteps(RuleSetId);
+        _references = LifeMatterFocusRepo.GetHouseReferences();
+        _focusNotes = InterpretationRepo.GetBySubjectType(RuleSetId, "LIFE_MATTER_FOCUS");
+        var subjects = LifeMatterFocusRepo.GetSubjects(RuleSetId);
+        var foci = LifeMatterFocusRepo.GetFoci(RuleSetId);
+        var karakas = KarakaMatterRepo.GetForRuleSet(RuleSetId);
+        _resolved = _allSteps.ToDictionary(s => s.LifeMatterId,
+            s => Resolver.Resolve(RuleSetId, s.LifeMatterId, subjects, karakas, foci));
 
-        _d1 = D1WheelRepo.LoadD1Birth(Id);
-        _moon = ChartMoonContextRepo.GetByBirthDetailId(Id);
-        _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
-        _shadbalaComponents = PlanetaryStrengthRepo.GetComponentsByBirthDetailId(Id);
-        _bhavaBala = BhavaStrengthRepo.GetSummaryByBirthDetailId(Id);
-        _bhavaBalaComponents = BhavaStrengthRepo.GetComponentsByBirthDetailId(Id);
-        _ashtakavarga = AshtakavargaRepo.GetByBirthDetailId(Id);
-        _ashtakavargaPinda = AshtakavargaRepo.GetPindaByBirthDetailId(Id);
-        _amsabala = AmsabalaRepo.GetByBirthDetailId(Id);
-        _amsabalaGroups = AmsabalaSchemeRepo.GetGroups(1);
-        _vargottama = VargottamaRepo.GetByBirthDetailId(Id);
-        _vimsopakaWeights = TransitStrengthRuleRepo.GetVimsopakaWeights(1);
-        _vedhaRules = TransitStrengthRuleRepo.GetGocharaVedhaRules(1);
-        _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
-        _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
-        _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
-        _argalaFacts = ArgalaFactRepo.GetByBirthDetailId(Id);
-        _rasiNakshatraCombinations = RasiNakshatraCombinationRepo.GetAll(1);
-        _grahaDrishtiStrengths = GrahaDrishtiStrengthRepo.GetByBirthDetailId(Id);
-        // AgeStateId is populated for D1 only (PlanetaryStateFact's own doc comment), so this
-        // filter is how the page narrows the person's all-chart-types fact list down to D1's
-        // rows without needing D1's ChartResultId (LoadedChart doesn't carry one).
         _planetaryStates = PlanetaryStateRepo.GetByBirthDetailId(Id).Where(r => r.AgeStateId.HasValue).ToList();
         _stateNames = PlanetaryStateRuleRepo.GetAllStates();
         var avasthaRuleSetId = _planetaryStates.FirstOrDefault()?.RuleSetId ?? (byte)1;
         _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
-        _panchanga = PanchangaRepo.GetByBirthDetailId(Id);
-        _houseMatters = LifeMatterHouseIndex.ByHouse(LifeMatterReferenceRepo.GetAllSteps(1), LifeMatterFocusRepo.GetFoci(1));
+        _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _foundation = LifeMatterFoundation.Build(_data.Charts["D1"], _shadbala);
+        _ashtakavarga = AshtakavargaRepo.GetByBirthDetailId(Id);
+        _bhavaBala = BhavaStrengthRepo.GetSummaryByBirthDetailId(Id);
+        _bhavaComponents = BhavaStrengthRepo.GetComponentsByBirthDetailId(Id);
+        _amsabala = AmsabalaRepo.GetByBirthDetailId(Id);
+        _argala = ArgalaFactRepo.GetByBirthDetailId(Id);
+        _uniCharts.Clear();
 
-        var offset = TimeSpan.TryParse(p.UtcOffset.TrimStart('+'), out var parsedOffset)
-            ? parsedOffset
-            : TransitSelection.IstOffset;
-        _utcOffset = offset;
-        _selection = new TransitSelection(DashaRepo.GetTreeByBirthDetailId(Id), offset, DateTimeOffset.UtcNow);
-        _asOfUtc = _selection.ActiveUtc.UtcDateTime;
-
-        LoadTransits();
+        _appliedQuery = null;
+        ApplyQuery();
     }
 
-    private void LoadTransits()
+    // ---------------- deep link ----------------
+
+    private string? _appliedQuery;   // the matter|lagna|chart last applied or written, so a URL we wrote is not re-applied
+    private string? _copyStatus;
+    private bool _copyFailed;
+
+    private static string QueryKey(string? matter, string? lagna, string? chart) => $"{matter}|{lagna}|{chart}";
+
+    /// <summary>Selects what the URL names; anything it doesn't name (or names wrongly) falls back to
+    /// the default — the first area's first matter, Lagna, the matter's own chart.</summary>
+    private void ApplyQuery()
+    {
+        var key = QueryKey(Matter, Lagna, Chart);
+        if (_data is null || key == _appliedQuery) return;
+        _appliedQuery = key;
+
+        var step = _allSteps.FirstOrDefault(s => string.Equals(s.LifeMatterCode, Matter, StringComparison.OrdinalIgnoreCase));
+        _area = step?.CategoryCode ?? _categories.FirstOrDefault()?.CategoryCode ?? "";
+        _selectedLifeMatterId = step?.LifeMatterId ?? StepsIn(_area).FirstOrDefault()?.LifeMatterId;
+        _question = KeyInferenceLink.ResolveLagna(Lagna) ?? "LAGNA";
+        _chartOverride = KeyInferenceLink.ResolveChart(Chart, _data.Charts.Keys);
+        _pinnedSign = null;
+        _showAllMatters = false;
+        _copyStatus = null;
+        _copyFailed = false;
+    }
+
+    /// <summary>Writes the current selection into the URL (replacing the history entry), so the
+    /// address bar is always a shareable link to this exact reading.</summary>
+    private void SyncUrl()
+    {
+        _influenceIndex = 0;
+        _copyStatus = null;
+        _copyFailed = false;
+        var step = _allSteps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
+        var chart = step is null || _chartOverride is null || _chartOverride == HomeChart(step) ? null : _chartOverride;
+        _appliedQuery = QueryKey(step?.LifeMatterCode, _question == "LAGNA" ? null : LifeMatterQuestions.Get(_question).Tag, chart);
+        var url = KeyInferenceLink.Url(Id, step?.LifeMatterCode, _question, chart);
+        if (Nav.ToBaseRelativePath(Nav.Uri) != url.TrimStart('/')) Nav.NavigateTo(url, replace: true);
+    }
+
+    private async Task CopyLink()
     {
         try
         {
-            _transits = Gochara.GetSnapshots(_asOfUtc);
-            _transitError = null;
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Nav.Uri);
+            _copyStatus = "Link copied";
+            _copyFailed = false;
         }
-        catch (Exception ex)
+        catch (JSException)
         {
-            _transitError = ex.Message;
-            _transits = Array.Empty<PlanetTransitSnapshot>();
+            // Clipboard refused (no permission, not a secure context): show the link to copy by hand.
+            _copyStatus = "Copy link";
+            _copyFailed = true;
         }
     }
 
-    private int SelMonth => _selection?.ActiveIst.Month ?? DateTime.UtcNow.Month;
-    private int SelYear => _selection?.ActiveIst.Year ?? DateTime.UtcNow.Year;
-
-    /// <summary>Year options span the loaded dasha tree's full range (birth to the end of the
-    /// last Mahadasha) so the "TRANSIT mm/yyyy" picker's year dropdown never offers a date
-    /// outside what the Mahadasha/Antardasha/Pratyantar dropdowns can resolve.</summary>
-    private IEnumerable<int> YearOptions
+    // Persisted Argala where chart generation stored it (D1), else live — ArgalaFacts.ForChart,
+    // the same source Astro Facts's ArgalaTable reads.
+    private LifeMatterStatistics StatsFor(string chartType)
     {
-        get
+        if (_statsByChart.TryGetValue(chartType, out var stats)) return stats;
+        var chart = _data!.Charts[chartType];
+        var argala = ArgalaFacts.ForChart(_argala, chartType, chart.AscendantSign, chart.Grahas);
+        return _statsByChart[chartType] = new LifeMatterStatistics(chartType, chart.AscendantSign,
+            _ashtakavarga, _bhavaBala, _shadbala, argala, _bhavaComponents, _amsabala);
+    }
+
+    // ---------------- selection ----------------
+
+    private IReadOnlyList<LifeMatterStepRow> StepsIn(string categoryCode) =>
+        _allSteps.Where(s => s.CategoryCode == categoryCode).OrderBy(s => s.DisplayOrder).ToList();
+
+    private string CategoryName(string categoryCode) =>
+        _categories.FirstOrDefault(c => c.CategoryCode == categoryCode)?.CategoryName ?? categoryCode;
+
+    private void SelectArea(string categoryCode)
+    {
+        if (categoryCode == _area) return;
+        _area = categoryCode;
+        _selectedLifeMatterId = StepsIn(categoryCode).FirstOrDefault()?.LifeMatterId;
+        _chartOverride = null;
+        _pinnedSign = null;
+        _showAllMatters = false;
+        SyncUrl();
+    }
+
+    // A new matter opens in its own varga; selecting the current one keeps it (no deselect).
+    private void SelectStep(int lifeMatterId)
+    {
+        if (lifeMatterId == _selectedLifeMatterId) return;
+        _selectedLifeMatterId = lifeMatterId;
+        _chartOverride = null;
+        _pinnedSign = null;
+        SyncUrl();
+    }
+
+    private void SelectChart(string chartType)
+    {
+        _chartOverride = chartType;
+        _pinnedSign = null;
+        SyncUrl();
+    }
+
+    // ---------------- charts per matter ----------------
+
+    /// <summary>The matter's own charts, generated for this person: its divisional subject's
+    /// confirmation chart first, then every chart named in PrimaryChartsText ("D6/D8",
+    /// "D16, confirmed in D1").</summary>
+    private IReadOnlyList<string> MatterCharts(LifeMatterStepRow step)
+    {
+        var named = System.Text.RegularExpressions.Regex.Matches(step.PrimaryChartsText ?? "", @"D\d+").Select(m => m.Value);
+        var subject = _resolved[step.LifeMatterId].Subject?.ChartTypeCode;
+        return (subject is null ? named : named.Prepend(subject))
+            .Distinct().Where(c => _data!.Charts.ContainsKey(c)).ToList();
+    }
+
+    private string HomeChart(LifeMatterStepRow step) => MatterCharts(step).FirstOrDefault() ?? "D1";
+
+    /// <summary>Chart chips: the matter's own charts, then D1, then every other generated chart in
+    /// varga order — any matter can be looked at in any chart.</summary>
+    private IReadOnlyList<string> ChartChoices(LifeMatterStepRow step) =>
+        MatterCharts(step).Append("D1").Concat(AllCharts()).Distinct().ToList();
+
+    /// <summary>The "Relevant charts" chips: the matter's own charts, D1, and the shown chart when it
+    /// was picked from "All charts" — the other generated charts stay in that menu.</summary>
+    private IReadOnlyList<string> RelevantCharts(LifeMatterStepRow step) =>
+        MatterCharts(step).Append("D1").Distinct().ToList();
+
+    // Customer name of a chart from tbl_Dim_ChartType.ChartShortDescription: "Wealth", "Main birth chart".
+    private string ChartShort(string chartType)
+    {
+        if (chartType == "D1") return "Main";
+        var description = _data!.ChartTypes.FirstOrDefault(t => t.Code == chartType)?.ChartShortDescription;
+        return string.IsNullOrWhiteSpace(description) ? chartType : description.Split('/')[0].Trim();
+    }
+
+    private string ChartName(string chartType) =>
+        chartType == "D1" ? "main birth chart" : $"{ChartShort(chartType).ToLowerInvariant()} chart";
+
+    private IEnumerable<string> AllCharts() =>
+        _data!.Charts.Keys.OrderBy(VargaNumber).ThenBy(c => c.Length);
+
+    private static int VargaNumber(string chartType) =>
+        int.TryParse(new string(chartType.Skip(1).TakeWhile(char.IsDigit).ToArray()), out var n) ? n : int.MaxValue;
+
+    // BPHS ch.6 (Santhanam vol.1 p.92): "auspicious and inauspicious effects from Khavedamsa, and all
+    // indications from both Akshavedamsa and Shashtiamsa" — so D40, D45 and D60 are read for every
+    // matter, not tied to one (docs/research/domain/life-matters-unified-model.md §2.1).
+    private static readonly IReadOnlyDictionary<string, string> UniversalCharts = new Dictionary<string, string>
+    {
+        ["D40"] = "auspicious / inauspicious",
+        ["D45"] = "all indications",
+        ["D60"] = "all indications",
+    };
+
+    // PVR's "Loss" row is seeded 'Relevant varga': a loss is read in the varga of whatever is lost,
+    // so the matter reads across every chart instead of one.
+    private static bool ReadsEveryVarga(LifeMatterStepRow step) =>
+        (step.PrimaryChartsText ?? "").Contains("Relevant varga", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Summary columns: D1 (promise), every chart the matter names, then the BPHS
+    /// all-matter charts; every generated chart for a "relevant varga" matter.</summary>
+    private IReadOnlyList<string> SummaryCharts(LifeMatterStepRow step) =>
+        (ReadsEveryVarga(step) ? AllCharts().Prepend("D1") : MatterCharts(step).Prepend("D1").Concat(UniversalCharts.Keys))
+            .Distinct().Where(c => _data!.Charts.ContainsKey(c)).ToList();
+
+    /// <summary>Detail columns: D1, the matter's own charts, and the shown chart when it is none of those.</summary>
+    private IReadOnlyList<string> DetailCharts(LifeMatterStepRow step, string shown) =>
+        MatterCharts(step).Prepend("D1").Append(shown).Distinct().Where(c => _data!.Charts.ContainsKey(c)).ToList();
+
+    private string ChartRole(LifeMatterStepRow step, string chartType) =>
+        chartType == "D1" ? "promise"
+        : MatterCharts(step).Contains(chartType) ? (chartType == HomeChart(step) ? "own" : "also named")
+        : ReadsEveryVarga(step) ? "relevant varga"
+        : UniversalCharts.TryGetValue(chartType, out var role) ? role
+        : "other";
+
+    private string SummaryNote(LifeMatterStepRow step) => ReadsEveryVarga(step)
+        ? $"“{step.MatterText}” is read in the relevant varga, so every chart is shown."
+        : $"{step.MatterText} names {step.PrimaryChartsText}; D40, D45 and D60 are read for every matter (BPHS ch. 6).";
+
+    private void SelectQuestion(string referenceCode)
+    {
+        _question = referenceCode;
+        _pinnedSign = null;
+        SyncUrl();
+    }
+
+    private void SelectCell(string referenceCode, string chartType)
+    {
+        _question = referenceCode;
+        _chartOverride = chartType;
+        _pinnedSign = null;
+        SyncUrl();
+    }
+
+    private string ChartTypeFor(LifeMatterStepRow step) =>
+        _chartOverride is not null && ChartChoices(step).Contains(_chartOverride) ? _chartOverride : HomeChart(step);
+
+    // ---------------- areas ----------------
+
+    /// <summary>The area's most-focused house(s) from Lagna across its matters (ties kept, ascending);
+    /// house 1 when the area has no Lagna house focus at all.</summary>
+    private IReadOnlyList<int> CoreHouses(string categoryCode)
+    {
+        var counts = StepsIn(categoryCode)
+            .SelectMany(s => _resolved[s.LifeMatterId].HouseAndSpecialPointFoci)
+            .Where(f => f.FocusKind == LifeMatterFocusKind.House && f.ReferenceCode == "LAGNA" && f.HouseNumber is not null)
+            .GroupBy(f => f.HouseNumber!.Value)
+            .Select(g => (House: g.Key, Count: g.Count()))
+            .ToList();
+        if (counts.Count == 0) return [1];
+        var max = counts.Max(c => c.Count);
+        return counts.Where(c => c.Count == max).Select(c => c.House).Order().ToList();
+    }
+
+    private HouseStatistics AreaStats(string categoryCode) =>
+        StatsFor("D1").ForSign(LifeMatterSignMath.ResolveHouseSign(_data!.Charts["D1"].AscendantSign, CoreHouses(categoryCode)[0]));
+
+    // ---------------- matter read ----------------
+
+    private sealed record ReadItem(int House, string? SpecialPoint, HouseStatistics Stats);
+    private sealed record SubRead(bool Sourced, IReadOnlyList<ReadItem> Items);
+
+    private static string ItemKey(ReadItem item) => item.SpecialPoint ?? $"H{item.House}";
+
+    /// <summary>
+    /// A matter read from one lagna in one chart. House numbers are the matter's own seeded houses on
+    /// this lagna when it has any ("sourced"); otherwise its Lagna houses (or other house foci)
+    /// counted from this lagna instead. Special-point foci (A10, GA_AK, ...) are placed where they
+    /// fall in that chart. Null when the lagna can't be resolved in that chart.
+    /// </summary>
+    private SubRead? Read(LifeMatterStepRow step, string referenceCode, string chartType)
+    {
+        if (!_data!.Charts.TryGetValue(chartType, out var chart)) return null;
+        var refSign = ResolveReferenceSign(chart, referenceCode);
+        if (refSign is null) return null;
+
+        var stats = StatsFor(chartType);
+        var karakas = KarakaPlanets(chart, step);
+        var (houses, sourced) = QuestionHouses(step, referenceCode);
+        var items = houses
+            .Select(h => new ReadItem(h, null, stats.ForSign(LifeMatterSignMath.ResolveHouseSign(refSign, h), karakas)))
+            .ToList();
+        foreach (var code in SpecialPointCodes(step))
         {
-            if (_selection is null || _selection.Periods.Count == 0)
-            {
-                var thisYear = DateTime.UtcNow.Year;
-                return Enumerable.Range(thisYear - 60, 121);
-            }
-            var start = _selection.Periods.Min(p => p.StartDate.Year);
-            var end = _selection.Periods.Max(p => p.EndDate.Year);
-            return Enumerable.Range(start, end - start + 1);
+            var sign = SpecialPointSign(chart, code);
+            if (sign is null) continue;
+            var house = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(refSign), Enum.Parse<ZodiacName>(sign));
+            items.Add(new ReadItem(house, code, stats.ForSign(sign, karakas)));
         }
+
+        return new SubRead(sourced, items);
     }
 
-    private void OnMonthChanged(ChangeEventArgs args)
+    private (IReadOnlyList<int> Houses, bool Sourced) QuestionHouses(LifeMatterStepRow step, string referenceCode)
     {
-        if (!int.TryParse(args.Value?.ToString(), out var month)) return;
-        ApplyMonthYear(month, SelYear);
+        var houseFoci = _resolved[step.LifeMatterId].HouseAndSpecialPointFoci
+            .Where(f => f.FocusKind == LifeMatterFocusKind.House && f.HouseNumber is not null)
+            .ToList();
+        var own = houseFoci.Where(f => f.ReferenceCode == referenceCode).Select(f => f.HouseNumber!.Value).Distinct().ToList();
+        if (own.Count > 0) return (own, true);
+        var lagna = houseFoci.Where(f => f.ReferenceCode == "LAGNA").Select(f => f.HouseNumber!.Value).Distinct().ToList();
+        return (lagna.Count > 0 ? lagna : houseFoci.Select(f => f.HouseNumber!.Value).Distinct().ToList(), false);
     }
 
-    private void OnYearChanged(ChangeEventArgs args)
+    private InterpretationRow? FocusNote(LifeMatterStepRow step) =>
+        InterpretationRepository.Resolve(_focusNotes, $"{step.LifeMatterCode}_{_question}", null);
+
+    private IReadOnlyList<string> SpecialPointCodes(LifeMatterStepRow step) =>
+        _resolved[step.LifeMatterId].HouseAndSpecialPointFoci
+            .Where(f => f.FocusKind == LifeMatterFocusKind.SpecialPoint && f.SpecialPointCode is not null)
+            .Select(f => f.SpecialPointCode!)
+            .ToList();
+
+    // ---------------- influences on the target (PVR step 5) ----------------
+
+    private int _influenceIndex;     // which of the read's houses / special points
+    private bool _influenceOnPada;   // the house's Āruḍha pada instead of the house
+
+    private sealed record InfluenceTarget(string Label, string Sign, TargetInfluenceReading Reading);
+
+    /// <summary>TargetInfluences for one item of a read: the house (or special point) sign, or with
+    /// <paramref name="onPada"/> that house's Āruḍha pada in the same chart. Argala comes from the
+    /// same statistics the strength % uses. Null when the chart lacks a planet's placement.</summary>
+    private InfluenceTarget? Influences(SubRead? read, LoadedChart? chart, int index, bool onPada, LifeMatterStepRow? step)
     {
-        if (!int.TryParse(args.Value?.ToString(), out var year)) return;
-        ApplyMonthYear(SelMonth, year);
+        if (read is null || chart is null || step is null || read.Items.Count == 0) return null;
+        var item = read.Items[Math.Clamp(index, 0, read.Items.Count - 1)];
+        var placements = new Dictionary<PlanetName, ZodiacName>();
+        foreach (var g in chart.Grahas)
+            if (Enum.TryParse<PlanetName>(g.Planet, out var planet) && Enum.TryParse<ZodiacName>(g.Sign, out var sign))
+                placements[planet] = sign;
+        if (placements.Count < 9 || !Enum.TryParse<ZodiacName>(item.Stats.Sign, out var target)) return null;
+
+        var label = item.SpecialPoint ?? $"{Ordinal(item.House)} house";
+        if (onPada && item.SpecialPoint is null)
+        {
+            var lord = Ikiastrro.Core.Engines.Karakas.StrongerCoLord.For(target, chart.ToAnalysisInput());
+            target = Ikiastrro.Core.Engines.Karakas.ArudhaCalculator.PadaOf(target, placements[lord]);
+            label = _question == "LAGNA"
+                ? $"{(item.House == 1 ? "AL" : $"A{item.House}")}, the {Ordinal(item.House)}'s Āruḍha"
+                : $"Āruḍha of the {Ordinal(item.House)}";
+        }
+
+        var karakas = KarakaPlanets(chart, step);
+        var argala = StatsFor(chart.ChartType).ForSign(target.ToString(), karakas).Argala;
+        var reading = TargetInfluences.Read(
+            Enum.Parse<ZodiacName>(chart.AscendantSign), placements, target,
+            Planets(karakas),
+            Planets(argala.Pairs.Where(p => p.Verdict is ArgalaVerdict.Holds or ArgalaVerdict.Contested).SelectMany(p => p.ArgalaPlanets)),
+            Planets(argala.Pairs.SelectMany(p => p.ObstructingPlanets)));
+        return new InfluenceTarget(label, target.ToString(), reading);
     }
 
-    private void ApplyMonthYear(int month, int year)
+    private static IEnumerable<PlanetName> Planets(IEnumerable<string> names) =>
+        names.Select(n => Enum.TryParse<PlanetName>(n, true, out var p) ? p : (PlanetName?)null)
+            .Where(p => p is not null).Select(p => p!.Value).Distinct();
+
+    private static string InfluenceRole(PlanetInfluence p)
     {
-        if (_selection is null) return;
-        var day = Math.Min(_selection.ActiveIst.Day, DateTime.DaysInMonth(year, month));
-        _selection.SetDate(new DateTime(year, month, day));
-        RefreshSelection();
+        var roles = new List<string>();
+        if (p.IsLord) roles.Add("ruler");
+        if (p.IsKaraka) roles.Add("kāraka");
+        if (p.IsBaadhaka) roles.Add("bādhaka");
+        if (p.InBaadhakaSthaana) roles.Add("in bādhaka sign");
+        return roles.Count == 0 ? "—" : string.Join(", ", roles);
     }
 
-    private void OnMahaChanged(ChangeEventArgs args)
+    // ---------------- statistics table ----------------
+
+    private sealed record StatRow(string Key, string Label, string? Technical);
+
+    private static readonly StatRow[] StatRows =
+    [
+        new("Sign", "Sign", null),
+        new("SAV", "Support the house receives", "SAV"),
+        new("Bhava Bala", "Strength of the house", "Bhava Bala"),
+        new("Lord", "Ruling planet", "lord · Ṣaḍbala · BAV · Amsabala"),
+        new("Lord's dignity", "Ruler's dignity", null),
+        new("Kārakas", "Significator planets", "kārakas"),
+        new("Occupants", "Planets in the house", null),
+        new("Argala", "Help or hindrance", "Argala"),
+        new("Capacity", "Planet strength", "Capacity"),
+        new("Consistency", "Consistency", "Amsabala"),
+        new("Context", "House setting", "Context"),
+        new("Strength", "Overall support", null),
+    ];
+
+    private RenderFragment Cell(string row, ReadItem? item, LoadedChart? chart)
     {
-        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
-        _selection.SelectMaha(id);
-        RefreshSelection();
+        if (item is null || chart is null) return @<span class="lm-muted">—</span>;
+        var st = item.Stats;
+        return row switch
+        {
+            "Sign" => @<span>@DisplaySign(st.Sign) <span class="lm-muted">· H@(st.HouseFromLagna) from @chart.ChartType Lagna</span></span>,
+            "SAV" => st.SavBindus is null ? @<span class="lm-muted">not computed</span>
+                : @<span>@Meter(st.SavBindus.Value, 56, 28) @st.SavBindus @Band(st.SavBand, "FAV", "MID", "UNFAV")</span>,
+            "Bhava Bala" => st.IndependentBhavaRupas is null
+                ? @<span class="lm-muted">@(chart.ChartType == "D1" ? "not computed" : "D1 only")</span>
+                : @<span title="Bhava Dig + Drik only — Bhavadhipati Bala is the lord's own Ṣaḍbala, already under Capacity. Scored against this chart's 12 houses (50% = the chart's mean).">@Meter(LifeMatterStatistics.IndependentBhavaIndex(st.IndependentBhavaZ) ?? 0, 100, 50) @st.IndependentBhavaRupas.Value.ToString("0.00") rupas independent @Band(st.BhavaBand, "STRONG", "MOD", "WEAK") <span class="lm-muted">· total @(st.BhavaBalaRupas?.ToString("0.00") ?? "—")</span></span>,
+            "Lord" => @<span>@st.LordPlanet@(st.LordShadbalaPercent is { } pct ? $" · Ṣaḍbala {pct:0}%" : "") @Band(st.LordShadbalaBand, "STRONG", "MOD", "WEAK")@(st.LordBavBindus is { } bav ? $" · BAV {bav}" : "") @Band(st.LordBavBand, "GOOD", "MID", "BAD")@(st.LordAmsabalaPercent is { } am ? $" · Amsabala {am}%" : "")</span>,
+            "Kārakas" => st.Karakas.Count == 0 ? @<span class="lm-muted">none</span>
+                : @<span>@string.Join(" · ", st.Karakas.Select(PlanetText))</span>,
+            "Capacity" => Pct(st.Capacity, "Ṣaḍbala index (required minimum = 50%) of " + string.Join(", ", st.Planets.Select(PlanetText))),
+            "Consistency" => Pct(st.Consistency, "Shodasavarga Amsabala of " + string.Join(", ", st.Planets.Select(PlanetText))),
+            "Context" => Pct(st.Context, ContextBreakdown(st)),
+            "Lord's dignity" => @<span>@(chart.Grahas.FirstOrDefault(g => g.Planet == st.LordPlanet)?.DignityStatus ?? "—") <span class="lm-muted">in @chart.ChartType</span></span>,
+            "Occupants" => @<span>@(string.Join(", ", chart.Grahas.Where(g => g.Sign == st.Sign && g.Planet != "Ascendant").Select(g => g.Planet)) is { Length: > 0 } occ ? occ : "none")</span>,
+            "Argala" => @<span>@ArgalaText(st.Argala)</span>,
+            _ => Strength(st)
+        };
     }
 
-    private void OnAntarChanged(ChangeEventArgs args)
+    // "classical" (the texts name this perspective's houses for the matter) or "counted".
+    private static string SourceText(SubRead read) => read.Sourced ? "classical" : "counted";
+
+    private static string SourceSentence(SubRead? read, LifeMatterQuestion question) => read?.Sourced == true
+        ? $"The classical texts name these houses from {question.Label} for this question."
+        : $"The question's houses from Lagna, counted from {question.Label} instead.";
+
+    private string PerspectiveTitle(string referenceCode, SubRead? read, string chartType)
     {
-        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
-        _selection.SelectAntar(id);
-        RefreshSelection();
+        var question = LifeMatterQuestions.Get(referenceCode);
+        if (read is null) return $"{question.Label} — not available in {chartType}";
+        var perspective = _references.FirstOrDefault(r => r.ReferenceCode == referenceCode)?.Perspective;
+        return $"{question.Label}: {ReadsText(read)} house ({SourceText(read)}){(perspective is null ? "" : $" — {perspective}")}";
     }
 
-    private void OnPratyantarChanged(ChangeEventArgs args)
+    // "10th, A10" — the houses (from the chosen lagna) and special points a read covers.
+    private static string ReadsText(SubRead read) =>
+        read.Items.Count == 0 ? "—" : string.Join(", ", read.Items.Select(i => i.SpecialPoint ?? Ordinal(i.House)));
+
+    // ---------------- chart ----------------
+
+    // SIND-UNI-2: one built chart per chart type; cleared when the person reloads.
+    private readonly Dictionary<string, SindUniChart> _uniCharts = new();
+
+    private SindUniChart UniChart(LoadedChart chart)
     {
-        if (_selection is null || !int.TryParse(args.Value?.ToString(), out var id)) return;
-        _selection.SelectPratyantar(id);
-        RefreshSelection();
+        if (!_uniCharts.TryGetValue(chart.ChartType, out var built))
+        {
+            built = SindUniBuilder.Build(chart,
+                SindUniBuilder.SavFrom(_ashtakavarga, chart.ChartType),
+                ArgalaFacts.ForChart(_argala, chart.ChartType, chart.AscendantSign, chart.Grahas));
+            _uniCharts[chart.ChartType] = built;
+        }
+        return built;
     }
 
-    private void RefreshSelection()
+    private static ZodiacName? ToSign(string? sign) => Enum.TryParse<ZodiacName>(sign, out var z) ? z : null;
+
+    /// <summary>The signs the question reads, outlined on the chart.</summary>
+    private IReadOnlySet<ZodiacName> RelevantSigns(LoadedChart chart, LifeMatterStepRow step) =>
+        QuestionHouseFoci(chart, step)
+            .Select(f => Enum.Parse<ZodiacName>(LifeMatterSignMath.ResolveHouseSign(f.ReferenceSign, f.HouseNumber)))
+            .ToHashSet();
+
+    private IReadOnlyList<SindHovHouseFocus> QuestionHouseFoci(LoadedChart chart, LifeMatterStepRow step)
     {
-        _asOfUtc = _selection!.ActiveUtc.UtcDateTime;
-        LoadTransits();
+        var refSign = ResolveReferenceSign(chart, _question);
+        return refSign is null ? [] : QuestionHouses(step, _question).Houses.Select(h => new SindHovHouseFocus(refSign, h)).ToList();
     }
 
-    private static string PeriodDates(Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord period) =>
-        $"{period.StartDate:MM/yyyy} – {period.EndDate:MM/yyyy}";
-
-    private static string PlanetGlyph(string planet) =>
-        Ikiastrro.Core.Presentation.ChartViewModel.PlanetGlyph(planet);
-
-    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
-
-    private static IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> PlanetsBySign(LoadedChart lc) =>
-        lc.Grahas.Where(k => k.Planet != "Ascendant")
+    private static IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> PlanetsBySign(LoadedChart chart) =>
+        chart.Grahas.Where(k => k.Planet != "Ascendant")
             .GroupBy(k => k.Sign)
             .ToDictionary(g => g.Key, g => (IReadOnlyList<GridPlanetGlyph>)g.Select(k => new GridPlanetGlyph(
                 k.Planet, ChartViewModel.DignityToken(k.DignityStatus),
                 k.IsRetrograde ?? false, k.IsCombust ?? false)).ToList());
 
-    private static IReadOnlyList<PlanetRow> Rows(LoadedChart lc) =>
-        ChartViewModel.BuildPlanetRows(lc.KeyDetails, lc.HouseLords, lc.Aspects);
-
-    private static IReadOnlyList<ExaltationRow> ExaltationRows(LoadedChart lc) =>
-        ChartViewModel.BuildExaltationRows(lc.KeyDetails);
-
-    /// <summary>House number -> comma-joined occupant graha names (Ascendant excluded — not a
-    /// graha) for the "House Lord Placement" table's Occupants column.</summary>
-    private static IReadOnlyDictionary<int, string> Occupants(LoadedChart lc) =>
-        lc.Grahas.Where(k => k.Planet != "Ascendant")
-            .GroupBy(k => k.HouseNumberFromLagna)
-            .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(k => k.Planet)));
-
-    private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> D1WheelPoints => _d1
-        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet, r.LongitudeDegrees,
-            r.DegreesInSignDisplay, r.Sign, r.DignityStatus, r.DeepExaltationDegree, r.CharaKaraka)).ToList();
-
-    private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> TransitWheelPoints => _transits
-        .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();
-
-    private IEnumerable<PlanetTransitSnapshot> TransitRows =>
-        _transits.OrderBy(s => Natal_Transit_Comp_WheelMath.PlanetRank(s.Planet.ToString()));
-
-    /// <summary>Houses between this graha's own natal sign and its current transit sign — how far
-    /// it has moved from its own birth position (renamed from "House from D1" 2026-09-23; same
-    /// calculation, clearer name now that "Planet in Natal House" below covers the Lagna-based
-    /// reading).</summary>
-    private int? HouseFromNatalPlanet(PlanetTransitSnapshot s) =>
-        Natal_Transit_Comp_WheelMath.HouseFromD1(
-            _natalSignByPlanet.GetValueOrDefault(s.Planet.ToString()), SignName(s.SignId));
-
-    /// <summary>Which natal house (counted from the natal Lagna) this transiting planet is
-    /// currently passing through — same sign-counting helper as <see cref="HouseFromNatalPlanet"/>,
-    /// just anchored to the natal Ascendant instead of the planet's own natal sign.</summary>
-    private int? PlanetInNatalHouse(PlanetTransitSnapshot s) =>
-        Natal_Transit_Comp_WheelMath.HouseFromD1(
-            _data?.Charts.GetValueOrDefault("D1")?.AscendantSign, SignName(s.SignId));
-
-    /// <summary>The transits on the chosen date judged from the natal Moon (PVR ch.26.3 houses and
-    /// Vedha), with each planet's own D1 BAV bindus in the sign it is crossing. Null without a
-    /// natal Moon sign or transits.</summary>
-    private Ikiastrro.Core.Engines.Transits.GocharaReadingResult? GocharaJudgement
+    // Arudha padas and the special lagnas (HL/GL/SL/IL/PP) as cell labels, plus the one Graha Arudha
+    // point a matter's own focus asks for ("GA_AK", drawn as that literal code so SindHovGrid's
+    // SpecialPointFocusCodes match highlights it).
+    private IReadOnlyDictionary<string, IReadOnlyList<string>> SpecialPointsBySign(LoadedChart chart, LifeMatterStepRow step)
     {
-        get
+        var bySign = chart.SpecialPoints
+            .Where(k => k.PointKind == "Arudha" || (k.PointKind == "SpecialLagna" && k.Planet is "HL" or "GL" or "SL" or "IL" or "PP"))
+            .GroupBy(k => k.Sign)
+            .ToDictionary(g => g.Key, g => g.Select(k => k.Planet).ToList());
+
+        if (SpecialPointCodes(step).Contains("GA_AK") && SpecialPointSign(chart, "GA_AK") is { } gaSign)
         {
-            if (_transits.Count == 0 || !Enum.TryParse<ZodiacName>(_natalSignByPlanet.GetValueOrDefault("Moon"), out var moon))
-                return null;
-            var signs = _transits.Where(t => t.SignId is >= 1 and <= 12)
-                .GroupBy(t => t.Planet)
-                .ToDictionary(g => g.Key, g => (ZodiacName)(g.First().SignId - 1));
-            var bav = _ashtakavarga.Where(r => r.ChartType == "D1")
-                .GroupBy(r => (r.RecipientCode.ToUpperInvariant(), (int)r.SignNumber))
-                .ToDictionary(g => g.Key, g => (int)g.First().BinduCount);
-            return Ikiastrro.Core.Engines.Transits.GocharaReading.Read(moon, signs, _vedhaRules,
-                (planet, sign) => bav.TryGetValue((planet.ToString().ToUpperInvariant(), (int)sign + 1), out var b) ? b : null);
+            if (!bySign.TryGetValue(gaSign, out var list)) bySign[gaSign] = list = [];
+            list.Add("GA_AK");
         }
+
+        return bySign.ToDictionary(p => p.Key, p => (IReadOnlyList<string>)p.Value);
     }
 
-    private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
+    private static string? SpecialPointSign(LoadedChart chart, string code)
+    {
+        if (code == "GA_AK")
+        {
+            var ak = chart.Grahas.FirstOrDefault(g => g.CharaKaraka == "AK")?.Planet;
+            return ak is null ? null : chart.SpecialPoints.FirstOrDefault(p => p.PointKind == "GrahaArudha" && p.Planet == $"GA_{ak}")?.Sign;
+        }
+
+        return chart.SpecialPoints.FirstOrDefault(p => p.Planet == code)?.Sign;
+    }
+
+    private IReadOnlyDictionary<string, int> SavBySign(string chartType)
+    {
+        return Enum.GetValues<ZodiacName>()
+            .Select(z => (Sign: z.ToString(), Stats: StatsFor(chartType).ForSign(z.ToString())))
+            .Where(x => x.Stats.SavBindus is not null)
+            .ToDictionary(x => x.Sign, x => x.Stats.SavBindus!.Value);
+    }
+
+    // Resolves a tbl_Dim_HouseReference code to a sign in the given chart. Planet-basis references
+    // are that graha's own sign; Paaka Lagna is the sign of D1's Lagna lord (PVR 7.3.5); Karakamsa
+    // is always the Atmakaraka's D9 sign (PVR 7.3.6). Special lagnas read their persisted points;
+    // Indu/Pranapada resolve once their IL/PP points are persisted. Unresolvable → null.
+    private string? ResolveReferenceSign(LoadedChart chart, string referenceCode) => referenceCode switch
+    {
+        "LAGNA" => chart.AscendantSign,
+        "CHANDRA_LAGNA" => chart.MoonSign,
+        "RAVI_LAGNA" => chart.Grahas.FirstOrDefault(g => g.Planet == "Sun")?.Sign,
+        "ARUDHA_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "AL")?.Sign,
+        "HORA_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "HL")?.Sign,
+        "GHATI_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "GL")?.Sign,
+        "SREE_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "SL")?.Sign,
+        "INDU_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "IL")?.Sign,
+        "PRANAPADA_LAGNA" => chart.SpecialPoints.FirstOrDefault(p => p.Planet == "PP")?.Sign,
+        "PAAKA_LAGNA" => ResolvePaakaLagnaSign(chart),
+        "KARAKAMSA_LAGNA" => _data!.Charts.TryGetValue("D9", out var d9) ? d9.Grahas.FirstOrDefault(g => g.CharaKaraka == "AK")?.Sign : null,
+        var code when code.StartsWith("GRAHA_LAGNA_", StringComparison.Ordinal) =>
+            chart.Grahas.FirstOrDefault(g => string.Equals(g.Planet, code["GRAHA_LAGNA_".Length..], StringComparison.OrdinalIgnoreCase))?.Sign,
+        _ => null
+    };
+
+    private string? ResolvePaakaLagnaSign(LoadedChart chart)
+    {
+        var lagnaLord = _data!.Charts["D1"].HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
+        return lagnaLord is null ? null : chart.Grahas.FirstOrDefault(g => g.Planet == lagnaLord)?.Sign;
+    }
+
+    // ---------------- planets ----------------
+
+    // KarakaCode is "GRAHA_<PLANET>" for a fixed graha or "KARAKA_<code>" for a chara karaka (AK..DK);
+    // chara karaka rank is D1-derived but carried onto every chart's ChartKeyDetail.CharaKaraka.
+    private IReadOnlySet<string> KarakaPlanets(LoadedChart chart, LifeMatterStepRow step) =>
+        _resolved[step.LifeMatterId].Karakas
+            .Select(k => ResolveKarakaPlanet(chart, k.KarakaCode))
+            .Where(p => p is not null)
+            .Select(p => p!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    private static string? ResolveKarakaPlanet(LoadedChart chart, string karakaCode)
+    {
+        if (karakaCode.StartsWith("GRAHA_", StringComparison.Ordinal))
+        {
+            var planetName = karakaCode["GRAHA_".Length..];
+            return chart.Grahas.FirstOrDefault(g => string.Equals(g.Planet, planetName, StringComparison.OrdinalIgnoreCase))?.Planet;
+        }
+
+        if (karakaCode.StartsWith("KARAKA_", StringComparison.Ordinal))
+        {
+            var charaCode = karakaCode["KARAKA_".Length..];
+            return chart.Grahas.FirstOrDefault(g => string.Equals(g.CharaKaraka, charaCode, StringComparison.OrdinalIgnoreCase))?.Planet;
+        }
+
+        return null;
+    }
+
+    // Planet strength & avastha card — the focus signs' lords, then the matter's karakas, in D1.
+    private IReadOnlyList<PlanetaryStateFact> PlanetRows(SubRead? read, LifeMatterStepRow? step)
+    {
+        if (read is null || step is null) return [];
+        var order = read.Items.Select(i => i.Stats.LordPlanet)
+            .Concat(KarakaPlanets(_data!.Charts["D1"], step))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        return order.Select(p => _planetaryStates.FirstOrDefault(f => string.Equals(f.Planet, p, StringComparison.OrdinalIgnoreCase)))
+            .Where(f => f is not null)
+            .Select(f => f!)
+            .ToList();
+    }
+
+    // Compound relationship between every pair of the matter's karakas in the displayed chart.
+    private IReadOnlyList<(string PlanetA, string PlanetB, string? Relationship)> KarakaRelationships(LoadedChart chart, LifeMatterStepRow step)
+    {
+        var planets = KarakaPlanets(chart, step).ToList();
+        var pairs = new List<(string, string, string?)>();
+        for (var i = 0; i < planets.Count; i++)
+        for (var j = i + 1; j < planets.Count; j++)
+        {
+            var signA = chart.Grahas.FirstOrDefault(g => g.Planet == planets[i])?.Sign;
+            var signB = chart.Grahas.FirstOrDefault(g => g.Planet == planets[j])?.Sign;
+            if (signA is null || signB is null) continue;
+            pairs.Add((planets[i], planets[j], DignityEngine.EvaluatePairRelationship(
+                planets[i], planets[j], Enum.Parse<ZodiacName>(signA), Enum.Parse<ZodiacName>(signB))));
+        }
+
+        return pairs;
+    }
+
+    // ---------------- presentation helpers ----------------
+
+    // "2 hold · 1 contested" — only the non-zero outcomes; "none" when no planet intervenes at all.
+    private static string ArgalaText(ArgalaSummary argala)
+    {
+        if (!argala.Any) return "none";
+        var contested = argala.Pairs.Count(p => p.Verdict == ArgalaVerdict.Contested);
+        var parts = new[] { (argala.Holds, "hold"), (contested, "contested"), (argala.Obstructed, "obstructed") }
+            .Where(x => x.Item1 > 0).Select(x => $"{x.Item1} {x.Item2}").ToList();
+        return parts.Count == 0 ? "obstruction only" : string.Join(" · ", parts);
+    }
+
+    private static string Aria(bool value) => value ? "true" : "false";
+
+    private static RenderFragment ArgalaResult(ArgalaVerdict? verdict) => verdict switch
+    {
+        ArgalaVerdict.Holds => @<span class="lm-band strong">HOLDS</span>,
+        ArgalaVerdict.Obstructed => @<span class="lm-band weak">OBSTRUCTED</span>,
+        ArgalaVerdict.Contested => @<span class="lm-band middle">CONTESTED</span>,
+        _ => @<span class="lm-muted">obstruction only</span>
+    };
+
+    private static string DisplaySign(string sign) => sign == "Capricornus" ? "Capricorn" : sign;
+
+    private static string Ordinal(int n) => n + (n % 100 is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
+
+    // One strength figure (0–100%): the mean of the three axes (stat_strength.md §4), each axis
+    // counting equally. The per-axis breakdown is in the tooltip and screen-reader label.
+    private static readonly string[] AxisNames = ["Capacity", "Consistency", "Context"];
+    private static readonly string[] ContextNames = ["SAV", "lord's BAV", "Bhava Bala", "Argala"];
+
+    private static string Percent(int? p) => p is null ? "not read" : $"{p}%";
+
+    private static string Breakdown(HouseStatistics st) =>
+        string.Join(" · ", st.Axes.Select((p, i) => $"{AxisNames[i]} {Percent(p)}"));
+
+    private static string ContextBreakdown(HouseStatistics st) =>
+        string.Join(" · ", st.ContextParts.Select((p, i) => $"{ContextNames[i]} {Percent(p)}"));
+
+    private static string PlanetText(PlanetStrength p) =>
+        p.Planet + (p.ShadbalaPercent is { } s ? $" Ṣaḍbala {s:0}%" : "") + (p.AmsabalaPercent is { } a ? $" · Amsabala {a}%" : "");
+
+    private static RenderFragment Strength(HouseStatistics st) => Pct(st.StrengthPercent, Breakdown(st));
+
+    // A read's figure is the mean over its focus houses and points.
+    private static int? ReadPercent(SubRead? read) =>
+        read is null ? null : LifeMatterStatistics.Mean(read.Items.Select(i => i.Stats.StrengthPercent));
+
+    // One axis (0 Capacity, 1 Consistency, 2 Context) averaged over a read's houses.
+    private static int? Axis(SubRead? read, int axis) =>
+        read is null ? null : LifeMatterStatistics.Mean(read.Items.Select(i => i.Stats.Axes[axis]));
+
+    private static RenderFragment Factor(StrengthFactor f) =>
+        @<span class="lm-factor">@Pct(f.Percent, f.Technical)<span><b>@f.Name</b> <span class="lm-muted">@f.Detail</span><span class="lm-tech">@f.Technical</span></span></span>;
+
+    private static RenderFragment ReadStrength(SubRead? read) => read is null
+        ? Pct(null, "Not available")
+        : Pct(LifeMatterStatistics.Mean(read.Items.Select(i => i.Stats.StrengthPercent)),
+            string.Join("\n", read.Items.Select(i => $"{i.SpecialPoint ?? Ordinal(i.House)}: {i.Stats.StrengthPercent?.ToString() ?? "—"}% ({Breakdown(i.Stats)})")));
+
+    private static RenderFragment Pct(int? pct, string breakdown) => pct is null
+        ? @<span class="lm-strength none" title="@breakdown" aria-label="@($"Not read: {breakdown}")">—</span>
+        : @<span class="lm-strength" style="--pct:@(pct)%" title="@breakdown" aria-label="@($"{pct}%: {breakdown}")">@(pct)%</span>;
+
+    private static RenderFragment Band(StrengthBand band, string strong, string middle, string weak) => band switch
+    {
+        StrengthBand.Strong => @<span class="lm-band strong">@strong</span>,
+        StrengthBand.Middle => @<span class="lm-band middle">@middle</span>,
+        StrengthBand.Weak => @<span class="lm-band weak">@weak</span>,
+        _ => @<span></span>
+    };
+
+    private static RenderFragment Meter(double value, double max, double tick) =>
+        @<span class="lm-meter" aria-hidden="true"><b style="width:@(Math.Min(100, value / max * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></b><span class="lm-tick" style="left:@((tick / max * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></span></span>;
 }

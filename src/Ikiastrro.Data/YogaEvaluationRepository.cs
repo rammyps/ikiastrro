@@ -18,7 +18,7 @@ public sealed record YogaLifeMatterPathRow(
 /// Typed read over vw_ChartYogaEvaluations (source-attributed yoga presence/absence,
 /// db/053 + db/079's YogaTypeCode/YogaRule columns). Previously only reachable through
 /// AstrologerEvidenceRepository's generic dynamic-row query, built for the raw
-/// /charts/{id}/evidence page; this is the typed model for Key Inference's Yoga step.
+/// /charts/{id}/evidence page; this is the typed model for Astro Facts's Yoga step.
 /// Evaluation itself is already wired into ChartGenerationService.PersistAnalytics
 /// (YogaInputRepository.Replace -> ProductionYogaEngine) — this repository only reads.
 /// </summary>

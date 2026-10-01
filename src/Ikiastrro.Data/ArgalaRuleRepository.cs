@@ -3,7 +3,7 @@ using Dapper;
 namespace Ikiastrro.Data;
 
 /// <summary>tbl_Rule_Argala (migration 127) read path — currently just SignificanceNote
-/// (migration 129, PVR sec.10.7) for the Key Inference 2.1 Argala table's column-header
+/// (migration 129, PVR sec.10.7) for the Astro Facts 2.1 Argala table's column-header
 /// tooltips. The calculation itself never reads this table — ArgalaCalculator mirrors it in
 /// code, same as RasiDrishtiCalculator/tbl_Rule_RasiDrishti — this is presentation-only, the
 /// same status as tbl_Rule_Yoga.ShortFormationRule feeding vw_ChartYogaEvaluations.YogaRule.</summary>

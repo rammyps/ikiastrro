@@ -239,7 +239,7 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   `tvf_Chart_DashaLordRelationship` extended migration 131; `tbl_Rule_RasiNakshatraCombination`
   36 rows, migration 124) · Core [x] · Verify [x] (migrations 130/131 applied to dev DB, TVF
   queried directly against a real chart; both Web slices browser-verified against a live D1
-  Key Inference page) · Web [x] · Docs [x] · Research: complete
+  Astro Facts page) · Web [x] · Docs [x] · Research: complete
   **Chain-surfacing slice:** `PlanetPositionsTable`'s d1 variant shows a live-computed
   "Sub-Lord Chain (L2–L7)" column (`ChartViewModel.BuildPlanetRows`, matching the
   `ArgalaTable`/`BuildExaltationRows` "live calculator, not fact-table read" precedent) —
@@ -249,7 +249,7 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   `KpSubLordChainRepository`); `tvf_Chart_DashaLordRelationship`'s join extended L1→L1–L7
   (migration 131, no Web consumer of that TVF exists yet). While verifying this via the Web
   RECALCULATE button, found and fixed an unrelated pre-existing bug — see `FEAT-RELATIONSHIP-04`.
-  **Rāśi×Nakṣatra combination slice (closed 2026-09-22):** new Key Inference tab "2.3 SIGN &
+  **Rāśi×Nakṣatra combination slice (closed 2026-09-22):** new Astro Facts tab "2.3 SIGN &
   NAKSHATRAS" (`RasiNakshatraTable`, new `RasiNakshatraCombinationRepository`) — one row per
   graha (+ Lagna), joins each graha's own Sign/Nakshatra against the 36-row reference table,
   expand-to-reveal the narrative fields. Design: `docs/research/domain/nakshatra-lord-sublord-dasha-crossref.md`.
@@ -278,7 +278,7 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   DB [x] · Core [x] · Verify [x] · Web [x] · Docs [x] · Research: complete (argala/virodhargala only)
   Argala/virodhargala built 2026-09-19: `tbl_Rule_Argala` (migration 127, `SRC_PVR_INTEGRATED`
   §10.5–10.6) + `ArgalaCalculator` + `tbl_Fact_Argala` (migration 128) +
-  `ArgalaFactBuilder`/`ArgalaFactRepository` + `backfill-argala` CLI + live Key Inference 2.1
+  `ArgalaFactBuilder`/`ArgalaFactRepository` + `backfill-argala` CLI + live Astro Facts 2.1
   "Argala & Virodhargala" table (`ArgalaTable`). 28/28 tests. **Bug found + fixed 2026-09-22:**
   `tbl_Fact_Argala` had no delete-wiring at all in `ChartGenerationService`/
   `BirthDetailDeletionService` — once `backfill-argala` had run, every RECALCULATE and
@@ -308,7 +308,7 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   `ChartGenerationService.PersistAnalytics`) · Verify [x] (`verify-graha-drishti` — recomputes
   `GrahaDrishtiStrengthCalculator` independently from stored longitudes and cross-checks every
   saved person's rows across every registered chart type, same shape as `verify-dispositor`) ·
-  Web [x] (`GrahaDrishtiMatrix.razor`, `RasiDrishtiMatrix.razor`, Key Inference tab, reachable for
+  Web [x] (`GrahaDrishtiMatrix.razor`, `RasiDrishtiMatrix.razor`, Astro Facts tab, reachable for
   any varga via the shared chart picker) · Docs [ ]
 
 ## KARAKA — workstream: cli
@@ -332,7 +332,7 @@ rest of the table is still unrecomputed against the v5-batch rows.)*
   their own `NAISARGIKA` role in `tbl_Dim_KarakaRole`, and the 34-row Karakatwa grid already
   includes Rahu/Ketu matters — confirmed 2026-09-23 as the intended scope, not a gap needing a
   decision. Rendered live in `KarakaPolarWheel.razor` (`NaisargikaKarakaRepository.LoadActive().Primary`).
-- **FEAT-KARAKA-06 · Chara-karaka "Life Matters" panel** — Planned · 0% (new 2026-09-22)
+- **FEAT-KARAKA-06 · Chara-karaka "Key Inference" panel** — Planned · 0% (new 2026-09-22)
   DB [—] · Core [—] · Verify [ ] · Web [ ] · Docs [x] · Research: complete
   Closes `FEAT-KARAKA-01`'s `Web [ ]` gap — the panel from `res_charakarakas.md` §2. Depends
   on `FEAT-HOUSE-05`'s Leg D detail rows for interpretation content, not just the
@@ -523,7 +523,7 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   Inference ever showed an active-state color (`[aria-selected="true"]` never matched Blazor's
   actual empty-string bool-attribute rendering); flipped the header nav's active state to
   midnight-bg/sunset-text (`.ik-headtab.is-here`, MainLayout.razor.css); introduced the rank/
-  score badge convention (see `docs/ui/components/key-inference.md`'s 2026-09-25 entry and
+  score badge convention (see `docs/ui/components/astro-facts.md`'s 2026-09-25 entry and
   `docs/ui/design-language.md` "Rank/score badge convention").
 - **FEAT-UI-02 · Home / entry (`/`) — searchable name, saved people, inline Preferences + Add** — In progress · 40%
   DB [—] · Core [—] · Verify [x] · Web [ ] · Docs [x] (`docs/ui/components/home.md`)
@@ -576,7 +576,7 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
 - **FEAT-UI-13 · Transit landing (`/transit-wheel/{id}`) — v2, embedded wheel + two-tab table** — In progress · 40%
   DB [ ] · Core [—] · Verify [ ] · Web [ ] · Docs [x] (`docs/ui/components/spec_Natal_Transit_Comp_Wheel.md`)
   First `wkstream_UI_v2` implementation slice (Home → select person → Transit). Landed: the v2
-  app shell (HOME pill hard-left, per-person `TRANSIT · ALL CHARTS · KEY INFERENCE` tabs revealed
+  app shell (HOME pill hard-left, per-person `TRANSIT · ALL CHARTS · ASTRO FACTS` tabs revealed
   once a person is open, context band, `--maxw` / `--pad-x`); a scoped `ActivePerson`; the page
   at `/transit-wheel/{id}` with band heading `TRANSIT - D1 BIRTH CHART`, a static wheel placement,
   and the **D1 Birth** tab against `vw_ChartPlanetEvidence` via a focused `Natal_Transit_Comp_WheelRepository`
@@ -587,7 +587,7 @@ keyboard + focus, and one real browser smoke case. `Web [x]` = route live **and*
   hint); `InSignMotion` / `NextChangeMotion` columns show `—` pending Codex's
   `tbl_TransitPositionReference` boundary-motion merge (`db/055`); the live natal↔transit wheel
   overlay is a Codex `Components/Charts/**` component; `Verify [ ]` until a page-DI bUnit harness
-  covers both tabs. `ALL CHARTS` and `KEY INFERENCE` tabs both fall back to `/charts/{id}` (the v1
+  covers both tabs. `ALL CHARTS` and `ASTRO FACTS` tabs both fall back to `/charts/{id}` (the v1
   workspace) until their slices — the v1 `/charts/{id}/evidence` route is 500ing on a
   `database`-workstream regression (migration `db/069` recreated `vw_ChartShadbala` without
   `BirthDetailId` / `Planet` / `PercentOfMinimum`), and `GocharaRepository.SaveSnapshots` has a

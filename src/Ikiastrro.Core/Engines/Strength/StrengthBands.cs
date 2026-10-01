@@ -22,7 +22,7 @@ public sealed record StrengthBandScale(
 }
 
 /// <summary>
-/// The app's one set of strength cut-offs, read by Key Inference step 3 and Life Matters alike so
+/// The app's one set of strength cut-offs, read by Astro Facts step 3 and Key Inference alike so
 /// the same planet or house never gets two different labels. Mirrors <c>tbl_Rule_StrengthBand</c>
 /// (migration 154) — CLI <c>verify-strength</c> checks the two agree — the same "verified mirror"
 /// pattern as <c>AstroMath.DeepExaltationPoints</c>.
