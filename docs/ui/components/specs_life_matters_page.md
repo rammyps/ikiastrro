@@ -91,6 +91,10 @@ comes first, the evidence is one click away. Wording and bands come from `LifeMa
      (Ṣaḍbala), consistency (Amsabala), support the house receives (SAV), ruler's comfort in the
      house (BAV), strength of the house itself (Bhava Bala), help or hindrance from other planets
      (Argala). A signal a chart does not measure fills in as uncertain.
+   - **What acts on the …** — for the question's first house (or point) in the shown chart, up
+     to two planets that **help** and two that **hinder** it, each with why in plain words
+     ("its bādhaka, sits in it"; "aspects it, 4th from it (sustains)"). Only planets that sit in,
+     aspect or intervene on the target, or rule it, are named (`TargetInfluenceText`).
    - **Area overview** line, labelled separately from the selected question so the two numbers
      are never confused.
    - **Read from** — Overall (Lagna), Mind, Soul, Public image; the other seven lagnas under
@@ -115,12 +119,41 @@ comes first, the evidence is one click away. Wording and bands come from `LifeMa
      planets, help or hindrance · Argala, the three axes, overall support). A sourced
      special-lagna focus adds the "Why <lagna>" note (`tbl_Content_Interpretation`, SubjectType
      `LIFE_MATTER_FOCUS`, key `{LifeMatterCode}_{ReferenceCode}`).
+   - **What acts on it** — PVR step 5 (see "Influences on the target" below): every planet
+     against one target, with a **Target** chip per house / point when the question reads more
+     than one, and **The house / Its Āruḍha** for a house.
    - **Help or hindrance from other planets** — Argala & Virodhargala pairs per focus house.
    - **How the significator planets relate** — kāraka pair relationships
      (`DignityEngine.EvaluatePairRelationship`), **rendered only when the question has two or
      more kārakas** (20 of 106 matters); otherwise the section is absent, not empty.
    - **Planet strength & condition** — `PlanetaryStateTable` (D1, focus lords then kārakas).
    - **How these figures are calculated** — the method, bands and sources.
+
+### Influences on the target (PVR step 5)
+
+`TargetInfluences.Read` (Core, pure, computed live — nothing stored, and it does **not** change
+the strength %) reads every planet of the shown chart against a target sign: the focus house
+counted from the chosen lagna, a special point's sign, or that house's **Āruḍha pada computed
+inside the shown chart** (`ArudhaCalculator.PadaOf`, the same rule as the stored padas). For
+each planet:
+
+| Column | From |
+|---|---|
+| Where from it | house counted from the target; quadrant 1/4/7/10 **sustains**, trine 1/5/9 **prospers**, upachaya 3/6/10/11 **grows**, dusthāna 6/8/12 **obstacles** (PVR Ch. 13 step 5; classes overlap) |
+| Reaches it by | sits in it · graha dṛṣṭi (`RelationshipEngine.AspectsSign`) · rāśi dṛṣṭi (`RasiDrishtiCalculator`) · Argala / blocks an intervention (the same `LifeMatterStatistics` Argala the % uses) |
+| Nature for the Lagna | `LagnaFunctionalNature` from the shown chart's Lagna (none for Rahu/Ketu) and natural nature (`ArgalaCalculator.IsNaturalMalefic`: waning Moon, afflicted Mercury) — shown for judgement, not counted |
+| Role | ruler · kāraka · bādhaka (`BaadhakaCalculator.For(target)`, §13.3) · in the bādhaka sign |
+| Reads as | **Helps** (a quadrant, trine or upachaya from it), **Hinders** (a dusthāna from it, or bādhaka-linked), **Mixed** (both), — (the 2nd) |
+
+Rows: the ruler, the kārakas, then planets that act on the target (bold), then the rest (they act
+through their periods). The note above the table names the ruler's position from the target and
+the bādhaka. Deferred: a sourced per-matter "read from the Āruḍha" flag (PVR step 4 — A7 for
+dealings, A5 for distinctions), standard placement results (step 6), yogada, and graha-dṛṣṭi
+strength onto a house (stored dṛṣṭi strength is planet-to-planet).
+
+Stored varga padas (`tbl_Chart_KeyDetails` PointKind `Arudha` in D2…D60) are the D1 padas
+projected into the varga by longitude, so they differ from a pada computed inside the varga
+(Ramya's D2 A2: stored Cancer, computed Taurus); D1 agrees.
 
 ### Which chart is a matter's own
 
@@ -224,7 +257,8 @@ carries a word band, never colour alone.
 
 ## Tests
 
-`LifeMatterFoundationTests` (the four cards, Ṣaḍbala tone, sign-edge thresholds),
+`TargetInfluencesTests` (lord, bādhaka, links, position classes, leans, functional nature,
+`ArudhaCalculator.PadaOf` and its exception, answer-card wording), `LifeMatterFoundationTests` (the four cards, Ṣaḍbala tone, sign-edge thresholds),
 `LifeMatterHouseIndexTests` (Lagna foci only, priority order, one entry per matter),
 `KeyInferenceLinkTests`, `LifeMatterLinkTests`, `LifeMatterReadingTests` (word bands around 50%, strongest / limiting factors with unmeasured ones
 as uncertain, the four primary perspectives), `LifeMatterStatisticsTests` (bands, per-sign D1

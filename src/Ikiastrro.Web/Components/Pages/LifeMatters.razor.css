@@ -158,6 +158,22 @@
 .lm-compare dt span { display: block; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--brand-muted); font-size: var(--font-size-meta); }
 .lm-compare dd { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: var(--font-size-meta); }
 
+/* What acts on the target (PVR step 5): answer-card lines and the Investigate table. */
+.lm-acts { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--brand-peach); }
+.lm-acts h3 { margin: 0 0 4px; font: 800 10px / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-muted); }
+.lm-acts h3 span { letter-spacing: 0; text-transform: none; font-weight: 600; }
+.lm-acts p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 4px 0 0; font-size: var(--font-size-support); }
+.lm-acts b { min-width: 4.5em; font-size: var(--font-size-meta); text-transform: uppercase; letter-spacing: 0.06em; }
+.lm-act { font-weight: 700; }
+.lm-act em { font-style: normal; font-weight: 500; color: var(--brand-muted); }
+.lm-act + .lm-act::before { content: "·"; margin-right: 10px; color: var(--brand-muted); }
+.lm-infl tr.is-acting td:first-child { font-weight: 800; }
+.lm-lean { display: inline-block; padding: 0 6px; border-radius: 3px; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.lm-lean.is-supports { background: var(--status-strong); color: var(--brand-surface); }
+.lm-lean.is-obstructs { background: var(--status-weak); color: var(--brand-surface); }
+.lm-lean.is-mixed { border: 1px solid var(--brand-midnight); }
+.lm-lean.is-neutral { color: var(--brand-muted); }
+
 .lm-factors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .lm-factors h3 { margin: 0 0 4px; font: 800 10px / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-muted); }
 .lm-factors ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }

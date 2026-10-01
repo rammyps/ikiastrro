@@ -240,6 +240,24 @@ else
                     </div>
                 </div>
 
+                var acts = Influences(read, displayed, 0, false, step);
+                @if (acts is not null)
+                {
+                    var helpers = TargetInfluenceText.Helpers(acts.Reading);
+                    var hinderers = TargetInfluenceText.Hinderers(acts.Reading);
+                    <div class="lm-acts">
+                        <h3>What acts on the @acts.Label <span>@DisplaySign(acts.Sign) · @chartType</span></h3>
+                        <p><b>Helps</b>
+                            @if (helpers.Count == 0) { <span class="lm-muted">no planet acting on it leans in its favour</span> }
+                            @foreach (var h in helpers) { <span class="lm-act">@h.Planet <em>@TargetInfluenceText.Why(h)</em></span> }
+                        </p>
+                        <p><b>Hinders</b>
+                            @if (hinderers.Count == 0) { <span class="lm-muted">no planet acting on it leans against it</span> }
+                            @foreach (var h in hinderers) { <span class="lm-act">@h.Planet <em>@TargetInfluenceText.Why(h)</em></span> }
+                        </p>
+                    </div>
+                }
+
                 <p class="lm-area-line">
                     <span class="lm-kicker">Area overview</span>
                     @areaLabel @Pct(areaPct, "Area overview") —
@@ -448,6 +466,75 @@ else
                             <p><InterpretationText StandardText="@note.StandardText" ShortText="@note.ShortText" /></p>
                         </div>
                     }
+                }
+            </details>
+
+            <details class="lm-section">
+                @{ var infl = Influences(read, displayed, _influenceIndex, _influenceOnPada, step); }
+                <summary>What acts on it <span>Influences · @(infl?.Label ?? "—") · @chartType</span></summary>
+                <p class="lm-ki-link"><a href="@KeyInferenceLink.Url(Id, KeyInferenceLink.Relationships, chartType)">Every aspect and conjunction for @chartType in Key Inference →</a></p>
+                @if (infl is null || read is null)
+                {
+                    <p class="lm-note">Not available in @chartType.</p>
+                }
+                else
+                {
+                    var current = read.Items[Math.Clamp(_influenceIndex, 0, read.Items.Count - 1)];
+                    <div class="lm-refine-row">
+                        @if (read.Items.Count > 1)
+                        {
+                            <span class="lm-label">Target</span>
+                            <div class="lm-chips" role="group" aria-label="Which house or point">
+                                @for (var i = 0; i < read.Items.Count; i++)
+                                {
+                                    var index = i;
+                                    var it = read.Items[i];
+                                    <button type="button" class="lm-chip" aria-pressed="@Aria(it == current)" @onclick="() => _influenceIndex = index">
+                                        @(it.SpecialPoint ?? $"{Ordinal(it.House)} house")
+                                    </button>
+                                }
+                            </div>
+                        }
+                        @if (current.SpecialPoint is null)
+                        {
+                            <span class="lm-label">Read</span>
+                            <div class="lm-chips" role="group" aria-label="House or its Āruḍha pada">
+                                <button type="button" class="lm-chip" aria-pressed="@Aria(!_influenceOnPada)" @onclick="() => _influenceOnPada = false"
+                                        title="The house itself: the matter as it is">The house</button>
+                                <button type="button" class="lm-chip" aria-pressed="@Aria(_influenceOnPada)" @onclick="() => _influenceOnPada = true"
+                                        title="The house's Āruḍha pada: the matter as the world sees it">Its Āruḍha</button>
+                            </div>
+                        }
+                    </div>
+                    <p class="lm-note">
+                        @infl.Label in @DisplaySign(infl.Sign). Ruled by <b>@infl.Reading.Lord</b>, placed
+                        @TargetInfluenceText.PositionText(infl.Reading.LordHouseFromTarget, infl.Reading.LordPosition).
+                        Its bādhaka (the planet that can obstruct it) is <b>@infl.Reading.Baadhaka.Baadhaka</b>, lord of
+                        @DisplaySign(infl.Reading.Baadhaka.SthaanaSign.ToString()), the @Ordinal(infl.Reading.Baadhaka.SthaanaOffset) from it.
+                    </p>
+                    <div class="lm-scroll">
+                        <table class="lm-table lm-infl">
+                            <thead><tr><th>Planet</th><th>Where from it</th><th>Reaches it by</th><th>Nature for @chartType Lagna</th><th>Role</th><th>Reads as</th></tr></thead>
+                            <tbody>
+                                @foreach (var p in infl.Reading.Planets)
+                                {
+                                    <tr class="@(p.Touches || p.IsLord ? "is-acting" : null)">
+                                        <td>@p.Planet</td>
+                                        <td>@TargetInfluenceText.PositionText(p.HouseFromTarget, p.Position) <span class="lm-muted">· @DisplaySign(p.Sign.ToString())</span></td>
+                                        <td>@(p.Touches ? string.Join(", ", TargetInfluenceText.Links(p.Links)) : "—")</td>
+                                        <td>@TargetInfluenceText.FunctionalText(p.Functional) <span class="lm-muted">· natural @(p.IsNaturalMalefic ? "malefic" : "benefic")</span></td>
+                                        <td>@InfluenceRole(p)</td>
+                                        <td><span class="lm-lean is-@p.Lean.ToString().ToLowerInvariant()">@TargetInfluenceText.LeanText(p.Lean)</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="lm-note">Where a planet stands counted from the target is PVR's step 5: quadrants (1, 4, 7, 10)
+                        sustain the matter, trines (1, 5, 9) let it prosper, upachayas (3, 6, 10, 11) let it grow, dusthānas
+                        (6, 8, 12) bring obstacles; its bādhaka, and planets in the bādhaka's sign, can create trouble.
+                        Planets that sit in, aspect or intervene on it are in bold; the rest act through their periods.
+                        Nature for the Lagna is shown for judgement, not counted, and none of this changes the strength %.</p>
                 }
             </details>
 
@@ -688,6 +775,7 @@ else
     /// address bar is always a shareable link to this exact reading.</summary>
     private void SyncUrl()
     {
+        _influenceIndex = 0;
         _copyStatus = null;
         _copyFailed = false;
         var step = _allSteps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId);
@@ -931,6 +1019,60 @@ else
             .Where(f => f.FocusKind == LifeMatterFocusKind.SpecialPoint && f.SpecialPointCode is not null)
             .Select(f => f.SpecialPointCode!)
             .ToList();
+
+    // ---------------- influences on the target (PVR step 5) ----------------
+
+    private int _influenceIndex;     // which of the read's houses / special points
+    private bool _influenceOnPada;   // the house's Āruḍha pada instead of the house
+
+    private sealed record InfluenceTarget(string Label, string Sign, TargetInfluenceReading Reading);
+
+    /// <summary>TargetInfluences for one item of a read: the house (or special point) sign, or with
+    /// <paramref name="onPada"/> that house's Āruḍha pada in the same chart. Argala comes from the
+    /// same statistics the strength % uses. Null when the chart lacks a planet's placement.</summary>
+    private InfluenceTarget? Influences(SubRead? read, LoadedChart? chart, int index, bool onPada, LifeMatterStepRow? step)
+    {
+        if (read is null || chart is null || step is null || read.Items.Count == 0) return null;
+        var item = read.Items[Math.Clamp(index, 0, read.Items.Count - 1)];
+        var placements = new Dictionary<PlanetName, ZodiacName>();
+        foreach (var g in chart.Grahas)
+            if (Enum.TryParse<PlanetName>(g.Planet, out var planet) && Enum.TryParse<ZodiacName>(g.Sign, out var sign))
+                placements[planet] = sign;
+        if (placements.Count < 9 || !Enum.TryParse<ZodiacName>(item.Stats.Sign, out var target)) return null;
+
+        var label = item.SpecialPoint ?? $"{Ordinal(item.House)} house";
+        if (onPada && item.SpecialPoint is null)
+        {
+            var lord = Enum.Parse<PlanetName>(HouseEngine.GetSignLord(target));
+            target = Ikiastrro.Core.Engines.Karakas.ArudhaCalculator.PadaOf(target, placements[lord]);
+            label = _question == "LAGNA"
+                ? $"{(item.House == 1 ? "AL" : $"A{item.House}")}, the {Ordinal(item.House)}'s Āruḍha"
+                : $"Āruḍha of the {Ordinal(item.House)}";
+        }
+
+        var karakas = KarakaPlanets(chart, step);
+        var argala = StatsFor(chart.ChartType).ForSign(target.ToString(), karakas).Argala;
+        var reading = TargetInfluences.Read(
+            Enum.Parse<ZodiacName>(chart.AscendantSign), placements, target,
+            Planets(karakas),
+            Planets(argala.Pairs.Where(p => p.Verdict is ArgalaVerdict.Holds or ArgalaVerdict.Contested).SelectMany(p => p.ArgalaPlanets)),
+            Planets(argala.Pairs.SelectMany(p => p.ObstructingPlanets)));
+        return new InfluenceTarget(label, target.ToString(), reading);
+    }
+
+    private static IEnumerable<PlanetName> Planets(IEnumerable<string> names) =>
+        names.Select(n => Enum.TryParse<PlanetName>(n, true, out var p) ? p : (PlanetName?)null)
+            .Where(p => p is not null).Select(p => p!.Value).Distinct();
+
+    private static string InfluenceRole(PlanetInfluence p)
+    {
+        var roles = new List<string>();
+        if (p.IsLord) roles.Add("ruler");
+        if (p.IsKaraka) roles.Add("kāraka");
+        if (p.IsBaadhaka) roles.Add("bādhaka");
+        if (p.InBaadhakaSthaana) roles.Add("in bādhaka sign");
+        return roles.Count == 0 ? "—" : string.Join(", ", roles);
+    }
 
     // ---------------- statistics table ----------------
 

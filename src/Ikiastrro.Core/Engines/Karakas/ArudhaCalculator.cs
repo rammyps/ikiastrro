@@ -33,23 +33,31 @@ public static class ArudhaCalculator
 
         int SignIndex(ZodiacName z) => (int)z;
         ZodiacName Add(ZodiacName z, int n) => (ZodiacName)(((SignIndex(z) + n) % 12 + 12) % 12);
-        int CountInclusive(ZodiacName from, ZodiacName to) => ((SignIndex(to) - SignIndex(from)) % 12 + 12) % 12 + 1;
 
         var seeds = new List<SpecialPointSeed>();
         for (var house = 1; house <= 12; house++)
         {
             var houseSign = Add(lagnaSign, house - 1);
             var lord = Enum.Parse<PlanetName>(HouseEngine.GetSignLord(houseSign));
-            var lordSign = planetSign[lord];
-            var n = CountInclusive(houseSign, lordSign);
-            var pada = Add(lordSign, n - 1);
-            // exception: pada == house's own sign (1st) or the 7th from it
-            var fromHouse = CountInclusive(houseSign, pada);   // 1..12
-            if (fromHouse == 1 || fromHouse == 7) pada = Add(pada, 9);   // 10th sign inclusive
+            var pada = PadaOf(houseSign, planetSign[lord]);
             var longitude = SignIndex(pada) * 30.0 + lagnaDegInSign;
             var code = house == 1 ? "AL" : $"A{house}";
             seeds.Add(new SpecialPointSeed(code, "Arudha", AstroMath.Normalize(longitude)));
         }
         return seeds;
+    }
+
+    /// <summary>The Arudha pada of the house in <paramref name="houseSign"/> whose lord sits in
+    /// <paramref name="lordSign"/> — the same rule as <see cref="Compute"/>, for any sign counted
+    /// from any lagna (Life Matters reads the pada of a house counted from the Moon, AL, …).</summary>
+    public static ZodiacName PadaOf(ZodiacName houseSign, ZodiacName lordSign)
+    {
+        static ZodiacName Add(ZodiacName z, int n) => (ZodiacName)((((int)z + n) % 12 + 12) % 12);
+        static int CountInclusive(ZodiacName from, ZodiacName to) => (((int)to - (int)from) % 12 + 12) % 12 + 1;
+
+        var pada = Add(lordSign, CountInclusive(houseSign, lordSign) - 1);
+        // exception: pada == house's own sign (1st) or the 7th from it -> the 10th sign from the pada
+        var fromHouse = CountInclusive(houseSign, pada);
+        return fromHouse is 1 or 7 ? Add(pada, 9) : pada;
     }
 }

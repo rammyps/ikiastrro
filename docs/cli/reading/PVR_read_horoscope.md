@@ -211,7 +211,8 @@ checked step-for-step against this path. Known gaps to reconcile:
   (`ArgalaCalculator` → `tbl_Fact_Argala`, written by `ChartGenerationService`) are all built
   (`pvr-coverage.md` Ch. 10 row), as is baadhaka (`BaadhakaCalculator`, §2.2). Key Inference shows
   rasi drishti and argala per chart, and Life Matters shows argala on the matter's houses.
-  Step 5 is still not assembled per life matter: nothing yet lists every influence on the
-  target house (drishti, argala, baadhaka, functional nature) in one place.
+  Step 5 is assembled per life matter since 2026-10-01: `TargetInfluences` and Life Matters'
+  "What acts on it" section list every planet's dṛṣṭi, Argala, position from the target,
+  bādhaka and functional nature, for the house or its Āruḍha pada.
 - §13.4.2 family-member re-rooting has no CLI/engine support yet — it is a manual reading
   technique only at this time.
