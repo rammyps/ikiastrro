@@ -20,6 +20,7 @@
 @inject Ikiastrro.Data.AshtakavargaRepository AshtakavargaRepo
 @inject Ikiastrro.Data.AmsabalaRepository AmsabalaRepo
 @inject Ikiastrro.Data.AmsabalaSchemeRepository AmsabalaSchemeRepo
+@inject Ikiastrro.Data.TransitStrengthRuleRepository TransitStrengthRuleRepo
 @inject Ikiastrro.Data.VargottamaRepository VargottamaRepo
 @inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
 @inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
@@ -214,6 +215,9 @@ else
                     <h3 class="ki-sectionhead">House lord key findings</h3>
                     <HouseLordFindingsTable Rows="natalChart.HouseLordInterpretations" />
 
+                    <h3 class="ki-sectionhead">What acts on each house</h3>
+                    <HouseVerdictTable Rows="HouseVerdicts.For(natalChart, ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas))" />
+
                     <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
                     <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
                                 </div>
@@ -354,6 +358,10 @@ else
                                 </tbody>
                             </MudSimpleTable>
                         </div>
+                        @if (GocharaJudgement is { } gochara)
+                        {
+                            <GocharaTable Reading="gochara" />
+                        }
                     }
         </div>
     }
@@ -474,6 +482,7 @@ else
             {
                 <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" @bind-SelectedChart="_natalChart" />
             }
+            <VimsopakaTable Charts="_data.Charts" Weights="_vimsopakaWeights" />
             </div>
           </div>
         </div>
@@ -604,6 +613,8 @@ else
     private IReadOnlyList<Ikiastrro.Data.AmsabalaRow> _amsabala = Array.Empty<Ikiastrro.Data.AmsabalaRow>();
     private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaGroupMember> _amsabalaGroups = Array.Empty<Ikiastrro.Core.Models.AmsabalaGroupMember>();
     private IReadOnlyList<Ikiastrro.Data.VargottamaRow> _vargottama = Array.Empty<Ikiastrro.Data.VargottamaRow>();
+    private IReadOnlyList<Ikiastrro.Core.Engines.Strength.VimsopakaWeight> _vimsopakaWeights = Array.Empty<Ikiastrro.Core.Engines.Strength.VimsopakaWeight>();
+    private IReadOnlyList<Ikiastrro.Core.Engines.Transits.GocharaVedhaRule> _vedhaRules = Array.Empty<Ikiastrro.Core.Engines.Transits.GocharaVedhaRule>();
     private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
     private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
     private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
@@ -705,6 +716,8 @@ else
         _amsabala = AmsabalaRepo.GetByBirthDetailId(Id);
         _amsabalaGroups = AmsabalaSchemeRepo.GetGroups(1);
         _vargottama = VargottamaRepo.GetByBirthDetailId(Id);
+        _vimsopakaWeights = TransitStrengthRuleRepo.GetVimsopakaWeights(1);
+        _vedhaRules = TransitStrengthRuleRepo.GetGocharaVedhaRules(1);
         _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
         _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
         _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
@@ -865,6 +878,26 @@ else
     private int? PlanetInNatalHouse(PlanetTransitSnapshot s) =>
         Natal_Transit_Comp_WheelMath.HouseFromD1(
             _data?.Charts.GetValueOrDefault("D1")?.AscendantSign, SignName(s.SignId));
+
+    /// <summary>The transits on the chosen date judged from the natal Moon (PVR ch.26.3 houses and
+    /// Vedha), with each planet's own D1 BAV bindus in the sign it is crossing. Null without a
+    /// natal Moon sign or transits.</summary>
+    private Ikiastrro.Core.Engines.Transits.GocharaReadingResult? GocharaJudgement
+    {
+        get
+        {
+            if (_transits.Count == 0 || !Enum.TryParse<ZodiacName>(_natalSignByPlanet.GetValueOrDefault("Moon"), out var moon))
+                return null;
+            var signs = _transits.Where(t => t.SignId is >= 1 and <= 12)
+                .GroupBy(t => t.Planet)
+                .ToDictionary(g => g.Key, g => (ZodiacName)(g.First().SignId - 1));
+            var bav = _ashtakavarga.Where(r => r.ChartType == "D1")
+                .GroupBy(r => (r.RecipientCode.ToUpperInvariant(), (int)r.SignNumber))
+                .ToDictionary(g => g.Key, g => (int)g.First().BinduCount);
+            return Ikiastrro.Core.Engines.Transits.GocharaReading.Read(moon, signs, _vedhaRules,
+                (planet, sign) => bav.TryGetValue((planet.ToString().ToUpperInvariant(), (int)sign + 1), out var b) ? b : null);
+        }
+    }
 
     private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
 }

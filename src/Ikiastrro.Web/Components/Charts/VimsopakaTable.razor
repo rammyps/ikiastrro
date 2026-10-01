@@ -1,0 +1,87 @@
+@using System.Globalization
+@using Ikiastrro.Core.Engines.Strength
+@using Ikiastrro.Web.Components.Workspace
+
+@* Vimśopaka Bala (BPHS, Varga Viveka 17-26) — Key Inference step 6, under Aṁśabala. Aṁśabala
+   counts the vargas a planet is well placed in; Vimśopaka weighs each varga's dignity by the
+   chart's points, out of 20. Computed live by VimsopakaRead; nothing stored. *@
+<section class="vim" aria-labelledby="vim-title">
+    <article class="vim-card">
+        <header class="vim-head">
+            <h2 id="vim-title">Vimśopaka Bala</h2>
+            <p>Each varga's dignity weighed by that chart's points — out of 20 in every scheme. Own sign or
+                mūlatrikoṇa earns the chart's full points; great friend 18/20 of them, friend 15, neutral 10,
+                enemy 7, great enemy 5.</p>
+        </header>
+        @if (_scores.Count == 0)
+        {
+            <p class="vim-empty">Not every varga a scheme needs has been generated for this person.</p>
+        }
+        else
+        {
+            <div class="vim-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Graha</th>
+                            @foreach (var s in VimsopakaRead.SchemeOrder)
+                            {
+                                <th title="@VimsopakaRead.WeightsText(Weights, s)">@SchemeLabel(s)</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var planet in PlanetOrder)
+                        {
+                            <tr>
+                                <th>@planet</th>
+                                @foreach (var s in VimsopakaRead.SchemeOrder)
+                                {
+                                    @if (_scores.TryGetValue(planet, out var schemes) && schemes.TryGetValue(s, out var score))
+                                    {
+                                        <td>
+                                            <b>@score.ToString("0.0", CultureInfo.InvariantCulture)</b>
+                                            <span class="vim-bar" aria-hidden="true"><i style="width:@((score * 5).ToString("0.#", CultureInfo.InvariantCulture))%"></i></span>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td class="vim-na">—</td>
+                                    }
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <dl class="vim-weights">
+                @foreach (var s in VimsopakaRead.SchemeOrder)
+                {
+                    <dt>@SchemeLabel(s)</dt>
+                    <dd>@VimsopakaRead.WeightsText(Weights, s)</dd>
+                }
+            </dl>
+        }
+    </article>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
+    [Parameter, EditorRequired] public IReadOnlyList<VimsopakaWeight> Weights { get; set; } = Array.Empty<VimsopakaWeight>();
+
+    private static readonly string[] PlanetOrder = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
+
+    private IReadOnlyDictionary<string, IReadOnlyDictionary<string, decimal>> _scores =
+        new Dictionary<string, IReadOnlyDictionary<string, decimal>>();
+
+    protected override void OnParametersSet() => _scores = VimsopakaRead.Compute(Charts, Weights);
+
+    private static string SchemeLabel(string s) => s switch
+    {
+        "SHADVARGA" => "Ṣaḍvarga (6)",
+        "SAPTAVARGA" => "Saptavarga (7)",
+        "DASAVARGA" => "Daśavarga (10)",
+        "SHODASAVARGA" => "Ṣoḍaśavarga (16)",
+        _ => s,
+    };
+}
