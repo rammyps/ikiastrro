@@ -24,8 +24,12 @@
     }
 
     window.ikiastrroTheme = {
+        // The print report (/print/{id}) is always default-light, whatever the saved theme; not
+        // persisted, so the rest of the app keeps the chosen one. MainLayout reads this result for
+        // its MudBlazor palette too.
         initialize: function () {
-            return apply(preferredTheme(), false);
+            const printing = window.location.pathname.toLowerCase().startsWith("/print/");
+            return apply(printing ? "default-light" : preferredTheme(), false);
         },
         get: function () {
             return preferredTheme();

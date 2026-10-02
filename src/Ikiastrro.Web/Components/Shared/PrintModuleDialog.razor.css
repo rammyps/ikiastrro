@@ -1,0 +1,112 @@
+.pmd-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.pmd-box {
+    background: var(--card-bg);
+    color: var(--card-fg);
+    border: 1px solid var(--card-line);
+    border-radius: var(--card-radius);
+    box-shadow: 0 12px 32px var(--shadow);
+    padding: 20px 22px;
+    width: 100%;
+    max-width: 560px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.pmd-title { margin: 0 0 4px; font-size: var(--font-size-heading); }
+.pmd-note { margin: 0 0 14px; color: var(--card-fg-muted); font-size: var(--font-size-support); }
+
+.pmd-groups {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+@media (max-width: 520px) {
+    .pmd-groups { grid-template-columns: 1fr; }
+}
+
+.pmd-group {
+    margin: 0;
+    padding: 0 0 10px;
+    border: 1px solid var(--card-line);
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.pmd-group legend {
+    float: left;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 7px 12px;
+    background: var(--card-head-bg);
+    color: var(--card-head-fg);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-size: var(--font-size-support);
+}
+
+.pmd-bulk {
+    clear: both;
+    display: flex;
+    gap: 6px;
+    padding: 0 12px 6px;
+}
+
+.pmd-bulk button {
+    border: 1px solid var(--card-line);
+    background: transparent;
+    color: var(--card-fg-muted);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: var(--font-size-meta);
+    cursor: pointer;
+}
+
+.pmd-bulk button:hover { color: var(--card-fg); border-color: var(--card-fg-muted); }
+
+.pmd-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
+.pmd-option input { accent-color: var(--key-bg); width: 16px; height: 16px; }
+
+.pmd-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.pmd-count { margin-right: auto; color: var(--card-fg-muted); font-size: var(--font-size-support); }
+
+.pmd-actions button {
+    min-height: 40px;
+    padding: 8px 18px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--card-line);
+}
+
+.pmd-cancel { background: transparent; color: var(--card-fg); }
+.pmd-print { background: var(--key-bg); color: var(--key-fg); border-color: var(--key-bg) !important; }
+.pmd-actions button:disabled { opacity: .5; cursor: default; }

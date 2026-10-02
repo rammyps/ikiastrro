@@ -121,7 +121,10 @@
    grid. A "3.4"/"amsabala" deep link now routes to step 6 (`_masterTab = 5`) instead of a Strength
    sub-tab that no longer exists. *@
 
-<PageTitle>Astro Facts — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
+@if (PrintModules is null)
+{
+    <PageTitle>Astro Facts — @(_data?.Person.Name ?? "Chart") — ikiastrro</PageTitle>
+}
 
 @if (_data is null)
 {
@@ -135,9 +138,10 @@ else
 {
     var lc = _data.Charts["D1"];
 
-    @if (_masterTab == 0)
+    @if (Shows(0))
     {
         <div class="ki-panelbody" id="ki-panel-0" role="tabpanel" aria-labelledby="ki-tab-0">
+            @PrintHead(0)
                 @if (NatalChart is { } natalChart)
                 {
                     <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
@@ -169,9 +173,10 @@ else
                             <button type="button" role="tab" id="ki-natal-tab-3" aria-selected="@(_activeTab == 3)" aria-controls="ki-natal-panel-3" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 3">SIGNS &amp; PLANET ASPECTS</button>
                         </nav>
                         <div class="ki-subpanels">
-                            @if (_activeTab == 0)
+                            @if (SubShows(_activeTab, 0))
                             {
                                 <div id="ki-natal-panel-0" role="tabpanel" aria-labelledby="ki-natal-tab-0">
+                    @SubHead("General")
 <h3 class="ki-sectionhead">Birth Pañchāṅga</h3>
                     <PanchangaCard Row="_panchanga" UtcOffset="_utcOffset" />
 
@@ -182,9 +187,10 @@ else
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
                                 </div>
                             }
-                            @if (_activeTab == 1)
+                            @if (SubShows(_activeTab, 1))
                             {
                                 <div id="ki-natal-panel-1" role="tabpanel" aria-labelledby="ki-natal-tab-1">
+                    @SubHead("About planets")
 <h3 class="ki-sectionhead">Moon context</h3>
                     @if (_moon is null)
                     {
@@ -206,9 +212,10 @@ else
                                            KeyDetails="natalChart.KeyDetails" Strengths="_shadbala" />
                                 </div>
                             }
-                            @if (_activeTab == 2)
+                            @if (SubShows(_activeTab, 2))
                             {
                                 <div id="ki-natal-panel-2" role="tabpanel" aria-labelledby="ki-natal-tab-2">
+                    @SubHead("About houses")
 <h3 class="ki-sectionhead">House lord placement</h3>
                     <HouseLordshipTable Rows="natalChart.HouseLords" Occupants="Occupants(natalChart)"
                                         LifeMatters="_houseMatters" PersonId="Id" ChartType="@natalChart.ChartType" />
@@ -223,9 +230,10 @@ else
                     <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
                                 </div>
                             }
-                            @if (_activeTab == 3)
+                            @if (SubShows(_activeTab, 3))
                             {
                                 <div id="ki-natal-panel-3" role="tabpanel" aria-labelledby="ki-natal-tab-3">
+                    @SubHead("Signs & planet aspects")
                     <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
                     <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="@_natalChart" />
 
@@ -249,9 +257,10 @@ else
         </div>
     }
 
-    @if (_masterTab == 1)
+    @if (Shows(1))
     {
         <div class="ki-panelbody" id="ki-panel-1" role="tabpanel" aria-labelledby="ki-tab-1">
+            @PrintHead(1)
 @if (_selection is not null)
                     {
                         <section class="ki-controls" aria-label="Transit date and dasha filters">
@@ -367,9 +376,10 @@ else
         </div>
     }
 
-    @if (_masterTab == 2)
+    @if (Shows(2))
     {
         <div class="ki-panelbody" id="ki-panel-2" role="tabpanel" aria-labelledby="ki-tab-2">
+            @PrintHead(2)
           <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
             @ChartColumn
             <div class="ki-natal-detail">
@@ -380,9 +390,10 @@ else
                 <button type="button" role="tab" id="ki-strength-tab-2" aria-selected="@(_strengthTab == 2)" aria-controls="ki-strength-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _strengthTab = 2">ASHTAVARGA</button>
             </nav>
             <div class="ki-subpanels">
-                @if (_strengthTab == 0)
+                @if (SubShows(_strengthTab, 0))
                 {
                     <div id="ki-strength-panel-0" role="tabpanel" aria-labelledby="ki-strength-tab-0">
+                    @SubHead("Planet strength")
                     @if (_shadbala.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -396,9 +407,10 @@ else
                     </div>
                 }
 
-                @if (_strengthTab == 1)
+                @if (SubShows(_strengthTab, 1))
                 {
                     <div id="ki-strength-panel-1" role="tabpanel" aria-labelledby="ki-strength-tab-1">
+                    @SubHead("House strength")
                     @if (_bhavaBala.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -412,9 +424,10 @@ else
                     </div>
                 }
 
-                @if (_strengthTab == 2)
+                @if (SubShows(_strengthTab, 2))
                 {
                     <div id="ki-strength-panel-2" role="tabpanel" aria-labelledby="ki-strength-tab-2">
+                    @SubHead("Ashtavarga")
                     @if (_ashtakavarga.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -434,18 +447,20 @@ else
         </div>
     }
 
-    @if (_masterTab == 3)
+    @if (Shows(3))
     {
         <div class="ki-panelbody" id="ki-panel-3" role="tabpanel" aria-labelledby="ki-tab-3">
+            @PrintHead(3)
             <KarakaPolarWheel Id="@Id" Embedded="true" />
         </div>
     }
 
-    @if (_masterTab == 4)
+    @if (Shows(4))
     {
         @* No chart column here (rammyps, 2026-10-02): yogas are read off the whole chart set, so the
            D1 grid and chart picker added nothing. *@
         <div class="ki-panelbody" id="ki-panel-4" role="tabpanel" aria-labelledby="ki-tab-4">
+            @PrintHead(4)
             <div class="ki-stephead">
                 <h1 class="ki-heading">YOGAS</h1>
             </div>
@@ -464,9 +479,10 @@ else
         </div>
     }
 
-    @if (_masterTab == 5)
+    @if (Shows(5))
     {
         <div class="ki-panelbody" id="ki-panel-5" role="tabpanel" aria-labelledby="ki-tab-5">
+            @PrintHead(5)
           <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
             @ChartColumn
             <div class="ki-natal-detail">
@@ -486,9 +502,10 @@ else
         </div>
     }
 
-    @if (_masterTab == 6)
+    @if (Shows(6))
     {
         <div class="ki-panelbody" id="ki-panel-6" role="tabpanel" aria-labelledby="ki-tab-6">
+            @PrintHead(6)
             <h1 class="ki-heading">7. ALL CHARTS</h1>
             <AllChartsGrid Data="_data" />
         </div>
@@ -506,6 +523,26 @@ else
     /// <summary>House number -> the life matters read from it; the About Houses table's links
     /// into Key Inference.</summary>
     private IReadOnlyDictionary<int, IReadOnlyList<HouseMatterLink>> _houseMatters = new Dictionary<int, IReadOnlyList<HouseMatterLink>>();
+
+    /// <summary>PrintReport's module codes (PrintModules.AstroFacts). Set, the page renders every
+    /// chosen master tab one after another, each sub-tab expanded under its own heading, with no
+    /// rails; unset, it is the interactive page.</summary>
+    [Parameter] public IReadOnlySet<string>? PrintModules { get; set; }
+    private bool Printing => PrintModules is not null;
+
+    private bool Shows(int master) => PrintModules is { } print
+        ? print.Contains(Ikiastrro.Web.Components.Shared.PrintModules.AstroFacts[master].Code)
+        : _masterTab == master;
+
+    private bool SubShows(int current, int sub) => Printing || current == sub;
+
+    private RenderFragment PrintHead(int master) => Printing
+        ? @<h2 class="pr-modhead"><span>Astro Facts</span>@Ikiastrro.Web.Components.Shared.PrintModules.AstroFacts[master].Label</h2>
+        : @<text></text>;
+
+    private RenderFragment SubHead(string label) => Printing
+        ? @<h3 class="pr-subhead">@label</h3>
+        : @<text></text>;
 
     private int _masterTab;
     private int _activeTab;
@@ -698,7 +735,7 @@ else
         var p = _data.Person;
         Active.Set(Id, p.Name,
             $"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
-        Active.SetHeaderExtra(MasterNav);
+        if (!Printing) Active.SetHeaderExtra(MasterNav); // the print report has no rail
 
         var lc = _data.Charts["D1"];
         _natalSignByPlanet = lc.Grahas

@@ -1,0 +1,81 @@
+@page "/print/{Id:int}"
+@using System.Globalization
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject LifeMatterReferenceRepository LifeMatterReferenceRepo
+@inject Microsoft.JSInterop.IJSRuntime JS
+
+@* Print report (rammyps, 2026-10-02) — opened in a new tab from Saved Charts' Print picker
+   (PrintModuleDialog) as /print/{id}?af=natal,strength&ki=foundation,CAREER. The chosen Astro Facts
+   tabs and Key Inference modules render one after another through the pages' own PrintModules
+   mode (AstroFacts / KeyInference), so print shows exactly what the screen does, then the browser's
+   print dialog opens. Each module starts a new sheet (css/print.css). *@
+
+@if (_person is null)
+{
+    <section class="pr-missing" role="status">
+        <h1>Print</h1>
+        <p>No saved person with that id.</p>
+        <a href="/charts">Saved Charts</a>
+    </section>
+}
+else
+{
+    <div class="pr-report">
+        <header class="pr-cover">
+            <div>
+                <p class="pr-kicker">Iki-Astrro report</p>
+                <h1>@_person.Name</h1>
+                <p>@_person.DateOfBirth.ToString("d MMMM yyyy", CultureInfo.InvariantCulture) · @_person.TimeOfBirth.ToString("HH:mm") · @_person.PlaceCity, @_person.PlaceCountry</p>
+                <p class="pr-contents">
+                    @if (_astroFacts.Count > 0) { <span><b>Astro Facts</b> @Labels(PrintModules.AstroFacts, _astroFacts)</span> }
+                    @if (_keyInference.Count > 0) { <span><b>Key Inference</b> @Labels(_keyInferenceCatalog, _keyInference)</span> }
+                </p>
+                <p class="pr-generated">Printed @DateTime.Now.ToString("d MMM yyyy, HH:mm", CultureInfo.InvariantCulture)</p>
+            </div>
+            <button type="button" class="pr-print" @onclick="PrintAsync">Print</button>
+        </header>
+
+        @if (_astroFacts.Count > 0)
+        {
+            <AstroFacts Id="Id" PrintModules="_astroFacts" />
+        }
+        @if (_keyInference.Count > 0)
+        {
+            <KeyInference Id="Id" PrintModules="_keyInference" />
+        }
+    </div>
+}
+
+<PageTitle>@(_person?.Name ?? "Print") · Report</PageTitle>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [SupplyParameterFromQuery(Name = "af")] public string? AstroFactsList { get; set; }
+    [SupplyParameterFromQuery(Name = "ki")] public string? KeyInferenceList { get; set; }
+
+    private BirthDetails? _person;
+    private IReadOnlySet<string> _astroFacts = new HashSet<string>();
+    private IReadOnlySet<string> _keyInference = new HashSet<string>();
+    private IReadOnlyList<PrintModule> _keyInferenceCatalog = [];
+
+    protected override void OnParametersSet()
+    {
+        _person = BirthDetailsRepo.GetById(Id);
+        _astroFacts = PrintModules.Parse(AstroFactsList);
+        _keyInference = PrintModules.Parse(KeyInferenceList);
+        _keyInferenceCatalog =
+        PrintModules.KeyInference(LifeMatterReferenceRepo.GetCategories(1));
+    }
+
+    // Opens the print dialog once, after the modules have rendered and the fonts have loaded.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _person is not null && _astroFacts.Count + _keyInference.Count > 0)
+            await PrintAsync();
+    }
+
+    private Task PrintAsync() => JS.InvokeVoidAsync("ikiastrroPrint.whenReady").AsTask();
+
+    private static string Labels(IReadOnlyList<PrintModule> catalog, IReadOnlySet<string> picked) =>
+        string.Join(" · ", catalog.Where(m => picked.Contains(m.Code)).Select(m => m.Label));
+}

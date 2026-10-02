@@ -1,33 +1,135 @@
-/* Print-media override. Raw hex is intentional here: @media print must not depend on :root
-   custom properties surviving the print pipeline. DESIGN.md's no-raw-hex rule governs the token
-   system, not print fallbacks. */
+/* Print styles, linked from App.razor.
+   1. The print report (/print/{id}, PrintReport.razor): Saved Charts' Print picker stacks the chosen
+      Astro Facts tabs and Key Inference modules on one page. Its screen view and its sheets are both
+      styled here on the theme tokens; the report always opens in default-light (theme.js).
+   2. The All Charts gallery (/charts/{id} and Astro Facts' ALL CHARTS tab), printed on its own. */
+
+/* ---------- 1. Print report: screen ---------- */
+.pr-report { display: flex; flex-direction: column; gap: 18px; }
+
+.pr-cover {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    background: var(--card-bg);
+    color: var(--card-fg);
+    border: 1px solid var(--card-line);
+    border-radius: var(--card-radius);
+}
+.pr-cover h1 { margin: 2px 0 4px; font-size: var(--font-size-display); line-height: 1.1; }
+.pr-cover p { margin: 0 0 4px; }
+.pr-kicker, .pr-generated { color: var(--card-fg-muted); font-size: var(--font-size-meta); text-transform: uppercase; letter-spacing: .06em; }
+.pr-contents { display: flex; flex-direction: column; gap: 2px; font-size: var(--font-size-support); }
+.pr-contents b { display: inline-block; min-width: 110px; }
+.pr-print {
+    flex: none;
+    min-height: 40px;
+    padding: 8px 20px;
+    border: 1px solid var(--key-bg);
+    border-radius: 6px;
+    background: var(--key-bg);
+    color: var(--key-fg);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* One heading band per module, in the theme's key colour. */
+.pr-modhead {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: var(--key-bg);
+    color: var(--key-fg);
+    font-size: var(--font-size-heading);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.pr-modhead span { font-size: var(--font-size-meta); opacity: .8; }
+.pr-subhead {
+    margin: 18px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--card-line);
+    font-size: var(--font-size-heading);
+    text-transform: uppercase;
+}
+
+/* The report is static: no tab rails, chart pickers or per-module titles the band already gives. */
+.pr-report .ki-subnav,
+.pr-report .ki-chart-toolbar,
+.pr-report .acg-toolbar,
+.pr-report .ki-stephead,
+.pr-report .ki-panelbody > .ki-heading { display: none !important; }
+.pr-report .ki-panelbody { margin-top: 0 !important; }
+
+/* Key Inference modules. */
+.pr-ki-area { margin: 0 0 10px; }
+.pr-ki-table { width: 100%; }
+.pr-ki-table th[scope="row"] { text-align: left; font-weight: 600; }
+.pr-ki-factors { display: flex; flex-direction: column; gap: 2px; }
+.pr-ki-factors span { white-space: nowrap; }
+.pr-missing { padding: 24px; }
+
+/* ---------- Print media ---------- */
 @media print {
-    .site-nav, .blazor-error-ui, #blazor-error-ui { display: none !important; }
-    body { background: #14132a !important; color: #ece2cb !important; }
+    /* The views are laid out for a ~1200px screen: landscape at 85% gives the sheet that width. */
+    @page { margin: 12mm; }
+    @page report { size: A4 landscape; margin: 10mm; }
+    .blazor-error-ui, #blazor-error-ui { display: none !important; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    .print-sec + .print-sec { break-before: page; }
-    .print-head { break-after: avoid; }
-    .print-minis > * , table tr, .chart, .mini-chart, .cd9-chart, .wheel { break-inside: avoid; }
 
-    /* --- All-charts gallery (/charts/{id}, and Astro Facts's embedded "7. ALL CHARTS" tab)
-       print: the charts and nothing else, on a light ground (the card's own --brand-* palette is
-       parchment, not the dark PrintChart theme). Scoped with :has() so PrintChart above keeps its
-       dark body. Class names matched to Components/Charts/AllChartsGrid.razor (2026-09-24 —
-       previously targeted a since-renamed .ac-list/.ac-tile/.ac-print/.ac-nav/.ac-back
-       structure that no longer exists on this page). --- */
-    body:has(.ac-grid) { background: #ffffff !important; color: #2a2118 !important; }
+    /* --- 1. Print report sheets: the app chrome goes, each module opens a sheet. --- */
+    body:has(.pr-report) .ik-appbar-scope,
+    body:has(.pr-report) .ik-band,
+    body:has(.pr-report) .ik-footer,
+    body:has(.pr-report) .ik-person-scrim,
+    .pr-print { display: none !important; }
+    body:has(.pr-report) .mud-main-content { padding-top: 0 !important; }
+    body:has(.pr-report) .ik-page { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 
-    /* Strip everything that isn't a chart: site nav, the person identity band, this page's own
-       Print button, and (when printed from inside Astro Facts) the master/sub tab rails. */
-    body:has(.ac-grid) .ik-appbar-scope,
-    body:has(.ac-grid) .ik-band,
-    body:has(.ac-grid) .ik-footer,
-    body:has(.ac-grid) .acg-toolbar,
-    body:has(.ac-grid) .ki-mastertabs > .ki-master > .mud-tabs-toolbar-wrapper,
-    body:has(.ac-grid) .ki-mastertabs ::deep .ki-master-header { display: none !important; }
+    body:has(.pr-report) { page: report; }
+    .pr-report { gap: 0; zoom: .85; }
+    .pr-report > .ki-panelbody,
+    .pr-report > .pr-ki-sec { break-before: page; }
+    .pr-report > .pr-cover + * { break-before: auto; margin-top: 14px; }
+    .pr-modhead, .pr-subhead { break-after: avoid; }
 
-    /* Two per row so the dense South-Indian grid still reads at print size; three-per-row (the
-       screen layout) would shrink each card too far. */
+    /* Chart beside detail is too narrow on a sheet: stack them. */
+    .pr-report .ki-natal-layout { display: block !important; }
+    .pr-report .ki-gridwrap { max-width: 520px; margin: 0 auto 12px; }
+
+    /* Natal already shows the chart; Strength and Vargas don't repeat it. */
+    .pr-report .yg-controls,
+    .pr-report #ki-panel-2 .ki-gridwrap,
+    .pr-report #ki-panel-5 .ki-gridwrap { display: none !important; }
+
+    /* Fit wide tables to the sheet: no scroll boxes, no fixed minimum widths, long text wraps. */
+    .pr-report .ki-scroll,
+    .pr-report [class*="-scroll"] { overflow: visible !important; max-height: none !important; }
+    .pr-report table { width: 100% !important; min-width: 0 !important; }
+    .pr-report th, .pr-report td { white-space: normal !important; overflow-wrap: break-word; }
+    .pr-ki-factors span { white-space: normal; }
+
+    /* Landscape fits the gallery's screen layout: three charts a row. */
+    .pr-report .ac-grid { grid-template-columns: repeat(3, 1fr) !important; }
+
+    .pr-report table tr,
+    .pr-report .ac-card,
+    .pr-report svg { break-inside: avoid; }
+
+    /* --- 2. All Charts gallery printed on its own: the charts and nothing else, on white. --- */
+    body:has(.ac-grid):not(:has(.pr-report)) { background: #ffffff !important; color: #2a2118 !important; }
+    body:has(.ac-grid):not(:has(.pr-report)) .ik-appbar-scope,
+    body:has(.ac-grid):not(:has(.pr-report)) .ik-band,
+    body:has(.ac-grid):not(:has(.pr-report)) .ik-footer,
+    body:has(.ac-grid) .acg-toolbar { display: none !important; }
+    body:has(.ac-grid):not(:has(.pr-report)) .mud-main-content { padding-top: 0 !important; }
+
+    /* Two per row so the dense South-Indian grid still reads at print size. */
     .ac-grid {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;

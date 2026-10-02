@@ -1,0 +1,63 @@
+@* Saved Charts' Print picker (rammyps, 2026-10-02): choose which Astro Facts tabs and Key Inference
+   modules go into one person's printed report. Every module starts ticked. The caller renders it
+   only while open and opens PrintModules.Url with the ticked codes. *@
+<div class="pmd-backdrop" tabindex="-1" @onclick="Cancel" @onkeydown="OnKeyDown">
+    <div class="pmd-box" role="dialog" aria-modal="true" aria-labelledby="pmd-title" @onclick:stopPropagation="true">
+        <h2 id="pmd-title" class="pmd-title">Print @PersonName</h2>
+        <p class="pmd-note">Choose what goes into the report. Each module starts on a new page.</p>
+
+        <div class="pmd-groups">
+            @Group("Astro Facts", PrintModules.AstroFacts, _astroFacts)
+            @Group("Key Inference", KeyInference, _keyInference)
+        </div>
+
+        <div class="pmd-actions">
+            <span class="pmd-count">@(_astroFacts.Count + _keyInference.Count) selected</span>
+            <button type="button" class="pmd-cancel" @onclick="Cancel">Cancel</button>
+            <button type="button" class="pmd-print" disabled="@(_astroFacts.Count + _keyInference.Count == 0)" @onclick="Print">Print</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string PersonName { get; set; } = "";
+    /// <summary>Foundation plus one module per life area.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PrintModule> KeyInference { get; set; } = [];
+    /// <summary>The ticked Astro Facts and Key Inference codes, in catalog order.</summary>
+    [Parameter] public EventCallback<(IReadOnlyList<string> AstroFacts, IReadOnlyList<string> KeyInference)> OnPrint { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private readonly HashSet<string> _astroFacts = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _keyInference = new(StringComparer.OrdinalIgnoreCase);
+
+    protected override void OnInitialized()
+    {
+        _astroFacts.UnionWith(PrintModules.AstroFacts.Select(m => m.Code));
+        _keyInference.UnionWith(KeyInference.Select(m => m.Code));
+    }
+
+    private RenderFragment Group(string title, IReadOnlyList<PrintModule> modules, HashSet<string> picked) =>
+        @<fieldset class="pmd-group">
+            <legend>@title</legend>
+            <div class="pmd-bulk">
+                <button type="button" @onclick="() => picked.UnionWith(modules.Select(m => m.Code))">All</button>
+                <button type="button" @onclick="() => picked.Clear()">None</button>
+            </div>
+            @foreach (var m in modules)
+            {
+                <label class="pmd-option">
+                    <input type="checkbox" checked="@picked.Contains(m.Code)"
+                           @onchange="e => { if (e.Value is true) picked.Add(m.Code); else picked.Remove(m.Code); }" />
+                    @m.Label
+                </label>
+            }
+        </fieldset>;
+
+    private Task Print() => OnPrint.InvokeAsync((
+        PrintModules.AstroFacts.Select(m => m.Code).Where(_astroFacts.Contains).ToList(),
+        KeyInference.Select(m => m.Code).Where(_keyInference.Contains).ToList()));
+
+    private Task Cancel() => OnCancel.InvokeAsync();
+
+    private Task OnKeyDown(KeyboardEventArgs e) => e.Key == "Escape" ? Cancel() : Task.CompletedTask;
+}

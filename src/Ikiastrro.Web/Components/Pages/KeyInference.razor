@@ -45,7 +45,10 @@
    lagna; D1 is the promise, the varga the confirmation. LifeMatterStatistics supplies every
    figure; LifeMatterReading only puts them into words. *@
 
-<PageTitle>@(_data?.Person.Name ?? "Key Inference") · Key Inference</PageTitle>
+@if (PrintModules is null)
+{
+    <PageTitle>@(_data?.Person.Name ?? "Key Inference") · Key Inference</PageTitle>
+}
 
 @if (_data is null)
 {
@@ -54,6 +57,60 @@
         <p>No saved charts found for that person.</p>
         <a href="/">Choose a saved person</a>
     </section>
+}
+else if (PrintModules is { } print)
+{
+    @* Print report (PrintReport.razor): the foundation and each chosen life area as a static table —
+       every question in the area read from Lagna in its own chart, against the main birth chart. *@
+    @if (print.Contains(Ikiastrro.Web.Components.Shared.PrintModules.Foundation))
+    {
+        <section class="pr-ki-sec">
+            <h2 class="pr-modhead"><span>Key Inference</span>Foundation</h2>
+            <table class="lm-table pr-ki-table">
+                <thead><tr><th>Factor</th><th>Value</th><th>Detail</th></tr></thead>
+                <tbody>
+                    @foreach (var f in _foundation)
+                    {
+                        <tr class="@(f.Tone is null ? null : $"is-{f.Tone}")"><th scope="row">@f.Label</th><td><b>@f.Value</b></td><td>@f.Detail</td></tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+    @foreach (var area in _categories.Where(c => print.Contains(c.CategoryCode)))
+    {
+        var areaPct = AreaStats(area.CategoryCode).StrengthPercent;
+        var core = CoreHouses(area.CategoryCode);
+        <section class="pr-ki-sec">
+            <h2 class="pr-modhead"><span>Key Inference</span>@LifeMatterQuestions.AreaLabel(area.CategoryCode, area.CategoryName)</h2>
+            <p class="pr-ki-area">Area overview @Pct(areaPct, "Area overview") <b>@LifeMatterReading.Band(areaPct).Label</b> —
+                the @string.Join(" & ", core.Select(Ordinal)) house@(core.Count > 1 ? "s" : "") of the main birth chart. Each question is read from Lagna.</p>
+            <table class="lm-table pr-ki-table">
+                <thead>
+                    <tr><th>Question</th><th>Chart</th><th class="num">Main chart<br />D1</th><th class="num">Own<br />chart</th><th>Support</th><th>Strongest factors</th><th>Limiting or uncertain</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in StepsIn(area.CategoryCode))
+                    {
+                        var home = HomeChart(s);
+                        var d1Read = Read(s, "LAGNA", "D1");
+                        var homeRead = home == "D1" ? d1Read : Read(s, "LAGNA", home);
+                        var pct = ReadPercent(homeRead);
+                        var factors = LifeMatterReading.Factors(homeRead?.Items.Select(i => i.Stats).ToList() ?? [], home);
+                        <tr>
+                            <th scope="row">@s.MatterText</th>
+                            <td title="@ChartName(home)">@home</td>
+                            <td class="num">@ReadStrength(d1Read)</td>
+                            <td class="num">@if (home == "D1") { <span class="lm-muted">—</span> } else { @ReadStrength(homeRead) }</td>
+                            <td><b>@LifeMatterReading.Band(pct).Label</b></td>
+                            <td>@FactorList(LifeMatterReading.Strongest(factors))</td>
+                            <td>@FactorList(LifeMatterReading.Limiting(factors))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
 }
 else
 {
@@ -652,6 +709,10 @@ else
     [SupplyParameterFromQuery(Name = "matter")] public string? Matter { get; set; }
     [SupplyParameterFromQuery(Name = "lagna")] public string? Lagna { get; set; }
     [SupplyParameterFromQuery(Name = "chart")] public string? Chart { get; set; }
+
+    /// <summary>PrintReport's Key Inference codes: PrintModules.Foundation and life-area codes. Set,
+    /// the page renders those as static tables instead of the interactive reading.</summary>
+    [Parameter] public IReadOnlySet<string>? PrintModules { get; set; }
 
     private const byte RuleSetId = 1;
     private static readonly LifeMatterFocusResolver Resolver = new();
@@ -1359,6 +1420,10 @@ else
 
     private static RenderFragment Factor(StrengthFactor f) =>
         @<span class="lm-factor">@Pct(f.Percent, f.Technical)<span><b>@f.Name</b> <span class="lm-muted">@f.Detail</span><span class="lm-tech">@f.Technical</span></span></span>;
+
+    private static RenderFragment FactorList(IReadOnlyList<StrengthFactor> factors) => factors.Count == 0
+        ? @<span class="lm-muted">—</span>
+        : @<span class="pr-ki-factors">@foreach (var f in factors) { <span>@f.Name <b>@(f.Percent is { } p ? $"{p}%" : "—")</b></span> }</span>;
 
     private static RenderFragment ReadStrength(SubRead? read) => read is null
         ? Pct(null, "Not available")
