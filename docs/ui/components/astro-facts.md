@@ -551,7 +551,7 @@ Step 1 shows facts that were already computed and stored; no new calculation or 
 
 ## 2026-10-02 — JHora gap step 2: Yogi, nava tārā, Mrityu bhāga, Puṣkara, Bhṛgu Bindu, Varṇada
 
-Computed live from the **D1** key details (whatever the chart picker shows) by Core `Engines/KeyInfo` —
+Computed live from the **D1** key details (whichever chart the picker shows — these tables never follow it) by Core `Engines/KeyInfo` —
 nothing stored, no regeneration needed. `KeyInfoTests` checks every figure against JHora's
 1_Ramakrishnan views.
 
@@ -565,3 +565,22 @@ nothing stored, no regeneration needed. `KeyInfoTests` checks every figure again
   (Jātaka Pārijāta degrees, as JHora) and its distance. "In" = inside that single degree.
 - **Known gap:** JHora's Mrityu bhāga for the Moon in Scorpio is ~23° where the BPHS table says 14°.
   House-cusp rows (JHora lists 2nd–12th) are not shown.
+
+## 2026-10-02 — Natal tab layout: SPECIAL POINTS sub-tab, jump links, D1 tags
+
+- **GENERAL** is now Birth Pañchāṅga, Planet positions and Sign &amp; Nakshatra combination only.
+  Upagrahas, Ārūḍha padas, Graha ārūḍhas, Yogi &amp; sensitive points and Nava tārā moved to a new
+  **SPECIAL POINTS** sub-tab, second in the rail (`_activeTab` 4, so the older indices and
+  `?step=` links keep their meaning; `?step=specialpoints|upagrahas|arudhas` opens it).
+- **Jump links** (`.ki-jump`) head every natal sub-tab with four or more sections — Special points,
+  About planets, About houses, Signs &amp; planet aspects — and scroll the heading to just under the
+  fixed app bar, moving focus to it (`wwwroot/js/scroll.js`). Not printed.
+- **D1 tag.** Sections read from the D1 rāśi chart whatever the picker shows carry a "D1" tag in
+  their heading (replacing the old "(D1)" suffix): Yogi &amp; sensitive points, Nava tārā, Moon
+  context, Motion/combustion/planetary war, Mrityu bhāga &amp; Puṣkara, Planet states. While the
+  picker is on another chart a note beside the tag says so ("always the rāśi chart — not the D9
+  in the picker"). Every other natal section follows the picker.
+- **Fixed with it:** Motion, combustion &amp; planetary war and the Planet states table read the
+  picked chart's key details — the avasthā table showed D1 states beside the picked varga's
+  dignity. Both now read D1. Section ids and titles live in one `NatalSection` catalog in
+  `AstroFacts.razor`.

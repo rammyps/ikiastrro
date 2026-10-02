@@ -35,6 +35,7 @@
 @inject LifeMatterReferenceRepository LifeMatterReferenceRepo
 @inject LifeMatterFocusRepository LifeMatterFocusRepo
 @inject ActivePerson Active
+@inject Microsoft.JSInterop.IJSRuntime JS
 
 @* Astro Facts — docs/ui/components/astro-facts.md. Steps 1–4 built (3.4 Amsabala added
    2026-09-16), 5 (Yogas) and 6 (Vargas) added 2026-09-16; 7 (All Charts) embedded as its own
@@ -168,6 +169,7 @@ else
                         <div class="ki-natal-detail ki-subnav-wrap">
                         <nav class="ki-subnav" role="tablist" aria-label="Natal chart details">
                             <button type="button" role="tab" id="ki-natal-tab-0" aria-selected="@(_activeTab == 0)" aria-controls="ki-natal-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 0">GENERAL</button>
+                            <button type="button" role="tab" id="ki-natal-tab-4" aria-selected="@(_activeTab == 4)" aria-controls="ki-natal-panel-4" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 4">SPECIAL POINTS</button>
                             <button type="button" role="tab" id="ki-natal-tab-1" aria-selected="@(_activeTab == 1)" aria-controls="ki-natal-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 1">ABOUT PLANETS</button>
                             <button type="button" role="tab" id="ki-natal-tab-2" aria-selected="@(_activeTab == 2)" aria-controls="ki-natal-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 2">ABOUT HOUSES</button>
                             <button type="button" role="tab" id="ki-natal-tab-3" aria-selected="@(_activeTab == 3)" aria-controls="ki-natal-panel-3" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 3">SIGNS &amp; PLANET ASPECTS</button>
@@ -177,28 +179,34 @@ else
                             {
                                 <div id="ki-natal-panel-0" role="tabpanel" aria-labelledby="ki-natal-tab-0">
                     @SubHead("General")
-<h3 class="ki-sectionhead">Birth Pañchāṅga</h3>
+                    @Head(NatalSection.Panchanga)
                     <PanchangaCard Row="_panchanga" UtcOffset="_utcOffset" />
 
-                    <h3 class="ki-sectionhead">Planet positions</h3>
+                    @Head(NatalSection.Positions)
                     <PlanetPositionsTable Rows="Rows(natalChart)" LagnaSign="@natalChart.AscendantSign" Variant="d1" ShowAnalysis="false" />
 
-                    <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
+                    @Head(NatalSection.SignNakshatra)
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
-
-                    <h3 class="ki-sectionhead">Upagrahas</h3>
+                                </div>
+                            }
+                            @if (SubShows(_activeTab, 4))
+                            {
+                                <div id="ki-natal-panel-4" role="tabpanel" aria-labelledby="ki-natal-tab-4">
+                    @SubHead("Special points")
+                    @JumpNav(NatalSection.SpecialPointsTab)
+                    @Head(NatalSection.Upagrahas)
                     <SpecialPointsTable Rows="@(Points(natalChart, "Upagraha"))" />
 
-                    <h3 class="ki-sectionhead">Ārūḍha padas</h3>
+                    @Head(NatalSection.ArudhaPadas)
                     <SpecialPointsTable Rows="@(Points(natalChart, "Arudha"))" ShowDegree="false" />
 
-                    <h3 class="ki-sectionhead">Graha ārūḍhas</h3>
+                    @Head(NatalSection.GrahaArudhas)
                     <SpecialPointsTable Rows="@(Points(natalChart, "GrahaArudha"))" ShowDegree="false" />
 
-                    <h3 class="ki-sectionhead">Yogi &amp; sensitive points (D1)</h3>
+                    @Head(NatalSection.Yogi)
                     <SensitivePointsTable KeyDetails="D1KeyDetails" />
 
-                    <h3 class="ki-sectionhead">Nava tārā (D1)</h3>
+                    @Head(NatalSection.NavaTara)
                     <NavaTaraTable KeyDetails="D1KeyDetails" />
                                 </div>
                             }
@@ -206,7 +214,8 @@ else
                             {
                                 <div id="ki-natal-panel-1" role="tabpanel" aria-labelledby="ki-natal-tab-1">
                     @SubHead("About planets")
-<h3 class="ki-sectionhead">Moon context</h3>
+                    @JumpNav(NatalSection.AboutPlanetsTab)
+                    @Head(NatalSection.Moon)
                     @if (_moon is null)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -218,36 +227,37 @@ else
                         <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
                     }
 
-                    <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
+                    @Head(NatalSection.Dignity)
                     <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
 
-                    <h3 class="ki-sectionhead">Motion, combustion &amp; planetary war</h3>
-                    <PlanetMotionTable KeyDetails="natalChart.KeyDetails" />
+                    @Head(NatalSection.Motion)
+                    <PlanetMotionTable KeyDetails="D1KeyDetails" />
 
-                    <h3 class="ki-sectionhead">Mrityu bhāga &amp; Puṣkara (D1)</h3>
+                    @Head(NatalSection.MrityuPushkara)
                     <MrityuPushkaraTable KeyDetails="D1KeyDetails" />
 
-                    <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
+                    @Head(NatalSection.States)
                     <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames"
                                            PostureInterpretations="_postureInterpretations"
-                                           KeyDetails="natalChart.KeyDetails" Strengths="_shadbala" />
+                                           KeyDetails="D1KeyDetails" Strengths="_shadbala" />
                                 </div>
                             }
                             @if (SubShows(_activeTab, 2))
                             {
                                 <div id="ki-natal-panel-2" role="tabpanel" aria-labelledby="ki-natal-tab-2">
                     @SubHead("About houses")
-<h3 class="ki-sectionhead">House lord placement</h3>
+                    @JumpNav(NatalSection.AboutHousesTab)
+                    @Head(NatalSection.HouseLords)
                     <HouseLordshipTable Rows="natalChart.HouseLords" Occupants="Occupants(natalChart)"
                                         LifeMatters="_houseMatters" PersonId="Id" ChartType="@natalChart.ChartType" />
 
-                    <h3 class="ki-sectionhead">House lord key findings</h3>
+                    @Head(NatalSection.HouseFindings)
                     <HouseLordFindingsTable Rows="natalChart.HouseLordInterpretations" />
 
-                    <h3 class="ki-sectionhead">What acts on each house</h3>
+                    @Head(NatalSection.HouseVerdicts)
                     <HouseVerdictTable Rows="HouseVerdicts.For(natalChart, ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas))" />
 
-                    <h3 class="ki-sectionhead">Argala &amp; Virodhargala</h3>
+                    @Head(NatalSection.Argala)
                     <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
                                 </div>
                             }
@@ -255,18 +265,19 @@ else
                             {
                                 <div id="ki-natal-panel-3" role="tabpanel" aria-labelledby="ki-natal-tab-3">
                     @SubHead("Signs & planet aspects")
-                    <h3 class="ki-sectionhead">Graha Dṛṣṭi strength</h3>
+                    @JumpNav(NatalSection.SignsAspectsTab)
+                    @Head(NatalSection.GrahaDrishti)
                     <GrahaDrishtiMatrix Rows="_grahaDrishtiStrengths" SelectedChart="@_natalChart" />
 
                     @if (NatalChart is { } relationshipChart)
                     {
-                        <h3 class="ki-sectionhead">Rāśi Dṛṣṭi</h3>
+                        @Head(NatalSection.RasiDrishti)
                         <RasiDrishtiMatrix KeyDetails="relationshipChart.KeyDetails" />
 
-                        <h3 class="ki-sectionhead">Rāśi &amp; graha dispositors</h3>
+                        @Head(NatalSection.Dispositors)
                         <DispositorTable ChartType="@relationshipChart.ChartType" AscendantSign="@relationshipChart.AscendantSign" KeyDetails="relationshipChart.KeyDetails" />
 
-                        <h3 class="ki-sectionhead">Conjunctions</h3>
+                        @Head(NatalSection.Conjunctions)
                         <HouseConjunctionsTable Groups="relationshipChart.MultiGrahaConjunctions" KeyDetails="relationshipChart.KeyDetails" />
                     }
                                 </div>
@@ -566,8 +577,77 @@ else
         : @<text></text>;
 
     private int _masterTab;
+    /// <summary>Natal sub-tab: 0 General, 4 Special points, 1 About planets, 2 About houses,
+    /// 3 Signs &amp; planet aspects (nav order; 4 was split out of General 2026-10-02, so the
+    /// older indices and their ?step= links keep their meaning).</summary>
     private int _activeTab;
     private int _strengthTab;
+
+    /// <summary>One section heading in a natal sub-tab. <see cref="D1Only"/> marks the tables read
+    /// from the D1 rāśi chart whatever the chart picker shows; the rest follow the picker.</summary>
+    private sealed record Section(string Id, string Title, bool D1Only = false);
+
+    /// <summary>The natal sub-tabs' section headings, and the jump-link list of each sub-tab that
+    /// has four or more (General's three need none).</summary>
+    private static class NatalSection
+    {
+        public static readonly Section Panchanga = new("af-panchanga", "Birth Pañchāṅga");
+        public static readonly Section Positions = new("af-positions", "Planet positions");
+        public static readonly Section SignNakshatra = new("af-sign-nakshatra", "Sign & Nakshatra combination");
+
+        public static readonly Section Upagrahas = new("af-upagrahas", "Upagrahas");
+        public static readonly Section ArudhaPadas = new("af-arudha-padas", "Ārūḍha padas");
+        public static readonly Section GrahaArudhas = new("af-graha-arudhas", "Graha ārūḍhas");
+        public static readonly Section Yogi = new("af-yogi", "Yogi & sensitive points", D1Only: true);
+        public static readonly Section NavaTara = new("af-nava-tara", "Nava tārā", D1Only: true);
+        public static readonly Section[] SpecialPointsTab = [Upagrahas, ArudhaPadas, GrahaArudhas, Yogi, NavaTara];
+
+        public static readonly Section Moon = new("af-moon", "Moon context", D1Only: true);
+        public static readonly Section Dignity = new("af-dignity", "Planets — dignity, kāraka, exaltation");
+        public static readonly Section Motion = new("af-motion", "Motion, combustion & planetary war", D1Only: true);
+        public static readonly Section MrityuPushkara = new("af-mrityu-pushkara", "Mrityu bhāga & Puṣkara", D1Only: true);
+        public static readonly Section States = new("af-states", "Planet states (avasthas)", D1Only: true);
+        public static readonly Section[] AboutPlanetsTab = [Moon, Dignity, Motion, MrityuPushkara, States];
+
+        public static readonly Section HouseLords = new("af-house-lords", "House lord placement");
+        public static readonly Section HouseFindings = new("af-house-findings", "House lord key findings");
+        public static readonly Section HouseVerdicts = new("af-house-verdicts", "What acts on each house");
+        public static readonly Section Argala = new("af-argala", "Argala & Virodhargala");
+        public static readonly Section[] AboutHousesTab = [HouseLords, HouseFindings, HouseVerdicts, Argala];
+
+        public static readonly Section GrahaDrishti = new("af-graha-drishti", "Graha Dṛṣṭi strength");
+        public static readonly Section RasiDrishti = new("af-rasi-drishti", "Rāśi Dṛṣṭi");
+        public static readonly Section Dispositors = new("af-dispositors", "Rāśi & graha dispositors");
+        public static readonly Section Conjunctions = new("af-conjunctions", "Conjunctions");
+        public static readonly Section[] SignsAspectsTab = [GrahaDrishti, RasiDrishti, Dispositors, Conjunctions];
+    }
+
+    /// <summary>A section heading. A D1-only section carries a "D1" tag, and while the picker
+    /// shows another chart a note says the table did not follow it.</summary>
+    private RenderFragment Head(Section section) => @<h3 class="ki-sectionhead" id="@section.Id" tabindex="-1">
+        @section.Title
+        @if (section.D1Only)
+        {
+            <span class="ki-d1tag" title="Read from the D1 rāśi chart, whichever chart the picker shows">D1</span>
+            @if (_natalChart != "D1" && !Printing)
+            {
+                <span class="ki-d1note">always the rāśi chart — not the @_natalChart in the picker</span>
+            }
+        }
+    </h3>;
+
+    /// <summary>Jump links to a sub-tab's sections; not printed.</summary>
+    private RenderFragment JumpNav(IReadOnlyList<Section> sections) => Printing
+        ? @<text></text>
+        : @<nav class="ki-jump" aria-label="Sections on this tab">
+            @foreach (var section in sections)
+            {
+                var id = section.Id;
+                <button type="button" class="ki-jumplink" @onclick="() => ScrollToSection(id)">@section.Title</button>
+            }
+        </nav>;
+
+    private async Task ScrollToSection(string id) => await JS.InvokeVoidAsync("ikiastrroScroll.toSection", id);
 
     /// <summary>Master step rail — handed to <c>Active.SetHeaderExtra</c> (see
     /// <see cref="OnParametersSet"/>) so it renders inside MainLayout's context band, below the
@@ -728,6 +808,7 @@ else
     {
         if (Step is "1" or "natal" or "about") _masterTab = 0;
         if (Step is "overview" or "general" or "generaldetails" or "signs" or "nakshatras") { _masterTab = 0; _activeTab = 0; }
+        if (Step is "specialpoints" or "upagrahas" or "arudhas") { _masterTab = 0; _activeTab = 4; }
         if (Step is "planets") { _masterTab = 0; _activeTab = 1; }
         if (Step is "houses") { _masterTab = 0; _activeTab = 2; }
         if (Step is "relationships" or "aspected") { _masterTab = 0; _activeTab = 3; }

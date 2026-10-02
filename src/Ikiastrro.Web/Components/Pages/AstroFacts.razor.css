@@ -273,6 +273,53 @@
     text-transform: uppercase;
 }
 .ki-sectionhead:first-child { margin-top: 0; }
+/* Jump links land a heading just under the fixed app bar (static on phones, so only the air
+   there); the focus they move there is for keyboard and screen-reader users, so no outline
+   unless the keyboard put it there. */
+.ki-sectionhead { scroll-margin-top: calc(var(--ik-appbar-h) + 12px); }
+@media (max-width: 760px) { .ki-sectionhead { scroll-margin-top: 12px; } }
+.ki-sectionhead:focus:not(:focus-visible) { outline: none; }
+
+/* "D1" tag on the tables read from the rāśi chart whatever the chart picker shows, and the
+   note beside it while the picker is on another chart (2026-10-02). */
+.ki-d1tag {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 6px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    font-size: var(--font-size-meta);
+    letter-spacing: 0.06em;
+    vertical-align: middle;
+}
+.ki-d1note {
+    margin-left: 8px;
+    color: var(--ink-soft);
+    font-size: var(--font-size-meta);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    vertical-align: middle;
+}
+
+/* Jump links to a sub-tab's sections — plain text links, quieter than the sub-tab pills. */
+.ki-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--brand-sunrise);
+}
+.ki-jumplink {
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    color: var(--ink-soft);
+    font: 500 var(--font-size-support) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+    cursor: pointer;
+}
+.ki-jumplink:hover, .ki-jumplink:focus-visible { color: var(--ink); text-decoration: underline; }
 
 .ki-twocol {
     display: grid;
