@@ -12,7 +12,7 @@ namespace Ikiastrro.Data;
 public sealed record ShadbalaSummaryRow(string Planet, decimal SthanaBalaVirupas, decimal DigBalaVirupas,
     decimal KalaBalaVirupas, decimal CheshtaBalaVirupas, decimal NaisargikaBalaVirupas, decimal DrikBalaVirupas,
     decimal YuddhaBalaVirupas, decimal ShadbalaVirupas, decimal ShadbalaRupas, decimal? MinimumRequiredRupas,
-    decimal? PercentOfMinimum);
+    decimal? PercentOfMinimum, decimal? IshtaBala = null, decimal? KashtaBala = null);
 
 /// <summary>Astro Facts 3.1 expanded row — every `tbl_Fact_PlanetaryStrengthComponent` under
 /// one planet, grouped by `BalaCode` in the UI (Sthāna/Dig/Kāla/Cheṣṭā/Naisargika/Dṛk/Yuddha).</summary>
@@ -93,7 +93,7 @@ public sealed class PlanetaryStrengthRepository
         return connection.Query<ShadbalaSummaryRow>("""
             SELECT Planet, SthanaBalaVirupas, DigBalaVirupas, KalaBalaVirupas, CheshtaBalaVirupas,
                    NaisargikaBalaVirupas, DrikBalaVirupas, YuddhaBalaVirupas, ShadbalaVirupas,
-                   ShadbalaRupas, MinimumRequiredRupas, PercentOfMinimum
+                   ShadbalaRupas, MinimumRequiredRupas, PercentOfMinimum, IshtaBala, KashtaBala
             FROM dbo.vw_ChartShadbala WHERE BirthDetailId = @birthDetailId ORDER BY Planet
             """, new { birthDetailId }).ToList();
     }

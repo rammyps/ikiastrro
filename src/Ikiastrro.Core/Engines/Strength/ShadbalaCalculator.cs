@@ -67,6 +67,12 @@ public static class ShadbalaCalculator
             double Sthana, double Dig, double Kala, double Cheshta, double Naisargika, double Drik,
             double TotalBeforeWar)>(ClassicalPlanets.Length);
 
+        // D1 longitudes (gaps filled from the ephemeris) — Pakṣa Bala reads Mercury's sign-mates from them.
+        var d1Longitudes = d1.Planets
+            .Where(x => x.NirayanaLongitudeDegrees.HasValue && Enum.TryParse<PlanetName>(x.Planet, out _))
+            .ToDictionary(x => Enum.Parse<PlanetName>(x.Planet), x => x.NirayanaLongitudeDegrees!.Value);
+        foreach (var (body, longitude) in positions.PlanetLongitudes) d1Longitudes.TryAdd(body, longitude);
+
         foreach (var planet in ClassicalPlanets)
         {
             var name = planet.ToString();
@@ -76,8 +82,8 @@ public static class ShadbalaCalculator
             var components = new List<ShadbalaComponentResult>();
             AddSthana(components, planet, p, charts);
             AddDig(components, planet, p);
-            AddKala(components, planet, p, positions, sunTimes, panchanga);
-            AddCheshta(components, planet, p, positions);
+            AddKala(components, planet, p, positions, sunTimes, panchanga, d1Longitudes);
+            AddCheshta(components, planet, p, positions, panchanga);
             AddNaisargika(components, planet);
             AddDrik(components, planet, d1);
 
@@ -108,12 +114,14 @@ public static class ShadbalaCalculator
 
             var total = row.TotalBeforeWar + yuddhaVirupas;
             var uchcha = components.First(x => x.SubComponentCode == "UCHCHA_BALA").ValueVirupas;
+            // Ishta / Kashta Phala (BPHS): √(Uchcha × Cheṣṭā) and √((60 − Uchcha) × (60 − Cheṣṭā)).
             var ishta = Math.Sqrt(Math.Max(0, uchcha * row.Cheshta));
+            var kashta = Math.Sqrt(Math.Max(0, (60 - uchcha) * (60 - row.Cheshta)));
 
             results.Add(new PlanetaryStrengthResult(
                 row.Planet.ToString(), components, Round(row.Sthana), Round(row.Dig), Round(row.Kala),
                 Round(row.Cheshta), Round(row.Naisargika), Round(row.Drik), Round(yuddhaVirupas),
-                Round(total), Round(total / 60.0), Round(ishta), Round(60.0 - ishta)));
+                Round(total), Round(total / 60.0), Round(ishta), Round(kashta)));
         }
         return results;
     }
@@ -177,19 +185,21 @@ public static class ShadbalaCalculator
     }
 
     private static void AddKala(List<ShadbalaComponentResult> rows, PlanetName planet, PlanetPosition p,
-        SiderealPositions positions, SunTimes sunTimes, PanchangaResult panchanga)
+        SiderealPositions positions, SunTimes sunTimes, PanchangaResult panchanga,
+        IReadOnlyDictionary<PlanetName, double> d1Longitudes)
     {
         var dayStrong = planet is PlanetName.Sun or PlanetName.Jupiter or PlanetName.Venus;
         var nathonnata = sunTimes.IsNightBirth == dayStrong ? 0 : 60;
         rows.Add(Row("KALA_BALA", "NATHONNATA_BALA", nathonnata,
             "DAY_NIGHT_ARC", "Temporal strength from the birth day/night arc."));
 
-        var sun = positions.PlanetLongitudes[PlanetName.Sun];
-        var moon = positions.PlanetLongitudes[PlanetName.Moon];
-        var phase = AngularDistance(sun, moon);
-        var paksha = planet == PlanetName.Moon ? Math.Abs(180 - phase) / 3.0 : 0;
-        rows.Add(Row("KALA_BALA", "PAKSHA_BALA", 60 - paksha,
-            "MOON_PHASE", "Lunar-phase component; additional calendrical components are added in the next slice."));
+        rows.Add(Row("KALA_BALA", "PAKSHA_BALA", PakshaBala.Compute(planet, d1Longitudes),
+            "MOON_PHASE", "BPHS: benefics e/3, malefics 60 − e/3 (e = Moon–Sun elongation, 0–180°); the Moon's doubled."));
+
+        var birth = BirthMoment(panchanga);
+        rows.Add(Row("KALA_BALA", "AYANA_BALA",
+            AyanaBala.ForKalaBala(planet, p.NirayanaLongitudeDegrees!.Value, positions.AyanamshaDegrees, birth),
+            "SOLAR_DECLINATION", "BPHS: (24° ± declination) × 60/48; the Sun's doubled."));
 
         // Dina (Vara) Bala -- 45 virupas to the lord of the birth weekday (sunrise-to-sunrise).
         // Reuses PanchangaCalculator's own weekday-lord mapping (VedicWeekdayId 1=Sunday..7=Saturday
@@ -249,13 +259,25 @@ public static class ShadbalaCalculator
     }
 
     private static void AddCheshta(List<ShadbalaComponentResult> rows, PlanetName planet, PlanetPosition p,
-        SiderealPositions positions)
+        SiderealPositions positions, PanchangaResult panchanga)
     {
-        var value = planet is PlanetName.Sun or PlanetName.Moon ? 0 :
-            (p.IsRetrograde == true || positions.PlanetSpeeds.GetValueOrDefault(planet) < 0 ? 60 : 30);
-        rows.Add(Row("CHESTA_BALA", "CHESTA_BALA", value,
-            "MOTION_AND_RETROGRADE", "Motional strength; mean-motion refinements are retained for JHora reconciliation."));
+        var birth = BirthMoment(panchanga);
+        var longitude = p.NirayanaLongitudeDegrees!.Value;
+        var (value, method, narrative) = planet switch
+        {
+            PlanetName.Sun => (AyanaBala.Undoubled(PlanetName.Sun, longitude, positions.AyanamshaDegrees, birth),
+                "SUN_AYANA_BALA", "BPHS: the Sun's Cheṣṭā Bala is his (undoubled) Ayana Bala."),
+            PlanetName.Moon => (CheshtaBala.Moon(positions.PlanetLongitudes[PlanetName.Sun], longitude),
+                "MOON_PAKSHA_BALA", "BPHS: the Moon's Cheṣṭā Bala is her Pakṣa Bala, elongation from the Sun / 3."),
+            _ => (CheshtaBala.TaraGraha(planet, longitude, birth),
+                "CHESHTA_KENDRA", "Raman: Cheṣṭā kendra (Śīghrocca − ½(true + mean longitude), Ujjain 1900 mean motions) / 3."),
+        };
+        rows.Add(Row("CHESTA_BALA", "CHESTA_BALA", value, method, narrative));
     }
+
+    /// <summary>Birth moment = sunrise + janma ghaṭīs (1 ghaṭī = 24 minutes), as PanchangaCalculator counts them.</summary>
+    private static DateTimeOffset BirthMoment(PanchangaResult panchanga) =>
+        panchanga.SunriseLocal.AddMinutes(panchanga.JanmaGhatis * 24.0);
 
     private static void AddNaisargika(List<ShadbalaComponentResult> rows, PlanetName planet) =>
         rows.Add(Row("NAISARGIKA_BALA", "NAISARGIKA_BALA", Naisargika[planet],

@@ -1179,6 +1179,47 @@ if (args.Length > 0 && args[0] == "verify-strength")
     // degrees apart in Virgo -- none within the 1-degree war orb.
     Check("Yuddha Bala virupas (no war present)", strengths.Sum(r => r.YuddhaBalaVirupas), 0.0);
 
+    Console.WriteLine("\n-- Phase 1b: Cheṣṭā Bala vs JHora (strengths_otherstrengths_cheshta-bala, 2026-09-23) --");
+    // Tara grahas: Raman's Ujjain-1900 mean motions land within 0.2 virupas of JHora; the Moon
+    // (Pakṣa Bala) matches exactly. The Sun is BPHS's Ayana Bala, which JHora does not use (it
+    // shows 40.40), so it is checked against the BPHS figure instead.
+    void Near(string label, double actual, double expected, double tolerance)
+    {
+        var ok = Math.Abs(actual - expected) <= tolerance;
+        Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {label}: got {actual:0.00}, expected {expected:0.00} ±{tolerance}");
+        if (!ok) failures++;
+    }
+    var jhoraCheshta = new Dictionary<string, double>
+    {
+        ["Mars"] = 57.22, ["Mercury"] = 4.31, ["Jupiter"] = 51.71, ["Venus"] = 4.01, ["Saturn"] = 50.59,
+    };
+    foreach (var (planet, expected) in jhoraCheshta)
+        Near($"Cheṣṭā Bala {planet}", strengths.Single(r => r.Planet == planet).CheshtaBalaVirupas, expected, 0.25);
+    Near("Cheṣṭā Bala Moon (Pakṣa Bala)", strengths.Single(r => r.Planet == "Moon").CheshtaBalaVirupas, 50.33, 0.05);
+    Near("Cheṣṭā Bala Sun (BPHS Ayana Bala)", strengths.Single(r => r.Planet == "Sun").CheshtaBalaVirupas, 45.15, 0.25);
+    var jhoraPaksha = new Dictionary<string, double>
+    {
+        ["Sun"] = 9.67, ["Moon"] = 100.66, ["Mars"] = 9.67, ["Mercury"] = 9.67,
+        ["Jupiter"] = 50.33, ["Venus"] = 50.33, ["Saturn"] = 9.67,
+    };
+    foreach (var (planet, expected) in jhoraPaksha)
+        Near($"Pakṣa Bala {planet}", Component(planet, "PAKSHA_BALA"), expected, 0.1);
+    // JHora strengths_otherstrengths_kaala-bala: Ayana column (the Sun's doubled).
+    var jhoraAyana = new Dictionary<string, double>
+    {
+        ["Sun"] = 90.29, ["Moon"] = 55.84, ["Mars"] = 43.20, ["Mercury"] = 42.20,
+        ["Jupiter"] = 29.13, ["Venus"] = 46.72, ["Saturn"] = 31.99,
+    };
+    foreach (var (planet, expected) in jhoraAyana)
+        Near($"Ayana Bala {planet}", Component(planet, "AYANA_BALA"), expected, 0.5);
+    foreach (var r in strengths)
+    {
+        var uchcha = Component(r.Planet, "UCHCHA_BALA");
+        Near($"Ishta {r.Planet} = √(Uchcha × Cheṣṭā)", r.IshtaBala ?? double.NaN, Math.Sqrt(uchcha * r.CheshtaBalaVirupas), 0.01);
+        Near($"Kashta {r.Planet} = √((60−Uchcha) × (60−Cheṣṭā))", r.KashtaBala ?? double.NaN,
+            Math.Sqrt((60 - uchcha) * (60 - r.CheshtaBalaVirupas)), 0.01);
+    }
+
     Console.WriteLine("\n-- Phase 2: persisted tbl_Fact_PlanetaryStrengthComponent == the engine --");
     using (var conn = connectionFactory.CreateOpenConnection())
     {
