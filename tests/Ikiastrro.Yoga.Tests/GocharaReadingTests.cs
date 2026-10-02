@@ -11,6 +11,8 @@ public sealed class GocharaReadingTests
         new(PlanetName.Mercury, 4, 3, PlanetName.Moon),
         new(PlanetName.Jupiter, 5, 4),
         new(PlanetName.Sun, 3, 9, PlanetName.Saturn),
+        new(PlanetName.Saturn, 11, 5, PlanetName.Sun),
+        new(PlanetName.Mars, 6, 9),
     ];
 
     private static readonly Dictionary<PlanetName, ZodiacName> Transits = new()
@@ -20,7 +22,8 @@ public sealed class GocharaReadingTests
         [PlanetName.Jupiter] = ZodiacName.Cancer, // 5th: auspicious, Vedha 4th (Gemini) holds Mercury
         [PlanetName.Sun] = ZodiacName.Aries,      // 2nd: not listed for the Sun
         [PlanetName.Saturn] = ZodiacName.Pisces,  // over the Moon
-        [PlanetName.Rahu] = ZodiacName.Virgo,
+        [PlanetName.Rahu] = ZodiacName.Capricornus, // 11th: Saturn's row, Vedha 5th (Cancer) holds Jupiter
+        [PlanetName.Ketu] = ZodiacName.Cancer,      // 5th: not listed for Mars
     };
 
     private static GocharaReadingResult Read() =>
@@ -33,17 +36,42 @@ public sealed class GocharaReadingTests
     {
         Assert.Equal(4, Row(PlanetName.Mercury).HouseFromMoon);
         Assert.Equal(GocharaVerdict.Blocked, Row(PlanetName.Mercury).Verdict);
-        Assert.Equal([PlanetName.Mars], Row(PlanetName.Mercury).Vedha!.Obstructors);
+        Assert.Equal([PlanetName.Mars], Row(PlanetName.Mercury).Vedha.Obstructors);
         Assert.Equal(GocharaVerdict.Blocked, Row(PlanetName.Jupiter).Verdict);
     }
 
     [Fact]
-    public void Unlisted_house_is_not_favourable_and_nodes_are_not_tabled()
-    {
+    public void Unlisted_house_is_not_favourable() =>
         Assert.Equal(GocharaVerdict.NotFavourable, Row(PlanetName.Sun).Verdict);
-        Assert.Equal(GocharaVerdict.NotTabled, Row(PlanetName.Rahu).Verdict);
-        Assert.Null(Row(PlanetName.Rahu).Bindus);
-        Assert.Null(Row(PlanetName.Rahu).Vedha);
+
+    [Fact]
+    public void Rahu_is_read_by_saturns_row_and_ketu_by_mars_row()
+    {
+        var rahu = Row(PlanetName.Rahu);
+        Assert.Equal(PlanetName.Saturn, rahu.ReadAs);
+        Assert.Equal(11, rahu.HouseFromMoon);
+        Assert.Equal(GocharaVerdict.Blocked, rahu.Verdict);
+        Assert.Equal(5, rahu.Vedha.VedhaHouse);
+        Assert.Equal([PlanetName.Jupiter], rahu.Vedha.Obstructors); // Ketu also in the 5th, but nodes never block each other
+        Assert.Null(rahu.Bindus);
+
+        var ketu = Row(PlanetName.Ketu);
+        Assert.Equal(PlanetName.Mars, ketu.ReadAs);
+        Assert.Equal(GocharaVerdict.NotFavourable, ketu.Verdict);
+        Assert.Null(ketu.Bindus);
+        Assert.Null(Row(PlanetName.Saturn).ReadAs);
+    }
+
+    [Fact]
+    public void Node_does_not_inherit_the_sun_saturn_exception()
+    {
+        var transits = new Dictionary<PlanetName, ZodiacName>
+        {
+            [PlanetName.Rahu] = ZodiacName.Capricornus, // 11th from Pisces Moon
+            [PlanetName.Sun] = ZodiacName.Cancer,       // its Vedha house
+        };
+        var rahu = GocharaReading.Read(ZodiacName.Pisces, transits, Rules).Rows.Single(r => r.Planet == PlanetName.Rahu);
+        Assert.Equal([PlanetName.Sun], rahu.Vedha.Obstructors);
     }
 
     [Fact]
@@ -54,9 +82,9 @@ public sealed class GocharaReadingTests
     }
 
     [Fact]
-    public void Rows_follow_planet_order_and_skip_planets_without_a_transit() =>
+    public void Rows_run_slowest_first_and_skip_planets_without_a_transit() =>
         Assert.Equal(
-            [PlanetName.Sun, PlanetName.Mars, PlanetName.Mercury, PlanetName.Jupiter, PlanetName.Saturn, PlanetName.Rahu],
+            [PlanetName.Saturn, PlanetName.Jupiter, PlanetName.Rahu, PlanetName.Ketu, PlanetName.Mars, PlanetName.Mercury, PlanetName.Sun],
             Read().Rows.Select(r => r.Planet));
 
     [Theory]

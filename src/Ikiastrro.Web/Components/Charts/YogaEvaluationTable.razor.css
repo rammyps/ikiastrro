@@ -12,19 +12,34 @@
 .yg-status-present { background: var(--status-strong-bg); color: var(--status-strong); }
 .yg-status-absent { background: var(--brand-surface-soft); color: var(--brand-muted); }
 .yg-status-pending { background: var(--status-moderate-bg); color: var(--brand-midnight); }
+.yg-nature { display: inline-flex; padding: 2px 7px; border-radius: 999px; font-size: .7rem; font-weight: 700; white-space: nowrap; }
+.yg-nature-auspicious { background: var(--status-strong-bg); color: var(--status-strong); }
+.yg-nature-inauspicious { background: var(--status-weak-bg); color: var(--status-weak); }
+.yg-nature-mixed { background: var(--status-moderate-bg); color: var(--brand-midnight); }
+.yg-nature-contextual, .yg-nature-none { background: var(--brand-surface-soft); color: var(--brand-muted); }
 .yg-empty { margin: 0; padding: 18px 16px; color: var(--brand-muted); font-size: .85rem; }
 /* Table format standardized onto "1.1 D1-Birth Chart"'s PlanetPositionsTable (.ppt) reference
    (docs/ui/design-language.md — standard table format, 2026-09-22). */
 .yg-table-scroll { overflow-x: auto; }
 .yg table { width: 100%; table-layout: auto; border-collapse: collapse; font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; font-size: 1em; }
 .yg th, .yg td { text-align: left; vertical-align: top; }
-.yg th { padding: 7px 6px; color: var(--brand-midnight); font-weight: 700; border-bottom: 2px solid var(--brand-line); white-space: normal; position: sticky; top: 0; background: var(--brand-surface); }
+.yg th { padding: 0; color: var(--brand-midnight); font-weight: 700; border-bottom: 2px solid var(--brand-line); white-space: normal; position: sticky; top: 0; background: var(--brand-surface); }
 .yg td { padding: 6px 6px; border-bottom: 1px solid var(--brand-line); }
 .yg tbody tr:last-child td { border-bottom: 0; }
 .yg tbody tr:hover td { background: var(--brand-sunrise); }
 .yg-source { color: var(--brand-muted); font-size: .75rem; white-space: nowrap; }
 .yg-lagnalord { margin-top: 4px; color: var(--brand-muted); font-size: .74rem; font-style: italic; }
 .yg-notes { margin-top: 4px; color: var(--brand-muted); font-size: .74rem; }
+.yg-sort {
+    background: none; border: 0; color: var(--brand-midnight); font: inherit; font-weight: 700;
+    cursor: pointer; padding: 7px 6px; display: inline-flex; gap: .3rem; align-items: center;
+    white-space: nowrap; text-align: left;
+    /* UA stylesheet sets button { text-transform: none } — re-assert the global th caps (as .dt-sort). */
+    text-transform: uppercase;
+}
+.yg-arrow { font-size: 12px; }
+.yg-inference { min-width: 200px; max-width: 320px; }
+.yg-inference small { display: block; margin-top: 3px; color: var(--brand-muted); font-size: .72rem; }
 .yg-interp { display: flex; align-items: flex-start; gap: 6px; max-width: 260px; }
 .yg-interp-empty { color: var(--brand-muted); }
 @media (max-width: 620px) { .yg-card-head { padding: 12px; } }

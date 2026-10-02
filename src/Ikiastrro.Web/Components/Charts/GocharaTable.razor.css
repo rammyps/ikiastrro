@@ -14,7 +14,6 @@
 .go-pill.is-good { background: var(--status-strong); color: var(--brand-surface); }
 .go-pill.is-blocked { border: 1px solid var(--status-strong); color: var(--status-strong); }
 .go-pill.is-notfavourable { background: var(--status-weak-bg); color: var(--status-weak); }
-.go-pill.is-nottabled { color: var(--brand-muted); }
 .go-bav { font-weight: 800; }
 .go-bav.is-strong { color: var(--status-strong); }
 .go-bav.is-weak { color: var(--status-weak); }
