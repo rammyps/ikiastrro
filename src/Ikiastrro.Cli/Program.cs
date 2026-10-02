@@ -338,15 +338,21 @@ if (args.Length > 0 && args[0] == "verify-vargas")
     Check("rule D7ER Sc 7",  new SaptamsaD7EvenReverseSignRule().SignFor(217), ZodiacName.Aries);       // Ta - 1 (export Moon)
     Check("rule D7ER Vi 9",  new SaptamsaD7EvenReverseSignRule().SignFor(159), ZodiacName.Capricornus); // Pi - 2 (export Jupiter)
 
+    // D10/D16/D24/D60 on JHora's schemes (migration 166) - export Moon 7 Sc / Jupiter 8 Vi
+    Check("rule D10ER Sc 7", new DasamsaD10EvenReverseSignRule().SignFor(217.2088), ZodiacName.Capricornus);
+    Check("rule D16ER Sc 7", new ShodasamsaD16EvenReverseSignRule().SignFor(217.2088), ZodiacName.Leo);
+    Check("rule D24ER Sc 7", new SiddhamsaD24EvenReverseSignRule().SignFor(217.2088), ZodiacName.Aquarius);
+    Check("rule D60RvAr Vi 8", new ShashtyamsaD60EvenReverseFromAriesSignRule().SignFor(158.7238), ZodiacName.Libra);
+
     // Every SignRuleKey seeded in tbl_Rule_VargaScheme must resolve through the factory
     string[] seededKeys =
     {
         "HoraD2Classic","HoraD2UmaShambu","DrekkanaD3","DrekkanaD3UmaShambu","ChaturthamsaD4","PanchamsaD5",
-        "ShashtamsaD6","SaptamsaD7","SaptamsaD7EvenReverse","AshtamsaD8","NavamsaD9","DasamsaD10","RudramsaD11",
-        "DwadasamsaD12","ShodasamsaD16","VimsamsaD20","SiddhamsaD24","NakshatramsaD27",
-        "TrimsamsaD30","KhavedamsaD40","AkshavedamsaD45","ShashtyamsaD60"
+        "ShashtamsaD6","SaptamsaD7","SaptamsaD7EvenReverse","AshtamsaD8","NavamsaD9","DasamsaD10","DasamsaD10EvenReverse","RudramsaD11",
+        "DwadasamsaD12","ShodasamsaD16","ShodasamsaD16EvenReverse","VimsamsaD20","SiddhamsaD24","SiddhamsaD24EvenReverse","NakshatramsaD27",
+        "TrimsamsaD30","KhavedamsaD40","AkshavedamsaD45","ShashtyamsaD60","ShashtyamsaD60EvenReverseFromAries"
     };
-    int[] seededFactors = { 2, 2, 3, 3, 4, 5, 6, 7, 7, 8, 9, 10, 11, 12, 16, 20, 24, 27, 30, 40, 45, 60 };
+    int[] seededFactors = { 2, 2, 3, 3, 4, 5, 6, 7, 7, 8, 9, 10, 10, 11, 12, 16, 16, 20, 24, 24, 27, 30, 40, 45, 60, 60 };
     var factoryFailures = 0;
     for (var i = 0; i < seededKeys.Length; i++)
     {

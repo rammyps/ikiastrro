@@ -42,13 +42,15 @@ D11, D12, D16, D20, D24, D27, D30, D40, D45, D60.
   `ChartCalculationOrchestrator.CreateDefault(schemes)` builds one shared `VargaCalculator`
   (`IChartCalculator`) per row; every varga gets the full shared analytics.
 - `SignRuleKey` → C# `IVargaSignRule` via `VargaSignRuleFactory`. `LinearVargaSignRule` covers
-  D3 / D4 / D12 / D60; D2 / D6 / D9 / D10 / D11 wrap `AstroMath.Get*Sign`; the rest are bespoke
-  `Special` rules (`HoraD2UmaShambu`, `DrekkanaD3UmaShambu`, `PanchamsaD5`, `SaptamsaD7EvenReverse`, `AshtamsaD8`, `ShodasamsaD16`,
-  `VimsamsaD20`, `SiddhamsaD24`, `NakshatramsaD27`, `TrimsamsaD30`, `KhavedamsaD40`,
-  `AkshavedamsaD45`). Formulas transcribed from PyJHora `chart_method=1` "Traditional Parāśara".
+  D4 / D12; D6 / D9 / D11 wrap `AstroMath.Get*Sign`; the rest are bespoke
+  `Special` rules (`HoraD2UmaShambu`, `DrekkanaD3UmaShambu`, `PanchamsaD5`, `SaptamsaD7EvenReverse`, `AshtamsaD8`,
+  `DasamsaD10EvenReverse`, `ShodasamsaD16EvenReverse`, `VimsamsaD20`, `SiddhamsaD24EvenReverse`, `NakshatramsaD27`,
+  `TrimsamsaD30`, `KhavedamsaD40`, `AkshavedamsaD45`, `ShashtyamsaD60EvenReverseFromAries`). Formulas transcribed from PyJHora `chart_method=1` "Traditional Parāśara".
 - **D2**, **D3** and **D7** use JHora's default schemes — Uma-Shambhu Hora, Uma-Shambhu
   Drekkana, Saptāṃśa with even signs reversed (migration 164, `decisions/005`); **D2-US** now
-  computes the same chart as D2. **D11** uses the PVR/BPHS traditional Rudramsa (not the Sanjay Rath variant).
+  computes the same chart as D2. **D10**, **D16**, **D24** and **D60** use the schemes JHora
+  tags `D-10 (5-8)`, `D-16 (Rev)`, `D-24 (Rev)` and `D-60 (RvAr)` — even signs counted backward,
+  D60 counted from Aries (migration 166, `decisions/007`). **D11** uses the PVR/BPHS traditional Rudramsa (not the Sanjay Rath variant).
 - Stored: `VargaLongitudeDegrees` (`Normalize(realLon × N)`), `DegreesInSignDecimal`
   (`= VargaLongitudeDegrees mod 30`, populated every chart type). The varga sign is the
   `IVargaSignRule`, **not** `FLOOR(VargaLongitudeDegrees/30)`.

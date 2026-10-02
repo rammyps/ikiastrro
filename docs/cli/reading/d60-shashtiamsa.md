@@ -1,6 +1,6 @@
 # Reference — Reading the D60 (Shashtiamsa) Chart
 
-**JHora grid label:** `Shashtiamsa / D-60 (Trd)`. **Division factor:** N = 60 (each sign
+**JHora grid label:** `Shashtiamsa / D-60 (RvAr)`. **Division factor:** N = 60 (each sign
 → sixty 0°30′ parts). **Strength groups:** Dashavarga · Shodashavarga. In Parashara's
 Vimsopaka weighting the D60 carries the **single highest share** of any varga — it is the
 tie-breaker of the whole horoscope.
@@ -31,11 +31,13 @@ the horoscope. Its uses:
 
 ## 2. JHora derivation
 
-- **Sign rule (`ShashtyamsaD60`, Traditional Parashari — `LinearVargaSignRule(60, 1)`):**
-  take the degrees traversed within the sign, multiply by 2, take the integer part, add 1
-  → the shashtiamsha number **1–60**. Count that many signs **from the sign itself**
-  (stride 1), wrapping mod 12, to get the D60 sign. Same rule for odd and even signs in
-  this (Parashari/`chart_method=1`) convention.
+- **Sign rule (`ShashtyamsaD60EvenReverseFromAries`, JHora `D-60 (RvAr)`,
+  [decision 007](../../../decisions/007-d10-d16-d24-d60-jhora-schemes.md)):** take the degrees
+  traversed within the sign, multiply by 2, take the integer part, add 1 → the shashtiamsha
+  number **1–60**. In an **odd** sign count that many signs **from Aries** forward; in an
+  **even** sign count them **from Pisces backward** — the same odd-forward / even-reversed
+  reading as the name list. (Traditional Parāśara, used before migration 166, counted from
+  the sign itself for both.)
   - Worked: a planet at **8°12′ Aries**. 8.205° × 2 = 16.41 → floor 16, +1 = **17th
     shashtiamsha**. 17 signs from Aries = (17 − 1) mod 12 = 4 → **Leo**. (Matches the
     export: `Sun 8 Ar 12' … Navamsa Ge`, and its D60 sign in the grid.)
@@ -44,10 +46,10 @@ the horoscope. Its uses:
   odd-sign list runs 1→60; the even-sign list is the **reverse** (part 1 of an even sign
   takes name 60, "Ghora"-end). The full list is in §4.
 - **Method ambiguity (tracked).** Two things are debated for D60: (a) the count basis —
-  "from the sign itself" (used here) vs. variants — and (b) whether the even-sign name
-  list reverses (used here) or not. `../calculations.md` §2 and
-  `../gap-and-coverage.md` §2 flag D60 as method-ambiguous; the engine uses the one
-  documented rule above and is verified cell-by-cell against the JHora `(Trd)` grid.
+  from Aries with even signs reversed (used here, JHora's `RvAr`) vs. from the sign
+  (`Trd`) — and (b) whether the even-sign name list reverses (used here) or not.
+  `../gap-and-coverage.md` §2 flags D60 as method-ambiguous; the engine uses the rule above
+  and is verified against all 68 bodies of JHora's `D-60 (RvAr)` grid.
   Always state which rule a reading used.
 - **Engine:** shared `VargaCalculator` + `VargaScheme` row.
   `VargaLongitudeDegrees = Normalize(realLon × 60)`; D60 degree-in-sign = that mod 30.
@@ -57,7 +59,7 @@ the horoscope. Its uses:
 - **A rectified birth time above all** — plus a note of how confident that rectification
   is. Everything downstream inherits that confidence.
 - D1 fully read, and the subject varga for whatever question you carry.
-- Each planet's D60 sign (from the `D-60 (Trd)` grid) and, ideally, D60 degree-in-sign.
+- Each planet's D60 sign (from the `D-60 (RvAr)` grid) and, ideally, D60 degree-in-sign.
 - Each planet's **shashtiamsha number** and its **deity name + nature** (§4).
 - The D60 Lagna and its lord.
 - Same-sign-as-D1 status D1 ↔ D60 for the Lagna and each planet. Reserve the classical

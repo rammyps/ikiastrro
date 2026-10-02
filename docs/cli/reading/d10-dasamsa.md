@@ -1,6 +1,6 @@
 # Reference — Reading the D10 (Dasamsa) Chart
 
-**JHora grid label:** `Dasamsa / D-10 (Trd)`. **Division factor:** N = 10 (each sign →
+**JHora grid label:** `Dasamsa / D-10 (5-8)`. **Division factor:** N = 10 (each sign →
 ten 3° parts). **Strength groups:** Dashavarga · Shodashavarga (not in Shad/Sapta).
 
 Read [`method.md`](method.md) first.
@@ -28,14 +28,16 @@ promises (10th house/lord/karakas active).
 
 ## 2. JHora derivation
 
-- **Sign rule (`DasamsaD10`, Traditional Parashari):** ten 3° parts per sign. From an
-  **odd** sign the count starts from that sign; from an **even** sign it starts from the
-  9th sign from it. So the first dasamsa of Aries = Aries; of Taurus = Capricorn; of
-  Gemini = Gemini; of Cancer = Pisces.
-- **Engine:** shared `VargaCalculator` + `VargaScheme` row; `AstroMath.GetDasamsaSign`.
+- **Sign rule (`DasamsaD10EvenReverse`, JHora `D-10 (5-8)`, [decision 007](../../../decisions/007-d10-d16-d24-d60-jhora-schemes.md)):**
+  ten 3° parts per sign. From an **odd** sign the count starts from that sign and runs
+  forward; from an **even** sign it starts from the 9th sign counted backward (= the 5th
+  forward) and runs **backward**. So the first dasamsa of Aries = Aries; of Taurus = Virgo;
+  of Gemini = Gemini; of Cancer = Scorpio. (Traditional Parāśara, used before migration 166,
+  counted even signs forward from the 9th: Taurus → Capricorn.)
+- **Engine:** shared `VargaCalculator` + `VargaScheme` row; `DasamsaD10EvenReverseSignRule`.
 - `VargaLongitudeDegrees = Normalize(realLon × 10)`; D10 degree-in-sign is that mod 30.
-- **In the export:** `D-10 (Trd)` grid — `(Trd)` confirms the Parashari rule the engine
-  uses, so placements reconcile cell-for-cell.
+- **In the export:** the `D-10 (5-8)` grid reconciles cell-for-cell. An older export with
+  `D-10 (Trd)` differs for bodies in even signs.
 
 ## 3. Inputs needed to read it
 

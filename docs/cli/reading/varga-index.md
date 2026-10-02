@@ -143,8 +143,9 @@ coverage; does not feed Vimsopaka).
 
 ### D16 — Shodasamsa (Kalamsa) · vehicles, comforts, happiness
 
-- **JHora grid:** `D-16 (Trd)`. **N = 16.** **Groups:** 10·16.
-- **Method:** movable/fixed/dual → Aries/Leo/Sagittarius seed (`ShodasamsaD16`).
+- **JHora grid:** `D-16 (Rev)`. **N = 16.** **Groups:** 10·16.
+- **Method:** movable/fixed/dual → Aries/Leo/Sagittarius seed; even signs run the 16 parts in
+  reverse (`ShodasamsaD16EvenReverse`, migration 166 / decision 007).
 - **Read for:** vehicles, luxuries and conveniences, general material happiness or
   discontent, pleasures, and (classical) the sukha of the mind.
 - **Read in order:** D16 Lagna + lord → D16 4th house, its lord, Venus (vehicles/comfort
@@ -167,8 +168,9 @@ coverage; does not feed Vimsopaka).
 
 ### D24 — Siddhamsa (Chaturvimsamsa) · education, learning
 
-- **JHora grid:** `D-24 (Trd)`. **N = 24.** **Groups:** 16.
-- **Method:** odd sign seeds from Leo, even from Cancer (`SiddhamsaD24`).
+- **JHora grid:** `D-24 (Rev)`. **N = 24.** **Groups:** 16.
+- **Method:** odd signs from Leo forward, even signs from Cancer backward
+  (`SiddhamsaD24EvenReverse`, migration 166 / decision 007).
 - **Read for:** formal education, degrees, scholarship, learning capacity, teachers,
   academic success or interruption, skill acquisition.
 - **Read in order:** D24 Lagna + lord → D24 4th (schooling) and 5th (intelligence,
