@@ -33,8 +33,9 @@ public class GetPositionsTests
             new object[] { "Jupiter", 158.71365169336244 },
             new object[] { "Venus", 11.964536501879603 },
             new object[] { "Saturn", 160.94421816272668 },
-            new object[] { "Rahu", 103.04347855579427 },
-            new object[] { "Ketu", 283.04347855579425 },
+            // Rahu/Ketu: the true node since decision 008 (12°55'11" Cancer; JHora 12°54'53").
+            new object[] { "Rahu", 102.9195893953891 },
+            new object[] { "Ketu", 282.9195893953891 },
         };
 
     [Theory]

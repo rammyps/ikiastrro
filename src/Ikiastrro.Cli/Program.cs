@@ -404,7 +404,9 @@ if (args.Length > 0 && args[0] == "verify-vargas")
     // Ascendant, Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu.
     // D2, D3 and D7 run JHora's default schemes since migration 164 (Uma Shambu hora, Uma
     // Shambu drekkana, saptamsa 7-1); their rows are from the 2026-09-23 "Rasis occupied in all
-    // vargas" export, which tags them D-2 (US), D-3 (US) and D-7 (7-1).
+    // vargas" export, which tags them D-2 (US), D-3 (US) and D-7 (7-1). D10, D16, D24 and D60
+    // (migration 166: D-10 (5-8), D-16 (Rev), D-24 (Rev), D-60 (RvAr)) are from the same export,
+    // with Rahu/Ketu on the true node (decision 008).
     var jhoraGrid = new Dictionary<string, ZodiacName[]>
     {
         ["D2-US"] = new[] { ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Cancer, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Scorpio, ZodiacName.Scorpio },
@@ -416,17 +418,17 @@ if (args.Length > 0 && args[0] == "verify-vargas")
         ["D7"]  = new[] { ZodiacName.Aries, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Capricornus, ZodiacName.Gemini, ZodiacName.Capricornus, ZodiacName.Libra, ZodiacName.Aries },
         ["D8"]  = new[] { ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Capricornus, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Libra, ZodiacName.Cancer, ZodiacName.Libra, ZodiacName.Cancer, ZodiacName.Cancer },
         ["D9"]  = new[] { ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Virgo, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Cancer, ZodiacName.Aries, ZodiacName.Libra, ZodiacName.Aries },
-        ["D10"] = new[] { ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Virgo, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Cancer, ZodiacName.Cancer, ZodiacName.Leo, ZodiacName.Cancer, ZodiacName.Capricornus },
+        ["D10"] = new[] { ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Capricornus, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Scorpio, ZodiacName.Cancer, ZodiacName.Libra, ZodiacName.Cancer, ZodiacName.Capricornus },
         ["D11"] = new[] { ZodiacName.Aries, ZodiacName.Cancer, ZodiacName.Scorpio, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Aquarius, ZodiacName.Leo, ZodiacName.Pisces, ZodiacName.Taurus, ZodiacName.Scorpio },
         ["D12"] = new[] { ZodiacName.Aries, ZodiacName.Cancer, ZodiacName.Capricornus, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Sagittarius, ZodiacName.Leo, ZodiacName.Capricornus, ZodiacName.Sagittarius, ZodiacName.Gemini },
-        ["D16"] = new[] { ZodiacName.Aries, ZodiacName.Leo, ZodiacName.Scorpio, ZodiacName.Gemini, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Libra, ZodiacName.Taurus, ZodiacName.Libra, ZodiacName.Libra },
+        ["D16"] = new[] { ZodiacName.Aries, ZodiacName.Leo, ZodiacName.Leo, ZodiacName.Gemini, ZodiacName.Aries, ZodiacName.Scorpio, ZodiacName.Libra, ZodiacName.Libra, ZodiacName.Capricornus, ZodiacName.Capricornus },
         ["D20"] = new[] { ZodiacName.Aries, ZodiacName.Virgo, ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Taurus, ZodiacName.Capricornus, ZodiacName.Scorpio, ZodiacName.Pisces, ZodiacName.Sagittarius, ZodiacName.Sagittarius },
-        ["D24"] = new[] { ZodiacName.Leo, ZodiacName.Aquarius, ZodiacName.Sagittarius, ZodiacName.Scorpio, ZodiacName.Virgo, ZodiacName.Capricornus, ZodiacName.Taurus, ZodiacName.Pisces, ZodiacName.Taurus, ZodiacName.Taurus },
+        ["D24"] = new[] { ZodiacName.Leo, ZodiacName.Aquarius, ZodiacName.Aquarius, ZodiacName.Scorpio, ZodiacName.Virgo, ZodiacName.Capricornus, ZodiacName.Taurus, ZodiacName.Scorpio, ZodiacName.Virgo, ZodiacName.Virgo },
         ["D27"] = new[] { ZodiacName.Aries, ZodiacName.Scorpio, ZodiacName.Cancer, ZodiacName.Cancer, ZodiacName.Taurus, ZodiacName.Aquarius, ZodiacName.Aquarius, ZodiacName.Aries, ZodiacName.Sagittarius, ZodiacName.Gemini },
         ["D30"] = new[] { ZodiacName.Aries, ZodiacName.Aquarius, ZodiacName.Virgo, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Virgo, ZodiacName.Sagittarius, ZodiacName.Virgo, ZodiacName.Pisces, ZodiacName.Pisces },
         ["D40"] = new[] { ZodiacName.Aries, ZodiacName.Aquarius, ZodiacName.Cancer, ZodiacName.Virgo, ZodiacName.Gemini, ZodiacName.Virgo, ZodiacName.Cancer, ZodiacName.Sagittarius, ZodiacName.Pisces, ZodiacName.Pisces },
         ["D45"] = new[] { ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Virgo, ZodiacName.Gemini, ZodiacName.Capricornus, ZodiacName.Virgo, ZodiacName.Aries, ZodiacName.Scorpio, ZodiacName.Scorpio },
-        ["D60"] = new[] { ZodiacName.Taurus, ZodiacName.Leo, ZodiacName.Capricornus, ZodiacName.Scorpio, ZodiacName.Cancer, ZodiacName.Aquarius, ZodiacName.Pisces, ZodiacName.Gemini, ZodiacName.Virgo, ZodiacName.Pisces },
+        ["D60"] = new[] { ZodiacName.Taurus, ZodiacName.Leo, ZodiacName.Capricornus, ZodiacName.Scorpio, ZodiacName.Cancer, ZodiacName.Libra, ZodiacName.Pisces, ZodiacName.Gemini, ZodiacName.Aquarius, ZodiacName.Aquarius },
     };
     var planetOrder = new[] { "Ascendant", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu" };
     using (var conn = connectionFactory.CreateOpenConnection())
@@ -786,7 +788,7 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
     {
         [PlanetName.Sun] = 8.205, [PlanetName.Moon] = 7.293, [PlanetName.Mars] = 3.950,
         [PlanetName.Mercury] = 1.842, [PlanetName.Jupiter] = 8.727, [PlanetName.Venus] = 11.992,
-        [PlanetName.Saturn] = 10.956, [PlanetName.Rahu] = 13.059,   // raw; calc reverses Rahu
+        [PlanetName.Saturn] = 10.956, [PlanetName.Rahu] = 12.920,   // raw (true node); calc reverses Rahu
     });
     Check("Assign: Rahu -> AK", ckHand[PlanetName.Rahu], CharaKaraka.AK);
     Check("Assign: Mercury -> DK", ckHand[PlanetName.Mercury], CharaKaraka.DK);
@@ -1679,7 +1681,12 @@ if (args.Length > 0 && args[0] == "verify-graha-drishti")
                         || Math.Abs((double)row.TotalVirupas - expected.TotalVirupas) > 0.01
                         || Math.Abs((double)row.StrengthPercentage - expected.Percentage) > 0.01
                         || (row.DiscreteAspectHouse.HasValue ? (int)row.DiscreteAspectHouse.Value : (int?)null) != expected.DiscreteAspectHouse)
+                    {
                         mismatches++;
+                        Console.WriteLine($"    {chartType} {source.Planet} -> {target.Planet}: stored {row?.TotalVirupas} vir / {row?.StrengthPercentage}% / house {row?.DiscreteAspectHouse}, "
+                            + $"recomputed {expected.TotalVirupas:0.####} / {expected.Percentage:0.####}% / house {expected.DiscreteAspectHouse} "
+                            + $"(longitudes {source.VargaLongitudeDegrees:0.######} -> {target.VargaLongitudeDegrees:0.######})");
+                    }
                 }
             }
             Check($"{person.Name}/{chartType}: every row matches an independent recompute", mismatches, 0);

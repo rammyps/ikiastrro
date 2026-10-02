@@ -56,7 +56,7 @@ public static class D1ChartComputer
                 Nakshatra = AstroMath.GetNakshatraName(nakshatra),
                 NakshatraPada = pada,
                 HouseNumber = houseNumber,
-                IsRetrograde = positions.PlanetSpeeds[planet] < 0
+                IsRetrograde = planet is PlanetName.Rahu or PlanetName.Ketu || positions.PlanetSpeeds[planet] < 0 // nodes always retrograde; the true node's speed can turn positive (decision 008)
             });
         }
 

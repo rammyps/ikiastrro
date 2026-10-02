@@ -53,7 +53,7 @@ public static class VargaChartComputer
                 VargaLongitudeDegrees = vargaLon,
                 DegreesInSign = AstroMath.FormatDegreesMinutesSeconds(vargaLon % 30),
                 HouseNumber = AstroMath.CountFromSignToSign(lagnaSign, vargaSign),
-                IsRetrograde = positions.PlanetSpeeds[planet] < 0
+                IsRetrograde = planet is PlanetName.Rahu or PlanetName.Ketu || positions.PlanetSpeeds[planet] < 0 // nodes always retrograde; the true node's speed can turn positive (decision 008)
             });
         }
 

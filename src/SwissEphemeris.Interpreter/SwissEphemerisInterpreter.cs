@@ -23,10 +23,11 @@ public static class SwissEphemerisInterpreter
     /// <see cref="AyanamsaDefinition.SwissSiderealMode"/> — Swiss Ephemeris subtracts the
     /// ayanamsha internally before returning xx[0], no separate correction step needed.
     ///
-    /// Rahu is the MEAN lunar node (SE_MEAN_NODE) — ikiastrro's cross-check against Prokerala/
-    /// AstroSage on its established test chart (22 Apr 1981, Chennai) found the mean node
-    /// within 0.6 arcmin of both, while the astronomically "truer" oscillating true node
-    /// (SE_TRUE_NODE) was off by ~6.8 arcmin — mainstream Vedic tools key off the mean node.
+    /// Rahu is the TRUE (osculating) lunar node (SE_TRUE_NODE), as Jagannatha Hora uses: on the
+    /// 22 Apr 1981 Chennai test chart it lands 18 arcsec from JHora's Rahu, where the mean node
+    /// (SE_MEAN_NODE, used until ikiastrro decision 008) was 7.7 arcmin off. Prokerala / AstroSage
+    /// key off the mean node instead. The true node's speed changes sign now and then, so callers
+    /// that need the classical "nodes are always retrograde" rule apply it themselves.
     /// Ketu is derived as Rahu + 180°: Swiss Ephemeris has no separate Ketu body, since it is
     /// not a real celestial body.
     ///
@@ -82,11 +83,11 @@ public static class SwissEphemerisInterpreter
         AddPosition("Venus", SwissEph.SE_VENUS);
         AddPosition("Saturn", SwissEph.SE_SATURN);
 
-        var (rahuLongitude, rahuLatitude, rahuSpeed) = GetPosition(SwissEph.SE_MEAN_NODE, "Rahu");
+        var (rahuLongitude, rahuLatitude, rahuSpeed) = GetPosition(SwissEph.SE_TRUE_NODE, "Rahu");
         planets.Add(new PlanetPosition("Rahu", rahuLongitude, rahuLatitude, rahuSpeed));
         // Ketu is a computed point 180° from Rahu, not a separately-tracked body — it moves
         // exactly as Rahu does, so its retrograde status is Rahu's speed sign, unchanged by
-        // the 180° offset. The mean node lies on the ecliptic (latitude ~0); Ketu takes the
+        // the 180° offset. The node lies on the ecliptic (latitude ~0); Ketu takes the
         // opposite-signed latitude.
         var ketuLongitude = Normalize(rahuLongitude + 180);
         planets.Add(new PlanetPosition("Ketu", ketuLongitude, -rahuLatitude, rahuSpeed));

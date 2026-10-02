@@ -105,7 +105,8 @@ that planet before `@Date`. This is the actual query shape most consumers need (
 was Saturn in on this date"), rather than scanning raw events.
 
 **Rough row-count expectations (1930–2060, 130 years)** — useful for the Mars decision:
-- Rahu: ~84 rows (mean node, smooth retrograde, no re-entries — cleanest dataset)
+- Rahu: ~90 rows (true node since decision 008 — mostly retrograde, a few re-entries where it
+  wobbles back across a sign boundary; the mean node gave 84 with none)
 - Saturn: ~70–90 rows (some re-entries near sign boundaries)
 - Jupiter: ~150–180 rows (more frequent re-entries — annual retrograde stations)
 - Mars, if included: **~700–900 rows** — an order of magnitude more than the other three,
@@ -374,7 +375,9 @@ within 1 minute, and tags `IsReentry` by checking whether a planet's sign 2-even
 - **`backfill-planet-transits`** — the real 1930-2060 run. Completed in 27 seconds: **Saturn 109
   rows (55 re-entries), Jupiter 229 rows (96 re-entries), Rahu 84 rows (0 re-entries)**. Rahu's
   zero re-entries is itself a correctness signal — the mean lunar node moves smoothly retrograde
-  with no stations, so it structurally can't double-dip, exactly as expected.
+  with no stations, so it structurally can't double-dip, exactly as expected. (Re-walked
+  2026-10-02 on the true node, decision 008: Saturn and Jupiter identical, Rahu 90 rows with 6
+  re-entries.)
 
 **Further cross-check post-load:** `tvf_PlanetSignAtDate(Saturn, '1981-04-22')` returns Virgo,
 matching this project's own earlier hand-verified data (Ramakrishnan's chart audit, same era,
