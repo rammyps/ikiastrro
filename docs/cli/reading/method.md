@@ -186,8 +186,8 @@ JHora labels the sign rule it used. This project's chosen methods
 
 | Tag in export | Meaning | Project match? |
 |---|---|---|
-| `(Trd)` on D3/D7/D10/D12/D16/D20/D24/D27/D60 | Traditional Parashari — `chart_method=1` | **Yes** — placements reconcile. |
-| `(US)` on **D-2** | Uma-Shambu 12-sign Hora | **No** — project deliberately uses the classical two-sign Leo/Cancer Hora (decision D-1). D2 sign placements will *not* match this JHora profile. A separate `D2-US` chart type exists for when matching JHora matters. |
+| `(Trd)` on D10/D12/D16/D20/D24/D27/D60 | Traditional Parashari — `chart_method=1` | **Yes** — placements reconcile. |
+| `(US)` on **D-2** and **D-3**, `(7-1)` on **D-7** | Uma-Shambhu Hora, Uma-Shambhu Drekkana, Saptāṃśa with even signs reversed — JHora's defaults | **Yes** — the project's D2/D3/D7 use the same schemes since migration 164 ([decision 005](../../../decisions/005-d2-d3-d7-jhora-default-schemes.md), superseding D-1's classical Leo/Cancer Hora). `D2-US` now equals `D2`. An older export with `D-3 (Trd)` / `D-7 (Trd)` will not reconcile on those two charts. |
 | D30, D60 | "method-ambiguous" — unequal-parts vs 60-deity-name variants | Project uses one documented rule; see the D60 guide. Cross-checks against JHora use the same `(Trd)` rule. |
 
 When a per-chart guide shows a worked lens over the reference export, it uses the method

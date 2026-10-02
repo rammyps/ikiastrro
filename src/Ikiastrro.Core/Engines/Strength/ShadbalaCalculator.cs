@@ -135,6 +135,14 @@ public static class ShadbalaCalculator
         rows.Add(Row("STHANA_BALA", "UCHCHA_BALA", distanceFromDebilitation / 3.0,
             "DEBILITATION_DISTANCE", "Raman/PVR: distance from the deep-debilitation point."));
 
+        // Saptavargaja (Raman): the compound relationship with each varga's sign lord is the one
+        // fixed in the Rāśi chart, so the temporary-friendship half always reads D1 positions; and
+        // moolatrikoṇa counts only in the Rāśi — in the other six vargas an MT sign scores as own
+        // sign if the planet rules it (Mars in Aries) and by the lord relationship if not (Moon in
+        // Taurus). Matches JHora's Sthāna Bala for 1_RamakrishnanP given the same varga signs.
+        var d1Signs = (charts.FirstOrDefault(c => c.ChartType.Equals("D1", StringComparison.OrdinalIgnoreCase)) ?? charts[0]).Planets
+            .Where(v => Enum.TryParse<PlanetName>(v.Planet, out _))
+            .ToDictionary(v => v.Planet, v => Enum.Parse<ZodiacName>(v.Sign), StringComparer.OrdinalIgnoreCase);
         var saptaTypes = new[] { "D1", "D2", "D3", "D7", "D9", "D12", "D30" };
         var saptaDetails = charts.Where(c => saptaTypes.Contains(c.ChartType, StringComparer.OrdinalIgnoreCase))
             .Select(c => (Chart: c, Position: c.Planets.FirstOrDefault(x => x.Planet.Equals(p.Planet, StringComparison.OrdinalIgnoreCase))))
@@ -145,24 +153,28 @@ public static class ShadbalaCalculator
                 var chartLongitude = position.VargaLongitudeDegrees ?? position.NirayanaLongitudeDegrees ?? longitude;
                 var degreeInSign = ((chartLongitude % 30) + 30) % 30;
                 var sign = Enum.TryParse<ZodiacName>(position.Sign, true, out var parsed) ? parsed : ZodiacName.Aries;
-                var signs = x.Chart.Planets
-                    .Where(v => Enum.TryParse<PlanetName>(v.Planet, out _))
-                    .ToDictionary(v => v.Planet, v => Enum.Parse<ZodiacName>(v.Sign), StringComparer.OrdinalIgnoreCase);
-                var dignity = PvrDignityEvaluator.Evaluate(planet, sign, degreeInSign, signs);
-                return (ChartType: x.Chart.ChartType, Sign: position.Sign, DegreeInSign: degreeInSign, Dignity: dignity);
+                var dignity = PvrDignityEvaluator.Evaluate(planet, sign, degreeInSign, d1Signs, d1Signs[planet.ToString()]);
+                var points = dignity.SaptavargajaPoints;
+                if (dignity.DignityTypeCode == "MOOLATRIKONA" && !x.Chart.ChartType.Equals("D1", StringComparison.OrdinalIgnoreCase))
+                    points = PvrDignityEvaluator.SaptavargajaPoints(
+                        dignity.SignLord == planet.ToString() ? "OWN" : "NEUTRAL", dignity.CompoundRelationshipCode);
+                return (ChartType: x.Chart.ChartType, Sign: position.Sign, DegreeInSign: degreeInSign, Dignity: dignity, Points: points);
             }).ToList();
-        var dignityPoints = saptaDetails.Sum(x => x.Dignity.SaptavargajaPoints);
+        var dignityPoints = saptaDetails.Sum(x => x.Points);
         rows.Add(Row("STHANA_BALA", "SAPTAVARGAJA_BALA", dignityPoints,
             "SAPTA_VARGA_DIGNITY", string.Join("; ", saptaDetails.Select(x =>
                 $"{x.ChartType}:{x.Sign} {x.DegreeInSign:0.###}° {x.Dignity.DignityTypeCode} " +
                 $"lord={x.Dignity.SignLord} rel={x.Dignity.CompoundRelationshipCode ?? "—"} " +
-                $"({x.Dignity.SaptavargajaPoints:0.###})"))));
+                $"({x.Points:0.###})"))));
 
-        var odd = SignIndex(p.Sign) % 2 == 0;
-        var sexMatches = planet is PlanetName.Sun or PlanetName.Mars or PlanetName.Jupiter or PlanetName.Saturn
-            ? odd : !odd;
-        rows.Add(Row("STHANA_BALA", "OJHA_YUGMA_RASYAMSA_BALA", sexMatches ? 30 : 0,
-            "ODD_EVEN_D1_D9", "Raman/PVR odd-even sign and planetary sex contribution."));
+        // Oja-Yugma Rāśi-Aṃśa (BPHS): 15 for the D1 sign and 15 for the D9 sign — the Moon and
+        // Venus in even signs, every other graha (Mercury and Saturn included) in odd ones.
+        var d9Sign = charts.FirstOrDefault(c => c.ChartType.Equals("D9", StringComparison.OrdinalIgnoreCase))?
+            .Planets.FirstOrDefault(x => x.Planet.Equals(p.Planet, StringComparison.OrdinalIgnoreCase))?.Sign;
+        var wantsEven = planet is PlanetName.Moon or PlanetName.Venus;
+        double OjaYugma(string? sign) => sign is null ? 0 : (SignIndex(sign) % 2 == 1) == wantsEven ? 15 : 0;
+        rows.Add(Row("STHANA_BALA", "OJHA_YUGMA_RASYAMSA_BALA", OjaYugma(p.Sign) + OjaYugma(d9Sign),
+            "ODD_EVEN_D1_D9", $"BPHS: 15 each for D1 ({p.Sign}) and D9 ({d9Sign ?? "—"}) in an {(wantsEven ? "even" : "odd")} sign."));
 
         rows.Add(Row("STHANA_BALA", "KENDRADI_BALA", p.HouseNumber is 1 or 4 or 7 or 10 ? 60 :
             p.HouseNumber is 2 or 5 or 8 or 11 ? 30 : 15,

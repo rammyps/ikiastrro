@@ -37,11 +37,10 @@ coverage; does not feed Vimsopaka).
 ### D2 — Hora · wealth
 
 - **JHora grid:** `D-2 (US)`. **N = 2.** **Groups:** 6·7·10·16.
-- **Method divergence — important.** JHora's export uses **Uma-Shambu** (12-sign Hora).
-  The project's `D2` chart type deliberately uses the **classical two-sign Leo/Cancer
-  Hora** (`HoraD2Classic`, decision D-1) — placements will **not** match the export. A
-  separate `D2-US` chart type (`HoraD2UmaShambu`, PyJHora `chart_method=1`) exists for
-  when reconciling with JHora matters.
+- **Method:** **Uma-Shambhu** 12-sign Hora (`HoraD2UmaShambu`, PyJHora `chart_method=1`),
+  the same as JHora's export — the Sun's hora always in an odd sign, the Moon's in an even one,
+  `(2r + h) mod 12`. Since migration 164 ([decision 005](../../../decisions/005-d2-d3-d7-jhora-default-schemes.md));
+  the classical Leo/Cancer Hora of decision D-1 is retired. `D2-US` now equals `D2`.
 - **Read for:** wealth, liquid resources, family prosperity, sustenance.
 - **Read in order:** which Hora (Sun's = self-earned/active wealth; Moon's =
   inherited/passive/fluctuating) holds the Lagna and the Moon → 2nd and 11th lords of D1
@@ -51,9 +50,10 @@ coverage; does not feed Vimsopaka).
 
 ### D3 — Drekkana · siblings, courage
 
-- **JHora grid:** `D-3 (Trd)`. **N = 3.** **Groups:** 6·7·10·16.
-- **Method:** 1/5/9 trine stride (`DrekkanaD3`) — first drekkana = own sign, second = 5th,
-  third = 9th.
+- **JHora grid:** `D-3 (US)`. **N = 3.** **Groups:** 6·7·10·16.
+- **Method:** Uma-Shambhu Drekkana (`DrekkanaD3UmaShambu`, migration 164) — the first drekkana
+  of rasi r falls in r + 4·⌈r/2⌉ (the Ar, Vi, Li, Pi cycle); odd signs then run forward, even
+  signs backward.
 - **Read for:** younger/elder siblings, courage, initiative, drive, short journeys,
   hands/arms, longevity nuance (classical Drekkana use).
 - **Read in order:** D3 Lagna + lord → D3 3rd house, its lord, Mars (karaka) → 11th (elder
@@ -95,8 +95,9 @@ coverage; does not feed Vimsopaka).
 
 ### D7 — Saptamsa · children, progeny
 
-- **JHora grid:** `D-7 (Trd)`. **N = 7.** **Groups:** 7·10·16.
-- **Method:** odd sign counts from itself, even sign from the 7th (`SaptamsaD7`).
+- **JHora grid:** `D-7 (7-1)`. **N = 7.** **Groups:** 7·10·16.
+- **Method:** odd sign counts forward from itself, even sign backward from the 7th
+  (`SaptamsaD7EvenReverse`, migration 164).
 - **Read for:** children — number, wellbeing, relationship with them — plus creative
   progeny and lineage continuation; grandchildren via the 5th-from-5th.
 - **Read in order:** D7 Lagna + lord → D7 5th house, its lord, Jupiter (putra karaka),

@@ -506,7 +506,26 @@ Step 1 shows facts that were already computed and stored; no new calculation or 
   midnight (`NathonnataBala`; 0.62 off JHora, whose midnight sits ~7½ min earlier). Abda
   (`VARSHA_BALA`, 15) and Māsa (`MASA_BALA`, 30) lords come from Raman's ahargana
   (`AbdaMasaLords`) and match JHora. Kāla Bala is now within 1 virūpa of JHora for all seven planets.
-- **Still open:** Sthāna Bala's Saptavargaja differs from JHora, so Shadbala totals still differ.
+- **Sthāna Bala fixed (same day) — see "Saptavargaja, Oja-Yugma and D2/D3/D7" below.**
+
+## 2026-10-02 — Saptavargaja, Oja-Yugma and D2/D3/D7 on JHora's schemes
+
+- **Saptavargaja** (`ShadbalaCalculator.AddSthana`): the compound relationship with each varga's
+  sign lord is now the Rāśi chart's in every varga (temporary friendship counted from both
+  planets' D1 signs — `PvrDignityEvaluator.Evaluate`'s new `relationshipFromSign`), and
+  moolatrikoṇa scores 45 in D1 only; in the other six vargas an MT sign scores as own sign if the
+  planet rules it, else by the lord relationship. It used to read each varga's own positions and
+  apply MT degree ranges to varga degrees.
+- **Oja-Yugma Rāśi-Aṃśa**: 15 for the D1 sign + 15 for the D9 sign (Moon and Venus in even signs,
+  every other graha — Mercury and Saturn included — in odd). It used to score 30 or 0 from D1 alone
+  and gave Mercury the even-sign rule.
+- **D2, D3 and D7 switched app-wide to JHora's defaults** — Uma-Shambhu Hora, Uma-Shambhu Drekkana,
+  Saptāṃśa 7-1 (migration 164, [decision 005](../../../decisions/005-d2-d3-d7-jhora-default-schemes.md)).
+  All 8 people regenerated (`rebuild-all`, `backfill-strength-statistics`).
+- **Against JHora (1_RamakrishnanP, `verify-strength` Phase 1c):** Uchcha, Saptavargaja, Oja-Yugma,
+  Kendrādi and Drekkana match for all seven grahas, except **Venus's Drekkana Bala** (ours 15 per
+  BPHS — female grahas in the middle drekkana — JHora 0; Raman's order would break Saturn's 0
+  instead), printed as a known gap until a second chart settles JHora's rule.
 
 ## 2026-10-02 — 3.1 Planet Strength is one stacked-bar chart
 

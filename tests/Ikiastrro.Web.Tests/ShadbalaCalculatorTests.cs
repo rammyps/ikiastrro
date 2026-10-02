@@ -84,6 +84,40 @@ public class ShadbalaCalculatorTests
     }
 
     [Fact]
+    public void SaptavargajaReadsTheRasiRelationshipAndMoolatrikonaOnlyInD1()
+    {
+        var d1 = Chart("D1", new[] { Planet("Sun", "Aries", 8, 1), Planet("Mercury", "Aries", 2, 1), Planet("Mars", "Aries", 4, 1) });
+        // In D9 Mercury sits 12th from the Sun (a temporary friend there) — but the Rāśi
+        // relationship (same sign: temporary enemy, natural neutral) is the one that counts.
+        var d9 = Chart("D9", new[] { Planet("Sun", "Gemini", 5, 3), Planet("Mercury", "Taurus", 5, 2), Planet("Mars", "Taurus", 5, 2) });
+        var d3 = Chart("D3", new[] { Planet("Mars", "Aries", 11, 1) });
+        var sun = new SunTimes(DateTimeOffset.UtcNow.AddHours(-6), DateTimeOffset.UtcNow.AddHours(6), DateTimeOffset.UtcNow.AddDays(1), false);
+
+        var results = ShadbalaCalculator.Calculate(new[] { d1, d9, d3 }, Positions(), sun, Panchanga(sun));
+        double Sapta(string planet) => results.Single(r => r.Planet == planet).Components.Single(c => c.SubComponentCode == "SAPTAVARGAJA_BALA").ValueVirupas;
+
+        // Sun: D1 Aries, Mars sama (7.5) + D9 Gemini, Mercury shatru (3.75).
+        Assert.Equal(11.25, Sapta("Sun"), 3);
+        // Mars: D1 Aries 4° moolatrikona (45) + D9 Taurus shatru (3.75) + D3 Aries 11° own, not MT (30).
+        Assert.Equal(78.75, Sapta("Mars"), 3);
+    }
+
+    [Fact]
+    public void OjaYugmaScoresD1AndD9FifteenEachWithMercuryOnOddSigns()
+    {
+        var d1 = Chart("D1", new[] { Planet("Sun", "Aries", 8, 1), Planet("Mercury", "Aries", 2, 1), Planet("Venus", "Aries", 12, 1) });
+        var d9 = Chart("D9", new[] { Planet("Sun", "Gemini", 5, 3), Planet("Mercury", "Taurus", 5, 2), Planet("Venus", "Cancer", 5, 4) });
+        var sun = new SunTimes(DateTimeOffset.UtcNow.AddHours(-6), DateTimeOffset.UtcNow.AddHours(6), DateTimeOffset.UtcNow.AddDays(1), false);
+
+        var results = ShadbalaCalculator.Calculate(new[] { d1, d9 }, Positions(), sun, Panchanga(sun));
+        double Oja(string planet) => results.Single(r => r.Planet == planet).Components.Single(c => c.SubComponentCode == "OJHA_YUGMA_RASYAMSA_BALA").ValueVirupas;
+
+        Assert.Equal(30, Oja("Sun"));     // odd + odd
+        Assert.Equal(15, Oja("Mercury")); // odd D1 only
+        Assert.Equal(15, Oja("Venus"));   // even D9 only
+    }
+
+    [Fact]
     public void CalculatesTwelveBhavaBalaRowsWithThreeComponents()
     {
         var chart = Chart("D1", new[]

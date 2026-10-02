@@ -51,8 +51,11 @@ public static class PvrDignityEvaluator
     public static bool IsNaturalFriend(PlanetName a, PlanetName b) =>
         Natural.TryGetValue(a, out var natural) && natural.Friends.Contains(b);
 
+    /// <param name="relationshipFromSign">The planet's own sign to count temporary friendship
+    /// from; defaults to <paramref name="sign"/>. Saptavargaja passes the D1 sign so the compound
+    /// relationship is the Rāśi chart's in every varga.</param>
     public static PvrDignityResult Evaluate(PlanetName planet, ZodiacName sign, double degreeInSign,
-        IReadOnlyDictionary<string, ZodiacName>? chartSigns = null)
+        IReadOnlyDictionary<string, ZodiacName>? chartSigns = null, ZodiacName? relationshipFromSign = null)
     {
         var segment = Segments[planet].FirstOrDefault(x => x.Sign == sign && degreeInSign >= x.Start && degreeInSign < x.End);
         var lordName = HouseEngine.GetSignLord(sign);
@@ -61,7 +64,7 @@ public static class PvrDignityEvaluator
         if (!Enum.TryParse<PlanetName>(lordName, out var lord) || !Natural.ContainsKey(planet) || chartSigns is null)
             return new PvrDignityResult(dignityCode, dignityScore, lordName, null, null, SaptavargajaPoints(dignityCode, null));
 
-        var tempFriend = chartSigns.TryGetValue(lordName, out var lordSign) && TemporaryFriend(sign, lordSign);
+        var tempFriend = chartSigns.TryGetValue(lordName, out var lordSign) && TemporaryFriend(relationshipFromSign ?? sign, lordSign);
         var natural = Natural[planet];
         var naturalKind = natural.Friends.Contains(lord) ? "FRIEND" : natural.Enemies.Contains(lord) ? "ENEMY" : "NEUTRAL";
         var code = naturalKind switch

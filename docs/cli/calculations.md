@@ -43,11 +43,12 @@ D11, D12, D16, D20, D24, D27, D30, D40, D45, D60.
   (`IChartCalculator`) per row; every varga gets the full shared analytics.
 - `SignRuleKey` → C# `IVargaSignRule` via `VargaSignRuleFactory`. `LinearVargaSignRule` covers
   D3 / D4 / D12 / D60; D2 / D6 / D9 / D10 / D11 wrap `AstroMath.Get*Sign`; the rest are bespoke
-  `Special` rules (`HoraD2UmaShambu`, `PanchamsaD5`, `SaptamsaD7`, `AshtamsaD8`, `ShodasamsaD16`,
+  `Special` rules (`HoraD2UmaShambu`, `DrekkanaD3UmaShambu`, `PanchamsaD5`, `SaptamsaD7EvenReverse`, `AshtamsaD8`, `ShodasamsaD16`,
   `VimsamsaD20`, `SiddhamsaD24`, `NakshatramsaD27`, `TrimsamsaD30`, `KhavedamsaD40`,
   `AkshavedamsaD45`). Formulas transcribed from PyJHora `chart_method=1` "Traditional Parāśara".
-- **D2** uses the classical two-sign Leo/Cancer Hora; **D2-US** is JHora's default Uma Shambu
-  parivṛtti. **D11** uses the PVR/BPHS traditional Rudramsa (not the Sanjay Rath variant).
+- **D2**, **D3** and **D7** use JHora's default schemes — Uma-Shambhu Hora, Uma-Shambhu
+  Drekkana, Saptāṃśa with even signs reversed (migration 164, `decisions/005`); **D2-US** now
+  computes the same chart as D2. **D11** uses the PVR/BPHS traditional Rudramsa (not the Sanjay Rath variant).
 - Stored: `VargaLongitudeDegrees` (`Normalize(realLon × N)`), `DegreesInSignDecimal`
   (`= VargaLongitudeDegrees mod 30`, populated every chart type). The varga sign is the
   `IVargaSignRule`, **not** `FLOOR(VargaLongitudeDegrees/30)`.

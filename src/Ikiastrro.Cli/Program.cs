@@ -328,23 +328,32 @@ if (args.Length > 0 && args[0] == "verify-vargas")
     Check("rule D2US Ta 5",  new HoraD2UmaShambuSignRule().SignFor(35),  ZodiacName.Cancer);  // r1 odd  h0 -> 2r+1
     Check("rule D2US Ta 20", new HoraD2UmaShambuSignRule().SignFor(50),  ZodiacName.Gemini);  // r1 odd  h1 -> 2r+1-1
     Check("rule D2US Sc 7",  new HoraD2UmaShambuSignRule().SignFor(217), ZodiacName.Cancer);  // r7 odd  h0 -> 15%12 (export Moon)
+    // D3 Uma Shambu - first drekkana r + 4*ceil(r/2), odd signs forward, even backward (D-3 (US))
+    Check("rule D3US Ar 15", new DrekkanaD3UmaShambuSignRule().SignFor(15),  ZodiacName.Taurus);  // start Ar, l1 forward
+    Check("rule D3US Sc 7",  new DrekkanaD3UmaShambuSignRule().SignFor(217), ZodiacName.Pisces);  // start Pi (export Moon)
+    Check("rule D3US Vi 11", new DrekkanaD3UmaShambuSignRule().SignFor(161), ZodiacName.Leo);     // start Vi, l1 backward (export Saturn)
+    Check("rule D3US Pi 25", new DrekkanaD3UmaShambuSignRule().SignFor(355), ZodiacName.Capricornus); // start Pi, l2 backward (Hora Lagna)
+    // D7 even-reverse - odd from the sign forward, even from the 7th backward (D-7 (7-1))
+    Check("rule D7ER Ar 9",  new SaptamsaD7EvenReverseSignRule().SignFor(9),   ZodiacName.Gemini);      // l2 forward
+    Check("rule D7ER Sc 7",  new SaptamsaD7EvenReverseSignRule().SignFor(217), ZodiacName.Aries);       // Ta - 1 (export Moon)
+    Check("rule D7ER Vi 9",  new SaptamsaD7EvenReverseSignRule().SignFor(159), ZodiacName.Capricornus); // Pi - 2 (export Jupiter)
 
     // Every SignRuleKey seeded in tbl_Rule_VargaScheme must resolve through the factory
     string[] seededKeys =
     {
-        "HoraD2Classic","HoraD2UmaShambu","DrekkanaD3","ChaturthamsaD4","PanchamsaD5",
-        "ShashtamsaD6","SaptamsaD7","AshtamsaD8","NavamsaD9","DasamsaD10","RudramsaD11",
+        "HoraD2Classic","HoraD2UmaShambu","DrekkanaD3","DrekkanaD3UmaShambu","ChaturthamsaD4","PanchamsaD5",
+        "ShashtamsaD6","SaptamsaD7","SaptamsaD7EvenReverse","AshtamsaD8","NavamsaD9","DasamsaD10","RudramsaD11",
         "DwadasamsaD12","ShodasamsaD16","VimsamsaD20","SiddhamsaD24","NakshatramsaD27",
         "TrimsamsaD30","KhavedamsaD40","AkshavedamsaD45","ShashtyamsaD60"
     };
-    int[] seededFactors = { 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 20, 24, 27, 30, 40, 45, 60 };
+    int[] seededFactors = { 2, 2, 3, 3, 4, 5, 6, 7, 7, 8, 9, 10, 11, 12, 16, 20, 24, 27, 30, 40, 45, 60 };
     var factoryFailures = 0;
     for (var i = 0; i < seededKeys.Length; i++)
     {
         try { _ = VargaSignRuleFactory.For(seededKeys[i], seededFactors[i]).SignFor(15.0); }
         catch (Exception ex) { Console.WriteLine($"  [FAIL] factory {seededKeys[i]}: {ex.Message}"); factoryFailures++; }
     }
-    Console.WriteLine($"  [{(factoryFailures == 0 ? "PASS" : "FAIL")}] VargaSignRuleFactory resolves all 20 seeded keys");
+    Console.WriteLine($"  [{(factoryFailures == 0 ? "PASS" : "FAIL")}] VargaSignRuleFactory resolves all {seededKeys.Length} known keys");
     if (factoryFailures > 0) failures += factoryFailures;
 
     // VargaChartComputer's D9 sign rule must agree with AstroMath.GetNavamsaSign (spot longitudes).
@@ -387,16 +396,18 @@ if (args.Length > 0 && args[0] == "verify-vargas")
     // --- JHora export grid match (Ramakrishnan, 22 Apr 1981, Chennai) ---
     // Transcribed from D:\@ClaudeSpace\Scratchpad\Rammy_Jagannatha.txt. Planet order:
     // Ascendant, Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu.
-    // Classical D2 has no export grid (JHora's D-2 is Uma Shambu) - covered by the
-    // AstroMath.GetHoraSign checks above instead.
+    // D2, D3 and D7 run JHora's default schemes since migration 164 (Uma Shambu hora, Uma
+    // Shambu drekkana, saptamsa 7-1); their rows are from the 2026-09-23 "Rasis occupied in all
+    // vargas" export, which tags them D-2 (US), D-3 (US) and D-7 (7-1).
     var jhoraGrid = new Dictionary<string, ZodiacName[]>
     {
         ["D2-US"] = new[] { ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Cancer, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Scorpio, ZodiacName.Scorpio },
-        ["D3"]  = new[] { ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Scorpio, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Virgo, ZodiacName.Leo, ZodiacName.Capricornus, ZodiacName.Scorpio, ZodiacName.Taurus },
+        ["D2"]  = new[] { ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Cancer, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Scorpio, ZodiacName.Scorpio },
+        ["D3"]  = new[] { ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Virgo, ZodiacName.Taurus, ZodiacName.Leo, ZodiacName.Aquarius, ZodiacName.Leo },
         ["D4"]  = new[] { ZodiacName.Aries, ZodiacName.Cancer, ZodiacName.Scorpio, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Sagittarius, ZodiacName.Cancer, ZodiacName.Sagittarius, ZodiacName.Libra, ZodiacName.Aries },
         ["D5"]  = new[] { ZodiacName.Aries, ZodiacName.Aquarius, ZodiacName.Virgo, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Virgo, ZodiacName.Aquarius, ZodiacName.Virgo, ZodiacName.Pisces, ZodiacName.Pisces },
         ["D6"]  = new[] { ZodiacName.Aries, ZodiacName.Taurus, ZodiacName.Scorpio, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Scorpio, ZodiacName.Gemini, ZodiacName.Sagittarius, ZodiacName.Sagittarius, ZodiacName.Sagittarius },
-        ["D7"]  = new[] { ZodiacName.Aries, ZodiacName.Taurus, ZodiacName.Gemini, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Taurus, ZodiacName.Gemini, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Libra },
+        ["D7"]  = new[] { ZodiacName.Aries, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Aries, ZodiacName.Capricornus, ZodiacName.Gemini, ZodiacName.Capricornus, ZodiacName.Libra, ZodiacName.Aries },
         ["D8"]  = new[] { ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Capricornus, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Libra, ZodiacName.Cancer, ZodiacName.Libra, ZodiacName.Cancer, ZodiacName.Cancer },
         ["D9"]  = new[] { ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Virgo, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Pisces, ZodiacName.Cancer, ZodiacName.Aries, ZodiacName.Libra, ZodiacName.Aries },
         ["D10"] = new[] { ZodiacName.Aries, ZodiacName.Gemini, ZodiacName.Virgo, ZodiacName.Taurus, ZodiacName.Aries, ZodiacName.Cancer, ZodiacName.Cancer, ZodiacName.Leo, ZodiacName.Cancer, ZodiacName.Capricornus },
@@ -420,7 +431,7 @@ if (args.Length > 0 && args[0] == "verify-vargas")
                 "SELECT kd.Planet, kd.Sign FROM dbo.tbl_Chart_KeyDetails kd " +
                 "JOIN dbo.tbl_ChartResults cr ON cr.Id = kd.ChartResultId " +
                 "JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId " +
-                "WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = @ct AND kd.PointKind = 'Graha'",
+                "WHERE bd.Name = 'RamakrishnanP' AND cr.ChartType = @ct AND kd.PointKind = 'Graha'",
                 new { ct = chartType })
                 .ToDictionary(r => r.Planet, r => r.Sign);
             for (var i = 0; i < planetOrder.Length; i++)
@@ -472,7 +483,7 @@ if (args.Length > 0 && args[0] == "verify-vargas")
               JOIN dbo.tbl_BirthDetails bd  ON bd.Id  = cr1.BirthDetailId
               JOIN dbo.tbl_ChartResults cr9 ON cr9.BirthDetailId = bd.Id AND cr9.ChartType = 'D9'
               JOIN dbo.tbl_Chart_KeyDetails d9 ON d9.ChartResultId = cr9.Id AND d9.Planet = d1.Planet
-              WHERE bd.Name = 'Ramakrishnan' AND cr1.ChartType = 'D1' AND d1.SignId = d9.SignId").ToList();
+              WHERE bd.Name = 'RamakrishnanP' AND cr1.ChartType = 'D1' AND d1.SignId = d9.SignId").ToList();
         Console.WriteLine($"  [INFO] Ramakrishnan D1/D9 Vargottama: {(vargottama.Count == 0 ? "none" : string.Join(", ", vargottama.Select(v => $"{v.Planet}({v.Sign})")))}");
     }
 
@@ -662,7 +673,7 @@ if (args.Length > 0 && args[0] == "verify-avastha")
         // JHora export's printed "Activity" table for 1_Ramakrishnan, all 9 grahas.
         var stored = conn.Query<(string Planet, string? PostureState)>(
             @"SELECT Planet, PostureState FROM dbo.vw_ChartPlanetEvidence
-              WHERE BirthDetailId = (SELECT Id FROM dbo.tbl_BirthDetails WHERE Name = 'Ramakrishnan')
+              WHERE BirthDetailId = (SELECT Id FROM dbo.tbl_BirthDetails WHERE Name = 'RamakrishnanP')
                 AND ChartType = 'D1' AND PointKind = 'Graha'")
             .ToDictionary(r => r.Planet, r => r.PostureState);
         Check("Sayanaadi(Sun)     -> Aagama",      stored.GetValueOrDefault("Sun"),     "Aagama");
@@ -747,7 +758,7 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         if (!ok) failures++;
     }
 
-    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "RamakrishnanP");
 
     // --- Phase 1: sunrise / sunset (Chennai, 22 Apr 1981; night birth -> 21 Apr arc) ---
     // JHora prints "Sunrise: 5:56:39 / Sunset: 18:18:53 (April 21)" for this birth. SwissEphNet
@@ -781,7 +792,7 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
               FROM dbo.tbl_Chart_KeyDetails kd
               JOIN dbo.tbl_ChartResults cr ON cr.Id = kd.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
-              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1' AND kd.CharaKaraka IS NOT NULL")
+              WHERE bd.Name = 'RamakrishnanP' AND cr.ChartType = 'D1' AND kd.CharaKaraka IS NOT NULL")
             .ToDictionary(r => r.CharaKaraka!, r => r.Planet);
         Check("AK  = Rahu",    d1.GetValueOrDefault("AK"),  "Rahu");
         Check("AmK = Venus",   d1.GetValueOrDefault("AmK"), "Venus");
@@ -796,7 +807,7 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
             @"SELECT kd.Planet FROM dbo.tbl_Chart_KeyDetails kd
               JOIN dbo.tbl_ChartResults cr ON cr.Id = kd.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
-              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D9' AND kd.CharaKaraka = 'AK'");
+              WHERE bd.Name = 'RamakrishnanP' AND cr.ChartType = 'D9' AND kd.CharaKaraka = 'AK'");
         Check("D9 AK label travels", d9ak, "Rahu");
     }
 
@@ -824,7 +835,7 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
             @"SELECT kd.Sign FROM dbo.tbl_Chart_KeyDetails kd
               JOIN dbo.tbl_ChartResults cr ON cr.Id = kd.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
-              WHERE bd.Name='Ramakrishnan' AND cr.ChartType=@c AND kd.Planet=@p AND kd.PointKind<>'Graha'",
+              WHERE bd.Name='RamakrishnanP' AND cr.ChartType=@c AND kd.Planet=@p AND kd.PointKind<>'Graha'",
             new { c = chart, p = code });
 
         Check("AL (D1) -> Capricornus", SpSign("D1", "AL"), "Capricornus");
@@ -832,7 +843,7 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
             @"SELECT COUNT(*) FROM dbo.tbl_Chart_KeyDetails kd
               JOIN dbo.tbl_ChartResults cr ON cr.Id=kd.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id=cr.BirthDetailId
-              WHERE bd.Name='Ramakrishnan' AND cr.ChartType='D1' AND kd.PointKind='Arudha'"), 12);
+              WHERE bd.Name='RamakrishnanP' AND cr.ChartType='D1' AND kd.PointKind='Arudha'"), 12);
         // tbl_Rule_ArudhaFormula (migration 085) closes the same audit's Arudha-has-no-DB-
         // citation gap. A single narrative row, so this checks presence + citation, not a
         // numeric round-trip (same shape as tbl_Rule_PostureStateFormula/PanchangaFormula).
@@ -852,13 +863,13 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
             @"SELECT kd.Sign FROM dbo.tbl_Chart_KeyDetails kd
               JOIN dbo.tbl_ChartResults cr ON cr.Id = kd.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
-              WHERE bd.Name='Ramakrishnan' AND cr.ChartType=@c AND kd.Planet=@p AND kd.PointKind<>'Graha'",
+              WHERE bd.Name='RamakrishnanP' AND cr.ChartType=@c AND kd.Planet=@p AND kd.PointKind<>'Graha'",
             new { c = chart, p = code });
         double SpLon(string code) => conn.ExecuteScalar<double>(
             @"SELECT kd.NirayanaLongitudeDegrees FROM dbo.tbl_Chart_KeyDetails kd
               JOIN dbo.tbl_ChartResults cr ON cr.Id = kd.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
-              WHERE bd.Name='Ramakrishnan' AND cr.ChartType='D1' AND kd.Planet=@p",
+              WHERE bd.Name='RamakrishnanP' AND cr.ChartType='D1' AND kd.Planet=@p",
             new { p = code });
         void CheckLon(string label, double actual, double expected, double tolDeg)
         {
@@ -898,7 +909,7 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         var k = conn.QuerySingle<(string AtmaKarakaPlanet, string KarakamsaSign)>(
             @"SELECT k.AtmaKarakaPlanet, k.KarakamsaSign FROM dbo.vw_ChartKarakamsa k
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = k.BirthDetailId
-              WHERE bd.Name = 'Ramakrishnan'");
+              WHERE bd.Name = 'RamakrishnanP'");
         Check("Karakamsa AK", k.AtmaKarakaPlanet, "Rahu");
         Check("Karakamsa sign -> Libra", k.KarakamsaSign, "Libra");
     }
@@ -953,7 +964,7 @@ if (args.Length > 0 && args[0] == "verify-ashtakavarga")
     }
 
     var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
-    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "RamakrishnanP");
     var bundle = new ChartPipeline(orchestrator, psRules).Run(ram);
     var av = bundle.Ashtakavarga ?? throw new InvalidOperationException("ChartBundle.Ashtakavarga is null.");
 
@@ -1011,7 +1022,7 @@ if (args.Length > 0 && args[0] == "verify-ashtakavarga")
         const string where =
             @"JOIN dbo.tbl_ChartResults cr ON cr.Id = f.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
-              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1'";
+              WHERE bd.Name = 'RamakrishnanP' AND cr.ChartType = 'D1'";
 
         var storedBav = conn.Query<(string RecipientCode, int SignNumber, int BinduCount)>(
             $"SELECT f.RecipientCode, f.SignNumber, f.BinduCount FROM dbo.tbl_Fact_BhinnaAshtakavarga f {where}")
@@ -1054,7 +1065,7 @@ if (args.Length > 0 && args[0] == "verify-ashtakavarga")
             @"SELECT f.TotalBindus FROM dbo.tbl_Fact_SarvaAshtakavarga f
               JOIN dbo.tbl_ChartResults cr ON cr.Id = f.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
-              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D9' ORDER BY f.SignNumber").ToArray();
+              WHERE bd.Name = 'RamakrishnanP' AND cr.ChartType = 'D9' ORDER BY f.SignNumber").ToArray();
         Check("persisted D9 SAV matches an independent D9 recompute", Csv(storedD9Sav), Csv(d9Av.Sarva.Bindus));
         Check("D9 SAV genuinely differs from D1 SAV (not a relabeled copy)",
             Csv(storedD9Sav) != Csv(av.Sarva.Bindus), true);
@@ -1090,7 +1101,7 @@ if (args.Length > 0 && args[0] == "verify-panchanga")
     }
 
     var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
-    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "RamakrishnanP");
     var bundle = new ChartPipeline(orchestrator, psRules).Run(ram);
     var pc = bundle.Panchanga ?? throw new InvalidOperationException("ChartBundle.Panchanga is null.");
 
@@ -1111,7 +1122,7 @@ if (args.Length > 0 && args[0] == "verify-panchanga")
               FROM dbo.tbl_Chart_Panchanga p
               JOIN dbo.tbl_ChartResults cr ON cr.Id = p.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
-              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1'");
+              WHERE bd.Name = 'RamakrishnanP' AND cr.ChartType = 'D1'");
         if (stored is null)
         {
             Console.WriteLine("  [SKIP] no persisted tbl_Chart_Panchanga row for Ramakrishnan's D1 — run GenerateAll first.");
@@ -1149,7 +1160,7 @@ if (args.Length > 0 && args[0] == "verify-strength")
     }
 
     var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
-    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "RamakrishnanP");
     var bundle = new ChartPipeline(orchestrator, psRules).Run(ram);
     var strengths = bundle.Strengths ?? throw new InvalidOperationException("ChartBundle.Strengths is null.");
 
@@ -1234,6 +1245,35 @@ if (args.Length > 0 && args[0] == "verify-strength")
             Math.Sqrt((60 - uchcha) * (60 - r.CheshtaBalaVirupas)), 0.01);
     }
 
+    Console.WriteLine("\n-- Phase 1c: Sthāna Bala vs JHora (strengths_otherstrengths_sthana-bala) --");
+    // Columns: Uchcha, Saptavargaja, Oja-Yugma, Kendra, Drekkana.
+    var jhoraSthana = new Dictionary<string, double[]>
+    {
+        ["Sun"] = [59.40, 37.50, 30, 60, 15], ["Moon"] = [1.40, 82.50, 30, 30, 0],
+        ["Mars"] = [38.02, 172.50, 15, 60, 15], ["Mercury"] = [5.61, 26.25, 30, 60, 0],
+        ["Jupiter"] = [38.76, 99.38, 0, 15, 15], ["Venus"] = [55.01, 52.50, 15, 60, 0],
+        ["Saturn"] = [46.99, 82.50, 15, 15, 0],
+    };
+    var sthanaCodes = new[] { "UCHCHA_BALA", "SAPTAVARGAJA_BALA", "OJHA_YUGMA_RASYAMSA_BALA", "KENDRADI_BALA", "DREKKANA_BALA" };
+    // Saptavargaja matches only with D2/D3/D7 on JHora's schemes (migration 164), the Rasi-chart
+    // relationship in every varga and moolatrikona in D1 alone.
+    foreach (var (planet, expected) in jhoraSthana)
+        for (var i = 0; i < sthanaCodes.Length; i++)
+        {
+            // Known gap: JHora gives Venus 0 in her 2nd drekkana; BPHS (female grahas in the
+            // middle drekkana) gives 15, and Raman's order (female 3rd, neuter 2nd) would break
+            // Saturn's 0 instead. BPHS kept until a second chart settles JHora's rule.
+            if (planet == "Venus" && sthanaCodes[i] == "DREKKANA_BALA")
+            {
+                Console.WriteLine($"  [GAP ] DREKKANA_BALA Venus: got {Component(planet, sthanaCodes[i]):0.00}, JHora {expected[i]:0.00} (BPHS kept)");
+                continue;
+            }
+            Near($"{sthanaCodes[i]} {planet}", Component(planet, sthanaCodes[i]), expected[i], i == 0 ? 0.1 : 0.01);
+        }
+    if (args.Contains("--detail"))
+        foreach (var r in strengths)
+            Console.WriteLine($"  {r.Planet}: {r.Components.Single(c => c.SubComponentCode == "SAPTAVARGAJA_BALA").Narrative}");
+
     Console.WriteLine("\n-- Phase 2: persisted tbl_Fact_PlanetaryStrengthComponent == the engine --");
     using (var conn = connectionFactory.CreateOpenConnection())
     {
@@ -1243,7 +1283,7 @@ if (args.Length > 0 && args[0] == "verify-strength")
               JOIN dbo.tbl_ChartResults cr ON cr.Id = c.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id = cr.BirthDetailId
               JOIN dbo.tbl_Planets p ON p.Id = c.PlanetId
-              WHERE bd.Name = 'Ramakrishnan' AND cr.ChartType = 'D1'
+              WHERE bd.Name = 'RamakrishnanP' AND cr.ChartType = 'D1'
                 AND c.SubComponentCode IN ('DINA_BALA', 'HORA_BALA', 'TRIBHAGA_BALA')").ToList();
         if (stored.Count == 0)
         {
@@ -1386,7 +1426,7 @@ if (args.Length > 0 && args[0] == "verify-dasha-lord-relationship")
         if (!ok) failures++;
     }
 
-    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "RamakrishnanP");
     var repo = new DashaLordRelationshipRepository(connectionFactory);
     var rows = repo.GetByBirthDetailId(ram.Id);
 
@@ -1489,7 +1529,7 @@ if (args.Length > 0 && args[0] == "verify-planet-in-house")
     Check("Sun/10th starts with the Raman paraphrase", sunHouse10?.StartsWith("Successful in all undertakings"), true);
 
     // End-to-end: the view resolves for a real chart via the repository.
-    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "RamakrishnanP");
     var d1ChartResultId = conn.ExecuteScalar<int>(
         "SELECT cr.Id FROM dbo.tbl_ChartResults cr WHERE cr.BirthDetailId = @Id AND cr.ChartType = 'D1'", new { ram.Id });
     var repo = new PlanetInHouseRepository(connectionFactory);
@@ -1840,7 +1880,7 @@ if (args.Length > 0 && args[0] == "verify-pipeline")
     var psRules = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
     var pipeline = new ChartPipeline(orchestrator, psRules);
 
-    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "Ramakrishnan");
+    var ram = birthDetailsRepo.GetAll().First(p => p.Name == "RamakrishnanP");
     var bundle = pipeline.Run(ram);
 
     // Recompute D1 KeyDetails from the bundle and compare to the stored rows for person 1.
