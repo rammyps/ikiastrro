@@ -3,7 +3,7 @@
 
     function preferredTheme() {
         const saved = localStorage.getItem(storageKey);
-        if (saved === "default-light" || saved === "cosmic-light" || saved === "cosmic-dark") {
+        if (saved === "default-light" || saved === "nebula-light" || saved === "cosmic-light" || saved === "cosmic-dark") {
             return saved;
         }
         if (saved === "light" || saved === "dark") {
@@ -14,7 +14,7 @@
     }
 
     function apply(theme, persist) {
-        const resolved = ["default-light", "cosmic-light", "cosmic-dark"].includes(theme) ? theme : "default-light";
+        const resolved = ["default-light", "nebula-light", "cosmic-light", "cosmic-dark"].includes(theme) ? theme : "default-light";
         document.documentElement.dataset.theme = resolved;
         document.documentElement.style.colorScheme = resolved === "cosmic-dark" ? "dark" : "light";
         if (persist) {

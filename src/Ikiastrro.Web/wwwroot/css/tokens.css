@@ -490,6 +490,67 @@ html thead th :is(button, a, small) {
     --sl-pp: #0d9488;
 }
 
+/* Nebula-Light (2026-10-02): warm parchment canvas, violet typography and orange interaction
+   accents. Values come directly from the Preferences palette supplied by rammyps. */
+:root[data-theme='nebula-light'] {
+    color-scheme: light;
+
+    --cosmos-canvas: #fff9ec;
+    --cosmos-surface: #ffffff;
+    --cosmos-surface-raised: #fff0cf;
+    --cosmos-architecture: #4b0082;
+    --cosmos-structure: #e4cce9;
+    --cosmos-accent: #ff9f3d;
+    --cosmos-accent-fg: #4b0082;
+
+    --brand-canvas: var(--cosmos-canvas);
+    --brand-surface: var(--cosmos-surface);
+    --brand-surface-soft: var(--cosmos-surface-raised);
+    --brand-midnight: #4b0082;
+    --brand-line: var(--cosmos-structure);
+    --brand-muted: #70557e;
+    --brand-peach: #ffcc68;
+    --brand-sunrise: #fff0cf;
+
+    --paper: var(--cosmos-canvas);
+    --paper-raised: var(--cosmos-surface);
+    --paper-line: var(--cosmos-structure);
+    --ink: #4b0082;
+    --ink-soft: #70557e;
+    --ink-faint: #70557e;
+    --accent: var(--cosmos-accent);
+    --accent-fg: var(--cosmos-accent-fg);
+    --accent-line: #8a2be2;
+    --asc-glow: rgb(255 159 61 / 0.18);
+    --shadow: rgb(75 0 130 / 0.14);
+    --control-bg: #8a2be2;
+    --control-fg: #ffffff;
+
+    --cell-fill: var(--cosmos-surface);
+    --lagna-fill: #fff0cf;
+    --grid-stroke: var(--cosmos-architecture);
+    --sign-text: #70557e;
+    --muted-text: #70557e;
+    --wheel-ring: var(--cosmos-architecture);
+    --wheel-tick: #70557e;
+
+    --tab-active-bg: var(--cosmos-accent);
+    --tab-active-fg: var(--cosmos-accent-fg);
+    --tab-inactive-bg: transparent;
+    --tab-inactive-fg: var(--brand-midnight);
+    --nav-btn: var(--cosmos-accent);
+    --nav-btn-fg: var(--cosmos-accent-fg);
+
+    --relation-benefic: #087f70;
+    --relation-malefic: #be3455;
+    --relation-mixed: #9a6700;
+    --relation-neutral: #70557e;
+
+    --status-on: #ffffff;
+    --watermark: rgb(75 0 130 / 0.06);
+    --sl-pp: #8a2be2;
+}
+
 :root[data-theme='cosmic-dark'] {
     color-scheme: dark;
 

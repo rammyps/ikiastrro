@@ -92,4 +92,29 @@ public static class IkiastrroTheme
             TableLines = DarkLine,
         },
     };
+
+    public static readonly MudTheme NebulaLight = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#FF9F3D",
+            PrimaryContrastText = "#4B0082",
+            Secondary = "#8A2BE2",
+            SecondaryContrastText = "#FFFFFF",
+            Background = "#FFF9EC",
+            BackgroundGray = "#FFF0CF",
+            Surface = "#FFFFFF",
+            AppbarBackground = "#FFFFFF",
+            AppbarText = "#4B0082",
+            DrawerBackground = "#FFFFFF",
+            DrawerText = "#4B0082",
+            TextPrimary = "#4B0082",
+            TextSecondary = "#70557E",
+            ActionDefault = "#4B0082",
+            Divider = "#E4CCE9",
+            LinesDefault = "#E4CCE9",
+            LinesInputs = "#E4CCE9",
+            TableLines = "#E4CCE9",
+        },
+    };
 }
