@@ -11,7 +11,7 @@
 
 .psc-head {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: flex-start;
     gap: 12px;
     flex-wrap: wrap;
@@ -51,9 +51,9 @@
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
-    margin: 0 0 10px;
+    margin: 0;
     font-size: 0.78em;
-    color: var(--brand-midnight);
+    color: var(--card-fg);
 }
 
 .psc-legend-item { display: inline-flex; align-items: center; gap: 5px; }
@@ -100,7 +100,7 @@
 .psc-colheads,
 .psc-row {
     display: grid;
-    grid-template-columns: 44px 100px 1fr 64px 56px 56px 56px 84px;
+    grid-template-columns: 40px 76px minmax(220px, 1fr) 52px 40px 52px 60px 84px 84px;
     align-items: center;
     gap: 10px;
     width: 100%;
@@ -119,21 +119,15 @@
 .psc-c-num { text-align: right; }
 .psc-c-status { text-align: center; }
 .psc-mono { font-variant-numeric: tabular-nums; }
-
-.psc-row-wrap { border-bottom: 1px solid var(--brand-line); }
-.psc-row-wrap:last-child { border-bottom: 0; }
+.psc-ik { font-size: 0.85em; white-space: nowrap; }
 
 .psc-row {
-    border: 0;
-    background: transparent;
-    padding: 10px;
-    text-align: left;
-    cursor: pointer;
-    font: inherit;
-    color: inherit;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--brand-line);
 }
 
-.psc-row:hover { background: var(--brand-peach); }
+.psc-row:last-child { border-bottom: 0; }
+.psc-row:hover { background: color-mix(in srgb, var(--card-fg) 6%, var(--card-bg)); }
 
 .psc-rankbadge {
     display: inline-flex;
@@ -149,102 +143,65 @@
     font-size: 0.8em;
 }
 
-.psc-c-planet {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--brand-midnight);
-    font-weight: 700;
-}
+.psc-c-planet { color: var(--card-fg); font-weight: 700; }
 
-.psc-chevron {
-    display: inline-block;
-    color: var(--brand-muted);
-    transition: transform 0.15s ease;
-}
+/* Shared rūpa axis: tick labels in the column head line up with every row's bar below. */
+.psc-colheads .psc-c-bar { display: flex; flex-direction: column; gap: 2px; }
+.psc-scale { position: relative; display: block; height: 12px; text-transform: none; }
+.psc-tick { position: absolute; transform: translateX(-50%); font-weight: 600; white-space: nowrap; }
+.psc-scale-title { font-size: 0.9em; }
 
-.psc-chevron-open { transform: rotate(90deg); }
-
-.psc-barwrap { display: flex; flex-direction: column; gap: 2px; width: 100%; }
-
-.psc-scale {
+.psc-bar {
     position: relative;
-    height: 13px;
-    font-size: 0.62em;
-    color: var(--brand-muted);
+    display: block;
+    height: 22px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--card-fg) 10%, var(--card-bg));
 }
 
-.psc-tick { position: absolute; white-space: nowrap; }
-.psc-tick-0 { left: 0; }
-.psc-tick-100 { left: 50%; transform: translateX(-50%); font-weight: 700; }
-.psc-tick-200 { right: 0; }
-
-.psc-trackrow { display: flex; align-items: center; gap: 8px; }
-
-.psc-track {
-    position: relative;
-    flex: 1 1 auto;
-    height: 9px;
-    border-radius: 999px;
-    background: var(--brand-line);
-}
-
-.psc-refline {
+.psc-seg {
     position: absolute;
-    left: 50%;
-    top: -3px;
-    bottom: -3px;
-    border-left: 2px dashed var(--brand-muted);
-    opacity: 0.6;
-}
-
-.psc-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; }
-
-.psc-marker {
-    position: absolute;
-    top: 50%;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 2px solid var(--brand-surface);
-}
-
-.psc-pctlabel {
-    min-width: 42px;
-    text-align: right;
-    font-weight: 700;
-    font-size: 0.82em;
-}
-/* The bare .psc-status-* rules give the label a solid status fill; its digits take the
-   theme's on-status ink like the rank badges. */
-.psc-pctlabel.psc-status-strong,
-.psc-pctlabel.psc-status-weak { color: var(--status-on); }
-
-.psc-stack {
-    display: flex;
-    width: 100%;
-    height: 12px;
-    border-radius: 6px;
-    overflow: hidden;
-    background: var(--brand-line);
-}
-
-.psc-stackseg { display: block; height: 100%; }
-
-.psc-stack-lg {
-    height: 34px;
-    border-radius: 8px;
-    align-items: stretch;
-}
-
-.psc-stack-lg .psc-stackseg {
+    top: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    border-right: 1px solid var(--card-bg);
     color: #fff;
-    font: 700 0.72em/1 'Manrope', 'Segoe UI', sans-serif;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+    font: 700 0.68em/1 'Manrope', 'Segoe UI', sans-serif;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+    cursor: default;
+}
+
+/* Negative (Dṛk) segments sit left of zero, hatched so they read as a deduction. */
+.psc-seg-neg {
+    background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0 3px, transparent 3px 6px);
+    border-right: 0;
+    border-left: 1px solid var(--card-bg);
+}
+
+.psc-zero {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    border-left: 2px solid var(--card-fg);
+}
+
+/* Each planet's own required minimum (BPHS) — a dark tick through the bar. */
+.psc-min {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 0;
+    border-left: 2px dashed var(--card-fg);
+}
+
+.psc-minkey {
+    display: inline-block;
+    width: 0;
+    height: 12px;
+    border-left: 2px dashed var(--card-fg);
 }
 
 .psc-pill {
@@ -259,72 +216,15 @@
 .psc-pill.psc-status-weak { background: var(--status-weak-bg); color: var(--status-weak); }
 .psc-pill.psc-status-none { background: var(--brand-peach); color: var(--brand-muted); }
 
-.psc-detail {
-    margin: 4px 10px 14px;
-    padding: 12px 14px;
-    border: 1px solid var(--brand-line);
-    border-radius: 10px;
-    background: var(--brand-peach);
-}
-
-.psc-detail-title {
-    margin: 0 0 10px;
-    color: var(--brand-midnight);
-    font: 700 0.9em/1.3 'Manrope', 'Segoe UI', sans-serif;
-}
-
-.psc-detail-meta { color: var(--brand-muted); font-weight: 500; font-size: 0.85em; margin-left: 4px; }
-
-.psc-detail-body {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 18px;
-    align-items: start;
-}
-
-.psc-detail-chart { display: flex; flex-direction: column; gap: 10px; }
-
-.psc-detail-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    font-size: 0.76em;
-    color: var(--brand-midnight);
-}
-
-.psc-detail-legend .psc-legend-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-}
-
-.psc-detail-table table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8em;
-}
-
-.psc-detail-table th {
-    text-align: left;
-    padding: 5px 8px;
-    color: var(--brand-muted);
-    border-bottom: 2px solid var(--brand-line);
-    font-weight: 700;
-}
-
-.psc-detail-table td {
-    padding: 5px 8px;
-    border-bottom: 1px solid var(--brand-line);
-    color: var(--brand-midnight);
-}
-
-.psc-detail-table td.psc-mono { text-align: right; }
-.psc-muted { color: var(--brand-muted); text-align: center !important; }
-
-@media (max-width: 900px) {
-    .psc { overflow-x: auto; }
-    .psc-colheads,
-    .psc-row { min-width: 696px; }
-    .psc-detail-body { grid-template-columns: 1fr; }
-    .psc-scale { display: none; }
+/* Phone: the bar drops to its own full-width line under the planet; Min./Capacity hide. */
+@media (max-width: 760px) {
+    .psc { padding: 12px 10px 6px; }
+    .psc-colheads { display: none; }
+    .psc-row {
+        grid-template-columns: 30px 1fr auto auto auto auto;
+        row-gap: 6px;
+    }
+    .psc-row > .psc-c-bar { grid-column: 1 / -1; grid-row: 2; }
+    .psc-row > :nth-child(5),
+    .psc-row > :nth-child(7) { display: none; }
 }

@@ -480,7 +480,41 @@ Step 1 shows facts that were already computed and stored; no new calculation or 
   Speed and latitude went here, not into 1.1's already wide positions table.
 - **`GrahaYuddha`** (Core, `Engines/Strength`) now owns war detection — the five tara grahas, 1° orb,
   more northern latitude wins. `ShadbalaCalculator`'s Yuddha Bala and the new table both call it.
-- **Not surfaced: Ishta / Kashta phala.** `vw_ChartShadbala.IshtaBala`/`KashtaBala` are wrong:
-  Kashta is stored as 60 − Ishta instead of √((60 − Uchcha) × (60 − Cheshta)), and Sun and Moon read
-  Ishta 0 because their Cheṣṭā bala is 0 (JHora uses Ayana bala for the Sun and Pakṣa bala for the
-  Moon there). Needs a `ShadbalaCalculator` fix and regeneration before it is shown.
+- **Ishta / Kashta phala** were held back at first (wrong stored values) and fixed the same day — see below.
+
+## 2026-10-02 — Cheṣṭā Bala and Ishta / Kashta fixed
+
+- **Cheṣṭā Bala** was a placeholder (60 retrograde, 30 direct, 0 for Sun and Moon). Now `CheshtaBala`
+  (Core, `Engines/Strength`): Mars–Saturn from the Cheṣṭā kendra on Raman's Ujjain-1900 mean motions
+  (SRC_RAMAN_GRAHA_BHAVA_BALAS, constants as transcribed in PyJHora); the Moon is her Pakṣa Bala
+  (elongation / 3); the Sun is his Ayana Bala, (24° + declination) × 60/48, per BPHS.
+- **Ishta / Kashta**: Ishta = √(Uchcha × Cheṣṭā), Kashta = √((60 − Uchcha) × (60 − Cheṣṭā)) (Kashta
+  was stored as 60 − Ishta). Shown in 3.1's per-planet breakdown header ("Ishta · Kashta").
+- **Against JHora (1_Ramakrishnan, `verify-strength` Phase 1b):** Cheṣṭā within 0.2 virūpas for the
+  five tara grahas, the Moon exact; Ishta/Kashta within 0.15 for all but the Sun. JHora's Sun Cheṣṭā is
+  40.40, ours 45.12 — JHora's method for the Sun is undocumented, so BPHS is followed.
+- Every Shadbala total moved (Cheṣṭā is one of the six balas); all 8 people were regenerated with
+  `rebuild-all` and `backfill-strength-statistics`.
+- **Pakṣa and Ayana Bala fixed (same day).** `PakshaBala`: e = Moon–Sun elongation (0–180°);
+  Jupiter/Venus e/3, Sun/Mars/Saturn 60 − e/3, the Moon always e/3 doubled (as JHora does, even
+  waning), Mercury by his sign-mates (more benefics or alone → benefic; tie → nearest decides).
+  `AyanaBala`, new in Kāla Bala (`AYANA_BALA`, already in the db/39 catalog): (24° ± kranti) × 60/48,
+  north adding for Sun/Mars/Jupiter/Venus, south for Moon/Saturn, Mercury always; the Sun's doubled.
+  Kranti is the declination of the ecliptic longitude — with the planet's latitude the Moon was 6
+  virūpas off JHora, without it all seven are within 0.5. `verify-strength` checks both against JHora.
+- **Still open:** Nathonnata Bala is 0/60 by day/night (JHora grades it by the hour), Abda and Māsa
+  Bala are not computed, and Sthāna Bala's Saptavargaja differs — so Shadbala totals still differ.
+
+## 2026-10-02 — 3.1 Planet Strength is one stacked-bar chart
+
+- Replaces the Performance/Composition toggle and the per-planet expand panel. One row per graha,
+  strongest first; its bar stacks the six balas + Yuddha in rūpas on **one axis shared by every
+  planet**, with that planet's **required-minimum tick** (dashed) through it.
+- Negative values (Dṛk Bala) draw **left of zero**, hatched; the axis only extends below zero when a
+  planet needs it. Geometry is `StackedBarLayout` (Web, unit-tested).
+- **BALAS / SUB-COMPONENTS** switch (chart-control pill) re-splits every bar into its stored
+  `tbl_Fact_PlanetaryStrengthComponent` rows, later ones fading toward the card within their bala's
+  colour. Hovering a bala segment lists its sub-components in virūpas.
+- Row end: Rūpas · Min. · % Min. · Capacity · Ishta · Kashta · Status. On phones the bar takes its
+  own line under the planet and Min./Capacity hide.
+- Colours read `--card-fg`/`--card-bg` (not `--brand-midnight`) so cosmic-dark stays legible.
