@@ -1,104 +1,81 @@
 @using System.Globalization
 @using Ikiastrro.Core.Presentation
-@* Astro Facts 3.2 "House Strength" — Bhava Bala summary (vw_ChartBhavaBala) with a House
-   order/Strength rank toggle and a per-house expandable component breakdown
-   (tbl_Fact_BhavaStrengthComponent: BHAVADHIPATI_BALA/BHAVA_DIG_BALA/BHAVA_DRIK_BALA,
-   BhavaBalaCalculator). docs/ui/components/astro-facts.md step 3. Dignity pill reuses
-   ChartViewModel.DignityToken/--dignity-* — same convention PlanetDignityTable/
-   HouseLordshipTable already use, not a new palette. "hsc" = HouseStrengthChart. *@
+@* Astro Facts 3.2 "House Strength" — one stacked bar per house on a shared rūpa axis
+   (vw_ChartBhavaBala + tbl_Fact_BhavaStrengthComponent: Bhāvādhipati / Bhava Dig / Bhava Dṛk,
+   BhavaBalaCalculator), docs/ui/components/astro-facts.md step 3 — same shape as 3.1
+   PlanetStrengthChart. Dashed lines mark the Moderate and Strong cut-offs; a negative Bhava Dṛk
+   draws left of zero. House order / Strength rank toggle keeps rank = strength either way.
+   Dignity pill reuses ChartViewModel.DignityToken/--dignity-*. "hsc" = HouseStrengthChart. *@
 <div class="hsc">
     <div class="hsc-head">
-        <div class="hsc-toggle" role="group" aria-label="Row order">
-            <button type="button" class="@(_sort == SortMode.HouseOrder ? "hsc-toggle-on" : "")" @onclick="() => _sort = SortMode.HouseOrder">House order</button>
-            <button type="button" class="@(_sort == SortMode.StrengthRank ? "hsc-toggle-on" : "")" @onclick="() => _sort = SortMode.StrengthRank">Strength rank</button>
+        <div class="hsc-legend">
+            @foreach (var c in Parts)
+            {
+                <span class="hsc-legend-item"><span class="hsc-dot" style="background:var(--bala-@c.Token)"></span>@c.Label</span>
+            }
+            <span class="hsc-legend-item"><span class="hsc-bandkey"></span>Moderate @Band.ModerateFrom.ToString("0", CultureInfo.InvariantCulture) · Strong @Band.StrongFrom.ToString("0", CultureInfo.InvariantCulture) rūpas</span>
         </div>
-    </div>
-
-    <div class="hsc-legend">
-        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-strong"></span>&ge;@(Band.StrongFrom.ToString("0.00")) Strong</span>
-        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-moderate"></span>@(Band.ModerateFrom.ToString("0.00"))&ndash;@((Band.StrongFrom - 0.01m).ToString("0.00")) Moderate</span>
-        <span class="hsc-legend-item"><span class="hsc-dot hsc-status-weak"></span>&lt;@(Band.ModerateFrom.ToString("0.00")) Weak</span>
+        <div class="hsc-toggle" role="group" aria-label="Row order">
+            <button type="button" class="@(_sort == SortMode.HouseOrder ? "hsc-toggle-on" : "")" aria-pressed="@(_sort == SortMode.HouseOrder)" @onclick="() => _sort = SortMode.HouseOrder">House order</button>
+            <button type="button" class="@(_sort == SortMode.StrengthRank ? "hsc-toggle-on" : "")" aria-pressed="@(_sort == SortMode.StrengthRank)" @onclick="() => _sort = SortMode.StrengthRank">Strength rank</button>
+        </div>
     </div>
 
     <div class="hsc-colheads">
         <span class="hsc-c-rank">Rank</span>
         <span class="hsc-c-house">House</span>
-        <span class="hsc-c-sign">Sign</span>
-        <span class="hsc-c-lord">Lord</span>
-        <span class="hsc-c-placed">Lord placed</span>
-        <span class="hsc-c-dignity">Dignity</span>
-        <span class="hsc-c-bar">Rūpas (0&ndash;@ScaleMax.ToString("0.#", CultureInfo.InvariantCulture))</span>
+        <span>Sign</span>
+        <span>Lord</span>
+        <span>Lord placed</span>
+        <span>Dignity</span>
+        <span class="hsc-c-bar">
+            <span class="hsc-scale" aria-hidden="true">
+                @foreach (var t in _axis.Ticks())
+                {
+                    <span class="hsc-tick" style="left:@Pct(_axis.Position(t))%">@t.ToString("0", CultureInfo.InvariantCulture)</span>
+                }
+            </span>
+            <span>Bhava Bala (rūpas)</span>
+        </span>
         <span class="hsc-c-num">Rūpas</span>
+        <span class="hsc-c-num" title="Bhava Dig + Bhava Dṛk only — without Bhāvādhipati Bala, which is the lord's own Ṣaḍbala (stat_strength.md §1.3)">Indep.</span>
     </div>
 
     @foreach (var (rank, row) in Displayed)
     {
-        var (label, css) = StatusOf(row.BhavaBalaRupas);
-        var expanded = _expanded.Contains(row.HouseNumber);
-        <div class="hsc-row-wrap">
-            <button type="button" class="hsc-row" @onclick="() => Toggle(row.HouseNumber)" aria-expanded="@(expanded ? "true" : "false")">
-                <span class="hsc-c-rank"><span class="hsc-rankbadge @css">@rank</span></span>
-                <span class="hsc-c-house"><span class="hsc-chevron @(expanded ? "hsc-chevron-open" : "")">&#8250;</span>H@(row.HouseNumber)</span>
-                <span class="hsc-c-sign">@(row.HouseSign ?? "—")</span>
-                <span class="hsc-c-lord">@(row.LordPlanet ?? "—")</span>
-                <span class="hsc-c-placed">@LordPlacedDisplay(row)</span>
-                <span class="hsc-c-dignity">
-                    @if (row.LordDignityStatus is null)
-                    { <span class="hsc-muted">—</span> }
-                    else
-                    { <span class="hsc-pill"><span class="hsc-dignity-dot" style="background:var(--dignity-@ChartViewModel.DignityToken(row.LordDignityStatus))"></span>@row.LordDignityStatus</span> }
+        var css = StatusCss(row.BhavaBalaRupas);
+        <div class="hsc-row">
+            <span class="hsc-c-rank"><span class="hsc-rankbadge @css" title="@StatusLabel(row.BhavaBalaRupas)">@rank</span></span>
+            <span class="hsc-c-house">H@(row.HouseNumber)</span>
+            <span class="hsc-c-text">@(row.HouseSign ?? "—")</span>
+            <span class="hsc-c-text">@(row.LordPlanet ?? "—")</span>
+            <span class="hsc-c-text">@LordPlacedDisplay(row)</span>
+            <span>
+                @if (row.LordDignityStatus is null)
+                { <span class="hsc-muted">—</span> }
+                else
+                { <span class="hsc-pill"><span class="hsc-dignity-dot" style="background:var(--dignity-@ChartViewModel.DignityToken(row.LordDignityStatus))"></span>@row.LordDignityStatus</span> }
+            </span>
+            <span class="hsc-c-bar">
+                <span class="hsc-bar" role="img" aria-label="@($"H{row.HouseNumber}: {row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)} rūpas, {StatusLabel(row.BhavaBalaRupas)}")">
+                    @foreach (var s in StackedBarLayout.Layout(PartsFor(row.HouseNumber), _axis))
+                    {
+                        <span class="hsc-seg @(s.IsNegative ? "hsc-seg-neg" : "")"
+                              style="left:@Pct(s.LeftPercent)%;width:@Pct(s.WidthPercent)%;background:var(--bala-@s.Part.Token)"
+                              title="@($"{s.Part.Label}: {s.Part.Value.ToString("0.00", CultureInfo.InvariantCulture)} rūpas")">@(s.WidthPercent >= 7 ? s.Part.Value.ToString("0.00", CultureInfo.InvariantCulture) : "")</span>
+                    }
+                    @if (_axis.Min < 0)
+                    {
+                        <span class="hsc-zero" style="left:@Pct(_axis.Position(0))%"></span>
+                    }
+                    <span class="hsc-band" style="left:@Pct(_axis.Position(Band.ModerateFrom))%"></span>
+                    <span class="hsc-band" style="left:@Pct(_axis.Position(Band.StrongFrom))%"></span>
                 </span>
-                <span class="hsc-c-bar">
-                    <span class="hsc-track">
-                        <span class="hsc-fill @css" style="width:@(BarWidthPercent(row.BhavaBalaRupas).ToString("0.##", CultureInfo.InvariantCulture))%"></span>
-                    </span>
-                </span>
-                <span class="hsc-c-num hsc-mono">@row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)</span>
-            </button>
-
-            @if (expanded)
-            {
-                var comps = Components.Where(c => c.HouseNumber == row.HouseNumber)
-                    .ToDictionary(c => c.ComponentCode, c => Math.Round(c.ValueVirupas / 60m, 2), StringComparer.OrdinalIgnoreCase);
-                <div class="hsc-detail">
-                    <h3 class="hsc-detail-title">H@(row.HouseNumber) &mdash; Component Breakdown</h3>
-                    <p class="hsc-detail-meta">
-                        @(row.HouseSign ?? "—") &nbsp;|&nbsp; Lord: @(row.LordPlanet ?? "—")
-                        &nbsp;|&nbsp; Placed: @LordPlacedDisplay(row)
-                        &nbsp;|&nbsp; Dignity: @(row.LordDignityStatus ?? "—")
-                        &nbsp;|&nbsp; Total Rūpas: @row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)
-                    </p>
-                    <div class="hsc-metrics">
-                        @foreach (var m in DetailComponents)
-                        {
-                            var value = comps.GetValueOrDefault(m.Code, 0);
-                            <div class="hsc-metric">
-                                <span class="hsc-metric-label"><span class="hsc-dot hsc-bala-@m.Token"></span>@m.Label</span>
-                                <span class="hsc-metric-track">
-                                    <span class="hsc-metric-fill hsc-bala-@m.Token" style="width:@(BarWidthPercent(value).ToString("0.##", CultureInfo.InvariantCulture))%"></span>
-                                </span>
-                                <span class="hsc-metric-value">@value.ToString("0.00", CultureInfo.InvariantCulture)</span>
-                            </div>
-                        }
-                    </div>
-                    <p class="hsc-detail-sum">
-                        Total Rūpas: @row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)
-                        (@string.Join(" + ", DetailComponents.Select(m => comps.GetValueOrDefault(m.Code, 0).ToString("0.00", CultureInfo.InvariantCulture))))
-                    </p>
-                    <p class="hsc-detail-sum" title="Bhava Dig + Bhava Drik only, excluding Bhavadhipati Bala (the lord's own Shadbala) — avoids double-counting the lord's strength when combining this house's support with any planet's Shadbala elsewhere (docs/research/domain/stat_strength.md §1.3).">
-                        Independent support: @IndependentBhavabala(comps).ToString("0.00", CultureInfo.InvariantCulture) Rūpas
-                    </p>
-                </div>
-            }
+            </span>
+            <span class="hsc-c-num hsc-mono">@row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)</span>
+            <span class="hsc-c-num hsc-mono">@IndependentRupas(row.HouseNumber).ToString("0.00", CultureInfo.InvariantCulture)</span>
         </div>
     }
-
-    <div class="hsc-axis">
-        @foreach (var t in AxisTicks)
-        {
-            <span>@t.ToString("0.#", CultureInfo.InvariantCulture)</span>
-        }
-    </div>
 </div>
 
 @code {
@@ -107,68 +84,57 @@
 
     private enum SortMode { HouseOrder, StrengthRank }
     private SortMode _sort = SortMode.StrengthRank;
-    private readonly HashSet<int> _expanded = new();
+    private StackAxis _axis = new(0, 1);
 
-    private static readonly (string Code, string Label, string Token)[] DetailComponents =
+    private static readonly (string Code, string Label, string Token)[] Parts =
     {
-        ("BHAVADHIPATI_BALA", "Bhavadhipati Bala", "bhavadhipati"),
-        ("BHAVA_DIG_BALA", "Bhava Dig Bala", "dig"),
-        ("BHAVA_DRIK_BALA", "Bhava Drik Bala", "drik"),
+        ("BHAVADHIPATI_BALA", "Bhāvādhipati", "bhavadhipati"),
+        ("BHAVA_DIG_BALA", "Bhava Dig", "dig"),
+        ("BHAVA_DRIK_BALA", "Bhava Dṛk", "drik"),
     };
 
+    // One axis for all twelve houses, always reaching the Strong cut-off so its line is drawn.
+    protected override void OnParametersSet() =>
+        _axis = StackedBarLayout.Axis(Rows.Select(r => PartsFor(r.HouseNumber)), [Band.StrongFrom]);
+
+    private IReadOnlyList<StackPart> PartsFor(int house) =>
+        Parts.Select(p => new StackPart(p.Code, p.Label, p.Token,
+            Math.Round(Components.Where(c => c.HouseNumber == house && c.ComponentCode.Equals(p.Code, StringComparison.OrdinalIgnoreCase))
+                .Sum(c => c.ValueVirupas) / 60m, 2))).ToList();
+
     /// <summary>Rank is always by strength (1 = highest Bhava Bala Rūpas) — "House order" only
-    /// changes display order, never renumbers rank, so a weak-but-early house (e.g. H1) still
-    /// reads its true rank when the table is sorted back to house sequence.</summary>
+    /// changes display order, never renumbers rank.</summary>
     private IReadOnlyList<(int Rank, BhavaBalaSummaryRow Row)> RankedByStrength =>
         Rows.OrderByDescending(r => r.BhavaBalaRupas).Select((r, i) => (i + 1, r)).ToList();
 
     private IReadOnlyList<(int Rank, BhavaBalaSummaryRow Row)> Displayed =>
-        _sort == SortMode.HouseOrder
-            ? RankedByStrength.OrderBy(x => x.Row.HouseNumber).ToList()
-            : RankedByStrength;
-
-    private void Toggle(int house)
-    {
-        if (!_expanded.Add(house)) _expanded.Remove(house);
-    }
+        _sort == SortMode.HouseOrder ? RankedByStrength.OrderBy(x => x.Row.HouseNumber).ToList() : RankedByStrength;
 
     /// <summary>StrengthBands.BhavaBalaRupas (tbl_Rule_StrengthBand, migration 154). No classical
     /// cut-off exists for Bhava Bala, so both boundaries are SRC_IKIASTRRO_SYNTHESIS heuristics.</summary>
     private static readonly StrengthBandScale Band = StrengthBands.BhavaBalaRupas;
 
-    private static (string Label, string CssClass) StatusOf(decimal rupas) => Band.Classify(rupas) switch
+    private static string StatusCss(decimal rupas) => Band.Classify(rupas) switch
     {
-        StrengthTier.Strong => ("Strong", "hsc-status-strong"),
-        StrengthTier.Moderate => ("Moderate", "hsc-status-moderate"),
-        _ => ("Weak", "hsc-status-weak"),
+        StrengthTier.Strong => "hsc-status-strong",
+        StrengthTier.Moderate => "hsc-status-moderate",
+        _ => "hsc-status-weak",
     };
 
-    // Bhava Bala has no fixed classical ceiling the way Ashtakavarga's 40-bindu practical max
-    // does — Bhavadhipati Bala alone is the house lord's whole Shadbala, which routinely clears
-    // 9 Rupas for a strong lord (observed up to ~10.9 in this database), so a hardcoded /9 scale
-    // silently clipped strong houses at 100% width. Scale to the actual max among the displayed
-    // houses instead, rounded up to a whole Rupa (floor of 1 so an all-zero chart doesn't divide
-    // by zero).
-    private decimal ScaleMax => Math.Max(1m, Math.Ceiling(Rows.Select(r => r.BhavaBalaRupas).DefaultIfEmpty(0).Max()));
-
-    private IEnumerable<decimal> AxisTicks
+    private static string StatusLabel(decimal rupas) => Band.Classify(rupas) switch
     {
-        get
-        {
-            var max = ScaleMax;
-            for (var i = 0; i <= 5; i++) yield return Math.Round(max * i / 5, 1);
-        }
-    }
-
-    private double BarWidthPercent(decimal rupas) => (double)(Math.Min(Math.Max(rupas, 0), ScaleMax) / ScaleMax * 100m);
+        StrengthTier.Strong => "Strong",
+        StrengthTier.Moderate => "Moderate",
+        _ => "Weak",
+    };
 
     private static string LordPlacedDisplay(BhavaBalaSummaryRow row) =>
         row.LordPlacedInHouseFromLagna is { } h ? $"H{h} · {row.LordPlacedInSign ?? "—"}" : "—";
 
-    /// <summary>Bhava Dig + Bhava Drik only (docs/research/domain/stat_strength.md §1.3's
-    /// B^independent) — excludes Bhavadhipati Bala, which is just the house lord's own Shadbala
-    /// restated, so it isn't double-counted when this house's support is later combined with a
-    /// planet's Shadbala elsewhere.</summary>
-    private static decimal IndependentBhavabala(IReadOnlyDictionary<string, decimal> comps) =>
-        comps.Where(kv => IndependentBhavaBala.ComponentCodes.Contains(kv.Key)).Sum(kv => kv.Value);
+    /// <summary>Bhava Dig + Bhava Dṛk only (stat_strength.md §1.3's B^independent).</summary>
+    private decimal IndependentRupas(int house) =>
+        Components.Where(c => c.HouseNumber == house && IndependentBhavaBala.ComponentCodes.Contains(c.ComponentCode))
+            .Sum(c => c.ValueVirupas) / 60m;
+
+    private static string Pct(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 }

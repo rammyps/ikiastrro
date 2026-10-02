@@ -502,8 +502,11 @@ Step 1 shows facts that were already computed and stored; no new calculation or 
   north adding for Sun/Mars/Jupiter/Venus, south for Moon/Saturn, Mercury always; the Sun's doubled.
   Kranti is the declination of the ecliptic longitude — with the planet's latitude the Moon was 6
   virūpas off JHora, without it all seven are within 0.5. `verify-strength` checks both against JHora.
-- **Still open:** Nathonnata Bala is 0/60 by day/night (JHora grades it by the hour), Abda and Māsa
-  Bala are not computed, and Sthāna Bala's Saptavargaja differs — so Shadbala totals still differ.
+- **Nathonnata, Abda and Māsa Bala fixed (same day).** Nathonnata is graded by the hour from apparent
+  midnight (`NathonnataBala`; 0.62 off JHora, whose midnight sits ~7½ min earlier). Abda
+  (`VARSHA_BALA`, 15) and Māsa (`MASA_BALA`, 30) lords come from Raman's ahargana
+  (`AbdaMasaLords`) and match JHora. Kāla Bala is now within 1 virūpa of JHora for all seven planets.
+- **Still open:** Sthāna Bala's Saptavargaja differs from JHora, so Shadbala totals still differ.
 
 ## 2026-10-02 — 3.1 Planet Strength is one stacked-bar chart
 
@@ -518,3 +521,11 @@ Step 1 shows facts that were already computed and stored; no new calculation or 
 - Row end: Rūpas · Min. · % Min. · Capacity · Ishta · Kashta · Status. On phones the bar takes its
   own line under the planet and Min./Capacity hide.
 - Colours read `--card-fg`/`--card-bg` (not `--brand-midnight`) so cosmic-dark stays legible.
+
+## 2026-10-02 — 3.2 House Strength is a stacked-bar chart too
+
+- Same shape as 3.1: one bar per house stacking Bhāvādhipati / Bhava Dig / Bhava Dṛk in rūpas on one
+  shared axis (`StackedBarLayout`), negative Dṛk left of zero, dashed lines at the Moderate (5) and
+  Strong (7) cut-offs. The expand panel is gone; its "Independent support" (Dig + Dṛk) is now the
+  **Indep.** column. House order / Strength rank toggle kept (rank stays by strength). The rank badge's
+  colour carries Strong / Moderate / Weak. On phones the bar takes its own line.
