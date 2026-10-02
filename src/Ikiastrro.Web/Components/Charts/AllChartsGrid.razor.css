@@ -97,19 +97,6 @@
 
 .ac-card-grid { padding: 12px; }
 
-/* Each chart opens in Key Inference (spec_SIND-UNI_GridChart.md "Page links"). */
-.ac-card-ki {
-    display: block;
-    margin: -4px 12px 12px;
-    font-size: 0.76em;
-    font-weight: 800;
-    color: var(--brand-midnight);
-    text-decoration: none;
-    text-align: right;
-}
-.ac-card-ki:hover { text-decoration: underline; text-decoration-color: var(--brand-sunrise); text-underline-offset: 3px; }
-@media print { .ac-card-ki { display: none; } }
-
 /* trim SouthIndianGrid_Detailed's heavy parchment framing for a gallery card */
 .ac-card-grid ::deep .chart {
     max-width: none;

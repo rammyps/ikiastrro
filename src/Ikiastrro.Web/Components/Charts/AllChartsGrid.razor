@@ -1,6 +1,5 @@
 @using Ikiastrro.Core.Models
 @using Ikiastrro.Web.Components.Workspace
-@using Ikiastrro.Web.Components.LifeMatters
 @inject Microsoft.JSInterop.IJSRuntime JS
 
 @* Shared "every divisional chart" gallery — every stored chart as a plain South-Indian grid, 3 per
@@ -35,7 +34,6 @@
                         <CenterMeta>@(t.ChartShortDescription ?? t.DisplayName)</CenterMeta>
                     </SouthIndianGrid_Detailed>
                 </div>
-                <a class="ac-card-ki" href="@KeyInferenceLink.Url(Data.Person.Id, null, "LAGNA", t.Code)">Read @t.Code in Key Inference →</a>
             }
             else
             {

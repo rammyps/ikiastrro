@@ -759,6 +759,13 @@ else
             ApplyQuery();
             return;
         }
+        // Switching person (MainLayout.GoToPerson) drops the query string: carry the reading on
+        // show — matter, lagna question and picked chart — over to the new person instead of
+        // falling back to the first area.
+        var carry = _loadedId is not null && Matter is null && Lagna is null && Chart is null
+            ? _allSteps.FirstOrDefault(s => s.LifeMatterId == _selectedLifeMatterId)?.LifeMatterCode
+            : null;
+        var (carryQuestion, carryChart) = (_question, _chartOverride);
         _loadedId = Id;
         _statsByChart.Clear();
         _chartOverride = null;
@@ -806,6 +813,11 @@ else
 
         _appliedQuery = null;
         ApplyQuery();
+        if (carry is not null)
+        {
+            Select(carry, carryQuestion, carryChart);
+            SyncUrl();
+        }
     }
 
     // ---------------- deep link ----------------
@@ -823,13 +835,20 @@ else
         var key = QueryKey(Matter, Lagna, Chart);
         if (_data is null || key == _appliedQuery) return;
         _appliedQuery = key;
+        Select(Matter, Lagna, Chart);
+    }
 
-        var step = _allSteps.FirstOrDefault(s => string.Equals(s.LifeMatterCode, Matter, StringComparison.OrdinalIgnoreCase));
+    /// <summary>Selects a matter code, lagna (tag or reference code) and chart; each one missing or
+    /// unknown for this person falls back to its default.</summary>
+    private void Select(string? matter, string? lagna, string? chart)
+    {
+        var step = _allSteps.FirstOrDefault(s => string.Equals(s.LifeMatterCode, matter, StringComparison.OrdinalIgnoreCase));
         _area = step?.CategoryCode ?? _categories.FirstOrDefault()?.CategoryCode ?? "";
         _selectedLifeMatterId = step?.LifeMatterId ?? StepsIn(_area).FirstOrDefault()?.LifeMatterId;
-        _question = KeyInferenceLink.ResolveLagna(Lagna) ?? "LAGNA";
-        _chartOverride = KeyInferenceLink.ResolveChart(Chart, _data.Charts.Keys);
+        _question = KeyInferenceLink.ResolveLagna(lagna) ?? "LAGNA";
+        _chartOverride = KeyInferenceLink.ResolveChart(chart, _data!.Charts.Keys);
         _pinnedSign = null;
+        _influenceIndex = 0;
         _showAllMatters = false;
         _copyStatus = null;
         _copyFailed = false;

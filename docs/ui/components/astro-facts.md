@@ -584,3 +584,26 @@ nothing stored, no regeneration needed. `KeyInfoTests` checks every figure again
   picked chart's key details — the avasthā table showed D1 states beside the picked varga's
   dignity. Both now read D1. Section ids and titles live in one `NatalSection` catalog in
   `AstroFacts.razor`.
+
+## 2026-10-02 — JHora gap step 3: Śodhita, Vaiśeṣikāṃśa, Ṣaṣṭyaṃśa deities; Key Inference links
+
+- **Direct Key Inference links removed** — the chart toolbar's "KEY INFERENCE →", each All Charts
+  card's "Read Dn in Key Inference →" and the Spl Lagnas grid's link. Astro Facts reaches Key
+  Inference only through the life matters in About Houses' House lord placement table.
+- **Person switch** keeps the picker's chart, falling back to D1 when the new person lacks it (the
+  Natal panel used to go blank). The Spl Lagnas grid's pinned sign clears.
+- **3.3 Ashtavarga → "Śodhita Aṣṭakavarga"** card between Bhinnāṣṭavarga and Piṇḍa: each graha's
+  BAV after Ṭrikoṇa then Ekādhipatya Śodhana (Core `AshtakavargaCalculator`, the reduction the
+  Piṇḍa already used), occupancy from the selected chart. All seven rows match JHora's SoAV view
+  for RamakrishnanP. The last row is the column sum ("Σ reduced"); JHora's SoAV "SAV" box is built
+  some other, undocumented way and does not equal it.
+- **6 Vargas → Aṁśabala rows show the Vaiśeṣikāṃśa grade** (`AmsabalaRow.AmsaName`, already stored).
+  Counts match JHora's "Vaiseshikamsas in four varga schemes" for Shadvarga and Saptavarga; Dasavarga
+  and Shodasavarga differ for Jupiter and Saturn — JHora's D10 (5-8) / D60 (RvAr) variants, not yet
+  reconciled. Rahu and Ketu are not graded (JHora grades them).
+- **6 Vargas → "Ṣaṣṭyaṃśa (D60) deities"** (`ShashtiamsaTable`, D1 tag): part, deity and nature for
+  the Lagna and nine grahas, live from the D1 degree. Names and natures follow
+  [decision 006](../../../decisions/006-shashtiamsa-names-bphs-jhora.md); all nine bodies but the
+  nodes match JHora (our node longitude is ~8′ from JHora's).
+- **KP sub-lords** were already in 1.1's Planet positions (Sub Lord, chain L2–L7). They match JHora
+  through the prati-sub; from the sookshma down the ~1′ ayanamsa difference (decision 004) moves them.

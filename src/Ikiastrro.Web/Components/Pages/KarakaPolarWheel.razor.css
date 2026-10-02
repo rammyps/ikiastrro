@@ -17,5 +17,3 @@
 @media(max-width:720px){.karaka-head{flex-wrap:wrap}.karaka-view-tabs{justify-content:center}}
 /* Grid view: SIND-UNI-3 with special-lagna bars (spec_SIND-UNI_GridChart.md). */
 .karaka-uni { max-width: 760px; margin: 0 auto 20px; display: grid; gap: 8px; }
-.karaka-ki { justify-self: end; font-weight: 800; font-size: calc(var(--font-size-control) * 0.8); color: var(--brand-midnight); text-decoration: none; border-bottom: 2px solid var(--brand-sunrise); }
-.karaka-ki:hover { border-bottom-color: var(--brand-midnight); }

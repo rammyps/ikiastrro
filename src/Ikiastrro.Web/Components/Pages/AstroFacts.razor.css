@@ -364,18 +364,6 @@
     text-transform: uppercase;
 }
 .ki-chart-picker:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
-/* Astro Facts → Key Inference for the chart on show (spec_SIND-UNI_GridChart.md "Page links"). */
-.ki-chart-ki {
-    margin-left: auto;
-    font: 800 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: .04em;
-    color: var(--brand-midnight);
-    text-decoration: none;
-    border-bottom: 2px solid var(--brand-sunrise);
-    white-space: nowrap;
-}
-.ki-chart-ki:hover { border-bottom-color: var(--brand-midnight); }
-.ki-chart-ki:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
 
 .ki-natal-layout {
     display: grid;

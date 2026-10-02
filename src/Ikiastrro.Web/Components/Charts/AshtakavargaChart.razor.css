@@ -59,3 +59,7 @@
 .av-sum { font-weight: 800; }
 .av-pinda { min-width: 520px !important; }
 @media (max-width: 620px) { .av-card-head { align-items: flex-start; } .av-bars { padding: 14px 10px; } .av-bar-row { grid-template-columns: 64px minmax(90px,1fr) 28px; gap: 7px; } }
+
+/* Śodhita card: reduced bindus are small, so no strength bands — zeros fade, the SAV row is bold. */
+.av-muted { color: var(--brand-muted); }
+.av-sodhita tfoot th, .av-sodhita tfoot td { border-top: 2px solid var(--card-line); }

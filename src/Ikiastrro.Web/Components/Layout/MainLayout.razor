@@ -173,9 +173,11 @@
     // Switching person keeps you where you are (rammyps, 2026-09-29): on KEY INFERENCE you land
     // on the new person's KEY INFERENCE, on ASTRO FACTS on theirs, and so on — only the person
     // id in the route changes. Same route ⇒ Blazor reuses the page instance, so each page's
-    // OnParametersSet reloads the new person's data while in-page state (Astro Facts's step,
-    // Key Inference' area/question) is kept. The ?step= query is dropped on purpose: it would
-    // otherwise snap Astro Facts back to the step the URL was first opened with.
+    // OnParametersSet reloads the new person's data while in-page state is kept: Astro Facts's
+    // step and picked chart (D1 when the new person lacks it), Key Inference's matter, lagna
+    // question and chart (KeyInference.OnParametersSet carries them and rewrites the URL). The
+    // query is dropped on purpose: ?step= would otherwise snap Astro Facts back to the step the
+    // URL was first opened with.
     private static readonly System.Text.RegularExpressions.Regex PersonRoute =
         new(@"^/(astro-facts|key-inference|numerology|charts)/\d+(?=/|$)");
 

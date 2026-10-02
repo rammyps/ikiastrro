@@ -42,6 +42,27 @@
         </div>
     </article>
 
+    @if (Sodhita is { } sodhita)
+    {
+        <article class="av-card">
+            <header class="av-card-head"><div><h2>Śodhita Aṣṭakavarga</h2><p class="av-context">@SelectedChart · after Ṭrikoṇa and Ekādhipatya Śodhana · occupancy from @SelectedChart</p></div></header>
+            <div class="av-table-scroll">
+                <table class="av-sodhita">
+                    <thead><tr><th>Recipient</th>@foreach (var sign in Signs) { <th><span>@ShortSign(sign)</span><small>H@(HouseNumber(sign))</small></th> }<th>Σ</th></tr></thead>
+                    <tbody>
+                        @foreach (var (recipient, bindus) in sodhita)
+                        {
+                            <tr><th>@DisplayRecipient(recipient)</th>@foreach (var sign in Signs) { var v = bindus[sign - 1]; <td class="@(v == 0 ? "av-muted" : null)">@v</td> }<td class="av-sum">@bindus.Sum()</td></tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr><th title="Column sum of the seven reduced rows. JHora's SoAV 'SAV' box is built another, undocumented way and does not equal this sum.">Σ reduced</th>@foreach (var sign in Signs) { <td class="av-sum">@sodhita.Sum(r => r.Bindus[sign - 1])</td> }<td class="av-sum">@sodhita.Sum(r => r.Bindus.Sum())</td></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </article>
+    }
+
     @if (SelectedPindaRows.Count > 0)
     {
         <article class="av-card">
@@ -126,6 +147,37 @@
         StrengthTier.Weak => "av-zero",
         _ => "av-moderate",
     };
+
+    private static readonly string[] Grahas = { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn" };
+
+    /// <summary>Each Bhinnāṣṭakavarga after Ṭrikoṇa then Ekādhipatya Śodhana (Core
+    /// AshtakavargaCalculator, the same reduction the Piṇḍa is built on), with the selected chart's
+    /// own graha occupancy. Null when the chart or any recipient's twelve bindus are missing.</summary>
+    private IReadOnlyList<(string Recipient, int[] Bindus)>? Sodhita
+    {
+        get
+        {
+            if (!Charts.TryGetValue(SelectedChart, out var chart)) return null;
+            var occupied = new HashSet<int>();
+            foreach (var g in Grahas)
+            {
+                var sign = chart.Grahas.FirstOrDefault(k => k.Planet == g)?.Sign;
+                if (!Enum.TryParse<Ikiastrro.Core.Engines.Astronomy.ZodiacName>(sign, true, out var z)) return null;
+                occupied.Add((int)z);
+            }
+            var rows = new List<(string, int[])>();
+            foreach (var recipient in Recipients)
+            {
+                var bindus = new int[12];
+                var cells = SelectedRows.Where(r => r.RecipientCode.Equals(recipient, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (cells.Count != 12) return null;
+                foreach (var c in cells) bindus[c.SignNumber - 1] = c.BinduCount;
+                rows.Add((recipient, Ikiastrro.Core.Engines.Ashtakavarga.AshtakavargaCalculator.EkadhipatyaSodhana(
+                    Ikiastrro.Core.Engines.Ashtakavarga.AshtakavargaCalculator.TrikonaSodhana(bindus), occupied)));
+            }
+            return rows.Count == 0 ? null : rows;
+        }
+    }
 
     private static string ShortSign(int signNumber) => SignNames[signNumber];
     private static string DisplayRecipient(string code) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(code.ToLowerInvariant());

@@ -5,7 +5,7 @@
     <article class="am-card">
         <header class="am-card-head">
             <div>
-                <h2 id="am-title">@(_scheme == "VARGOTTAMA" ? "Vargottama" : $"Aṁśabala — {SchemeLabel(_scheme)}")</h2>
+                <h2 id="am-title">@(_scheme == "VARGOTTAMA" ? "Vargottama" : $"Aṁśabala · Vaiśeṣikāṃśa — {SchemeLabel(_scheme)}")</h2>
                 <p class="am-subtext">@Subtext(_scheme)</p>
                 <nav class="am-schemes" aria-label="Varga scheme">
                     @foreach (var s in SchemeOrder)
@@ -60,6 +60,7 @@
                             <b class="am-bar-value @(r.GoodCount == 0 ? "am-zero" : r.GoodCount * 2 >= r.GroupSize ? "am-high" : "")">
                                 @r.GoodCount<span>/@r.GroupSize &middot; @PercentOf(r.GoodCount, r.GroupSize)%</span>
                             </b>
+                            <span class="am-amsa" title="Vaiśeṣikāṃśa: the grade for @r.GoodCount own / mūlatrikoṇa / exalted vargas of @r.GroupSize">@(r.AmsaName ?? "—")</span>
                             <span class="am-chevron">@(isOpen ? "▾" : "▸")</span>
                         </button>
 

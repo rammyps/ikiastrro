@@ -157,7 +157,6 @@ else
                                         <option value="@chart.ChartType">@chart.Label</option>
                                     }
                                 </select>
-                                <a class="ki-chart-ki" href="@KeyInferenceLink.Url(Id, null, "LAGNA", _natalChart)" title="Read @_natalChart in Key Inference">KEY INFERENCE →</a>
                             </div>
                             @if (!_natalChartCollapsed)
                             {
@@ -529,6 +528,9 @@ else
                 <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" @bind-SelectedChart="_natalChart" @bind-Scheme="_vargaScheme" />
             }
             <VimsopakaTable Charts="_data.Charts" Weights="_vimsopakaWeights" Scheme="@_vargaScheme" />
+
+            @Head(Shashtiamsa)
+            <ShashtiamsaTable KeyDetails="D1KeyDetails" />
             </div>
           </div>
         </div>
@@ -621,6 +623,9 @@ else
         public static readonly Section Conjunctions = new("af-conjunctions", "Conjunctions");
         public static readonly Section[] SignsAspectsTab = [GrahaDrishti, RasiDrishti, Dispositors, Conjunctions];
     }
+
+    /// <summary>Vargas: each body's D60 part and deity, read from the D1 degree.</summary>
+    private static readonly Section Shashtiamsa = new("af-shashtiamsa", "Ṣaṣṭyaṃśa (D60) deities", D1Only: true);
 
     /// <summary>A section heading. A D1-only section carries a "D1" tag, and while the picker
     /// shows another chart a note says the table did not follow it.</summary>
@@ -723,7 +728,6 @@ else
                     <option value="@chart.ChartType">@chart.Label</option>
                 }
             </select>
-            <a class="ki-chart-ki" href="@KeyInferenceLink.Url(Id, null, "LAGNA", _natalChart)" title="Read @_natalChart in Key Inference">KEY INFERENCE →</a>
         </div>
         @if (!_natalChartCollapsed && NatalChart is { } chartForGrid)
         {
@@ -838,6 +842,10 @@ else
 
         if (Chart is not null && _data.Charts.Keys.FirstOrDefault(c => string.Equals(c, Chart, StringComparison.OrdinalIgnoreCase)) is { } linkedChart)
             _natalChart = linkedChart;
+        // A person switch keeps the picker's chart; one the new person lacks would leave every
+        // chart column and the natal panel empty, so fall back to D1.
+        else if (!_data.Charts.ContainsKey(_natalChart))
+            _natalChart = "D1";
 
         var p = _data.Person;
         Active.Set(Id, p.Name,

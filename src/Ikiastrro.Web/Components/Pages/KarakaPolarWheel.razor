@@ -1,6 +1,5 @@
 @page "/charts/{Id:int}/karaka-wheel"
 @using Ikiastrro.Web.Components.Workspace
-@using Ikiastrro.Web.Components.LifeMatters
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
@@ -41,7 +40,6 @@ else
     <SindUni3Grid Chart="SindUniBuilder.Build(selected)" ShowSpecialLagnas="true" Title="@selected.ChartType"
                   Name="@selected.SanskritName" Meta="@($"Lagna {selected.AscendantSign}")"
                   @bind-PinnedSign="_uniPinned" PrefsKey="spl-lagnas" AriaLabel="@($"{selected.ChartType} special lagnas")" />
-    <a class="karaka-ki" href="@KeyInferenceLink.Url(Id, null, "LAGNA", selected.ChartType)">Read @selected.ChartType in Key Inference →</a>
    </div>
   }
   else
@@ -71,12 +69,13 @@ else
 @code {
  [Parameter] public int Id { get; set; }
  [Parameter] public bool Embedded { get; set; }
- private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1"; private string _view = "polar"; private Ikiastrro.Core.Engines.Astronomy.ZodiacName? _uniPinned;
+ private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1"; private string _view = "polar"; private Ikiastrro.Core.Engines.Astronomy.ZodiacName? _uniPinned; private int? _loadedId;
  private IEnumerable<LoadedChart> AvailableCharts => _data?.Charts.Values.OrderBy(c => _data.ChartTypes.FirstOrDefault(t => t.Code == c.ChartType)?.DivisionalFactor ?? int.MaxValue) ?? Enumerable.Empty<LoadedChart>();
  private LoadedChart? SelectedChart => _data?.Charts.GetValueOrDefault(_chartCode);
  protected override void OnParametersSet()
  {
   if(!Embedded){Nav.NavigateTo($"/astro-facts/{Id}?step=karakas",replace:true);return;}
+  if(_loadedId!=Id){_loadedId=Id;_uniPinned=null;} // a pinned sign belongs to the previous person's chart
   _data=WorkspaceData.Load(Id,BirthDetailsRepo,ChartResultsRepo,ChartKeyDetailsRepo,ChartHouseLordsRepo,ChartHouseLordInterpretationRepo,ChartAspectsRepo,ChartConjunctionsRepo,ChartMultiGrahaConjunctionRepo,ChartTypeRepo.GetAll());
   _rules=_data is null ? null : new NaisargikaKarakaRepository(ConnectionFactory).LoadActive();
   if(_data is not null && !_data.Charts.ContainsKey(_chartCode)) _chartCode=_data.Charts.ContainsKey("D1") ? "D1" : _data.Charts.Keys.First();

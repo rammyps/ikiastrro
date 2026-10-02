@@ -1,0 +1,43 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Strength
+@* Astro Facts 6 (Vargas) — each graha's and the Lagna's Ṣaṣṭyaṃśa (D60 part) and its deity,
+   benefic or malefic (Core ShashtiamsaDeityTable, BPHS list per docs/cli/reading/d60-shashtiamsa.md
+   §4), computed live from the D1 degree: part = ⌊degree × 2⌋ + 1, even signs read the list in reverse. *@
+<div class="kit-scroll">
+    <table class="kit">
+        <thead><tr><th>Body</th><th>D1 position</th><th>Ṣaṣṭyaṃśa</th><th>Deity</th><th>Nature</th></tr></thead>
+        <tbody>
+        @foreach (var r in _rows)
+        {
+            <tr>
+                <td><b>@r.Body</b></td>
+                <td class="mono">@r.Sign @r.Degree</td>
+                <td class="mono">@r.Deity.Number</td>
+                <td>@r.Deity.Name</td>
+                <td><span class="kit-tag @(r.Deity.IsMalefic ? "kit-bad" : "kit-good")">@(r.Deity.IsMalefic ? "Malefic" : "Benefic")</span></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    /// <summary>The D1 rāśi chart's key details, whatever chart the picker shows.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private sealed record Row(string Body, string Sign, string Degree, ShashtiamsaDeityTable.Deity Deity);
+
+    private IReadOnlyList<Row> _rows = Array.Empty<Row>();
+
+    private static readonly string[] Order =
+        { "Ascendant", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu" };
+
+    protected override void OnParametersSet() =>
+        _rows = Order
+            .Select(name => KeyDetails.FirstOrDefault(k => k.Planet == name && k.PointKind == "Graha"))
+            .Where(k => k is not null && Enum.TryParse<ZodiacName>(k.Sign, true, out _))
+            .Select(k => new Row(k!.Planet == "Ascendant" ? "Lagna" : k.Planet,
+                k.Sign == "Capricornus" ? "Capricorn" : k.Sign, k.DegreesInSignDisplay ?? "",
+                ShashtiamsaDeityTable.Lookup(Enum.Parse<ZodiacName>(k.Sign, true), AstroMath.Normalize(k.NirayanaLongitudeDegrees) % 30)))
+            .ToList();
+}
