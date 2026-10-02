@@ -15,14 +15,18 @@ public class BirthDetailsRepository
     /// <summary>Inserts the record and returns it with Id populated.</summary>
     public BirthDetails Insert(BirthDetails birthDetails)
     {
+        // tbl_BirthDetails has trg_BirthDetails_SyncCity (migration 162); SQL Server rejects a bare
+        // OUTPUT clause on a table with enabled triggers, so the Id goes through OUTPUT ... INTO.
         const string sql = """
+            DECLARE @Inserted TABLE (Id int);
             INSERT INTO dbo.tbl_BirthDetails
                 (Name, Sex, DateOfBirth, TimeOfBirth,
                  PlaceCity, PlaceCountry, Latitude, Longitude, UtcOffset, IanaTimeZoneId, CreatedAt)
-            OUTPUT INSERTED.Id
+            OUTPUT INSERTED.Id INTO @Inserted
             VALUES
                 (@Name, @Sex, @DateOfBirth, @TimeOfBirth,
-                 @PlaceCity, @PlaceCountry, @Latitude, @Longitude, @UtcOffset, @IanaTimeZoneId, @CreatedAt)
+                 @PlaceCity, @PlaceCountry, @Latitude, @Longitude, @UtcOffset, @IanaTimeZoneId, @CreatedAt);
+            SELECT Id FROM @Inserted;
             """;
 
         using var connection = _connectionFactory.CreateOpenConnection();
