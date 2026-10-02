@@ -529,3 +529,20 @@ Step 1 shows facts that were already computed and stored; no new calculation or 
   Strong (7) cut-offs. The expand panel is gone; its "Independent support" (Dig + Dṛk) is now the
   **Indep.** column. House order / Strength rank toggle kept (rank stays by strength). The rank badge's
   colour carries Strong / Moderate / Weak. On phones the bar takes its own line.
+
+## 2026-10-02 — JHora gap step 2: Yogi, nava tārā, Mrityu bhāga, Puṣkara, Bhṛgu Bindu, Varṇada
+
+Computed live from the **D1** key details (whatever the chart picker shows) by Core `Engines/KeyInfo` —
+nothing stored, no regeneration needed. `KeyInfoTests` checks every figure against JHora's
+1_Ramakrishnan views.
+
+- **1.1 General → "Yogi & sensitive points (D1)"** (`SensitivePointsTable`): Yogi point (Sun + Moon +
+  93°20′; Yogi = its nakṣatra lord, Sahayogi = its sign lord), Avayogi point (+186°40′), Bhṛgu Bindu
+  (Rahu→Moon midpoint), and Varṇada V1–V12 (BPHS count rule on Lagna + Hora Lagna, the Lagna's degree
+  kept as JHora does).
+- **1.1 General → "Nava tārā (D1)"** (`NavaTaraTable`): the nine tārās from the Moon and from the Lagna.
+- **1.2 About Planets → "Mrityu bhāga & Puṣkara (D1)"** (`MrityuPushkaraTable`): grahas, Māndi and the
+  Lagna — in Mrityu bhāga (BPHS table) and its distance, in a Puṣkara navāṃśa, in the Puṣkara bhāga
+  (Jātaka Pārijāta degrees, as JHora) and its distance. "In" = inside that single degree.
+- **Known gap:** JHora's Mrityu bhāga for the Moon in Scorpio is ~23° where the BPHS table says 14°.
+  House-cusp rows (JHora lists 2nd–12th) are not shown.

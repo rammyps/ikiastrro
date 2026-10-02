@@ -1,0 +1,41 @@
+@using Ikiastrro.Core.Engines.KeyInfo
+@* Astro Facts 1.2 — Mrityu bhāga and Puṣkara standing of each graha, Māndi and the Lagna
+   (Core MrityuPushkara, computed live from D1). "In" means inside that single degree. *@
+<div class="kit-scroll">
+    <table class="kit">
+        <thead><tr>
+            <th>Body</th><th>Mrityu bhāga</th><th>From its centre</th>
+            <th>Puṣkara navāṃśa</th><th>Puṣkara bhāga</th><th>From its centre</th>
+        </tr></thead>
+        <tbody>
+        @foreach (var r in _rows)
+        {
+            <tr>
+                <td><b>@r.Body</b></td>
+                <td>@if (r.InMrityuBhaga) { <span class="kit-tag kit-bad">In</span> } else { <span class="kit-muted">—</span> }</td>
+                <td class="mono">@($"{r.FromMrityuBhagaCentre:0.00}°")</td>
+                <td>@if (r.InPushkaramsa) { <span class="kit-tag kit-good">Yes</span> } else { <span class="kit-muted">—</span> }</td>
+                <td>@if (r.InPushkaraBhaga) { <span class="kit-tag kit-good">In</span> } else { <span class="kit-muted">—</span> }</td>
+                <td class="mono">@($"{r.FromPushkaraBhagaCentre:0.00}°")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private IReadOnlyList<MrityuPushkaraRow> _rows = Array.Empty<MrityuPushkaraRow>();
+
+    private static readonly string[] Order =
+        { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Maandi", "Ascendant" };
+
+    protected override void OnParametersSet() =>
+        _rows = Order
+            .Select(name => KeyDetails.FirstOrDefault(k => k.Planet == name && k.PointKind is "Graha" or "Upagraha"))
+            .Where(k => k is not null)
+            .Select(k => MrityuPushkara.For(k!.Planet == "Ascendant" ? "Lagna" : k.Planet, k.NirayanaLongitudeDegrees))
+            .OfType<MrityuPushkaraRow>()
+            .ToList();
+}

@@ -1,0 +1,51 @@
+@using Ikiastrro.Core.Engines.KeyInfo
+@* Astro Facts 1.1 — the nine tārās counted from the Moon's nakṣatra (Janma) and from the Lagna's,
+   side by side (Core NavaTara, computed live from D1). *@
+@if (_fromMoon.Count == 0 || _fromLagna.Count == 0)
+{
+    <p class="kit-muted">Needs the Moon and Lagna of the D1 chart.</p>
+}
+else
+{
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead>
+                <tr><th rowspan="2">Tārā</th><th rowspan="2">Meaning</th><th colspan="2">From the Moon</th><th colspan="2">From the Lagna</th></tr>
+                <tr><th>Lord</th><th>Nakshatras</th><th>Lord</th><th>Nakshatras</th></tr>
+            </thead>
+            <tbody>
+            @for (var i = 0; i < 9; i++)
+            {
+                var m = _fromMoon[i];
+                var l = _fromLagna[i];
+                <tr>
+                    <td><b>@m.Number. @m.Name</b></td>
+                    <td>@m.Meaning</td>
+                    <td><PlanetChip Planet="@m.Lord.ToString()" /></td>
+                    <td>@Naks(m)</td>
+                    <td><PlanetChip Planet="@l.Lord.ToString()" /></td>
+                    <td>@Naks(l)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private IReadOnlyList<TaraRow> _fromMoon = Array.Empty<TaraRow>();
+    private IReadOnlyList<TaraRow> _fromLagna = Array.Empty<TaraRow>();
+
+    protected override void OnParametersSet()
+    {
+        var moon = KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Moon");
+        var lagna = KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Ascendant");
+        _fromMoon = moon is null ? Array.Empty<TaraRow>() : NavaTara.FromLongitude(moon.NirayanaLongitudeDegrees);
+        _fromLagna = lagna is null ? Array.Empty<TaraRow>() : NavaTara.FromLongitude(lagna.NirayanaLongitudeDegrees);
+    }
+
+    private static string Naks(TaraRow row) =>
+        string.Join(", ", row.Nakshatras.Select(AstroMath.GetNakshatraName));
+}

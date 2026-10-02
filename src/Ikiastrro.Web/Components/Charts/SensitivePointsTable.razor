@@ -1,0 +1,74 @@
+@using Ikiastrro.Core.Engines.KeyInfo
+@* Astro Facts 1.1 — Yogi / Avayogi points, Bhṛgu Bindu and the Varṇada lagnas (V1–V12), computed
+   live from the D1 key details (Core Engines/KeyInfo). Nothing is stored. *@
+@if (Rows.Count == 0)
+{
+    <p class="kit-muted">Needs the Sun, Moon, Rahu, Lagna and Hora Lagna of the D1 chart.</p>
+}
+else
+{
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Point</th><th>Rasi</th><th>Degree</th><th>Nakshatra</th><th>House</th><th>Reading</th></tr></thead>
+            <tbody>
+            @foreach (var r in Rows)
+            {
+                var (nak, pada) = AstroMath.GetNakshatraAndPada(r.Longitude);
+                <tr class="@(r.IsVarnada ? "kit-sub" : "")">
+                    <td><b>@r.Name</b></td>
+                    <td>@SignName(r.Longitude)</td>
+                    <td class="mono">@AstroMath.FormatDegreesMinutesSeconds(r.Longitude % 30)</td>
+                    <td>@(r.IsVarnada ? "—" : $"{AstroMath.GetNakshatraName(nak)} {pada}")</td>
+                    <td class="mono">H@(HouseFrom(r.Longitude))</td>
+                    <td>@r.Note</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private sealed record PointRow(string Name, double Longitude, string Note, bool IsVarnada = false);
+
+    private IReadOnlyList<PointRow> Rows = Array.Empty<PointRow>();
+    private int _lagnaSign;
+
+    protected override void OnParametersSet()
+    {
+        double? Lon(string kind, string name) =>
+            KeyDetails.FirstOrDefault(k => k.PointKind == kind && k.Planet == name)?.NirayanaLongitudeDegrees;
+
+        if (Lon("Graha", "Sun") is not { } sun || Lon("Graha", "Moon") is not { } moon || Lon("Graha", "Rahu") is not { } rahu
+            || Lon("Graha", "Ascendant") is not { } lagna || Lon("SpecialLagna", "HL") is not { } hora)
+        {
+            Rows = Array.Empty<PointRow>();
+            return;
+        }
+
+        _lagnaSign = (int)(AstroMath.Normalize(lagna) / 30);
+        var yogi = YogiAvayogi.Compute(sun, moon);
+        var rows = new List<PointRow>
+        {
+            new("Yogi point", yogi.YogiPoint, $"Yogi {yogi.Yogi} · Sahayogi {yogi.Sahayogi} — planets that bring fortune"),
+            new("Avayogi point", yogi.AvayogiPoint, $"Avayogi {yogi.Avayogi} — the planet that obstructs"),
+            new("Bhṛgu Bindu", SensitivePoints.BhriguBindu(rahu, moon), "Rahu–Moon midpoint — a point that triggers events in transit"),
+        };
+        for (var h = 1; h <= 12; h++)
+            rows.Add(new($"Varṇada V{h}", SensitivePoints.Varnada(lagna, hora, h),
+                h == 1 ? "Varṇada lagna — work, status and community" : $"Varṇada of the {Ordinal(h)} house", IsVarnada: true));
+        Rows = rows;
+    }
+
+    private int HouseFrom(double longitude) => ((int)(AstroMath.Normalize(longitude) / 30) - _lagnaSign + 12) % 12 + 1;
+
+    private static string SignName(double longitude)
+    {
+        var sign = ((ZodiacName)(int)(AstroMath.Normalize(longitude) / 30)).ToString();
+        return sign == "Capricornus" ? "Capricorn" : sign;
+    }
+
+    private static string Ordinal(int n) => n switch { 2 => "2nd", 3 => "3rd", _ => $"{n}th" };
+}

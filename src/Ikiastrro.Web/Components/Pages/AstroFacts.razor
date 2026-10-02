@@ -194,6 +194,12 @@ else
 
                     <h3 class="ki-sectionhead">Graha ārūḍhas</h3>
                     <SpecialPointsTable Rows="@(Points(natalChart, "GrahaArudha"))" ShowDegree="false" />
+
+                    <h3 class="ki-sectionhead">Yogi &amp; sensitive points (D1)</h3>
+                    <SensitivePointsTable KeyDetails="D1KeyDetails" />
+
+                    <h3 class="ki-sectionhead">Nava tārā (D1)</h3>
+                    <NavaTaraTable KeyDetails="D1KeyDetails" />
                                 </div>
                             }
                             @if (SubShows(_activeTab, 1))
@@ -217,6 +223,9 @@ else
 
                     <h3 class="ki-sectionhead">Motion, combustion &amp; planetary war</h3>
                     <PlanetMotionTable KeyDetails="natalChart.KeyDetails" />
+
+                    <h3 class="ki-sectionhead">Mrityu bhāga &amp; Puṣkara (D1)</h3>
+                    <MrityuPushkaraTable KeyDetails="D1KeyDetails" />
 
                     <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
                     <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames"
@@ -680,6 +689,11 @@ else
     private string _natalChart = "D1";
     private bool _natalChartCollapsed;
     private LoadedChart? NatalChart => _data?.Charts.GetValueOrDefault(_natalChart);
+
+    /// <summary>D1's key details whatever chart the picker shows — Yogi, nava tārā, Mrityu bhāga,
+    /// Puṣkara, Bhṛgu Bindu and Varṇada are read from the rāśi chart.</summary>
+    private IReadOnlyList<ChartKeyDetail> D1KeyDetails =>
+        _data?.Charts.GetValueOrDefault("D1")?.KeyDetails ?? Array.Empty<ChartKeyDetail>();
     /// <summary>D1, D2, D2-US, D3, D4 … D60 — numeric divisional order, not the plain string
     /// order ("D1"/"D10"/"D11"/"D12"/"D16"/"D2"/"D2-US"/"D20"…) the old `OrderBy(ChartType)`
     /// produced (rammyps, 2026-09-24). <see cref="DivisionalNumber"/> reads the digits straight
