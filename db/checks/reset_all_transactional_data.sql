@@ -52,6 +52,19 @@ DELETE FROM dbo.tbl_Fact_PlanetaryStrengthComponent;
 DELETE FROM dbo.tbl_Fact_SarvaAshtakavarga;
 DELETE FROM dbo.tbl_Fact_Vargottama;
 DELETE FROM dbo.tbl_Fact_YogaInputEvaluations;
+-- Later per-chart facts (NO_ACTION FKs to tbl_ChartResults); guarded like the two above so the
+-- script still runs on a database that predates them.
+IF OBJECT_ID('dbo.tbl_Fact_Argala', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Fact_Argala;
+IF OBJECT_ID('dbo.tbl_Fact_GrahaDrishtiStrengths', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Fact_GrahaDrishtiStrengths;
+IF OBJECT_ID('dbo.tbl_Fact_HouseStrengthStatistics', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Fact_HouseStrengthStatistics;
+-- Statistical-analytics foundation (db/163): comparisons FK tbl_ChartResults, subjects FK tbl_BirthDetails.
+IF OBJECT_ID('dbo.tbl_Fact_StatisticalComparisons', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Fact_StatisticalComparisons;
+IF OBJECT_ID('dbo.tbl_Dim_AnalyticsSubjects', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Dim_AnalyticsSubjects;
 
 -------------------------------------------------------------------------------------------------
 -- 2. tbl_Chart_* (children of tbl_ChartResults)
@@ -107,6 +120,16 @@ DBCC CHECKIDENT ('dbo.tbl_Fact_PlanetaryStrengthComponent', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_SarvaAshtakavarga', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_Vargottama', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Fact_YogaInputEvaluations', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Fact_Argala', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Fact_Argala', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Fact_GrahaDrishtiStrengths', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Fact_GrahaDrishtiStrengths', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Fact_HouseStrengthStatistics', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Fact_HouseStrengthStatistics', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Fact_StatisticalComparisons', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Fact_StatisticalComparisons', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Dim_AnalyticsSubjects', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Dim_AnalyticsSubjects', RESEED, 0);
 
 DBCC CHECKIDENT ('dbo.tbl_Chart_Conjunctions', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Chart_MultiGrahaConjunctionMember', RESEED, 0);
