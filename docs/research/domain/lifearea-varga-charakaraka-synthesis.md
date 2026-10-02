@@ -151,7 +151,7 @@ yet filed as GitHub Milestones — draft for triage):
 
 - **`FEAT-VARGA-02` (Web)** — render D2–D60 in the workspace, not just D1/D9. Closes
   `FEAT-VARGA-01`'s `Web [ ]` gap. No new DB work; calculators already verified.
-- **`FEAT-KARAKA-06` (Web)** — the "Life Matters" chara-karaka panel from `res_charakarakas.md`
+- **`FEAT-KARAKA-06` (Web)** — the "Key Inference" chara-karaka panel from `res_charakarakas.md`
   §2. Closes `FEAT-KARAKA-01`'s `Web [ ]` gap. Depends on Leg D detail rows (§3) existing
   for interpretation content, not just the already-computed role→planet resolution.
 - **`FEAT-HOUSE-05` (DB, new)** — the Leg A↔Leg B reconciliation pass (§2) plus
@@ -174,12 +174,12 @@ SVG/CSS grid, never a charting library) that summarizes how many (graha × varga
 land in each classical dignity tier, across that scheme's member vargas.
 
 - **Scope — which "varga tabs":** the existing `AmsabalaTable` scheme tabs
-  (`key-inference.md` §"6 Vargas") — Vargottama / Shadvarga / Saptavarga / Dasavarga /
+  (`astro-facts.md` §"6 Vargas") — Vargottama / Shadvarga / Saptavarga / Dasavarga /
   Shodasavarga. Applies to **every scheme except Vargottama** — that tab is a 2-chart (D1 vs
   D9) Match/no-Match comparison, not an N-varga membership group, so it has no per-tier
   "which vargas" breakdown to stack.
 - **Categories:** the same 7-tier vocabulary `ChartViewModel.DignityTierToken` already
-  introduced for the existing per-graha stacked bar (`key-inference.md` §"6 Vargas redesign,"
+  introduced for the existing per-graha stacked bar (`astro-facts.md` §"6 Vargas redesign,"
   point 1) — Exalted, Moolatrikona, Own, Great Friend, Friend, Enemy, Great Enemy.
   Neutral/Debilitated stay excluded from the count, same convention that bar already uses.
 - **Shape:** one stacked bar per scheme tab, one segment per dignity tier present in that

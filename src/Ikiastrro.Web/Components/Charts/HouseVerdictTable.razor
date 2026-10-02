@@ -1,0 +1,88 @@
+@using Ikiastrro.Core.Engines.Houses
+@using Ikiastrro.Core.LifeMatters
+@using Ikiastrro.Web.Components.LifeMatters
+
+@* Astro Facts About Houses — "What acts on each house" (HouseVerdicts). Two readings side by
+   side, each labelled by its source: Raman's count of the lord's functional nature, occupants and
+   aspects (HouseBeneficMaleficCalculator), and PVR step 5's planets that help or hinder the house
+   by where they stand from it and its bādhaka (TargetInfluences, the same read Key Inference'
+   "What acts on it" shows). *@
+@if (Rows.Count == 0)
+{
+    <p class="hv-empty">Not available for this chart.</p>
+}
+else
+{
+    <div class="hv-scroll">
+        <table class="hv">
+            <thead>
+                <tr>
+                    <th>House</th>
+                    <th>Lord<br />(nature for Lagna)</th>
+                    <th>Benefics in / aspecting</th>
+                    <th>Malefics in / aspecting</th>
+                    <th>Raman's count</th>
+                    <th>Helps it<br />(PVR step 5)</th>
+                    <th>Hinders it<br />(PVR step 5)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Rows)
+                {
+                    var helpers = TargetInfluenceText.Helpers(r.Influences);
+                    var hinderers = TargetInfluenceText.Hinderers(r.Influences);
+                    <tr>
+                        <td class="mono"><b>@r.House</b> @Disp(r.Sign.ToString())</td>
+                        <td>@r.Raman.LordPlanet <span class="hv-muted">· @TargetInfluenceText.FunctionalText(r.Raman.LordFunctionalNature)</span></td>
+                        <td>@Joined(r.Raman.BeneficOccupants, r.Raman.BeneficAspectors)</td>
+                        <td>@Joined(r.Raman.MaleficOccupants, r.Raman.MaleficAspectors)</td>
+                        <td title="@r.Raman.Rationale"><span class="hv-pill is-@r.Raman.Verdict.ToString().ToLowerInvariant()">@r.Raman.Verdict</span></td>
+                        <td>@Names(helpers)</td>
+                        <td>@Names(hinderers)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="hv-note">
+        <b>Raman's count</b> (B.V. Raman, <i>How to Judge a Horoscope</i> I, pp. 14–15) adds one for the lord when it is a
+        functional benefic for this Lagna, and one for each benefic or malefic planet in or aspecting the house; the
+        lord's dignity changes how strongly, not which way. <b>PVR step 5</b> names the planets that sit in, aspect,
+        intervene on or rule the house and stand in a quadrant, trine or upachaya from it (help), or in a dusthāna
+        from it or as its bādhaka (hinder) — hover a name for why. The two readings can disagree; neither changes a
+        strength figure.
+    </p>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<HouseVerdictRow> Rows { get; set; } = Array.Empty<HouseVerdictRow>();
+
+    private static RenderFragment Joined(IReadOnlyList<string> occupants, IReadOnlyList<string> aspectors) => __builder =>
+    {
+        var parts = occupants.Select(p => $"{p} (in)").Concat(aspectors.Select(p => $"{p} (asp)")).ToList();
+        if (parts.Count == 0)
+        {
+            <span class="hv-muted">—</span>
+        }
+        else
+        {
+            @string.Join(", ", parts)
+        }
+    };
+
+    private static RenderFragment Names(IReadOnlyList<PlanetInfluence> planets) => __builder =>
+    {
+        if (planets.Count == 0)
+        {
+            <span class="hv-muted">—</span>
+        }
+        @for (var i = 0; i < planets.Count; i++)
+        {
+            var p = planets[i];
+            @if (i > 0) { <text>, </text> }
+            <span class="hv-planet" title="@TargetInfluenceText.Why(p)">@p.Planet</span>
+        }
+    };
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+}

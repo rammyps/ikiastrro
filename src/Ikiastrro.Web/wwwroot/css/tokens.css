@@ -40,10 +40,10 @@
     --asc-glow: rgba(140, 47, 57, 0.14);
     --shadow: rgba(90, 70, 40, 0.22);
 
-    /* MudAppBar's rendered height (Fixed="true", default toolbar size) — measured live via
-       claude-in-chrome, 2026-09-17. Lets sticky-positioned content (e.g. Home.razor's ganesha
-       art) dock its `top` flush under the fixed nav instead of guessing/hardcoding per-page. */
-    --ik-appbar-h: 64px;
+    /* The app bar's height — 10% under MudBlazor's 64px default (rammyps, 2026-10-01).
+       MainLayout.razor.css sizes the bar to it and .mud-main-content reserves it; sticky
+       content (e.g. Home.razor's ganesha art) docks its `top` under the fixed bar with it. */
+    --ik-appbar-h: 58px;
 
     /* House-number badges on every South Indian grid cell (SouthIndianGrid_Detailed): the house counted
        from the Lagna reads maroon (= --accent), the house counted from the natal Moon reads gold —
@@ -71,7 +71,7 @@
 
     --dignity-exalted: #2f7a42;
     --dignity-good: #4c8a52;
-    /* Vargas step (Key Inference 6) splits --dignity-good's 3 merged tiers back out for its
+    /* Vargas step (Astro Facts 6) splits --dignity-good's 3 merged tiers back out for its
        7-way breakdown — a green ramp between --dignity-exalted and --dignity-friend, own-sign
        keeping --dignity-good's exact former hex since it was that token's biggest contributor.
        Placeholder ramp — rammyps tunes these live via claude-in-chrome once the page renders. */
@@ -171,7 +171,7 @@
     --strength-fill: var(--brand-sunrise);
     --strength-fill-soft: color-mix(in srgb, var(--brand-sunrise) 60%, transparent);
 
-    /* Key Inference 3 "Strength" (PlanetStrengthChart / HouseStrengthChart) — a plain
+    /* Astro Facts 3 "Strength" (PlanetStrengthChart / HouseStrengthChart) — a plain
        %/rūpas threshold band, not a classical placement judgment, so it reads better as a
        clearer traffic-light than --dignity-* (kept deliberately more saturated than the rest
        of this parchment palette for that reason). Shared by both step-3 components. */
@@ -185,6 +185,45 @@
     --status-moderate-bg: #fdf1dc;
     --status-weak: #c23b34;
     --status-weak-bg: #fbe6e4;
+    /* Text on a solid --status-strong / --status-weak fill (rank badges, Ashtakavarga values).
+       Each theme sets its own so the digit stays readable on that theme's fills. */
+    --status-on: var(--brand-sunrise);
+
+    /* The moon's unlit part on the Lunar Phase card, and the transit ring's band on the
+       natal/transit wheel (with the text written on it). Themed like everything else. */
+    --lunar-shadow: var(--brand-midnight);
+    --transit-band: var(--brand-midnight);
+    --transit-band-fg: #ffffff;
+
+    /* SIND-UNI chart (docs/ui/components/spec_SIND-UNI_GridChart.md). Benefic / malefic / mixed
+       and Argala / Virodhargala reuse the status hues; the hover wash is a share of them. */
+    --uni-grid: var(--cosmos-architecture);
+    --flame: #c2410c;
+    --chip-tint: 13%;
+    --ben: var(--status-strong);
+    --mal: var(--status-weak);
+    --mix: #a16207;
+    --wash: 9%;
+    --arg: var(--status-strong);
+    --vir: var(--status-weak);
+    --watermark: rgb(15 32 65 / 0.055);
+    --el-fire: #c2410c;
+    --el-earth: #4d7c0f;
+    --el-air: #a16207;
+    --el-water: #0e7490;
+    /* Special-lagna bars: the Lagna follows the theme accent, the rest are fixed hue families. */
+    --sl-asc: var(--cosmos-accent);
+    --sl-moon: #64748b;
+    --sl-sun: #c2410c;
+    --sl-al: #be123c;
+    --sl-hl: #b45309;
+    --sl-gl: #15803d;
+    --sl-bl: #4338ca;
+    --sl-sl: #7e22ce;
+    --sl-il: #be185d;
+    --sl-pp: #0f766e;
+    --sl-ps: #78350f;
+    --sl-gk: #57534e;
 
     /* Shadbala/Bhava-Bala component category palette — the Bala groups both step-3 breakdown
        panels split their total into. Dig/Drik reused across both (same underlying concept,
@@ -232,6 +271,7 @@ body {
 }
 
 .mud-main-content {
+    padding-top: var(--ik-appbar-h);
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -257,7 +297,7 @@ h1, h2, h3 {
    matches scoped markup. A few pickers (`.ki-chart-picker`, `.av-chart-select select`,
    `.karaka-chart-select`) already set `text-transform: uppercase` locally; this is now
    redundant there but harmless, and is what actually turns on every other native <select> in
-   the app (Key Inference's Dasha Month/Year/Mahadasha/Antardasha/Pratyantar pickers,
+   the app (Astro Facts's Dasha Month/Year/Mahadasha/Antardasha/Pratyantar pickers,
    AstrologerEvidence's chart select, any future one) without editing each one by hand.
    Deliberately does NOT reach MudBlazor's <MudSelect> (Saved Charts' Settings panel,
    `<select>`-free custom markup) — those are ordinary data-entry form fields, not
@@ -292,6 +332,13 @@ html select option {
     --brand-line: #d9d1c7;
     --brand-muted: #53698d;
     --brand-peach: #fff0e5;
+    --brand-surface-soft: rgb(255 250 242 / 0.48);
+    --cosmos-accent: var(--brand-midnight);
+    --cosmos-accent-fg: var(--brand-sunrise);
+    --cosmos-architecture: var(--brand-midnight);
+    --control-bg: var(--brand-midnight);
+    --control-fg: var(--brand-canvas);
+
     /* The app's accent colour (rammyps, 2026-09-29): sunrise orange replaced sunset orange
        (#f47a24, --brand-sunset, now retired) app-wide — app bar, footer, active tab pills,
        primary buttons, selected states, chart markers, outlines, table row-hover. It is pale, so
@@ -333,7 +380,7 @@ html select option {
 
     /* Tab-strip convention (2026-09-14, rammyps's directive — docs/ui/design-language.md
        "Tabs"), revised 2026-09-23 evening (rammyps's redesign — plain hand-rolled pill nav
-       replacing MudTabs, see KeyInference.razor's top comment): inactive tabs are transparent
+       replacing MudTabs, see AstroFacts.razor's top comment): inactive tabs are transparent
        — no pill fill at all, just text blending into whatever sits behind them (the band or
        the page, both --brand-canvas) — so only the active tab reads as a filled sunrise pill.
        Earlier the same day both states were briefly made identical (flat sunset/midnight for
@@ -354,3 +401,285 @@ html select option {
     --card-fg-muted: rgb(250 245 234 / 0.66);
     --card-line: rgb(250 245 234 / 0.22);
 }
+
+/* Adaptive Cosmos theme (2026-10-01). The existing semantic names remain aliases so every
+   workflow and chart can switch modes without duplicating component CSS. Planet identity hues
+   remain stable; surfaces, structure, typography and interaction colors adapt by mode. */
+:root[data-theme='cosmic-light'] {
+    color-scheme: light;
+
+    --cosmos-canvas: #f8fafc;
+    --cosmos-surface: #ffffff;
+    --cosmos-surface-raised: #f1f5f9;
+    --cosmos-architecture: #334155;
+    --cosmos-structure: #cbd5e1;
+    --cosmos-accent: #087e9a;
+    --cosmos-accent-fg: #ffffff;
+
+    --brand-canvas: var(--cosmos-canvas);
+    --brand-surface: var(--cosmos-surface);
+    --brand-surface-soft: var(--cosmos-surface-raised);
+    --brand-midnight: #172033;
+    --brand-line: var(--cosmos-structure);
+    --brand-muted: #526176;
+    --brand-peach: #e6f7fa;
+    --brand-sunrise: #cffafe;
+
+    --paper: var(--cosmos-canvas);
+    --paper-raised: var(--cosmos-surface);
+    --paper-line: var(--cosmos-structure);
+    --ink: #172033;
+    --ink-soft: #526176;
+    --ink-faint: #737c8c;
+    --accent: var(--cosmos-accent);
+    --accent-fg: var(--cosmos-accent-fg);
+    --accent-line: #0e7490;
+    --asc-glow: rgb(8 126 154 / 0.14);
+    --shadow: rgb(15 23 42 / 0.14);
+    --control-bg: var(--cosmos-architecture);
+    --control-fg: var(--cosmos-canvas);
+
+    --cell-fill: var(--cosmos-surface);
+    --lagna-fill: #e6f7fa;
+    --grid-stroke: var(--cosmos-architecture);
+    --sign-text: #526176;
+    --muted-text: #737c8c;
+    --wheel-ring: var(--cosmos-architecture);
+    --wheel-tick: #64748b;
+
+    --tab-active-bg: var(--cosmos-accent);
+    --tab-active-fg: var(--cosmos-accent-fg);
+    --tab-inactive-bg: transparent;
+    --tab-inactive-fg: var(--brand-midnight);
+    --nav-btn: var(--cosmos-accent);
+    --nav-btn-fg: var(--cosmos-accent-fg);
+
+    --relation-benefic: #087f70;
+    --relation-malefic: #be3455;
+    --relation-mixed: #9a6700;
+    --relation-neutral: #64748b;
+
+    --card-bg: var(--cosmos-surface);
+    --card-bg-raised: var(--cosmos-surface-raised);
+    --card-fg: var(--brand-midnight);
+    --card-fg-muted: var(--brand-muted);
+    --card-line: var(--brand-line);
+
+    --status-on: #ffffff;
+
+    --watermark: rgb(51 65 85 / 0.06);
+    --sl-pp: #0d9488;
+}
+
+:root[data-theme='cosmic-dark'] {
+    color-scheme: dark;
+
+    --cosmos-canvas: #0b0f19;
+    --cosmos-surface: #111827;
+    --cosmos-surface-raised: #172033;
+    --cosmos-architecture: #94a3b8;
+    --cosmos-structure: rgb(148 163 184 / 0.22);
+    --cosmos-accent: #22d3ee;
+    --cosmos-accent-fg: #0b0f19;
+
+    --brand-canvas: var(--cosmos-canvas);
+    --brand-surface: var(--cosmos-surface);
+    --brand-surface-soft: var(--cosmos-surface-raised);
+    --brand-midnight: #f8fafc;
+    --brand-line: var(--cosmos-structure);
+    --brand-muted: #94a3b8;
+    --brand-peach: #17384a;
+    --brand-sunrise: #164e63;
+
+    --paper: var(--cosmos-canvas);
+    --paper-raised: var(--cosmos-surface);
+    --paper-line: var(--cosmos-structure);
+    --ink: #f8fafc;
+    --ink-soft: #94a3b8;
+    --ink-faint: #7f8da3;
+    --accent: var(--cosmos-accent);
+    --accent-fg: var(--cosmos-accent-fg);
+    --accent-line: #67e8f9;
+    --asc-glow: rgb(34 211 238 / 0.16);
+    --shadow: rgb(0 0 0 / 0.38);
+    --control-bg: #334155;
+    --control-fg: #f8fafc;
+
+    --cell-fill: var(--cosmos-surface);
+    --lagna-fill: #103344;
+    --grid-stroke: rgb(148 163 184 / 0.32);
+    --sign-text: #cbd5e1;
+    --muted-text: #94a3b8;
+    --wheel-ring: rgb(148 163 184 / 0.34);
+    --wheel-tick: #94a3b8;
+
+    --tab-active-bg: var(--cosmos-accent);
+    --tab-active-fg: var(--cosmos-accent-fg);
+    --tab-inactive-bg: transparent;
+    --tab-inactive-fg: var(--brand-midnight);
+    --nav-btn: var(--cosmos-accent);
+    --nav-btn-fg: var(--cosmos-accent-fg);
+
+    --relation-benefic: #2dd4bf;
+    --relation-malefic: #fb7185;
+    --relation-mixed: #f2c14e;
+    --relation-neutral: #94a3b8;
+
+    --card-bg: var(--cosmos-surface);
+    --card-bg-raised: var(--cosmos-surface-raised);
+    --card-fg: var(--brand-midnight);
+    --card-fg-muted: var(--brand-muted);
+    --card-line: var(--brand-line);
+
+    --planet-sun-bg: color-mix(in srgb, var(--planet-sun) 20%, var(--cosmos-surface));
+    --planet-moon-bg: color-mix(in srgb, var(--planet-moon) 24%, var(--cosmos-surface));
+    --planet-mars-bg: color-mix(in srgb, var(--planet-mars) 22%, var(--cosmos-surface));
+    --planet-mercury-bg: color-mix(in srgb, var(--planet-mercury) 22%, var(--cosmos-surface));
+    --planet-jupiter-bg: color-mix(in srgb, var(--planet-jupiter) 24%, var(--cosmos-surface));
+    --planet-venus-bg: color-mix(in srgb, var(--planet-venus) 22%, var(--cosmos-surface));
+    --planet-saturn-bg: color-mix(in srgb, var(--planet-saturn) 24%, var(--cosmos-surface));
+    --planet-rahu-bg: color-mix(in srgb, var(--planet-rahu) 24%, var(--cosmos-surface));
+    --planet-ketu-bg: color-mix(in srgb, var(--planet-ketu) 24%, var(--cosmos-surface));
+
+    /* Everything below is drawn as text, a thin line or a pale tint on the page, so the
+       light-theme values (dark inks, pastel tints) vanish or glare on the dark canvas. Same
+       hues, lifted for a dark ground (2026-10-01 theme audit). */
+    --status-strong: #34d399;
+    --status-strong-bg: color-mix(in srgb, #34d399 16%, var(--cosmos-surface));
+    --status-moderate-bg: color-mix(in srgb, #f2c14e 14%, var(--cosmos-surface));
+    --status-weak: #f87171;
+    --status-weak-bg: color-mix(in srgb, #f87171 16%, var(--cosmos-surface));
+    --status-on: #0b0f19;
+
+    --danger: #f87171;
+    --danger-fg: #0b0f19;
+    --danger-line: #fca5a5;
+
+    --planet-sun: #f59e5b;
+    --planet-moon: #cbd5e1;
+    --planet-mars: #f87171;
+    --planet-mercury: #4ade80;
+    --planet-jupiter: #facc15;
+    --planet-venus: #f472b6;
+    --planet-saturn: #93a5f5;
+    --planet-rahu: #a5a9bd;
+    --planet-ketu: #d6a26c;
+
+    --dignity-exalted: #4ade80;
+    --dignity-good: #6ee7a0;
+    --dignity-moolatrikona: #5eead4;
+    --dignity-own: #6ee7a0;
+    --dignity-great-friend: #86d47a;
+    --dignity-friend: #a3c99a;
+    --dignity-neutral: #c4b88f;
+    --dignity-enemy: #f0a35e;
+    --dignity-great-enemy: #f87158;
+    --dignity-debilitated: #f87171;
+    --vargottama: #6ee7a0;
+    --aspect-faint: #64748b;
+
+    --ref-lagna: #fb7185;
+    --ref-arudha: #38bdf8;
+    --ref-hora: #fbbf24;
+    --ref-sree: #a78bfa;
+    --ref-ghati: #4ade80;
+
+    --house-lagna: #be3455;
+    --house-lagna-fg: #ffffff;
+
+    --lunar-shadow: #020617;
+    --transit-band: #1e293b;
+    --transit-band-fg: #f8fafc;
+
+    --uni-grid: rgb(148 163 184 / 0.34);
+    --flame: #fb923c;
+    --chip-tint: 20%;
+    --mix: #facc15;
+    --wash: 14%;
+    --watermark: rgb(148 163 184 / 0.07);
+    --el-fire: #fb923c;
+    --el-earth: #a3e635;
+    --el-air: #facc15;
+    --el-water: #22d3ee;
+    --sl-moon: #cbd5e1;
+    --sl-sun: #fb923c;
+    --sl-al: #fb7185;
+    --sl-hl: #fbbf24;
+    --sl-gl: #4ade80;
+    --sl-bl: #a5b4fc;
+    --sl-sl: #d8b4fe;
+    --sl-il: #f9a8d4;
+    --sl-pp: #5eead4;
+    --sl-ps: #d6a26c;
+    --sl-gk: #a8a29e;
+}
+
+/* Chart-local segmented controls historically used --brand-midnight as both ink and fill.
+   Give those controls an explicit adaptive pair while component CSS is progressively migrated. */
+.ki-chart-picker,
+.ki-chart-toggle,
+.karaka-view-tabs,
+.karaka-chart-select,
+.am-schemes,
+.av-chart-select select,
+.av-toggle,
+.hsc-toggle,
+.psc-toggle {
+    background: var(--control-bg) !important;
+    color: var(--control-fg) !important;
+}
+
+.ki-chart-picker option,
+.ki-chart-toggle:not(.is-active),
+.karaka-view-tabs button:not(.is-active),
+.karaka-chart-select,
+.am-schemes button:not(.is-active),
+.av-toggle button:not(.is-active),
+.hsc-toggle button:not(.is-active),
+.psc-toggle button:not(.is-active) {
+    color: var(--control-fg) !important;
+}
+
+:root[data-theme='cosmic-dark'] .gds-toolbar,
+:root[data-theme='cosmic-dark'] .gds-summary > div,
+:root[data-theme='cosmic-dark'] .gds-evidence > div,
+:root[data-theme='cosmic-dark'] .gds-matrix th,
+:root[data-theme='cosmic-dark'] .gds-evidence,
+:root[data-theme='cosmic-dark'] .rds-toolbar,
+:root[data-theme='cosmic-dark'] .rds-summary > div,
+:root[data-theme='cosmic-dark'] .rds-matrix th { background: var(--brand-surface); }
+
+/* Compatibility aliases for older chart/table components that predate the canonical
+   --brand-* names. Keeping them semantic makes their fallback literals unreachable in every
+   appearance without forcing a risky markup rewrite. */
+:root {
+    --line: var(--brand-line);
+    --cream: var(--brand-surface);
+    --surface: var(--brand-surface);
+    --border: var(--brand-line);
+    --text-muted: var(--brand-muted);
+}
+
+html[data-theme] table { color: var(--brand-midnight); }
+
+/* Dense dṛṣṭi matrices were older one-line components with literal white controls and focus
+   cells. Close those last theme leaks here until the components are reformatted. */
+:root[data-theme='cosmic-dark'] .gds-switch button,
+:root[data-theme='cosmic-dark'] .rds-switch button,
+:root[data-theme='cosmic-dark'] .gds-summary > div,
+:root[data-theme='cosmic-dark'] .rds-summary > div {
+    background: var(--brand-surface);
+    color: var(--brand-midnight);
+}
+
+:root[data-theme='cosmic-dark'] .gds-matrix .is-focus,
+:root[data-theme='cosmic-dark'] .rds-matrix .is-focus {
+    background-color: var(--brand-peach);
+}
+
+:root[data-theme='cosmic-dark'] .yg-status-present {
+    background: color-mix(in srgb, var(--relation-benefic) 18%, var(--brand-surface));
+    color: var(--relation-benefic);
+}
+:root[data-theme='cosmic-dark'] .yg-status-absent {
+    background: var(--brand-surface-soft);

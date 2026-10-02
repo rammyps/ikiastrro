@@ -3,11 +3,7 @@ using MudBlazor;
 namespace Ikiastrro.Web.Components;
 
 /// <summary>
-/// App-wide MudBlazor theme wired to the Iki-Astrro brand palette
-/// (<c>docs/ui/brand.md</c>). The warm canvas is used for both Background and
-/// Surface so panels, menus and dropdowns sit on the same colour as the rest
-/// of the app (and as the Ganesha artwork) — elevation shadow does the
-/// separating, not a white fill.
+/// App-wide MudBlazor theme wired to the adaptive Cosmos palette.
 ///
 /// Hex values are duplicated from <c>wwwroot/css/tokens.css</c> because a
 /// <see cref="MudTheme"/> is C# and cannot read CSS custom properties. Keep the
@@ -15,33 +11,85 @@ namespace Ikiastrro.Web.Components;
 /// </summary>
 public static class IkiastrroTheme
 {
-    private const string Canvas = "#FAF5EA";   // --brand-canvas
-    private const string Midnight = "#0F2041"; // --brand-midnight
-    private const string Sunrise = "#FCD7BD";  // --brand-sunrise
-    private const string Line = "#D9D1C7";     // --brand-line
-    private const string Muted = "#53698D";    // --brand-muted
+    private const string LightCanvas = "#F8FAFC";
+    private const string LightSurface = "#FFFFFF";
+    private const string LightInk = "#172033";
+    private const string LightMuted = "#526176";
+    private const string LightLine = "#CBD5E1";
+    private const string LightAccent = "#087E9A";
 
-    public static readonly MudTheme Value = new()
+    private const string DarkCanvas = "#0B0F19";
+    private const string DarkSurface = "#111827";
+    private const string DarkInk = "#F8FAFC";
+    private const string DarkMuted = "#94A3B8";
+    private const string DarkLine = "#334155";
+    private const string DarkAccent = "#22D3EE";
+
+    public static readonly MudTheme DefaultLight = new()
     {
         PaletteLight = new PaletteLight
         {
-            Primary = Sunrise,
-            PrimaryContrastText = Midnight,
-            Secondary = Midnight,
-            Background = Canvas,
-            BackgroundGray = Canvas,
-            Surface = Canvas,
-            AppbarBackground = Sunrise,
-            AppbarText = Midnight,
-            DrawerBackground = Canvas,
-            DrawerText = Midnight,
-            TextPrimary = Midnight,
-            TextSecondary = Muted,
-            ActionDefault = Midnight,
-            Divider = Line,
-            LinesDefault = Line,
-            LinesInputs = Line,
-            TableLines = Line,
+            Primary = "#FCD7BD",
+            PrimaryContrastText = "#0F2041",
+            Secondary = "#0F2041",
+            Background = "#FAF5EA",
+            BackgroundGray = "#FAF5EA",
+            Surface = "#FAF5EA",
+            AppbarBackground = "#FCD7BD",
+            AppbarText = "#0F2041",
+            DrawerBackground = "#FAF5EA",
+            DrawerText = "#0F2041",
+            TextPrimary = "#0F2041",
+            TextSecondary = "#53698D",
+            ActionDefault = "#0F2041",
+            Divider = "#D9D1C7",
+            LinesDefault = "#D9D1C7",
+            LinesInputs = "#D9D1C7",
+            TableLines = "#D9D1C7",
+        },
+    };
+
+    public static readonly MudTheme Cosmos = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = LightAccent,
+            PrimaryContrastText = "#FFFFFF",
+            Secondary = LightInk,
+            Background = LightCanvas,
+            BackgroundGray = "#F1F5F9",
+            Surface = LightSurface,
+            AppbarBackground = LightSurface,
+            AppbarText = LightInk,
+            DrawerBackground = LightSurface,
+            DrawerText = LightInk,
+            TextPrimary = LightInk,
+            TextSecondary = LightMuted,
+            ActionDefault = LightInk,
+            Divider = LightLine,
+            LinesDefault = LightLine,
+            LinesInputs = LightLine,
+            TableLines = LightLine,
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = DarkAccent,
+            PrimaryContrastText = DarkCanvas,
+            Secondary = DarkMuted,
+            Background = DarkCanvas,
+            BackgroundGray = "#172033",
+            Surface = DarkSurface,
+            AppbarBackground = DarkSurface,
+            AppbarText = DarkInk,
+            DrawerBackground = DarkSurface,
+            DrawerText = DarkInk,
+            TextPrimary = DarkInk,
+            TextSecondary = DarkMuted,
+            ActionDefault = DarkInk,
+            Divider = DarkLine,
+            LinesDefault = DarkLine,
+            LinesInputs = DarkLine,
+            TableLines = DarkLine,
         },
     };
 }

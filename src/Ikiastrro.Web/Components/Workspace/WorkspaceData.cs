@@ -1,4 +1,6 @@
+using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Models;
+using Ikiastrro.Core.Pipeline;
 using Ikiastrro.Data;
 
 namespace Ikiastrro.Web.Components.Workspace;
@@ -16,6 +18,21 @@ public sealed record LoadedChart(
 {
     public IReadOnlyList<ChartKeyDetail> Grahas => KeyDetails.Where(k => k.PointKind == "Graha").ToList();
     public IReadOnlyList<ChartKeyDetail> SpecialPoints => KeyDetails.Where(k => k.PointKind != "Graha").ToList();
+
+    /// <summary>The stored grahas (with the Ascendant) as a Core chart input, for the pure
+    /// calculators that take one (Vimśopaka, the stronger co-lord). D1 keeps
+    /// VargaLongitudeDegrees null, as D1ChartComputer produces it.</summary>
+    public ChartAnalysisInput ToAnalysisInput() =>
+        new(ChartType, Enum.Parse<ZodiacName>(AscendantSign),
+            Grahas.Select(k => new PlanetPosition
+            {
+                Planet = k.Planet,
+                Sign = k.Sign,
+                PointKind = k.PointKind,
+                NirayanaLongitudeDegrees = k.NirayanaLongitudeDegrees,
+                VargaLongitudeDegrees = ChartType == "D1" ? null : k.VargaLongitudeDegrees,
+                HouseNumber = k.HouseNumberFromLagna,
+            }).ToList());
 }
 
 public sealed class WorkspaceData

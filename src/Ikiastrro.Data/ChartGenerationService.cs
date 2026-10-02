@@ -114,13 +114,14 @@ public class ChartGenerationService
         _grahaDrishtiStrengthRepo = grahaDrishtiStrengthRepo;
     }
 
-    private AyanamsaDefinition ResolveAyanamsa(AyanamsaDefinition? requested) =>
-        requested ?? _ayanamsaRuleRepo.GetActiveDefault();
+    // The ayanamsa is fixed, not a per-call choice (decisions/004-ayanamsa-traditional-lahiri.md):
+    // tbl_Rule_Ayanamsa's one default, which AyanamsaRuleRepository checks is Traditional Lahiri.
+    private AyanamsaDefinition ResolveAyanamsa() => _ayanamsaRuleRepo.GetActiveDefault();
 
     /// <summary>Every registered chart type + Vimshottari Dasha, replacing whatever exists.</summary>
-    public GenerationReport GenerateAll(BirthDetails birthDetails, AyanamsaDefinition? ayanamsa = null)
+    public GenerationReport GenerateAll(BirthDetails birthDetails)
     {
-        ayanamsa = ResolveAyanamsa(ayanamsa);
+        var ayanamsa = ResolveAyanamsa();
         var activeRuleSetId = _ruleSetRepo.GetActive().Id;
         var codeToChartTypeId = _chartTypeRepo.CodeToId();
 
@@ -155,9 +156,9 @@ public class ChartGenerationService
     }
 
     /// <summary>Only the chart types this person is currently missing (+ Dasha if missing).</summary>
-    public GenerationReport GenerateMissing(BirthDetails birthDetails, AyanamsaDefinition? ayanamsa = null)
+    public GenerationReport GenerateMissing(BirthDetails birthDetails)
     {
-        ayanamsa = ResolveAyanamsa(ayanamsa);
+        var ayanamsa = ResolveAyanamsa();
         var activeRuleSetId = _ruleSetRepo.GetActive().Id;
         var codeToChartTypeId = _chartTypeRepo.CodeToId();
 
@@ -176,7 +177,7 @@ public class ChartGenerationService
             result.ChartTypeId = codeToChartTypeId[result.ChartType];
             result.AyanamshaDegrees = ctx.AyanamshaDegrees;
             result.SiderealTimeHours = ctx.LocalSiderealTimeHours;
-            result.Ayanamsha = (ayanamsa ?? AyanamsaDefinition.Default).DisplayName;
+            result.Ayanamsha = ayanamsa.DisplayName;
             _chartResultsRepo.InsertAll(new[] { result });   // populates result.Id
             PersistAnalytics(birthDetails, result.Id, input, CharaKarakaByPlanet(ctx), ctx, SwissEphemerisProvider.GetSunTimes(birthDetails), activeRuleSetId, result.ChartTypeId,
                 input.ChartType == "D1" ? _orchestrator.CalculateAll(birthDetails, ayanamsa).Select(c => c.Input).ToList() : new[] { input });
@@ -186,15 +187,17 @@ public class ChartGenerationService
         var dashaWritten = false;
         if (!existing.Contains(VimshottariDashaCalculator.ChartType)) { _dashaService.ComputeAndStore(birthDetails, ayanamsa); dashaWritten = true; }
 
+        // Last, as in GenerateAll: reads the facts just written. Only when something was built.
+        if (written.Count > 0) _strengthStatistics?.Recompute(birthDetails.Id);
+
         var skipped = _orchestrator.Calculators.Select(c => c.ChartType).Where(existing.Contains).ToList();
         return new GenerationReport(written, dashaWritten, skipped);
     }
 
     /// <summary>Re-derive the 4 analytics tables for ChartResults that already exist (optionally one type).</summary>
-    public GenerationReport RecomputeAnalytics(BirthDetails birthDetails, string? chartTypeFilter,
-        AyanamsaDefinition? ayanamsa = null)
+    public GenerationReport RecomputeAnalytics(BirthDetails birthDetails, string? chartTypeFilter)
     {
-        ayanamsa = ResolveAyanamsa(ayanamsa);
+        var ayanamsa = ResolveAyanamsa();
         var activeRuleSetId = _ruleSetRepo.GetActive().Id;
         var codeToChartTypeId = _chartTypeRepo.CodeToId();
 

@@ -102,7 +102,7 @@ h1 {
 
 .saved-charts-table ::deep .dt th { padding: 0; border-bottom: 0; }
 
-/* Table typography standardized onto Key Inference "2. ABOUT"'s .ki-table reference — same
+/* Table typography standardized onto Astro Facts "2. ABOUT"'s .ki-table reference — same
    700-weight header, just on the sunset header-row surface this page's mockup calls for. */
 .saved-charts-table ::deep .dt-sort {
     padding: .8rem .9rem;
@@ -293,6 +293,11 @@ h1 {
     gap: .75rem;
     padding: .75rem .9rem;
 }
+
+/* The locked ayanamsa, shown as a fact rather than a picker (decisions/004). */
+.sp-prefs-fixed { margin: 0; font-size: var(--font-size-support); color: var(--brand-midnight); }
+.sp-prefs-fixed span { display: block; font-size: var(--font-size-meta); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-muted); }
+.sp-prefs-fixed em { font-style: normal; font-size: var(--font-size-meta); color: var(--brand-muted); }
 
 .sp-menu-backdrop {
     position: fixed;

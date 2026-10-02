@@ -6,13 +6,13 @@
         <header class="yg-card-head">
             <div>
                 <h2 id="yg-title">Yogas Present</h2>
-                <p>@PresentCount present · @EvaluatedCount evaluated · @NotEvaluatedCount pending · @VariantRows.Count catalogued variants</p>
+                <p>@PresentCount present (@PresentGood good · @PresentBad bad@(PresentOther > 0 ? $" · {PresentOther} mixed" : "")) · @EvaluatedCount evaluated · @NotEvaluatedCount pending · @VariantRows.Count catalogued variants</p>
             </div>
         </header>
         <div class="yg-controls" aria-label="Yoga filters">
             <label>
                 <span>Find yoga</span>
-                <input type="search" placeholder="Name, variant, set or source" @bind="_query" @bind:event="oninput" />
+                <input type="search" placeholder="Name, variant, set, source, good/bad or inference" @bind="_query" @bind:event="oninput" />
             </label>
             <label class="yg-toggle">
                 <input type="checkbox" @bind="_showAll" />
@@ -27,7 +27,19 @@
         {
             <div class="yg-table-scroll">
                 <table>
-                    <thead><tr><th>Set</th><th>Yoga</th><th>Variant</th><th>Status</th><th>Rule</th><th>Interpretation</th><th>Source</th></tr></thead>
+                    <thead>
+                        <tr>
+                            @foreach (var col in VisibleColumns)
+                            {
+                                <th aria-sort="@AriaSort(col)">
+                                    <button type="button" class="yg-sort @(_sortKey == col ? "on" : "")" @onclick="() => SortBy(col)">
+                                        @ColumnHeader(col)
+                                        <span class="yg-arrow">@(_sortKey == col ? (_desc ? "▼" : "▲") : "")</span>
+                                    </button>
+                                </th>
+                            }
+                        </tr>
+                    </thead>
                     <tbody>
                         @foreach (var r in DisplayRows)
                         {
@@ -36,7 +48,11 @@
                                 <td>@(r.YogaSetName ?? r.YogaTypeCode ?? "—")</td>
                                 <td>@DisplayYoga(r.YogaCode)</td>
                                 <td><code>@r.SourceVariantCode</code></td>
-                                <td><span class="yg-status yg-status-@StatusClass(r)">@StatusLabel(r)</span></td>
+                                <td><span class="yg-nature yg-nature-@NatureClass(r)">@NatureLabel(r)</span></td>
+                                @if (_showAll)
+                                {
+                                    <td><span class="yg-status yg-status-@StatusClass(r)">@StatusLabel(r)</span></td>
+                                }
                                 <td>
                                     @(r.YogaRule ?? "—")
                                     @if (string.Equals(r.YogaTypeCode, "LAGNA", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(LagnaLordPlanet))
@@ -46,6 +62,20 @@
                                     @if (!string.IsNullOrWhiteSpace(r.Notes))
                                     {
                                         <div class="yg-notes">@r.Notes</div>
+                                    }
+                                </td>
+                                <td class="yg-inference">
+                                    @if (!string.IsNullOrWhiteSpace(r.InferenceText))
+                                    {
+                                        @r.InferenceText
+                                        @if (!string.IsNullOrWhiteSpace(r.InferenceSourceRefCode))
+                                        {
+                                            <small>@DisplaySource(r.InferenceSourceRefCode)@(string.IsNullOrWhiteSpace(r.InferenceSourceLocator) ? "" : $", {r.InferenceSourceLocator}")</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="yg-interp-empty">—</span>
                                     }
                                 </td>
                                 <td class="yg-interp">
@@ -130,18 +160,88 @@
         return i < 0 ? TypeOrder.Length : i;
     }
 
-    private IReadOnlyList<YogaEvaluationRow> DisplayRows => VariantRows
-        .Where(r => _showAll || r.Present == true)
-        .Where(r => string.IsNullOrWhiteSpace(_query) || SearchText(r).Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase))
-        .OrderBy(r => r.YogaSetName).ThenBy(r => TypeRank(r.YogaTypeCode)).ThenBy(r => r.SourceVariantCode)
-        .ToList();
+    // Every column sorts on its header; before any click the rows keep the Set → type → variant
+    // order above. Status only shows when "Show all" lets absent/pending rows in — otherwise every
+    // row is Present by the filter itself.
+    private enum Col { Set, Yoga, Variant, Nature, Status, Rule, Inference, Interpretation, Source }
+
+    private Col? _sortKey;
+    private bool _desc;
+
+    private IEnumerable<Col> VisibleColumns => Enum.GetValues<Col>().Where(c => c != Col.Status || _showAll);
+
+    private static string ColumnHeader(Col c) => c switch
+    {
+        Col.Nature => "Good / Bad",
+        _ => c.ToString(),
+    };
+
+    private void SortBy(Col c)
+    {
+        if (_sortKey == c) _desc = !_desc;
+        else { _sortKey = c; _desc = false; }
+    }
+
+    private string AriaSort(Col c) => _sortKey != c ? "none" : _desc ? "descending" : "ascending";
+
+    private IComparable SortValue(YogaEvaluationRow r, Col c) => c switch
+    {
+        Col.Set => r.YogaSetName ?? r.YogaTypeCode ?? "",
+        Col.Yoga => DisplayYoga(r.YogaCode),
+        Col.Variant => r.SourceVariantCode,
+        Col.Nature => NatureRank(r.OutcomeNatureCode),
+        Col.Status => StatusLabel(r),
+        Col.Rule => r.YogaRule ?? "",
+        Col.Inference => r.InferenceText ?? "",
+        Col.Interpretation => Resolve(r)?.StandardText ?? "",
+        Col.Source => DisplaySource(r.SourceRefCode),
+        _ => "",
+    };
+
+    private IReadOnlyList<YogaEvaluationRow> DisplayRows
+    {
+        get
+        {
+            var rows = VariantRows
+                .Where(r => _showAll || r.Present == true)
+                .Where(r => string.IsNullOrWhiteSpace(_query) || SearchText(r).Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (_sortKey is not { } key)
+                return rows.OrderBy(r => r.YogaSetName).ThenBy(r => TypeRank(r.YogaTypeCode)).ThenBy(r => r.SourceVariantCode).ToList();
+            var ordered = _desc ? rows.OrderByDescending(r => SortValue(r, key)) : rows.OrderBy(r => SortValue(r, key));
+            return ordered.ThenBy(r => DisplayYoga(r.YogaCode)).ThenBy(r => r.SourceVariantCode).ToList();
+        }
+    }
+
+    // tbl_Rule_Yoga.OutcomeNatureCode (migration 159): good first, bad last.
+    private static int NatureRank(string? code) => code switch
+    {
+        "AUSPICIOUS" => 0,
+        "MIXED" => 1,
+        "CONTEXTUAL" => 2,
+        "INAUSPICIOUS" => 3,
+        _ => 4,
+    };
+
+    private static string NatureLabel(YogaEvaluationRow r) => r.OutcomeNatureCode switch
+    {
+        "AUSPICIOUS" => "Good",
+        "INAUSPICIOUS" => "Bad",
+        "MIXED" => "Mixed",
+        "CONTEXTUAL" => "Depends",
+        _ => "—",
+    };
+
+    private static string NatureClass(YogaEvaluationRow r) => r.OutcomeNatureCode?.ToLowerInvariant() ?? "none";
 
     private int PresentCount => VariantRows.Count(r => r.Present == true);
+    private int PresentGood => VariantRows.Count(r => r.Present == true && r.OutcomeNatureCode == "AUSPICIOUS");
+    private int PresentBad => VariantRows.Count(r => r.Present == true && r.OutcomeNatureCode == "INAUSPICIOUS");
+    private int PresentOther => PresentCount - PresentGood - PresentBad;
     private int EvaluatedCount => VariantRows.Count(r => r.EvaluationStatus == "EVALUATED");
     private int NotEvaluatedCount => VariantRows.Count - EvaluatedCount;
 
     private static string SearchText(YogaEvaluationRow r) =>
-        $"{r.YogaCode} {r.SourceVariantCode} {r.YogaSetName} {r.SourceRefCode} {r.YogaRule}";
+        $"{r.YogaCode} {r.SourceVariantCode} {r.YogaSetName} {r.SourceRefCode} {r.YogaRule} {r.InferenceText} {NatureLabel(r)}";
 
     private static string StatusLabel(YogaEvaluationRow r) => r.EvaluationStatus == "NOT_EVALUATED"
         ? "Pending" : r.Present == true ? "Present" : "Absent";

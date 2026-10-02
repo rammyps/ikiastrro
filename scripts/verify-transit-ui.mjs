@@ -1,5 +1,5 @@
-// Manual browser smoke for the Key Inference "D1 / Transit" step
-// (docs/ui/components/key-inference.md). Not wired to CI. Run the app on :5160 with a
+// Manual browser smoke for the Astro Facts "D1 / Transit" step
+// (docs/ui/components/astro-facts.md). Not wired to CI. Run the app on :5160 with a
 // remote-debug Chrome, then:
 //   CDP_PORT=9222 PERSON_ID=88 node scripts/verify-transit-ui.mjs
 // The standalone /transit-wheel landing page (docs/ui/components/spec_Natal_Transit_Comp_Wheel.md)
@@ -53,7 +53,7 @@ try {
     await send('Page.enable');
     await send('Emulation.setAutoDarkModeOverride', { enabled: false });
     await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
-    await send('Page.navigate', { url: `${APP}/key-inference/${PERSON}` });
+    await send('Page.navigate', { url: `${APP}/astro-facts/${PERSON}` });
 
     await waitFor(`document.querySelector('h1.ki-heading')?.textContent.trim() === 'D1-TRANSIT'`);
     await delay(500);
@@ -73,7 +73,7 @@ try {
     console.log(JSON.stringify(shell));
     assert.equal(shell.home, 'HOME');
     assert.equal(shell.homeFirst, true);
-    assert.deepEqual(shell.tabs, ['ALL CHARTS', 'KEY INFERENCE']);
+    assert.deepEqual(shell.tabs, ['ALL CHARTS', 'ASTRO FACTS']);
     assert.equal(shell.saved, 'SAVED CHARTS');
     assert.ok(shell.person && shell.person.length > 0);
 

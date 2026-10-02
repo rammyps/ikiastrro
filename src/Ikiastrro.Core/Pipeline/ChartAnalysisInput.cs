@@ -12,8 +12,9 @@ namespace Ikiastrro.Core.Pipeline;
 /// </summary>
 public record ChartAnalysisInput(string ChartType, ZodiacName AscendantSign, List<PlanetPosition> Planets)
 {
-    /// <summary>AL, the 12 Bhava Arudhas, HL, Gulika, Maandi — each projected into THIS
-    /// chart's zodiac with the same IVargaSignRule as the planets. Position only (Sign /
+    /// <summary>AL, the 12 Bhava Arudhas, the graha arudhas, special lagnas, upagrahas — the
+    /// arudha padas computed inside THIS chart from its own placements, everything else
+    /// projected into it with the same IVargaSignRule as the planets. Position only (Sign /
     /// VargaLongitudeDegrees / HouseNumber); no dignity/nakshatra/combustion/aspects/karaka.
     /// Empty when special points were not supplied (older callers, verify-vargas).</summary>
     public IReadOnlyList<PlanetPosition> SpecialPoints { get; init; } = Array.Empty<PlanetPosition>();

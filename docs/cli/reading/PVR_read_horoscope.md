@@ -207,8 +207,12 @@ checked step-for-step against this path. Known gaps to reconcile:
 - `method.md`'s step 3 (varga lagna) and step 7 (house-by-house checklist) do not yet state
   PVR's step 3/4 distinction (lagna vs. arudha vs. karaka as the counting reference; house
   vs. arudha as the matter itself) as generally as this file does.
-- Rasi drishti and argala are flagged **not built** in the engine (`pvr-coverage.md` Ch. 10
-  row) — step 5 above cannot yet be run in full against computed output, only graha drishti
-  and baadhaka (`BaadhakaCalculator`, §2.2) are.
+- Graha drishti, rasi drishti (`RasiDrishtiCalculator`) and argala/virodhargala
+  (`ArgalaCalculator` → `tbl_Fact_Argala`, written by `ChartGenerationService`) are all built
+  (`pvr-coverage.md` Ch. 10 row), as is baadhaka (`BaadhakaCalculator`, §2.2). Astro Facts shows
+  rasi drishti and argala per chart, and Key Inference shows argala on the matter's houses.
+  Step 5 is assembled per life matter since 2026-10-01: `TargetInfluences` and Key Inference'
+  "What acts on it" section list every planet's dṛṣṭi, Argala, position from the target,
+  bādhaka and functional nature, for the house or its Āruḍha pada.
 - §13.4.2 family-member re-rooting has no CLI/engine support yet — it is a manual reading
   technique only at this time.

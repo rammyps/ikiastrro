@@ -16,8 +16,8 @@
 .pgls-canvas{display:grid;place-items:center}
 .pgls-polar{width:min(100%,720px);height:auto;overflow:visible;font-family:var(--font-interface)}
 .pgls-back{fill:var(--brand-sunrise);stroke:var(--brand-midnight);stroke-width:3}
-.pgls-sector path{fill:#fffaf2;stroke:var(--brand-midnight);stroke-width:1.25}
-.pgls-sector:nth-of-type(even) path{fill:#f3ede3}
+.pgls-sector path{fill:var(--brand-surface);stroke:var(--grid-stroke);stroke-width:1.25}
+.pgls-sector:nth-of-type(even) path{fill:var(--brand-surface-soft)}
 
 /* One lagna ring per reference (Sign/Arudha/Hora/Sree/Ghati) — the sector matching that
    reference's own placement (house 1, "self") gets a solid ticker band in its accent colour;

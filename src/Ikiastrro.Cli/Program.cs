@@ -150,7 +150,7 @@ static Ikiastrro.Data.Statistics.HouseStrengthStatisticsService NewHouseStrength
 
 // --- Backfill mode: `dotnet run -- backfill-strength-statistics` ---
 // Rebuilds tbl_Fact_HouseStrengthStatistics (migration 156) for every saved person from facts
-// already in the database — the Life Matters strength statistics, every chart x 12 signs. Chart
+// already in the database — the Key Inference strength statistics, every chart x 12 signs. Chart
 // generation keeps it current from then on; this is for people generated before migration 156.
 if (args.Length > 0 && args[0] == "backfill-strength-statistics")
 {
@@ -833,20 +833,16 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
               JOIN dbo.tbl_ChartResults cr ON cr.Id=kd.ChartResultId
               JOIN dbo.tbl_BirthDetails bd ON bd.Id=cr.BirthDetailId
               WHERE bd.Name='Ramakrishnan' AND cr.ChartType='D1' AND kd.PointKind='Arudha'"), 12);
-        // channel integrity: AL's D9 sign == NavamsaD9 rule applied to AL's D1 longitude
-        var alD1Lon = conn.ExecuteScalar<double>(
-            @"SELECT kd.NirayanaLongitudeDegrees FROM dbo.tbl_Chart_KeyDetails kd
-              JOIN dbo.tbl_ChartResults cr ON cr.Id=kd.ChartResultId
-              JOIN dbo.tbl_BirthDetails bd ON bd.Id=cr.BirthDetailId
-              WHERE bd.Name='Ramakrishnan' AND cr.ChartType='D1' AND kd.Planet='AL'");
-        var expectedD9 = VargaSignRuleFactory.For("NavamsaD9", 9).SignFor(alD1Lon).ToString();
         // tbl_Rule_ArudhaFormula (migration 085) closes the same audit's Arudha-has-no-DB-
         // citation gap. A single narrative row, so this checks presence + citation, not a
         // numeric round-trip (same shape as tbl_Rule_PostureStateFormula/PanchangaFormula).
         var arudhaSource = conn.ExecuteScalar<string?>(
             "SELECT SourceRefCode FROM dbo.tbl_Rule_ArudhaFormula WHERE RuleSetId = 1");
         Check("tbl_Rule_ArudhaFormula cites SRC_PVR_INTEGRATED", arudhaSource, "SRC_PVR_INTEGRATED");
-        Check("AL D9 channel integrity", SpSign("D9", "AL"), expectedD9);
+        // Since 2026-10-01 a varga's padas are computed inside that varga (PVR sec.9.2), not
+        // projected from D1: D9's AL is D9's own pada — Gemini, as in JHora's D-9 grid
+        // (Rammy_Jagannatha.txt; every shared chart is checked by verify-varga-arudha).
+        Check("AL (D9) computed inside D9 -> Gemini (JHora)", SpSign("D9", "AL"), "Gemini");
     }
 
     // --- Phase 4: Hora Lagna + PVR upagrahas (JHora Saturn instants, names swapped) ---
@@ -1712,6 +1708,63 @@ if (args.Length > 0 && args[0] == "verify-house-benefic-malefic")
     }
 
     Console.WriteLine(failures == 0 ? "\nverify-house-benefic-malefic: ALL PASS" : $"\nverify-house-benefic-malefic: {failures} FAILURE(S)");
+    Environment.Exit(failures == 0 ? 0 : 1);
+}
+
+// --- `dotnet run -- verify-varga-arudha` ---
+// PVR sec.9.2 defines the arudha padas of every house "in all the divisional charts" from that
+// chart's own placements (ArudhaCalculator inside VargaChartComputer, with the sec.15.5.1 stronger
+// co-lord for Sc/Aq). Checks the Arudha Lagna of every chart the project shares with JHora against
+// the AL in each grid of docs/artifacts/reference-charts/*_Jagannatha.txt, for every person on file
+// with an export. Live = ChartPipeline.Run now (fails the check); stored = tbl_Chart_KeyDetails
+// (reported STALE until backfill-charts runs). A grid whose Ascendant differs from ours is a
+// different varga variant and is skipped, not failed.
+if (args.Length > 0 && args[0] == "verify-varga-arudha")
+{
+    var failures = 0;
+    var dir = args.Length > 1 ? args[1] : Path.Combine("docs", "artifacts", "reference-charts");
+    var psRulesVva = new PlanetaryStateRuleRepository(connectionFactory).GetActiveRuleSet();
+    var pipelineVva = new ChartPipeline(orchestrator, psRulesVva);
+    var people = birthDetailsRepo.GetAll();
+    using var vvaConn = connectionFactory.CreateOpenConnection();
+
+    foreach (var file in Directory.GetFiles(dir, "*_Jagannatha.txt").OrderBy(f => f))
+    {
+        var lines = File.ReadAllLines(file);
+        var jhoraName = JHoraGridReader.PersonName(lines[0]);
+        var person = people.FirstOrDefault(p => p.Name == jhoraName);
+        Console.WriteLine($"\n{Path.GetFileName(file)} -> {jhoraName}");
+        if (person is null) { Console.WriteLine("  (no such person on file — skipped)"); continue; }
+
+        var live = pipelineVva.Run(person).Charts.ToDictionary(c => c.ChartType);
+        var stored = vvaConn.Query<(string ChartType, string Planet, string Sign)>(
+            @"SELECT cr.ChartType, kd.Planet, kd.Sign
+              FROM dbo.tbl_Chart_KeyDetails kd
+              JOIN dbo.tbl_ChartResults cr ON cr.Id = kd.ChartResultId
+              WHERE cr.BirthDetailId = @bid AND kd.Planet IN ('Ascendant', 'AL')", new { bid = person.Id })
+            .ToDictionary(r => (r.ChartType, r.Planet), r => r.Sign);
+
+        foreach (var grid in JHoraGridReader.Read(lines))
+        {
+            var chartType = JHoraGridReader.ChartTypeOf(grid.Label, live.Keys);
+            if (chartType is null || !grid.SignOf.TryGetValue("AL", out var jhoraAl) || !grid.SignOf.TryGetValue("As", out var jhoraAs))
+                continue;
+            var chart = live[chartType];
+            if (chart.AscendantSign != jhoraAs)
+            {
+                Console.WriteLine($"  [SKIP] {chartType,-6} JHora '{grid.Label}' Lagna {jhoraAs} vs ours {chart.AscendantSign} — a different varga variant");
+                continue;
+            }
+            var liveAl = chart.SpecialPoints.Single(p => p.Planet == "AL").Sign;
+            var ok = liveAl == jhoraAl.ToString();
+            if (!ok) failures++;
+            var storedAl = stored.GetValueOrDefault((chartType, "AL"));
+            var storedNote = storedAl == liveAl ? "" : $"  stored {storedAl ?? "—"} STALE";
+            Console.WriteLine($"  [{(ok ? "PASS" : "FAIL")}] {chartType,-6} AL ours {liveAl}, JHora {jhoraAl}{storedNote}");
+        }
+    }
+
+    Console.WriteLine(failures == 0 ? "\nverify-varga-arudha: ALL PASS" : $"\nverify-varga-arudha: {failures} FAILURE(S)");
     Environment.Exit(failures == 0 ? 0 : 1);
 }
 

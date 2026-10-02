@@ -1,6 +1,6 @@
 @using System.Globalization
 @using Ikiastrro.Data
-@* Key Inference "GENERAL DETAILS" — birth-moment Pañchāṅga (db/081's PanchangaRepository) plus
+@* Astro Facts "GENERAL DETAILS" — birth-moment Pañchāṅga (db/081's PanchangaRepository) plus
    sunrise/sunset/Janma Ghatis. Distinct from the chart-view's LunarPhaseCard (Tithi/Pakṣa/
    Elongation, Moon-centric); this card is the day-level almanac reading, Sun-and-Moon-together. *@
 <section class="pch-card">
@@ -28,7 +28,7 @@ else
     [Parameter] public ChartPanchangaRow? Row { get; set; }
 
     /// <summary>Sunrise/sunset are stored UTC; Row carries no offset of its own, so the caller
-    /// hands one in (the person's own birth UtcOffset) — same source KeyInference already parses
+    /// hands one in (the person's own birth UtcOffset) — same source AstroFacts already parses
     /// for the transit-selection clock.</summary>
     [Parameter] public TimeSpan UtcOffset { get; set; }
 

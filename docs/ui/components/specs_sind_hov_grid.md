@@ -1,8 +1,10 @@
 ---
+
+> **Being replaced** by SIND-UNI-2 (Key Inference): see [`spec_SIND-UNI_GridChart.md`](spec_SIND-UNI_GridChart.md) (2026-10-01). This component stays until its pages have moved over.
 last_updated: 2026-09-29
 workstream: ui
 component: SindHovGrid
-route: embedded — LifeMatters page (see specs_life_matters_page.md)
+route: embedded — LifeMatters page (see specs_key_inference_page.md)
 togaf: C — component spec (built)
 catalogued_in: chart-catalog.md
 ---
@@ -19,7 +21,7 @@ it diverges from or leaves gaps against `lifematters_plan.md`, and is the contra
 > **hover/keyboard preview, click/Enter pin, and house/special-point relevance highlighting**,
 > state neither sibling has. Since 2026-09-29 it borrows `SouthIndianGrid_Detailed`'s visual
 > language (sign + Sanskrit name, house badges, dignity dots, `(R)`/`(D)`, combust, aspect strip)
-> so Life Matters reads like the rest of the app's charts. Upagrahas and karaka-scheme tags stay
+> so Key Inference reads like the rest of the app's charts. Upagrahas and karaka-scheme tags stay
 > out; they remain Detailed/Micro's job.
 
 ## Geometry
@@ -76,7 +78,7 @@ chart itself.
   covers cell count, marker presence, and the grid's own `aria-label`.
 - **`prefers-reduced-motion`**: `.chart-cell` transitions are disabled under that media query.
 
-## Not this component's job (page-level, see specs_life_matters_page.md)
+## Not this component's job (page-level, see specs_key_inference_page.md)
 
 - Auto/D1/Manual Varga selection and "retain last chart if unmapped" — the page decides which
   chart's Ascendant sign and evidence dictionaries to pass in; SindHovGrid has no chart-type

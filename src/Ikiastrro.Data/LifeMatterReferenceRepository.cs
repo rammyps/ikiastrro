@@ -47,7 +47,7 @@ public sealed class LifeMatterReferenceRepository(SqlConnectionFactory factory)
             """, new { RuleSetId = ruleSetId, CategoryCode = categoryCode }).ToList();
     }
 
-    /// <summary>Every active step across all categories in one query — the Life Matters page's
+    /// <summary>Every active step across all categories in one query — the Key Inference page's
     /// page-load snapshot, so area-level summaries don't need a GetSteps call per category.</summary>
     public IReadOnlyList<LifeMatterStepRow> GetAllSteps(byte ruleSetId)
     {

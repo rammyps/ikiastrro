@@ -33,11 +33,11 @@ public record PlanetRow(
     string? SignLordPlanet,
     string? SubLordChainL1ToL7);
 
-/// <summary>One graha's row for Key Inference step 2.2 "About Planets" — dignity, Chara Kāraka,
+/// <summary>One graha's row for Astro Facts step 2.2 "About Planets" — dignity, Chara Kāraka,
 /// its classical Uchcha Bindu (deep-exaltation point), and how close its D1 longitude sits to
 /// that exact point. <see cref="ExaltationPointDisplay"/>/<see cref="DeltaFromExaltationDegrees"/>/
 /// <see cref="ClosenessPercent"/> are null for Rahu/Ketu — no classical exaltation point for the
-/// nodes (docs/ui/components/key-inference.md § New fields — sourcing status).</summary>
+/// nodes (docs/ui/components/astro-facts.md § New fields — sourcing status).</summary>
 public record ExaltationRow(
     string Planet,
     string? DignityStatus,
@@ -91,7 +91,7 @@ public static class ChartViewModel
 
     /// <summary>
     /// Builds one row per graha (Sun…Ketu — the Ascendant and any special points are excluded) for
-    /// Key Inference's "About Planets" chart + table: dignity, Chara Kāraka, exaltation point, Δ
+    /// Astro Facts's "About Planets" chart + table: dignity, Chara Kāraka, exaltation point, Δ
     /// from that point, and closeness% (<c>round((1 − Δ/180) × 100)</c> — 100% = exact exaltation,
     /// 0% = exact debilitation). Order follows classical Sun…Ketu, not KeyDetails' storage order.
     /// </summary>
@@ -319,7 +319,7 @@ public static class ChartViewModel
     public static double DignityScoreNormalized(string? dignityStatus) => (DignityScore(dignityStatus) + 4) / 8.0;
 
     /// <summary>Maps a classical DignityStatus label to one of 7 distinct dignity CSS tokens for
-    /// the Vargas step's per-varga breakdown (Key Inference step 6) — unlike <see cref="DignityToken"/>,
+    /// the Vargas step's per-varga breakdown (Astro Facts step 6) — unlike <see cref="DignityToken"/>,
     /// which collapses Moolatrikona/Own Sign/Great Friend into one "good" token for compact dot
     /// coloring elsewhere in the app, this keeps all 7 named tiers rammyps asked to distinguish
     /// (Exalted, Moolatrikona, Own, Great Friend, Friend, Enemy, Great Enemy) separately colored.
@@ -339,7 +339,7 @@ public static class ChartViewModel
     };
 
     /// <summary>4-letter nakshatra abbreviation (the common Vedic-software convention), for tables
-    /// too width-constrained for the full name — e.g. Key Inference's transposed D1 table, one
+    /// too width-constrained for the full name — e.g. Astro Facts's transposed D1 table, one
     /// column per graha, where "Purva Bhadrapada" would force either a horizontal scrollbar or a
     /// smaller font than the rest of the page (rammyps, 2026-09-24). Keyed on
     /// AstroMath.NakshatraCanonicalNames' exact spelling; returns the input unchanged if it isn't

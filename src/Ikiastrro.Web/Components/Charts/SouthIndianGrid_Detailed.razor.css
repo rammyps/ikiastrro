@@ -26,7 +26,9 @@
 
 .cell { background: var(--paper-raised); padding: 8px 9px; display: flex; flex-direction: column; justify-content: space-between; position: relative; min-width: 0; }
 .cell.center { background: var(--paper); align-items: center; justify-content: center; text-align: center; padding: 14px; }
-.cell.ascendant { background: var(--asc-glow); box-shadow: inset 0 0 0 2px var(--accent); }
+/* --asc-glow is translucent: laid over the cell's own fill so the grid lines (--paper-line) don't
+   show through and turn the Lagna cell brown in the light themes. */
+.cell.ascendant { background: linear-gradient(var(--asc-glow), var(--asc-glow)), var(--paper-raised); box-shadow: inset 0 0 0 2px var(--accent); }
 
 .sign-label { display: flex; flex-direction: column; gap: 0; }
 .sign-en { font-size: 11px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.02em; }

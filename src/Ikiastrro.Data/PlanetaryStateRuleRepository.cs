@@ -22,7 +22,7 @@ public class PlanetaryStateRuleRepository
 
     /// <summary>Every `tbl_Dim_PlanetaryState` row keyed by Id — resolves `PlanetaryStateFact`'s
     /// AgeStateId/WakefulnessStateId/PostureStateId FKs (and, via `tbl_Fact_PlanetaryStateFlag`, the
-    /// Deeptadi/Lajjitadi state ids) to a display name/meaning for the Key Inference "Planet States"
+    /// Deeptadi/Lajjitadi state ids) to a display name/meaning for the Astro Facts "Planet States"
     /// table, across all five avastha systems in one lookup, unlike <see cref="GetRuleSet"/>'s
     /// per-system shape.</summary>
     public IReadOnlyDictionary<byte, PlanetaryStateRow> GetAllStates()

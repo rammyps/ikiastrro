@@ -5,7 +5,7 @@ using Ikiastrro.Data;
 
 namespace Ikiastrro.Web.Tests;
 
-/// <summary>ArgalaFacts.ForChart — the one source Key Inference's ArgalaTable and Life Matters
+/// <summary>ArgalaFacts.ForChart — the one source Astro Facts's ArgalaTable and Key Inference
 /// both read — plus the flat-list ArgalaCalculator.Compare the table's Net column now uses.</summary>
 public sealed class ArgalaFactsTests
 {

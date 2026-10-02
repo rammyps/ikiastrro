@@ -11,7 +11,7 @@ public sealed record SupportBand(string Label, string Meaning, string Tone);
 public sealed record StrengthFactor(string Name, string Technical, int? Percent, string Detail);
 
 /// <summary>
-/// Customer-facing reading of the Life Matters statistics (docs/ui/components/specs_life_matters_page.md
+/// Customer-facing reading of the Key Inference statistics (docs/ui/components/specs_key_inference_page.md
 /// "Customer flow"): support bands, the strongest and limiting factors, and which lagna
 /// perspectives and matters show before "more". Presentation only — every number comes from
 /// <see cref="LifeMatterStatistics"/>.

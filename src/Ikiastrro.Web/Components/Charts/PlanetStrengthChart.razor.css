@@ -1,4 +1,4 @@
-/* Key Inference 3.1 "Planet Strength" — tokens.css --status-*/--bala-* + the shared brand-*
+/* Astro Facts 3.1 "Planet Strength" — tokens.css --status-*/--bala-* + the shared brand-*
    family (design-language.md). "psc" = PlanetStrengthChart. */
 
 .psc {
@@ -82,10 +82,10 @@
    own base rule below sets `background: var(--brand-peach)` and, at equal specificity, a later
    same-specificity rule wins the cascade regardless of which was "meant" to apply; re-declaring
    the background here with one extra class in the selector reliably outranks it. */
-.psc-rankbadge.psc-status-strong { background: var(--status-strong); color: var(--brand-sunrise); }
+.psc-rankbadge.psc-status-strong { background: var(--status-strong); color: var(--status-on); }
 .psc-rankbadge.psc-status-moderate { background: var(--status-moderate); color: var(--brand-midnight); }
-.psc-rankbadge.psc-status-weak { background: var(--status-weak); color: var(--brand-sunrise); }
-.psc-rankbadge.psc-status-weak { color: var(--brand-sunrise); }
+.psc-rankbadge.psc-status-weak { background: var(--status-weak); color: var(--status-on); }
+.psc-rankbadge.psc-status-weak { color: var(--status-on); }
 
 .psc-bala-sthana { background: var(--bala-sthana); }
 .psc-bala-dig { background: var(--bala-dig); }
@@ -214,6 +214,10 @@
     font-weight: 700;
     font-size: 0.82em;
 }
+/* The bare .psc-status-* rules give the label a solid status fill; its digits take the
+   theme's on-status ink like the rank badges. */
+.psc-pctlabel.psc-status-strong,
+.psc-pctlabel.psc-status-weak { color: var(--status-on); }
 
 .psc-stack {
     display: flex;

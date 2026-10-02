@@ -10,8 +10,15 @@ One language, everywhere. Detail on colours/type: [`brand.md`](brand.md).
 
 ## The rules
 
-- **MudBlazor is the component system.** Light theme. Every page uses `MudLayout` /
+- **MudBlazor is the component system.** Every page uses `MudLayout` /
   `MudAppBar` / `MudMainContent` and MudBlazor controls for chrome, forms, tables, dialogs.
+- **Appearance is user-selectable.** Saved Charts → Settings → Preferences offers
+  **Default Light**, **Cosmic Light**, and **Cosmic Dark**. Default Light preserves the approved
+  cream/navy master palette. The Cosmos modes use the adaptive Alabaster/Slate/Teal and
+  Obsidian/Platinum/Aurora systems through `html[data-theme]`, with the user's choice stored
+  in `localStorage`. Legacy `light` and `dark` values are migrated automatically. Component CSS
+  consumes semantic tokens and must work in all three modes; never add a light-only or
+  dark-only surface.
 - **Tokens, not raw values.** `wwwroot/css/tokens.css` holds real `:root` custom properties
   (the `--brand-*` set + semantic astrology tokens). Components read them via `var(--…)` —
   never a raw hex, never a CSS named colour, never an inline `<style>` in `.razor` markup.
@@ -32,7 +39,7 @@ spacing and colour — not a second typeface.
 
 ### Four-level type scale (2026-09-24, rammyps's directive)
 
-Every information-dense chart/table screen (Key Inference and everything shaped like it) uses
+Every information-dense chart/table screen (Astro Facts and everything shaped like it) uses
 one compact four-level scale, `16px = 100%`. Jumps stay small on purpose — a dense interface
 where navigation and data panels already compete for attention gets worse with a dramatic
 scale, not better:
@@ -85,7 +92,7 @@ MudBlazor table and every hand-rolled `<table>`.
 
 ### Standard table format (2026-09-22)
 
-Every table on Key Inference now follows one reference format —
+Every table on Astro Facts now follows one reference format —
 `PlanetPositionsTable.razor.css`'s `.ppt` (the "1.1 D1-Birth Chart" table). New tables copy
 this pattern into their own scoped CSS (there is no shared stylesheet; each `Component.razor.css`
 repeats it):
@@ -146,9 +153,9 @@ master rail and a filled-segment nested style:
 - The underline slider MudBlazor draws by default is redundant against a filled pill — hide it
   (`.mud-tab-slider { display: none; }`).
 
-Applies uniformly to the Key Inference master step rail (1. NATAL CHARTS / 2. TRANSIT CHART / 3. STRENGTH
+Applies uniformly to the Astro Facts master step rail (1. NATAL CHARTS / 2. TRANSIT CHART / 3. STRENGTH
 / 4. SPL LAGNAS / 5. YOGAS / 6. VARGAS) **and** every nested tab strip beneath it (1.1/1.2,
-2.1/2.2, 3.1/3.2/3.3/3.4) — one tab style, not two. `KeyInference.razor.css`'s
+2.1/2.2, 3.1/3.2/3.3/3.4) — one tab style, not two. `AstroFacts.razor.css`'s
 `.ki-tabs ::deep .mud-tab` rule is the base pill; `.ki-mastertabs ::deep .ki-master-button` only
 adds the master rail's grid-stretch layout (`width: 100%; justify-content: center`), not its own
 colours.
@@ -176,14 +183,14 @@ sunrise-fill selected state:
   `padding: 4-6px 10-14px` (vs a nav tab's `--font-size-control`/6-20px).
 - Positioned on the **right** of the card header, opposite the `<h2>` (and before any trailing
   stat like Sarvāṣṭakavarga's grand total) — never left-aligned under the heading.
-- A `<select>` that chooses or drives a chart (including Key Inference's Natal Chart dropdown
+- A `<select>` that chooses or drives a chart (including Astro Facts's Natal Chart dropdown
   and SPL LAGNAS's divisional-chart picker) uses a dark-blue `--brand-midnight` surface with
   cream `--brand-canvas` text. This navy/cream/caps look identifies chart-selection controls
   consistently and keeps them visually distinct from ordinary data-entry form fields.
 - **Every native `<select>` in the app, not just these navy chart pickers, renders ALL CAPS**
   (2026-09-25, rammyps's directive — "make all the … drop-down heading in caps across the
   entire app"): one unscoped `html select, html select option { text-transform: uppercase; }`
-  rule in `tokens.css`, alongside the `html th` rule above, so Key Inference's Dasha Month/Year/
+  rule in `tokens.css`, alongside the `html th` rule above, so Astro Facts's Dasha Month/Year/
   Mahadasha/Antardasha/Pratyantar pickers and AstrologerEvidence's chart select get it too
   without each needing its own local rule. Deliberately excludes MudBlazor's `<MudSelect>`
   (Saved Charts' Settings panel) — its custom-rendered markup isn't a real `<select>` the rule
@@ -203,13 +210,13 @@ Rationale: this reuses the app's own dark-navy brand color as a visual signal th
 (which stays the quiet-cream/strong-sunset MudTabs pill above). Each chart component
 re-declares this rule set under its own CSS-isolation scope (`.av-toggle`, `.psc-toggle`,
 `.hsc-toggle`, `.am-schemes`, `.karaka-view-tabs`/`.karaka-chart-select`, `.ki-chart-toggle` —
-Key Inference's NATAL "COLLAPSE CHART"/"EXPAND CHART" button, fixed 2026-09-25 from a leftover
+Astro Facts's NATAL "COLLAPSE CHART"/"EXPAND CHART" button, fixed 2026-09-25 from a leftover
 cream/sunset-border nav-tab look that made it read as one more sub-tab) — same duplication every
 `.pill`/`.dot` status class in this codebase already carries per component.
 
-The app header follows the same filled-pill grammar (`.ik-headtab`, matching the Key Inference
+The app header follows the same filled-pill grammar (`.ik-headtab`, matching the Astro Facts
 master rail). Its active state (`.is-here`) uses midnight fill for contrast on the sunset app
-bar. The header spans the viewport as three zones: person tabs (KEY INFERENCE / NUMEROLOGY) at
+bar. The header spans the viewport as three zones: person tabs (ASTRO FACTS / NUMEROLOGY) at
 left, and **SAVED / CHARTS** at the extreme right. All nav labels stack onto two lines (two
 `<span>`s each); "Saved Charts" retains its accessible name.
 
@@ -221,7 +228,7 @@ its place, the header's centre column now shows the currently-open person's name
 opened; "the top where iki-astro used to be" is now the person's own identity, not the brand.
 On Home, before any person is opened, that centre column is simply empty. Downstream of this,
 the context band below the app bar (`.ik-band`) now renders only when a page supplies
-`Active.HeaderExtra` (currently just Key Inference's master step rail) — it no longer has a
+`Active.HeaderExtra` (currently just Astro Facts's master step rail) — it no longer has a
 "just the person name, centred" mode, since that content moved up into the app bar.
 
 **Name only, no DOB line (2026-09-24, rammyps's directive).** `.ik-person-block` used to stack
@@ -239,7 +246,7 @@ root but *not* the scope attribute (MudTabs doesn't capture/forward it), so
 `.my-scope ::deep .mud-tab { }` compiles to a selector that never matches anything. Wrap the
 component in a plain `<div class="my-scope">` instead (the div is literal markup and gets the
 scope attribute) — same pattern `Natal_Transit_Comp_WheelChart.razor.css`'s
-`.ki-wheel ::deep .ntw` already relied on. See `KeyInference.razor`/`.razor.css` for the
+`.ki-wheel ::deep .ntw` already relied on. See `AstroFacts.razor`/`.razor.css` for the
 worked example (`.ki-tabs` wrapping divs around all three tab levels).
 
 The same gotcha bit `MainLayout.razor`'s `<MudAppBar Class="ik-appbar">` until the 2026-09-14
@@ -258,7 +265,7 @@ merely compiling means it applies.
 mode makes `.mud-tabs-panels` itself a flex row and gives the active `.mud-tab-panel`
 `display:contents` — which promotes that panel's own direct children into the row instead of
 letting them stack as a normal block column. Wrap everything inside the `MudTabPanel` in one
-element (Key Inference's `.ki-panelbody`, `flex: 1 1 auto; min-width: 0;`) so only that single
+element (Astro Facts's `.ki-panelbody`, `flex: 1 1 auto; min-width: 0;`) so only that single
 wrapper gets promoted, not its grandchildren.
 
 ## Semantic tokens (over the warm canvas)
@@ -280,7 +287,7 @@ wrapper gets promoted, not its grandchildren.
 | `--tmpl-*` (+ `--tmpl-rashi-highlight`) | `D1TemplateGrid` light "chart card" palette. `--tmpl-planet-*`/`--tmpl-housemoon-*`/`--tmpl-lagna-text` are aliases of the app-wide `--planet-*`/`--house-moon`/`--house-lagna` tokens (2026-09-25); the dark-theme block keeps its own literal values (the template's standalone "🌙 Dark" toggle, the one documented exception to "no hard-coded hex") |
 | `--status-strong` / `-moderate` / `-weak` (+ `-bg`) | strength traffic light — `PlanetStrengthChart`/`HouseStrengthChart` rank badges + status pills, `PlanetaryStateTable` verdict pills, `AshtakavargaChart`'s Sarvāṣṭavarga bars/Bhinnāṣṭavarga bands. `-moderate` is `var(--brand-sunrise)` (2026-09-29; sunset-orange from 2026-09-25, an unrelated amber `#c9820a` before that) — see "Rank/score badge convention" below |
 | `--tab-active-bg` / `-fg`, `--tab-inactive-bg` / `-fg` | tab-strip fills — see "Tabs" above |
-| `--brand-sunrise` | **the app accent** (replaced `--brand-sunset` `#F47A24` app-wide 2026-09-29): app bar, footer, tab pills, primary/selected fills, chart markers, outlines, focus rings — always midnight text on it; text/icons that used to be sunset on the canvas are midnight. Also table row-hover, every Key Inference table (see "Standard table format" above) **and** the light text on a Strong/Weak rank badge's solid fill (see "Rank/score badge convention" below). Distinct from `--brand-peach`, which keeps its other uses |
+| `--brand-sunrise` | **the app accent** (replaced `--brand-sunset` `#F47A24` app-wide 2026-09-29): app bar, footer, tab pills, primary/selected fills, chart markers, outlines, focus rings — always midnight text on it; text/icons that used to be sunset on the canvas are midnight. Also table row-hover, every Astro Facts table (see "Standard table format" above) **and** the light text on a Strong/Weak rank badge's solid fill (see "Rank/score badge convention" below). Distinct from `--brand-peach`, which keeps its other uses |
 
 ## Rank/score badge convention (2026-09-25, rammyps's call)
 
@@ -325,8 +332,8 @@ rule alone, so it wins regardless of declaration order.
 
 When two chart-picker drop-downs on the same page represent the *same underlying selection* —
 "which chart am I looking at" — they must be two-way linked, not two silently independent copies
-of `_selectedChart` that can disagree. Reference implementation: Key Inference's STRENGTH tab.
-The left-side natal chart picker (`KeyInference.razor`'s `_natalChart` field, rendered by the
+of `_selectedChart` that can disagree. Reference implementation: Astro Facts's STRENGTH tab.
+The left-side natal chart picker (`AstroFacts.razor`'s `_natalChart` field, rendered by the
 shared `ChartColumn` fragment) and `AshtakavargaChart`'s own "Chart" drop-down in its
 ASHTAVARGA sub-tab are the same selection wearing two hats, so changing either now moves both.
 

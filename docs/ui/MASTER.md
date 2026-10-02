@@ -24,17 +24,18 @@ recomputes.
 | [`design-language.md`](design-language.md) | Token + component authoring rules |
 | [`dataviz.md`](dataviz.md) | Charting approach — hand-rolled SVG now, Syncfusion as a deferred option |
 | [`components/spec_Natal_Transit_Comp_Wheel.md`](components/spec_Natal_Transit_Comp_Wheel.md) | Living specification — natal ↔ transit comparison wheel and two-tab D1 Birth / Current Transit table |
-| [`components/spec_SouthIndianGrid_Detailed.md`](components/spec_SouthIndianGrid_Detailed.md) | The enriched South-Indian chart grid + template page |
+| [`components/spec_SIND-UNI_GridChart.md`](components/spec_SIND-UNI_GridChart.md) | **SIND-UNI** unified South Indian grid chart: SIND-UNI-3 micro with special lagnas on Key Inference and the Spl Lagnas grid; compact and reading views built for later; Astro Facts keeps the master chart; successor to the grids below; to be extended to the polar wheels |
+| [`components/spec_SouthIndianGrid_Detailed.md`](components/spec_SouthIndianGrid_Detailed.md) | The enriched South-Indian chart grid + template page (being replaced by SIND-UNI) |
 | [`components/evidence-tables.md`](components/evidence-tables.md) | The astrologer evidence page |
 | [`components/home.md`](components/home.md) | Home / entry screen |
 | [`components/saved-people.md`](components/saved-people.md) | `/charts` — the people-management surface: list, Edit / Delete, planned Import / Export + bulk generation ([`decision 002`](../../decisions/002-import-export-and-bulk-chart-generation.md)) |
 | [`testing.md`](testing.md) | The two test layers — bUnit component tests and the Playwright browser E2E suite (`tests/Ikiastrro.Web.E2E`) |
-| [`components/key-inference.md`](components/key-inference.md) | `/key-inference/{id}` — as-built 6-step flow (D1/Transit · About · Strength incl. Astavarga+Amsabala · Spl Lagnas · Yogas · Vargas), plus step 7 All Charts on its own route |
-| [`components/yoga.md`](components/yoga.md) | Key Inference step 5 · Yogas — single deduplicated Type/Yoga/Rule/Interpretation/Source table, editable interpretation |
-| [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Key Inference → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers (unchanged by the round-2 flow) |
+| [`components/astro-facts.md`](components/astro-facts.md) | `/astro-facts/{id}` — as-built 6-step flow (D1/Transit · About · Strength incl. Astavarga+Amsabala · Spl Lagnas · Yogas · Vargas), plus step 7 All Charts on its own route |
+| [`components/yoga.md`](components/yoga.md) | Astro Facts step 5 · Yogas — single deduplicated Type/Yoga/Rule/Interpretation/Source table, editable interpretation |
+| [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Astro Facts → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers (unchanged by the round-2 flow) |
 | [`components/chart-catalog.md`](components/chart-catalog.md) | **Chart-module catalogue** — every visual chart component (incl. `SouthIndianGrid_Detailed`, `Natal_Transit_Comp_WheelChart`), dasha module, UI table + helper, as `chart name / spec doc / linked files`; golden-snapshot flow + revert. Naming & versioning: [`../../project_standards.md`](../../project_standards.md) |
 | [`components/numerology.md`](components/numerology.md) | `/numerology/{id}` — Cheiro's name-number method, ported from the `ikinumero` prototype into ikiastrro's own stack (no EF Core/SQLite); computed live from the person's saved Name, nothing persisted |
-| [`lifematters_plan.md`](lifematters_plan.md) | LifeMatters evidence-assembly page + SIND-HOV-GRID — domain flow, data contract, phases, and decisions (Phase 0A: [`lifematters_phase0a_audit.md`](lifematters_phase0a_audit.md); Claude's Phase 0B research: [`lifematters_claude_research.md`](lifematters_claude_research.md); component specs: [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md), [`specs_life_matters_page.md`](components/specs_life_matters_page.md)) |
+| [`lifematters_plan.md`](lifematters_plan.md) | LifeMatters evidence-assembly page + SIND-HOV-GRID — domain flow, data contract, phases, and decisions (Phase 0A: [`lifematters_phase0a_audit.md`](lifematters_phase0a_audit.md); Claude's Phase 0B research: [`lifematters_claude_research.md`](lifematters_claude_research.md); component specs: [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md), [`specs_key_inference_page.md`](components/specs_key_inference_page.md)) |
 
 ## Screen inventory (live routes)
 
@@ -52,7 +53,7 @@ recomputes.
 | `/transit-wheel/{id}` | `Natal_Transit_Comp_Wheel` | band heading `TRANSIT - D1 BIRTH CHART`, natal-transit wheel, two-tab **D1 Birth** / **Current Transit** table | See the [living specification](components/spec_Natal_Transit_Comp_Wheel.md) and `FEAT-UI-13` |
 | `/numerology/{id}` | `Numerology` | Cheiro's compound total + root number for the person's saved Name, per-letter value tiles | **v2 built** — [`components/numerology.md`](components/numerology.md) |
 
-**v2 route targets** (`/key-inference/{id}` built, see [`components/key-inference.md`](components/key-inference.md)
+**v2 route targets** (`/astro-facts/{id}` built, see [`components/astro-facts.md`](components/astro-facts.md)
 for the as-built step order — D1/Transit · About · Strength · Spl Lagnas · Yogas · Vargas, plus
 step 7 All Charts as `/charts/{id}`; TIME PERIOD (DASHA) / SATURN TIME PERIOD stay separate
 headers, not steps):
@@ -77,7 +78,7 @@ Quality attributes the app should hold, tracked apart from feature rows. Backlog
 
 ### NFR-UI-01 — Runtime-reorderable tabs · **deferred (backlog: Later)**
 
-The top-level tabs (and, by extension, the Key Inference 6-step flow) should be
+The top-level tabs (and, by extension, the Astro Facts 6-step flow) should be
 **re-orderable at runtime** — drag-to-reposition like browser tabs, order remembered per user.
 Routes/URLs don't change (the tabs are hash-routed), so reordering is purely presentational and
 low-risk. `HOME` stays fixed.
@@ -102,11 +103,10 @@ The Preferences selector lists all three for forward-compatibility, but **North 
 Indian are shown disabled and labelled "Planned"** until their renderer ships — an unrenderable
 style can never be stored as the active choice.
 
-### NFR-UI-03 — Ayanāṁśa choice
+### NFR-UI-03 — Ayanāṁśa · **locked**
 
-Preferences exposes the **full ayanāṁśa catalogue — 21 systems** (`AyanamsaDefinition.Catalog`),
-with **Lahiri fixed as the default** (the active `tbl_Rule_Ayanamsa` row). Chart generation
-takes the chosen system for that person's next run; the project baseline is unchanged.
+The ayanāṁśa is **Traditional Lahiri for every chart** and is not user-selectable
+(`decisions/004-ayanamsa-traditional-lahiri.md`). Saved Charts → Preferences shows it read-only.
 
 ### NFR-UI-04 — Localisation (Tamil) · **deferred (backlog: Later)**
 
@@ -130,13 +130,13 @@ number and date formatting, and right-to-left is not needed but glyph coverage i
 
 ## Current lunar delivery
 
-- Key Inference 2.2 now shows `LunarPhaseCard`: Śukla/Kṛṣṇa Pakṣa, waxing/waning,
+- Astro Facts 2.2 now shows `LunarPhaseCard`: Śukla/Kṛṣṇa Pakṣa, waxing/waning,
   eight-phase label, illumination percentage, and the persisted Moon `PAKSHA_BALA` value on
   a 0–60 virūpa meter. Focused component tests cover waxing-gibbous and waning-crescent states.
 
 ## Current v5 delivery — FEAT-ASHTAKAVARGA-02
 
-- Key Inference **3.3 ASTHAVARGA** now keeps the existing `AshtakavargaChart` and adds a
+- Astro Facts **3.3 ASTHAVARGA** now keeps the existing `AshtakavargaChart` and adds a
   Varga dropdown over every generated divisional chart. Each generated varga now has its own persisted SAV/BAV
   matrix; selecting a varga changes its bindu values, Piṇḍa values, and ascendant-relative houses.
   The separate step-6 comparison chart was removed to keep one Ashtavarga experience.

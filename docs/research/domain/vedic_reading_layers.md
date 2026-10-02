@@ -1,7 +1,7 @@
 # Vedic reading layers — from reading framework to research framework
 
 Research note capturing rammyps's own architecture for how a horoscope should be read (2026-09-18,
-chat session), refined across two passes: a first "4 areas + Life Matters + one transit slice"
+chat session), refined across two passes: a first "4 areas + Key Inference + one transit slice"
 outline, then a detailed correction/expansion adding calculation integrity, an interpretive
 hierarchy, event validation and explicit uncertainty. This is a **synthesis note**, not a book
 extract — most of the individual techniques below already have their own cited source elsewhere

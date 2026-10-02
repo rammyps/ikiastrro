@@ -19,7 +19,7 @@ stays the description of what is **live** until v2 ships; this doc is the increm
 > far:** the v2 app shell (HOME pill + per-person tabs + context band); the Transit landing
 > (`/transit-wheel/{id}`) D1 Birth tab (`FEAT-UI-13`); **All Charts (`/charts/{id}`) — 21
 > divisional grids, divisor order** (`FEAT-UI-14`, the v1 `Workspace` hub retired). Home (`/`) is
-> partly on this pattern; Key Inference is unbuilt.
+> partly on this pattern; Astro Facts is unbuilt.
 
 ## The pattern — AstrologerEvidence, everywhere
 
@@ -107,7 +107,7 @@ absorbs Preferences and Add — no `/preferences`, no `/add`.
 ### Header bar
 
 `HOME` is the **left-most** app-bar item — a navy pill straddling the app-bar / band edge; then
-the per-person tabs `TRANSIT · ALL CHARTS · KEY INFERENCE` in caps; the brand lockup is on the
+the per-person tabs `TRANSIT · ALL CHARTS · ASTRO FACTS` in caps; the brand lockup is on the
 **right**. Each page's sub-heading (`TRANSIT - D1 BIRTH CHART` / `ALL CHARTS` / the active
 Key-Inference header) is caps, left-aligned above the content. (`brand.md`'s lockup copy is
 unchanged; only its position moves.)
@@ -121,7 +121,7 @@ Hemachandran) — By Ramakrishnan P* (the "By…" small).
 **The nav tabs are hidden until a person is opened**, and on Home the centre + right of the
 band are empty. Every inner page is per-person. Opening a person reveals the tabs and lands on
 `/transit-wheel/{id}`. The band's person name is a **▾ switch** back to Home; `HOME` keeps the
-person active. Deep links `/transit-wheel/{id}`, `/charts/{id}`, `/key-inference/{id}` load a
+person active. Deep links `/transit-wheel/{id}`, `/charts/{id}`, `/astro-facts/{id}` load a
 person cold.
 
 ### Routes
@@ -145,16 +145,16 @@ person cold.
   and margins are on the canvas. Each cell: full sign name (top-left), house-from-Lagna over
   house-from-Moon (top-right), colour-coded graha glyphs, `LAGNA` label, Lagna box = peach fill
   + sunset corner tick. Replaces the old "Saved Charts" nav slot.
-- `/key-inference/{id}` — **Key Inference**, four headers (below).
+- `/astro-facts/{id}` — **Astro Facts**, four headers (below).
 - `/charts/{id}/south-indian-template` — the one print-style visual (Codex scope)
 
-### Key Inference — round-2 redesign: a 6-step flow, not 4 flat headers
+### Astro Facts — round-2 redesign: a 6-step flow, not 4 flat headers
 
-**Superseded 2026-09-11.** The original "4 headers, KEY INFERENCE = 8 flat sub-tabs" shape
+**Superseded 2026-09-11.** The original "4 headers, ASTRO FACTS = 8 flat sub-tabs" shape
 (still summarised in the row below for history) is replaced by a **numbered UX flow** — full
-spec, field sourcing and open questions: [`components/key-inference.md`](components/key-inference.md).
-Mockup: [chart-evidence-hub.html `#key-inference`](../artifacts/ui/v2-mockup/chart-evidence-hub.html)
-(round 1, flat tabs, frozen) → [key-inference-v2.html](../artifacts/ui/v2-mockup/key-inference-v2.html)
+spec, field sourcing and open questions: [`components/astro-facts.md`](components/astro-facts.md).
+Mockup: [chart-evidence-hub.html `#astro-facts`](../artifacts/ui/v2-mockup/chart-evidence-hub.html)
+(round 1, flat tabs, frozen) → [astro-facts-v2.html](../artifacts/ui/v2-mockup/astro-facts-v2.html)
 (round 2, this flow, under review).
 
 | Step | Content |
@@ -202,7 +202,7 @@ cells start `☐` and are checked per slice.
 | Home | mockup `#home` | `/` · `Home.razor` | `BirthDetailsRepository` (search only) | ☐ narrow-column · ☐ no-match · ☐ resolver fail | ☐ keyboard search + focus ring | ☐ | ☐ `verify-home-ui.mjs` |
 | Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `Natal_Transit_Comp_Wheel.razor` + `Natal_Transit_Comp_WheelChart` ([`components/chart-catalog.md`](components/chart-catalog.md)) | `vw_ChartPlanetEvidence` via `Natal_Transit_Comp_WheelRepository` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☑ wide-table scroll-in-container · ☑ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs (`Natal_Transit_Comp_WheelMath` unit-tested; render harness pending) · ☐ golden snapshot not yet minted | ☑ MCP browser smoke 2026-09-10 · ☐ `verify-transit-ui.mjs` headless run |
 | All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid_Detailed` (re-skinned via token overrides) | `WorkspaceData.Load` — `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas, divisor order | ☑ 3→2→1-per-row reflow · ☑ varga not generated → `EmptyState` card | ☐ grid landmark labels | ☐ per varga (page-DI harness pending) | ☑ MCP browser smoke 2026-09-10 |
-| Key Inference | [`key-inference-v2.html`](../artifacts/ui/v2-mockup/key-inference-v2.html) (round 2, under review) | `/key-inference/{id}` · `KeyInference.razor` (steps 1, 2.1, 2.2, 3 built — see [`components/key-inference.md`](components/key-inference.md) for current status) | per step — [`components/key-inference.md`](components/key-inference.md) | ☐ auto table widths, no page scroll · ☐ empty step | ☐ step-rail keyboard nav | ☐ per step | ☐ smoke |
+| Astro Facts | [`astro-facts-v2.html`](../artifacts/ui/v2-mockup/astro-facts-v2.html) (round 2, under review) | `/astro-facts/{id}` · `AstroFacts.razor` (steps 1, 2.1, 2.2, 3 built — see [`components/astro-facts.md`](components/astro-facts.md) for current status) | per step — [`components/astro-facts.md`](components/astro-facts.md) | ☐ auto table widths, no page scroll · ☐ empty step | ☐ step-rail keyboard nav | ☐ per step | ☐ smoke |
 | Preferences | mockup `#home` (disclosure) | inline on Home · `Home.razor` | `AyanamsaDefinition.Catalog` · `localStorage` | ☐ collapse on select · ☐ `localStorage` unavailable → DB default | ☐ disclosure ARIA; disabled "Planned" options not focusable-as-selectable | ☐ | ☐ smoke |
 
 ## Verification

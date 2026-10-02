@@ -14,7 +14,7 @@ public static class ArgalaFactBuilder
 {
     /// <summary>Builds an ArgalaCalculator occupancy map from a chart's Graha rows (the
     /// Ascendant is excluded — not a graha). Shared entry point for any live caller that only
-    /// has `ChartKeyDetail` rows in hand (the Key Inference UI's ArgalaTable) — the CLI's
+    /// has `ChartKeyDetail` rows in hand (the Astro Facts UI's ArgalaTable) — the CLI's
     /// backfill-argala builds the same shape from a raw SQL projection instead, so isn't
     /// rewired onto this.</summary>
     public static IReadOnlyDictionary<ZodiacName, IReadOnlyList<PlanetName>> BuildOccupancy(

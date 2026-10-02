@@ -1,374 +1,262 @@
-/* Key Inference, Step 1 — docs/ui/components/key-inference.md. Tokens only (wwwroot/css/tokens.css);
-   same family as Natal_Transit_Comp_Wheel.razor.css (--brand-* palette, Manrope, sunset accent). */
+/* docs/ui/components/specs_key_inference_page.md. Tokens only; Manrope only. Pills follow the
+   app-wide quiet-cream / sunrise-active convention. */
 
-.ki-unavailable p { color: var(--brand-muted); }
-.ki-unavailable a { color: var(--brand-midnight); }
-
-.ki-stephead {
-    display: flex;
-    align-items: baseline;
-    gap: 0.6rem;
-    margin: 16px 0 16px;
-}
-
-/* "STEP N OF 6" removed entirely 2026-09-16 (rammyps's call) — .ki-stephead now wraps just
-   the heading, kept only for its margin/spacing. */
-.ki-heading {
+.lm-heading {
     margin: 0;
     color: var(--brand-midnight);
-    font: 700 calc(var(--font-size-control) * 1.15) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
-.ki-gridwrap {
-    width: min(100%, 420px);
-    margin: 0 auto 24px;
+.lm-unavailable p { color: var(--brand-muted); }
+.lm-unavailable a { color: var(--brand-midnight); }
+
+.lm-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
+.lm-label { font-size: var(--font-size-meta); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.lm-muted { color: var(--brand-muted); }
+
+
+.lm-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.lm-pill {
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; cursor: pointer;
+    padding: 6px 12px; border: 1px solid var(--brand-line); border-radius: 999px;
+    background: var(--brand-surface); color: var(--brand-midnight);
+    font: 700 var(--font-size-meta) / 1.3 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.lm-pill:hover { background: var(--brand-peach); }
+.lm-pill[aria-selected="true"], .lm-pill[aria-pressed="true"] { background: var(--brand-sunrise); border-color: var(--brand-midnight); }
+
+/* One strength figure: the % as text over a sunrise fill of the same width */
+.lm-strength {
+    display: inline-block; flex: none; min-width: 42px; padding: 1px 6px; border: 1px solid var(--brand-midnight);
+    font-size: 10px; font-weight: 800; letter-spacing: 0.02em; white-space: nowrap; text-align: right;
+    font-variant-numeric: tabular-nums; color: var(--brand-midnight);
+    background: linear-gradient(to right, var(--brand-sunrise) var(--pct, 0%), var(--brand-surface) var(--pct, 0%));
+}
+.lm-strength.none { border-style: dashed; border-color: var(--brand-line); color: var(--brand-muted); font-weight: 600; text-align: center; }
+
+.lm-note { margin: 0; font-size: var(--font-size-meta); color: var(--brand-muted); }
+
+.lm-question { margin: 0; font: 800 var(--font-size-heading) / 1.25 'Manrope', 'Segoe UI', sans-serif; text-wrap: balance; }
+
+.lm-scroll { overflow-x: auto; }
+.lm-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-meta); font-variant-numeric: tabular-nums; }
+.lm-table th, .lm-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--brand-peach); vertical-align: top; }
+.lm-table thead th { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-muted); border-bottom: 1px solid var(--brand-midnight); white-space: nowrap; }
+.lm-table .num { text-align: right; white-space: nowrap; }
+
+.lm-band { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 3px; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; }
+.lm-band.strong { background: var(--status-strong); color: var(--brand-surface); }
+.lm-band.middle { border: 1px solid var(--brand-midnight); }
+.lm-band.weak { background: var(--status-weak); color: var(--brand-surface); }
+.lm-band:empty { display: none; }
+
+.lm-meter { position: relative; display: inline-block; width: 110px; height: 8px; margin-right: 6px; vertical-align: middle; border-radius: 2px; background: var(--brand-peach); }
+.lm-meter b { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--brand-midnight); }
+.lm-tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--house-lagna); }
+
+.lm-focus-note { border-left: 3px solid var(--house-lagna); padding-left: 10px; }
+.lm-focus-note p { margin: 4px 0 0; font-size: var(--font-size-support); }
+
+/* ---------- Customer flow: sticky context, Explore | Understand, then Investigate ---------- */
+.lm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.lm-context {
+    position: sticky; top: var(--ik-appbar-h, 64px); z-index: 5;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: -12px 0 16px; padding: 8px 12px;
+    border: 1px solid var(--brand-midnight); background: var(--brand-canvas);
+    font: 700 var(--font-size-meta) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+}
+.lm-crumb { white-space: nowrap; }
+.lm-crumb-matter { white-space: normal; }
+.lm-crumb-sep { color: var(--brand-muted); }
+.lm-context-pct { margin-left: auto; }
+.lm-copy {
+    padding: 3px 10px; border: 1px solid var(--brand-midnight); border-radius: 999px; background: var(--brand-surface);
+    color: var(--brand-midnight); cursor: pointer; font: 700 10px / 1.4 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.lm-copy:hover { background: var(--brand-peach); }
+.lm-link-field {
+    flex: 1 1 100%; min-width: 0; padding: 4px 8px; border: 1px solid var(--brand-line); background: var(--brand-surface);
+    color: var(--brand-midnight); font: 500 var(--font-size-meta) / 1.4 'Manrope', 'Segoe UI', sans-serif;
+}
+.lm-copy:focus-visible { outline: 3px solid var(--brand-midnight); outline-offset: 1px; }
+
+/* Foundation strip: rising sign, Lagna lord, Moon, birth-time check — each opens Astro Facts. */
+.lm-foundation { margin: 0 0 16px; }
+.lm-foundation ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 6px 0 0; padding: 0; list-style: none; }
+.lm-found a {
+    display: flex; flex-direction: column; gap: 2px; height: 100%; padding: 8px 10px; box-sizing: border-box;
+    border: 1px solid var(--brand-line); border-left: 4px solid var(--brand-line); background: var(--brand-surface);
+    color: var(--brand-midnight); text-decoration: none;
+}
+.lm-found a:hover { border-color: var(--brand-midnight); }
+.lm-found a:focus-visible { outline: 3px solid var(--brand-midnight); outline-offset: 1px; }
+.lm-found.is-good a { border-left-color: var(--status-strong); }
+.lm-found.is-caution a { border-left-color: var(--status-moderate); background: var(--status-moderate-bg); }
+.lm-found.is-weak a { border-left-color: var(--status-weak); background: var(--status-weak-bg); }
+.lm-found-label { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-muted); }
+.lm-found-value { font-weight: 800; }
+.lm-found-detail { font-size: var(--font-size-meta); color: var(--brand-muted); }
+
+.lm-ki-link { margin-top: 10px; font-size: var(--font-size-meta); }
+.lm-ki-link a { color: var(--brand-midnight); font-weight: 700; text-underline-offset: 2px; }
+
+.lm-step { margin: 0; font: 800 var(--font-size-meta) / 1.3 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+.lm-step b {
+    display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 6px; border-radius: 50%;
+    background: var(--brand-midnight); color: var(--brand-sunrise); letter-spacing: 0;
+}
+.lm-kicker { margin: 0; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-muted); }
+
+.lm-top { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; margin-bottom: 20px; }
+.lm-explore, .lm-answer { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.lm-answer { padding: 16px; border: 1px solid var(--brand-midnight); background: var(--brand-surface); }
+
+/* Area → question drill-down: the selected area's questions open directly under the pills */
+.lm-drill { display: flex; flex-direction: column; gap: 4px; }
+.lm-matter {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; min-height: 40px;
+    padding: 6px 10px; border: 1px solid var(--brand-line); background: var(--brand-surface); color: var(--brand-midnight);
+    text-align: left; cursor: pointer; font: 600 var(--font-size-support) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+}
+.lm-matter:hover { background: var(--brand-peach); }
+.lm-matter[aria-selected="true"] { background: var(--brand-sunrise); border-color: var(--brand-midnight); font-weight: 800; }
+.lm-matter:focus-visible, .lm-chip:focus-visible, .lm-pill:focus-visible, .lm-more:focus-visible, .lm-info:focus-visible,
+.lm-section > summary:focus-visible, .lm-advanced > summary:focus-visible { outline: 3px solid var(--brand-midnight); outline-offset: -3px; }
+.lm-more {
+    align-self: flex-start; padding: 6px 12px; border: 1px dashed var(--brand-midnight); background: transparent; cursor: pointer;
+    color: var(--brand-midnight); font: 700 var(--font-size-meta) / 1.3 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.lm-more:hover { background: var(--brand-peach); }
+.lm-chart-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; padding: 0 4px; border: 1px solid var(--brand-midnight); }
+
+/* The answer: one big figure with its meaning in words */
+.lm-score { display: flex; align-items: center; gap: 14px; }
+.lm-big {
+    min-width: 96px; padding: 6px 12px; border: 2px solid var(--brand-midnight); text-align: center;
+    font: 800 32px / 1 'Manrope', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums;
+}
+.lm-tone-strong .lm-big, .lm-tone-good .lm-big { background: var(--brand-sunrise); }
+.lm-tone-none .lm-big { border-style: dashed; color: var(--brand-muted); }
+.lm-score-words { display: flex; flex-direction: column; gap: 2px; font-size: var(--font-size-support); }
+.lm-score-words span { color: var(--brand-muted); font-size: var(--font-size-meta); }
+.lm-info {
+    display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; margin-left: auto; border-radius: 50%;
+    border: 1px solid var(--brand-midnight); background: var(--brand-surface); color: var(--brand-midnight); cursor: pointer;
+    font: italic 800 15px / 1 Georgia, serif;
+}
+.lm-info[aria-expanded="true"] { background: var(--brand-midnight); color: var(--brand-sunrise); }
+.lm-explain { padding: 10px 12px; border-left: 3px solid var(--brand-sunrise); background: var(--brand-canvas); font-size: var(--font-size-meta); }
+.lm-explain p, .lm-explain ul { margin: 0 0 4px; }
+.lm-explain ul { padding-left: 18px; }
+
+.lm-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; }
+.lm-compare > div { padding: 8px 10px; border: 1px solid var(--brand-line); }
+.lm-compare dt { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.lm-compare dt span { display: block; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--brand-muted); font-size: var(--font-size-meta); }
+.lm-compare dd { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: var(--font-size-meta); }
+
+/* What acts on the target (PVR step 5): answer-card lines and the Investigate table. */
+.lm-acts { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--brand-peach); }
+.lm-acts h3 { margin: 0 0 4px; font: 800 10px / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-muted); }
+.lm-acts h3 span { letter-spacing: 0; text-transform: none; font-weight: 600; }
+.lm-acts p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 4px 0 0; font-size: var(--font-size-support); }
+.lm-acts b { min-width: 4.5em; font-size: var(--font-size-meta); text-transform: uppercase; letter-spacing: 0.06em; }
+.lm-act { font-weight: 700; }
+.lm-act em { font-style: normal; font-weight: 500; color: var(--brand-muted); }
+.lm-act + .lm-act::before { content: "·"; margin-right: 10px; color: var(--brand-muted); }
+.lm-infl tr.is-acting td:first-child { font-weight: 800; }
+.lm-lean { display: inline-block; padding: 0 6px; border-radius: 3px; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.lm-lean.is-supports { background: var(--status-strong); color: var(--brand-surface); }
+.lm-lean.is-obstructs { background: var(--status-weak); color: var(--brand-surface); }
+.lm-lean.is-mixed { border: 1px solid var(--brand-midnight); }
+.lm-lean.is-neutral { color: var(--brand-muted); }
+
+.lm-factors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lm-factors h3 { margin: 0 0 4px; font: 800 10px / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-muted); }
+.lm-factors ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.lm-factor { display: flex; align-items: flex-start; gap: 8px; font-size: var(--font-size-meta); }
+.lm-factor > span:last-child { display: flex; flex-direction: column; }
+.lm-tech { display: block; font-size: 10px; font-weight: 600; color: var(--brand-muted); letter-spacing: 0.02em; }
+
+.lm-area-line { margin: 0; padding-top: 8px; border-top: 1px solid var(--brand-peach); font-size: var(--font-size-meta); color: var(--brand-muted); }
+.lm-area-line .lm-kicker { display: inline; margin-right: 6px; color: var(--brand-midnight); }
+
+.lm-refine { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--brand-peach); }
+.lm-refine-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.lm-advanced > summary, .lm-section > summary { cursor: pointer; }
+.lm-advanced > summary { font-size: var(--font-size-meta); font-weight: 700; color: var(--brand-midnight); }
+.lm-advanced > .lm-chips { margin-top: 6px; }
+.lm-chip.sourced { border-left: 3px solid var(--house-lagna); }
+.lm-chip-code { font-size: 10px; color: var(--brand-muted); }
+.lm-all-charts select {
+    padding: 4px 8px; border: 1px solid var(--brand-line); border-radius: 999px; background: var(--brand-surface);
+    color: var(--brand-midnight); font: 700 var(--font-size-meta) / 1.4 'Manrope', 'Segoe UI', sans-serif;
 }
 
-/* "1.1 D1 - BIRTH CHART" — chart left, transposed positions table right (rammyps, 2026-09-23).
-   Full-bleed: breaks out of .ik-page's centered max-width/padding (MainLayout.razor.css) so the
-   table gets the whole viewport width to work with instead of just .ik-page's ~1400px column —
-   the standard "100vw + negative margin" break-out, with its own small fixed gutter replacing
-   .ik-page's larger --pad-x so there's no horizontal scrollbar on the table. */
-.ki-d1layout {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    padding-inline: 12px;
+/* Investigate: expert evidence, each section collapsible */
+.lm-investigate { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.lm-section { border: 1px solid var(--brand-midnight); background: var(--brand-surface); }
+.lm-section > summary {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 10px 14px;
+    font: 800 var(--font-size-support) / 1.3 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
 }
-.ki-d1layout .ki-gridwrap {
-    flex: 0 0 auto;
-    margin: 0;
+.lm-section > summary::before { content: "▸"; }
+.lm-section[open] > summary::before { content: "▾"; }
+.lm-section > summary::-webkit-details-marker { display: none; }
+.lm-section > summary span { font-size: var(--font-size-meta); font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--brand-muted); }
+.lm-section[open] > summary { border-bottom: 1px solid var(--brand-peach); }
+.lm-section > :not(summary) { margin-inline: 14px; }
+.lm-section > :last-child { margin-bottom: 14px; }
+.lm-section > .lm-note { margin-top: 10px; }
+.lm-section h3 { margin: 10px 14px 0; font: 800 var(--font-size-meta) / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-muted); }
+.lm-chart { max-width: 620px; margin-top: 12px; }
+
+/* Perspective and chart chips in the answer card */
+.lm-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.lm-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border: 1px solid var(--brand-line); border-radius: 999px; cursor: pointer;
+    background: var(--brand-surface); color: var(--brand-midnight);
+    font: 700 var(--font-size-meta) / 1.4 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
 }
-.ki-d1table {
-    flex: 1 1 auto;
-    min-width: 0;
+.lm-chip:hover { background: var(--brand-peach); }
+.lm-chip[aria-pressed="true"] { background: var(--brand-sunrise); border-color: var(--brand-midnight); }
+.lm-chip:disabled { cursor: not-allowed; opacity: 0.4; }
+
+/* Summary: lagna questions × charts */
+.lm-matrix th[scope="row"] { font-weight: 600; white-space: nowrap; }
+.lm-matrix td, .lm-matrix th { padding: 3px 6px; vertical-align: middle; }
+.lm-matrix tr.sourced th[scope="row"] { border-left: 3px solid var(--house-lagna); }
+.lm-matrix tr.selected { background: var(--brand-peach); }
+.lm-col-role { display: block; font-size: 9px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
+.lm-q-link, .lm-cell { padding: 1px; border: 1px solid transparent; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.lm-q-link:hover, .lm-cell:hover:not(:disabled) { border-color: var(--brand-midnight); }
+.lm-cell[aria-pressed="true"] { border: 2px solid var(--brand-midnight); }
+.lm-cell:disabled { cursor: default; }
+
+/* D1 promise vs varga confirmation */
+.lm-cmp th[scope="row"] { font-weight: 600; color: var(--brand-muted); white-space: nowrap; width: 1%; }
+.lm-agree { margin: 2px 0 6px; font-size: var(--font-size-meta); font-weight: 700; border-left: 3px solid var(--brand-sunrise); padding-left: 8px; }
+
+.lm-disclaimer { margin: 0; font-size: var(--font-size-meta); color: var(--brand-muted); border-left: 3px solid var(--brand-sunrise); padding-left: 10px; }
+
+@media (max-width: 1000px) {
+    .lm-top { grid-template-columns: 1fr; }
+    .lm-foundation ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Current Transit tab — migrated from Natal_Transit_Comp_Wheel.razor.css (tw-controls/tw-wheel). */
-.ki-controls {
-    display: grid;
-    grid-template-columns: minmax(120px, .55fr) repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    margin: 0 0 16px;
-    padding: 6px 8px;
-    border: 1px solid var(--brand-line);
-    border-radius: 12px;
-    background: var(--brand-peach);
+/* Phones: the context bar docks at the top (the app bar scrolls away there, MainLayout.razor.css);
+   area pills scroll sideways in one row instead of stacking six rows deep. */
+@media (max-width: 760px) {
+    .lm-context { top: 0; margin-top: -20px; }
+    .lm-pills { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+    .lm-factors { grid-template-columns: 1fr; }
+    .lm-big { min-width: 80px; font-size: 26px; }
+    .lm-answer { padding: 12px; }
+    .lm-section > summary { padding: 10px; }
+    .lm-section > :not(summary) { margin-inline: 10px; }
+    .lm-section h3 { margin-inline: 10px; }
 }
-
-/* Font reduced 10% off the base control size across this whole filter group (rammyps,
-   2026-09-14). */
-.ki-field { display: grid; gap: 2px; }
-.ki-field span {
-    color: var(--brand-midnight);
-    font: 700 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-}
-.ki-field input,
-.ki-field select {
-    width: 100%;
-    min-height: 30px;
-    padding: 4px 6px;
-    border: 1px solid var(--brand-line);
-    border-radius: 8px;
-    background: var(--brand-canvas);
-    color: var(--brand-midnight);
-    font: 500 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-}
-.ki-field input:focus-visible,
-.ki-field select:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
-.ki-field select:disabled { opacity: 0.55; }
-
-/* TRANSIT mm/yyyy — two plain numeric selects instead of the browser's native month input,
-   so the value always reads as digits (mm / yyyy) and never a spelled-out month name. */
-.ki-monthyear { display: flex; align-items: center; gap: 4px; }
-.ki-monthyear select { width: auto; min-width: 3.4em; }
-.ki-monthyear span[aria-hidden] { color: var(--brand-muted); font-weight: 700; }
-
-.ki-wheel {
-    width: min(90%, 972px);
-    min-width: 0;
-    margin: 0 auto 16px;
-}
-.ki-wheel ::deep .ntw { width: 100%; }
-
-/* Tab-strip convention (tokens.css --tab-*, design-language.md "Tabs") — plain hand-rolled
-   pill nav at every level (master rail, 1.1-1.4, 3.1-3.3), not MudBlazor's <MudTabs>
-   (rammyps, 2026-09-23 evening: three separate rounds of fighting MudTabs' internal DOM just
-   to get this exact plain-pill look was enough — the app's own header nav, `.ik-headtab` in
-   MainLayout.razor.css, already proves the plain-markup version of this same look works, so
-   the tab strip here now follows it instead). Same shared `--tab-*` tokens as before, same
-   sunset-fill/navy-text pill, but now on real `<button role="tab">` elements with
-   `aria-selected` driving the active look — no more `::deep` MudBlazor-DOM targeting needed
-   anywhere in this file. */
-.ki-steptab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 84px;
-    min-height: 44px;
-    padding: 6px 16px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--tab-inactive-bg);
-    color: var(--tab-inactive-fg);
-    /* At least as large as the table column headers below (.ki-table th, 1em) — rammyps,
-       2026-09-23 evening: the tabs read as the page's primary nav and shouldn't be smaller
-       than the content they control. */
-    font: 700 calc(var(--font-size-control) * 1.05) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: 0.02em;
-    text-align: center;
-    white-space: nowrap;
-    cursor: pointer;
-}
-/* Inactive tabs are transparent (tokens.css --tab-inactive-bg), so a plain brightness filter
-   has nothing to darken — hover instead tints in a faint peach so unselected pills still give
-   feedback; the active pill (already solid sunset) just brightens slightly instead.
-   Selector is bare [aria-selected], not [aria-selected="true"] (2026-09-25 fix): Blazor's bool
-   attribute binding (aria-selected="@(_activeTab == X)") never emits the literal string "true" —
-   it renders the attribute with an empty value when true and omits it entirely when false, the
-   same convention as disabled/checked. The ="true" selector never matched anything, so no tab
-   anywhere on this page — master or sub — ever showed an active-state color at all. */
-.ki-steptab:hover { background: var(--brand-peach); }
-.ki-steptab[aria-selected]:hover { filter: brightness(0.96); background: var(--tab-active-bg); }
-.ki-steptab:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 2px; }
-.ki-steptab[aria-selected] {
-    background: var(--tab-active-bg);
-    color: var(--tab-active-fg);
-}
-
-/* Master step rail — rendered inside MainLayout's context band (`Active.HeaderExtra`, see
-   KeyInference.razor's `MasterNav`), not at the top of this page's own body (rammyps,
-   2026-09-23 evening — reclaim the vertical space the row used to take). As of 2026-09-26 the
-   band holds only this rail (the person name/birth line moved up into the app bar itself,
-   `.ik-appbar-person` in MainLayout.razor.css), so the rail simply fills the band's full width —
-   no more sharing the row with a person block. Single line, no step numbers, left-packed from
-   its own left edge (`justify-content: flex-start`). Never wraps to a second line (rammyps,
-   2026-09-25 — a previous fixed `margin-left: 440px` plus `flex-wrap: wrap` broke on any
-   laptop-width viewport: the 7 pills' own natural width is ~1140px, wider than the space left
-   after that margin, forcing an ugly 5-then-2 wrap with the last pill stranded far right).
-   `flex-wrap: nowrap` + `overflow-x: auto` makes this a single-line, horizontally-scrollable
-   strip instead on any viewport too narrow for all 7 pills at once. */
-.ki-master {
-    display: flex;
-    flex: 1 1 auto;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    padding-bottom: 2px;
-}
-
-/* Margin halved 16px -> 8px (rammyps, 2026-09-26 — "reduce the space between 1st-level tabs
-   and its sub-tabs"), paired with MainLayout.razor.css's `.ik-page-tight-top` (also cut on this
-   page only) — together they roughly halve the gap between the master rail band above and the
-   first sub-tab row (1.1-1.3 Natal Charts' / 3.1-3.3 Strength's `.ki-subnav`) inside it. */
-.ki-panelbody { min-width: 0; margin-top: 8px; }
-
-/* Nested sub-tab rail (1.1-1.3 Natal Charts, 3.1-3.3 Strength) — same pill, smaller, single line
-   (rammyps, 2026-09-24: was two-line stacked `<span>`s; flattened to one line now that the merged
-   natal labels are shorter than the old 4-tab set). Outlined in the app's sunset accent
-   (`.ki-chart-toggle`'s own border color, same tone/weight) so every second-level sub-tab in the
-   app reads as a distinct step from the solid-fill master rail above it — the border is the same
-   hue as the active fill, so it's invisible on the selected pill and only shows on the rest. */
-.ki-subnav-wrap { min-width: 0; }
-.ki-subnav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 12px;
-}
-.ki-subpanels { min-width: 0; }
-.ki-steptab-sub {
-    border: 1px solid var(--brand-sunrise);
-    min-width: 64px;
-    min-height: 38px;
-    padding: 5px 14px;
-    font-size: calc(var(--font-size-control) * 0.86);
-    line-height: 1.2;
-    white-space: nowrap;
-}
-
-.ki-alert { font-size: 0.85em; }
-
-.ki-scroll {
-    max-width: 100%;
-    overflow: visible;
-    border: 1px solid var(--brand-line);
-    border-radius: 10px;
-}
-
-/* Anchored to `.ki-panelbody` (a plain literal div, not a MudBlazor Class-passthrough) rather
-   than a dedicated wrapper, since the Current Transit table (`Variant="2. TRANSIT CHARTS"`) is
-   this rule's only remaining consumer post-MudTabs-removal — see design-language.md "::deep
-   through a MudBlazor component's Class parameter doesn't work" for why `::deep` off *some*
-   literal scoped ancestor is required at all. */
-.ki-panelbody ::deep .ki-table {
-    box-shadow: none;
-    background: transparent;
-}
-
-.ki-panelbody ::deep .ki-table table {
-    width: 100%;
-    table-layout: auto;
-    border-collapse: collapse;
-    /* Deliberately no font-size here, and no "font:" shorthand (which sets font-size as part of
-       it even when you only meant to set family/weight) — unlike every plain-<table> component's
-       own table-level rule. th/td below must explicitly re-assert 1em to beat MudSimpleTable's
-       own td rule (see their comment); this element's own font-size needs to stay whatever it
-       already inherits (MudBlazor's ambient body size), or that 1em ends up scaling the wrong
-       base. Longhand only, so font-size is never touched. */
-    font-family: 'Manrope', 'Segoe UI', sans-serif;
-    line-height: 1.3;
-}
-
-/* MudSimpleTable ships its own .mud-simple-table table * tr > td rule (font-family/font-size
-   from --mud-typography-body2-*) which beats plain inheritance from the "table" rule above (an
-   explicit rule always beats an inherited value, regardless of specificity) — so font has to be
-   re-asserted here, at .ppt's actual 1em (bumped from 0.86em 2026-09-23 evening, rammyps's
-   call, matched across every standardized table component — PlanetPositionsTable.razor.css
-   and friends), not left to inherit like the other (non-Mud, plain <table>) standardized
-   components can. */
-.ki-panelbody ::deep .ki-table th {
-    padding: 7px 6px;
-    text-align: left;
-    vertical-align: bottom;
-    background: var(--brand-surface);
-    color: var(--brand-midnight);
-    font: 700 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
-    font-size: 1em;
-    border-bottom: 2px solid var(--brand-line);
-    white-space: normal;
-    position: sticky;
-    top: 0;
-}
-
-.ki-panelbody ::deep .ki-table td {
-    padding: 6px 6px;
-    background: transparent;
-    color: var(--brand-midnight);
-    font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
-    font-size: 1em;
-    border-bottom: 1px solid var(--brand-line);
-    white-space: normal;
-}
-
-.ki-panelbody ::deep .ki-table tbody tr:last-child td { border-bottom: 0; }
-.ki-panelbody ::deep .ki-table tbody tr:hover td { background: var(--brand-sunrise); }
-
-.ki-panelbody ::deep .ki-table .num {
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-}
-
-.ki-sectionhead {
-    margin: 20px 0 8px;
-    color: var(--brand-midnight);
-    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-.ki-sectionhead:first-child { margin-top: 0; }
-
-.ki-twocol {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start;
-}
-.ki-col { min-width: 0; }
-
-@media (max-width: 900px) {
-    .ki-controls { grid-template-columns: 1fr; }
-    .ki-panelbody ::deep .ki-table table { font-size: 0.72em; }
-    .ki-twocol { grid-template-columns: 1fr; }
-    .ki-d1layout { flex-direction: column; }
-    .ki-d1layout .ki-gridwrap { margin: 0 auto; }
-    .ki-d1table { width: 100%; }
-}
-
-/* Natal chart picker — a plain <select>, no "NATAL CHART" label text (rammyps, 2026-09-24: sits
-   directly above the chart it controls, inside .ki-gridwrap, so the label was redundant).
-   Dark-navy surface + cream text (design-language.md "Chart controls" — the documented look for
-   any <select> that chooses/drives a chart, matching SPL LAGNAS's own divisional-chart picker),
-   not this page's ordinary form-field style. Sits to the right of EXPAND/COLLAPSE CHART
-   (rammyps, 2026-09-23). Fixed width sized in `ch` to the longest chart label across every
-   entry in tbl_Dim_ChartType — "Hora (Uma Shambu) · D2-US" (db/ikiastrro.sql's D2-US row) is
-   the longest at 25 characters — so the box never truncates whichever chart is selected and
-   never resizes/jumps as the selection changes (rammyps, 2026-09-24: was `max-width: 130px`,
-   which cut every varga name off after "Rasi · D1"-length text). Options render in caps to
-   match every other tab/label in the app (`text-transform: uppercase` — the values themselves,
-   `LoadedChart.Label`, stay mixed-case for everywhere else that reads them). */
-.ki-chart-picker {
-    flex: 0 0 auto;
-    min-height: 32px;
-    min-width: 0;
-    width: 27ch;
-    padding: 4px 8px;
-    border: 1px solid var(--brand-line);
-    border-radius: 8px;
-    background: var(--brand-midnight);
-    color: var(--brand-canvas);
-    font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-    text-transform: uppercase;
-}
-.ki-chart-picker:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
-
-.ki-natal-layout {
-    display: grid;
-    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
-    align-items: start;
-    gap: 16px;
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    padding-inline: 12px;
-}
-.ki-natal-layout .ki-gridwrap {
-    position: sticky;
-    top: 12px;
-    width: 100%;
-    margin: 0;
-}
-.ki-natal-detail { min-width: 0; }
-
-@media (max-width: 900px) {
-    .ki-natal-layout { grid-template-columns: 1fr; width: 100%; margin-left: 0; padding-inline: 0; }
-    .ki-natal-layout .ki-gridwrap { position: static; margin: 0 auto 16px; }
-}
-/* Sits above the chart, inside .ki-gridwrap — left-aligned with the chart itself, not spanning
-   the full two-column layout (rammyps, 2026-09-24). */
-.ki-chart-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
-/* Was cream/sunset-border at the full nav-tab size (`font: 700 var(--font-size-control) / 1`,
-   the same weight/family as `.ki-steptab`) — close enough to GENERAL/ABOUT PLANETS's sub-tab
-   pills just below it in the layout that it read as one more tab (rammyps, 2026-09-25 bug
-   report: "Collapsed Chart is following the same font as the sub-tabs font"). This toggle
-   changes how the chart *inside* this step displays itself, exactly the case
-   docs/ui/design-language.md's "Chart controls (in-chart toggles) — distinct from navigation
-   tabs" section covers — and its own toolbar sibling `.ki-chart-picker` right next to it
-   already uses that convention's dark-navy/cream look. Matched here (same font-size multiplier,
-   same navy/cream pair) so the toolbar reads as one coherent unit, clearly distinct from the
-   sunset/cream nav-tab family below. */
-.ki-chart-toggle {
-    min-height: 32px;
-    padding: 5px 14px;
-    border: 1px solid var(--brand-line);
-    border-radius: 999px;
-    background: var(--brand-midnight);
-    color: var(--brand-canvas);
-    font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-    cursor: pointer;
-    white-space: nowrap;
-}
-.ki-chart-toggle:hover { background: color-mix(in srgb, var(--brand-midnight) 85%, white); }
-
-.ki-chart-toggle:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
-.ki-natal-layout.is-chart-collapsed { grid-template-columns: minmax(0, 1fr); }
-.ki-natal-detail { width: 100%; overflow: visible; }
-.ki-natal-detail ::deep table { width: 100%; min-width: 0 !important; }
-.ki-natal-detail ::deep .gds-scroll,
-.ki-natal-detail ::deep .rds-scroll,
-.ki-natal-detail ::deep .dsp-scroll { overflow: visible; }

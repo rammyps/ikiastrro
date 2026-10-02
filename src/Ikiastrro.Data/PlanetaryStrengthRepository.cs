@@ -4,7 +4,7 @@ using Ikiastrro.Core.Engines.Strength;
 
 namespace Ikiastrro.Data;
 
-/// <summary>Key Inference 3.1 "Planet Strength" — one row per graha, `vw_ChartShadbala`
+/// <summary>Astro Facts 3.1 "Planet Strength" — one row per graha, `vw_ChartShadbala`
 /// (db/071's consumer-contract columns). <see cref="PercentOfMinimum"/> null means
 /// `MinimumRequiredRupas` wasn't seeded for that planet/rule-set (tbl_Rule_ShadbalaMinimumRupas).</summary>
 /// <summary>All Virupas/Rupas columns are SQL `DECIMAL(12,3)` (db/39) — `decimal`, not
@@ -14,7 +14,7 @@ public sealed record ShadbalaSummaryRow(string Planet, decimal SthanaBalaVirupas
     decimal YuddhaBalaVirupas, decimal ShadbalaVirupas, decimal ShadbalaRupas, decimal? MinimumRequiredRupas,
     decimal? PercentOfMinimum);
 
-/// <summary>Key Inference 3.1 expanded row — every `tbl_Fact_PlanetaryStrengthComponent` under
+/// <summary>Astro Facts 3.1 expanded row — every `tbl_Fact_PlanetaryStrengthComponent` under
 /// one planet, grouped by `BalaCode` in the UI (Sthāna/Dig/Kāla/Cheṣṭā/Naisargika/Dṛk/Yuddha).</summary>
 public sealed record ShadbalaComponentRow(string Planet, string BalaCode, string SubComponentCode, decimal ValueVirupas);
 
@@ -86,7 +86,7 @@ public sealed class PlanetaryStrengthRepository
             """, new { ChartResultId = chartResultId }).ToList();
     }
 
-    /// <summary>Key Inference 3.1 — one row per graha for the "Planet Strength" table.</summary>
+    /// <summary>Astro Facts 3.1 — one row per graha for the "Planet Strength" table.</summary>
     public IReadOnlyList<ShadbalaSummaryRow> GetSummaryByBirthDetailId(int birthDetailId)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
@@ -98,7 +98,7 @@ public sealed class PlanetaryStrengthRepository
             """, new { birthDetailId }).ToList();
     }
 
-    /// <summary>Key Inference 3.1 — every stored component row, for the per-planet expandable
+    /// <summary>Astro Facts 3.1 — every stored component row, for the per-planet expandable
     /// breakdown (grouped client-side by <see cref="ShadbalaComponentRow.BalaCode"/>).</summary>
     public IReadOnlyList<ShadbalaComponentRow> GetComponentsByBirthDetailId(int birthDetailId)
     {

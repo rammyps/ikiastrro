@@ -13,10 +13,11 @@ Every calculation ikiastrro performs, its convention, and its source. All code i
 
 - **Engine:** `SwissEphNet` (`SwissEphemerisProvider`), **Moshier analytical mode** — no
   ephemeris data files.
-- **Sidereal / ayanāṁśa:** selectable. `AyanamsaDefinition` catalogues 22 systems, each with
-  its Swiss `swe_set_sid_mode` id; `tbl_Rule_Ayanamsa` holds the system default. Current
-  default **`Lahiri`** (Swiss mode 1, ~23.595° for 1981 — the JHora reference frame; migration
-  054). True Chitrapaksha (mode 27) is closer still but needs `sefstars.txt`, which the
+- **Sidereal / ayanāṁśa:** **locked to Traditional Lahiri** (Swiss mode 1, 23.5959° for the
+  1981 benchmark vs JHora's 23.5950°, 3.4″ apart) — `decisions/004-ayanamsa-traditional-lahiri.md`.
+  `AyanamsaDefinition` still catalogues 22 systems and `tbl_Rule_Ayanamsa` keeps them for
+  provenance, but generation takes no ayanāṁśa argument and `AyanamsaRuleRepository` refuses any
+  default other than `AYANAMSA_LAHIRI`. True Chitrapaksha (mode 27) is closer still but needs `sefstars.txt`, which the
   file-less Moshier build omits. Every `tbl_ChartResults` row records `AyanamshaDegrees` +
   `SiderealTimeHours`.
 - **Nodes:** Rahu = **mean node** (`SE_MEAN_NODE`); Ketu = Rahu + 180° (derived, never stored
@@ -266,12 +267,27 @@ Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_Wakefuln
   (`KarakaScheme`/`OrderIndex`/`ReverseForRahu`) but sat reserved and empty since migration 18.
   `CharaKarakaCalculator` stays hardcoded; CLI `verify-jaimini` cross-checks its order against
   the table.
-- **Special points** — one D1 longitude each, then projected into all 21 vargas with the same
-  `IVargaSignRule` a planet uses:
+- **Special points** — special lagnas, upagrahas and Punya Saham have one D1 longitude each,
+  projected into all 21 vargas with the same `IVargaSignRule` a planet uses. **Arudha padas are
+  not projected** (since 2026-10-01): PVR §9.2 and §9.5 define them "in all the divisional
+  charts" from that chart's own placements, so `VargaChartComputer` computes them inside each
+  varga from its own Lagna and grahas, at the varga Lagna's degree-in-sign (bhava) or the
+  graha's varga degree (graha). Their `NirayanaLongitudeDegrees` in a varga carries the same
+  varga-space value — a pada computed in a varga has no real ecliptic longitude.
   - **AL + 12 Bhāva Arudhas** (`ArudhaCalculator`, `PointKind = Arudha`) — Parāśari pada per
-    house, with the 1st/7th → 10th exception; A1 emitted as `AL`. Cited by
-    `tbl_Rule_ArudhaFormula` (migration 085, `SRC_PVR_INTEGRATED` §9.2); CLI `verify-jaimini`
-    asserts the row exists and cites the right source.
+    house, with the 1st/7th → 10th exception; A1 emitted as `AL`. For a house in Scorpio or
+    Aquarius the lord is the **stronger co-lord** (`StrongerCoLord`, PVR §15.5.1: Mars vs Ketu,
+    Saturn vs Rahu — basic rule, then joined-by, Jupiter/Mercury/dispositor, exaltation, sign
+    modality, advancement). Cited by `tbl_Rule_ArudhaFormula` (migration 085,
+    `SRC_PVR_INTEGRATED` §9.2); CLI `verify-jaimini` asserts the row exists and cites the right
+    source. CLI **`verify-varga-arudha`** checks the AL of every chart shared with JHora against
+    the AL in each grid of `docs/artifacts/reference-charts/*_Jagannatha.txt` (live, and flags
+    stored rows that are stale); 59/59 pass, one grid skipped where JHora's varga variant has a
+    different Lagna (Ramya D45).
+  - **Graha Arudhas** (`GrahaArudhaCalculator`, `PointKind = GrahaArudha`, `GA_Sun`…`GA_Ketu`,
+    PVR §9.5) — for a planet owning two signs, the stronger sign by `StrongerRasiComparator`
+    (§15.5.2's six rules). For Aquarius / Scorpio both co-lords count in rule 2 (Exercise 26:
+    "Rahu's aspect also counts") and the stronger co-lord is the lord in rules 4 and 6.
   - **Hora / Bhaava / Ghati Lagna** (`HoraLagnaCalculator` / `BhaavaLagnaCalculator` /
     `GhatiLagnaCalculator`, `PointKind = SpecialLagna`, codes `HL`/`BL`/`GL`) — Sun's sidereal
     longitude at the Vedic day's opening sunrise + 0.5° / 0.25° / 1.25° per clock-minute since

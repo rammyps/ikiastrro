@@ -3,11 +3,12 @@
 @inject ActivePerson Active
 @inject NavigationManager Nav
 @inject BirthDetailsRepository BirthDetailsRepo
+@inject IJSRuntime JS
 
 @* MudBlazor providers must sit in the interactive render scope (this layout is rendered by
    the InteractiveServer <Routes>). Kept out of App.razor, which is static SSR — see the note
    there. Without this, every MudSelect / MudDatePicker / MudTimePicker popover fails to open. *@
-<MudThemeProvider Theme="Ikiastrro.Web.Components.IkiastrroTheme.Value" />
+<MudThemeProvider Theme="_mudTheme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -16,6 +17,10 @@
     <div class="ik-appbar-scope">
     <MudAppBar Elevation="1" Class="ik-appbar">
         <div class="ik-header-start">
+            <a href="/" class="ik-logo" title="Iki-Astrro — home">
+                <img src="/images/Ganesha-Icon.png" alt="" class="ik-logo-icon" />
+                <span class="ik-logo-name">Iki-Astrro</span>
+            </a>
             <nav class="ik-globalnav" aria-label="Main">
                 <a href="/" class="ik-headtab @(CurrentPath == "/" ? "is-here" : "")">HOME</a>
             </nav>
@@ -23,16 +28,16 @@
             {
                 <nav class="ik-tabs" aria-label="Person sections">
                     @* ALL CHARTS's own top-nav pill was removed (rammyps, 2026-09-24) — the
-                       divisional-chart gallery is now step 7 inside KEY INFERENCE
-                       (KeyInference.razor's AllChartsGrid tab), so a separate top-level link to
+                       divisional-chart gallery is now step 7 inside ASTRO FACTS
+                       (AstroFacts.razor's AllChartsGrid tab), so a separate top-level link to
                        /charts/{id} was a duplicate entry point. The route itself still exists
                        (AllCharts.razor) for any deep link already pointing at it. Karakas and
-                       special Lagna interpretation live together as Step 4 inside KEY INFERENCE.
+                       special Lagna interpretation live together as Step 4 inside ASTRO FACTS.
                        NUMEROLOGY (docs/ui/components/numerology.md) is Cheiro's name-number
                        method, computed live from the person's saved Name — no sub-steps, so it's
                        plain text like HOME rather than the two-word stacked-span pill. *@
-                    <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinf")"><span>KEY</span> <span>INFERENCE</span></a>
-                    <a href="@($"/life-matters/{personId}")" class="ik-headtab @TabClass("lifematters")"><span>LIFE</span> <span>MATTERS</span></a>
+                    <a href="@($"/astro-facts/{personId}")" class="ik-headtab @TabClass("astrofacts")"><span>ASTRO</span> <span>FACTS</span></a>
+                    <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinference")"><span>KEY</span> <span>INFERENCE</span></a>
                     <a href="@($"/numerology/{personId}")" class="ik-headtab @TabClass("numerology")">NUMEROLOGY</a>
                 </nav>
             }
@@ -73,9 +78,11 @@
                 </div>
             </div>
         }
-        <nav class="ik-header-save" aria-label="Saved charts">
-            <a href="/charts" class="ik-headtab @(CurrentPath == "/charts" ? "is-here" : "")"><span>SAVED</span> <span>CHARTS</span></a>
-        </nav>
+        <div class="ik-header-actions">
+            <nav class="ik-header-save" aria-label="Saved charts">
+                <a href="/charts" class="ik-headtab @(CurrentPath == "/charts" ? "is-here" : "")"><span>SAVED</span> <span>CHARTS</span></a>
+            </nav>
+        </div>
     </MudAppBar>
     </div>
     <MudMainContent>
@@ -124,6 +131,20 @@
         Nav.LocationChanged += OnLocationChanged;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var theme = await JS.InvokeAsync<string>("ikiastrroTheme.initialize");
+        _isDarkMode = theme == "cosmic-dark";
+        _mudTheme = theme == "default-light" ? IkiastrroTheme.DefaultLight : IkiastrroTheme.Cosmos;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private bool _isDarkMode;
+    private MudTheme _mudTheme = IkiastrroTheme.DefaultLight;
+
     private void OnShellChanged() => InvokeAsync(StateHasChanged);
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
 
@@ -144,14 +165,14 @@
 
     private void ClosePersonMenu() => _personMenuOpen = false;
 
-    // Switching person keeps you where you are (rammyps, 2026-09-29): on LIFE MATTERS you land
-    // on the new person's LIFE MATTERS, on KEY INFERENCE on theirs, and so on — only the person
+    // Switching person keeps you where you are (rammyps, 2026-09-29): on KEY INFERENCE you land
+    // on the new person's KEY INFERENCE, on ASTRO FACTS on theirs, and so on — only the person
     // id in the route changes. Same route ⇒ Blazor reuses the page instance, so each page's
-    // OnParametersSet reloads the new person's data while in-page state (Key Inference's step,
-    // Life Matters' area/question) is kept. The ?step= query is dropped on purpose: it would
-    // otherwise snap Key Inference back to the step the URL was first opened with.
+    // OnParametersSet reloads the new person's data while in-page state (Astro Facts's step,
+    // Key Inference' area/question) is kept. The ?step= query is dropped on purpose: it would
+    // otherwise snap Astro Facts back to the step the URL was first opened with.
     private static readonly System.Text.RegularExpressions.Regex PersonRoute =
-        new(@"^/(key-inference|life-matters|numerology|charts)/\d+(?=/|$)");
+        new(@"^/(astro-facts|key-inference|numerology|charts)/\d+(?=/|$)");
 
     private void GoToPerson(int id)
     {
@@ -159,7 +180,7 @@
         var m = PersonRoute.Match(CurrentPath);
         Nav.NavigateTo(m.Success
             ? $"/{m.Groups[1].Value}/{id}{CurrentPath[m.Length..]}"
-            : $"/key-inference/{id}");
+            : $"/astro-facts/{id}");
     }
 
     private void GoToPicker()
@@ -173,8 +194,8 @@
         var p = CurrentPath;
         var here = key switch
         {
-            "keyinf"  => p.Contains("/timing", StringComparison.Ordinal) || p.Contains("/key-inference", StringComparison.Ordinal),
-            "lifematters" => p.StartsWith("/life-matters", StringComparison.Ordinal),
+            "astrofacts"  => p.Contains("/timing", StringComparison.Ordinal) || p.Contains("/astro-facts", StringComparison.Ordinal),
+            "keyinference" => p.StartsWith("/key-inference", StringComparison.Ordinal) || p.StartsWith("/life-matters", StringComparison.Ordinal),
             "numerology" => p.StartsWith("/numerology", StringComparison.Ordinal),
             _ => false
         };

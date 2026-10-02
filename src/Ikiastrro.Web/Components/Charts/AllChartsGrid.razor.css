@@ -1,5 +1,5 @@
 /* Shared "every divisional chart" gallery grid — moved out of AllCharts.razor.css 2026-09-24 so
-   the standalone /charts/{id} page and Key Inference's embedded "7. ALL CHARTS" tab look
+   the standalone /charts/{id} page and Astro Facts's embedded "7. ALL CHARTS" tab look
    identical. Tokens only; Manrope only; the three --font-size-* tokens only. */
 
 .acg-toolbar {
@@ -60,6 +60,14 @@
     --house-moon-fg: var(--brand-muted);
 }
 
+/* Sunrise is a fill, never text (design-language.md): the remapped --accent above would draw
+   the LAGNA tag's text in sunrise, unreadable on the canvas in every theme. */
+.ac-card ::deep .lagna-tag {
+    color: var(--brand-midnight);
+    background: var(--brand-sunrise);
+    border-color: transparent;
+}
+
 .ac-card-head {
     display: flex;
     align-items: baseline;
@@ -89,6 +97,19 @@
 }
 
 .ac-card-grid { padding: 12px; }
+
+/* Each chart opens in Key Inference (spec_SIND-UNI_GridChart.md "Page links"). */
+.ac-card-ki {
+    display: block;
+    margin: -4px 12px 12px;
+    font-size: 0.76em;
+    font-weight: 800;
+    color: var(--brand-midnight);
+    text-decoration: none;
+    text-align: right;
+}
+.ac-card-ki:hover { text-decoration: underline; text-decoration-color: var(--brand-sunrise); text-underline-offset: 3px; }
+@media print { .ac-card-ki { display: none; } }
 
 /* trim SouthIndianGrid_Detailed's heavy parchment framing for a gallery card */
 .ac-card-grid ::deep .chart {

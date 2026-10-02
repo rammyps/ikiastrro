@@ -65,7 +65,7 @@ Publishes to the CLI and UI streams under
   - The exaltation degrees above were duplicated **four** independent times in C# (one had no
     shared field name — found by grepping the magic numbers) — consolidated onto one shared
     `AstroMath.DeepExaltationPoints` constant; no new table needed, `tbl_Rule_GrahaDignity`
-    already carries the degree. The last private copy (`ChartViewModel`, Key Inference 1.2) moved
+    already carries the degree. The last private copy (`ChartViewModel`, Astro Facts 1.2) moved
     onto it 2026-10-01; a separate `tbl_Rule_Exaltation` was dropped as a duplicate.
   - Vimshottari Dasha's own core table (9-planet order, 120-year cycle, per-lord years) had
     **no `tbl_Rule_*` row anywhere** — closed: new `tbl_Rule_VimshottariPeriod` (migration 085,
@@ -128,8 +128,10 @@ Publishes to the CLI and UI streams under
   **done** on `workstream/cli` — see that workstream's `MASTER.md`; `tbl_Rule_PanchangaFormula`
   and `tbl_Rule_PostureStateFormula` (migration 083) were registered in `tbl_Rule_Catalog` by
   migration 084 after `verify-rules` caught them missing (a leftover gap from these two turns).
-- **`FEAT-DATA-04`** — ayanāṁśa default fixed (migration 054 repoints `tbl_Rule_Ayanamsa`
-  from Jagannatha mode 26 to Lahiri mode 1; `verify-vargas` / `verify-jaimini` green).
+- **`FEAT-DATA-04`** — ayanāṁśa **locked to Traditional Lahiri** (migration 054 repointed
+  `tbl_Rule_Ayanamsa` from Jagannatha mode 26 to Lahiri mode 1; `decisions/004` (2026-10-01)
+  removed the UI picker and the generation parameter, and `AyanamsaRuleRepository` now refuses
+  any other default).
   Still open: the reference benchmark harness — `tbl_Dim_AyanamsaBenchmarkCases` is empty
   while `tbl_Dim_AyanamsaBenchmarkPositions` (10) + `tbl_Dim_DashaBenchmarkPeriods` (9) are
   orphaned on `CaseId = 1`; re-seed `BENCH_RAMAKRISHNAN_P_JHORA_1981`
@@ -139,7 +141,7 @@ Publishes to the CLI and UI streams under
   (`FormationFamilyCode`, reused from migration 48) + Rule (`ShortFormationRule`, new) axes to
   `tbl_Rule_Yoga` and wires them into `vw_ChartYogaEvaluations` (`YogaTypeCode`/`YogaRule`);
   seeded for 146 of 223 evaluated `YogaCode`s from the actual evaluator predicate — see
-  [`db_view_catalog.md`](db_view_catalog.md#key-inference-page--step--source-planned-round-2).
+  [`db_view_catalog.md`](db_view_catalog.md#astro-facts-page--step--source-planned-round-2).
 - **`FEAT-STRENGTH-01` (DB slice)** — migrations 071–073, 076: `vw_ChartShadbala` regression
   (069) fixed; `tbl_Rule_ShadbalaMinimumRupas` seeded (reproduces JHora %Strength within
   rounding); `tbl_Rule_PlanetaryWar` + the six deferred Kālabala `RuleParametersJson`
@@ -163,10 +165,10 @@ Publishes to the CLI and UI streams under
   80 `SRC_IKIASTRRO_SYNTHESIS`), Bhava Bala Rūpas (7 / 5, both synthesis) and Sarvāṣṭakavarga
   bindus (31 / 25, `SRC_PVR_INTEGRATED`), one `SourceRefCode` per boundary — a verified mirror of
   Core `StrengthBands`, checked by `verify-strength` Phase 3. **`db/155`** adds two scales for
-  the Life Matters axes: `BAV_BINDUS` (5 / 4, `SRC_PVR_INTEGRATED`) and
+  the Key Inference axes: `BAV_BINDUS` (5 / 4, `SRC_PVR_INTEGRATED`) and
   `BHAVA_BALA_INDEPENDENT_Z` (±1 SD of the chart's houses, `SRC_IKIASTRRO_SYNTHESIS`).
   **`db/156`** adds `tbl_Fact_HouseStrengthStatistics` + `vw_ChartHouseStrengthStatistics`: the
-  Life Matters strength statistics saved per chart × sign (SAV, lord's BAV, raw/independent Bhava
+  Key Inference strength statistics saved per chart × sign (SAV, lord's BAV, raw/independent Bhava
   Bala + z, lord Ṣaḍbala %, lord Shodasavarga Amsabala %, Argala counts, lord-only Capacity /
   Consistency / Context / Strength %). Written by `HouseStrengthStatisticsService` (Data) at the
   end of `GenerateAll`/`RecomputeAnalytics`; CLI `backfill-strength-statistics` for older people;
@@ -194,7 +196,7 @@ Publishes to the CLI and UI streams under
   (`tbl_Rule_VimsopakaWeight`), which stays unseeded — PVR never publishes its numeric
   per-varga weight table. New `YogaEvaluationRepository` (typed `GetByBirthDetailId` over
   `vw_ChartYogaEvaluations`) added the same pass — evaluation itself was already live, only
-  a typed read model was missing. Both are backend-only; Key Inference UI consumption is a
+  a typed read model was missing. Both are backend-only; Astro Facts UI consumption is a
   separate `workstream/ui` pass.
 
 ## Planned

@@ -45,6 +45,7 @@ builder.Services.AddScoped<PanchangaRepository>();
 builder.Services.AddScoped<YogaInputRepository>();
 builder.Services.AddScoped<AmsabalaRepository>();
 builder.Services.AddScoped<AmsabalaSchemeRepository>();
+builder.Services.AddScoped<TransitStrengthRuleRepository>();
 builder.Services.AddScoped<YogaEvaluationRepository>();
 builder.Services.AddScoped<ArgalaRuleRepository>();
 builder.Services.AddScoped<RasiNakshatraCombinationRepository>();

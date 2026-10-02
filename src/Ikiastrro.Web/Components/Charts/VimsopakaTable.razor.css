@@ -1,0 +1,28 @@
+/* Same card frame as AmsabalaTable (.am), which sits directly above it in step 6. */
+.vim { margin-top: 14px; color: var(--brand-midnight); }
+.vim-card { border: 1px solid var(--brand-line); border-radius: 12px; background: var(--brand-surface); overflow: hidden; }
+.vim-head { padding: 14px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-peach); }
+.vim-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; text-transform: uppercase; letter-spacing: .03em; }
+.vim-head p { margin: 3px 0 0; color: var(--brand-muted); font-size: .78rem; max-width: 70ch; }
+.vim-empty { margin: 0; padding: 14px 16px; color: var(--brand-muted); }
+.vim-scroll { overflow-x: auto; }
+.vim table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.vim th, .vim td { padding: 9px 10px; border-bottom: 1px solid var(--brand-line); text-align: left; vertical-align: middle; }
+.vim thead th { color: var(--brand-muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; cursor: help; }
+.vim thead th:first-child { cursor: default; }
+.vim tbody th { font-weight: 700; }
+.vim td { min-width: 96px; }
+.vim td b { display: inline-block; min-width: 2.6em; font-variant-numeric: tabular-nums; }
+.vim-bar { display: inline-block; width: 56px; height: 6px; border-radius: 3px; background: var(--brand-line); vertical-align: middle; overflow: hidden; }
+.vim-bar i { display: block; height: 100%; background: var(--brand-midnight); }
+.vim-na { color: var(--brand-muted); }
+.vim-weights { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; margin: 0; padding: 10px 16px 14px; color: var(--brand-muted); font-size: .72rem; }
+.vim-weights dt { font-weight: 700; }
+.vim-weights dd { margin: 0; }
+@media (max-width: 620px) {
+    .vim th, .vim td { padding: 8px 6px; }
+    .vim td { min-width: 0; }
+    .vim-bar { display: block; width: 100%; margin-top: 3px; }
+    .vim-weights { grid-template-columns: 1fr; padding: 10px 10px 12px; }
+    .vim-weights dd { margin-bottom: 4px; }
+}

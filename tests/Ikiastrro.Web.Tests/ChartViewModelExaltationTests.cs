@@ -4,7 +4,7 @@ using Ikiastrro.Core.Presentation;
 
 namespace Ikiastrro.Web.Tests;
 
-/// <summary>Key Inference 1.2 "About Planets" exaltation columns read the shared
+/// <summary>Astro Facts 1.2 "About Planets" exaltation columns read the shared
 /// AstroMath.DeepExaltationPoints (the copy verify-dignity checks against the database), not a
 /// private copy of the seven Uchcha Bindu constants.</summary>
 public class ChartViewModelExaltationTests

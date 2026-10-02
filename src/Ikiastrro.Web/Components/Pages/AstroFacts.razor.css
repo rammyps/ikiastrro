@@ -1,0 +1,386 @@
+/* Astro Facts, Step 1 — docs/ui/components/astro-facts.md. Tokens only (wwwroot/css/tokens.css);
+   same family as Natal_Transit_Comp_Wheel.razor.css (--brand-* palette, Manrope, sunset accent). */
+
+.ki-unavailable p { color: var(--brand-muted); }
+.ki-unavailable a { color: var(--brand-midnight); }
+
+.ki-stephead {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 16px 0 16px;
+}
+
+/* "STEP N OF 6" removed entirely 2026-09-16 (rammyps's call) — .ki-stephead now wraps just
+   the heading, kept only for its margin/spacing. */
+.ki-heading {
+    margin: 0;
+    color: var(--brand-midnight);
+    font: 700 calc(var(--font-size-control) * 1.15) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.ki-gridwrap {
+    width: min(100%, 420px);
+    margin: 0 auto 24px;
+}
+
+/* "1.1 D1 - BIRTH CHART" — chart left, transposed positions table right (rammyps, 2026-09-23).
+   Full-bleed: breaks out of .ik-page's centered max-width/padding (MainLayout.razor.css) so the
+   table gets the whole viewport width to work with instead of just .ik-page's ~1400px column —
+   the standard "100vw + negative margin" break-out, with its own small fixed gutter replacing
+   .ik-page's larger --pad-x so there's no horizontal scrollbar on the table. */
+.ki-d1layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    padding-inline: 12px;
+}
+.ki-d1layout .ki-gridwrap {
+    flex: 0 0 auto;
+    margin: 0;
+}
+.ki-d1table {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Current Transit tab — migrated from Natal_Transit_Comp_Wheel.razor.css (tw-controls/tw-wheel). */
+.ki-controls {
+    display: grid;
+    grid-template-columns: minmax(120px, .55fr) repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0 0 16px;
+    padding: 6px 8px;
+    border: 1px solid var(--brand-line);
+    border-radius: 12px;
+    background: var(--brand-peach);
+}
+
+/* Font reduced 10% off the base control size across this whole filter group (rammyps,
+   2026-09-14). */
+.ki-field { display: grid; gap: 2px; }
+.ki-field span {
+    color: var(--brand-midnight);
+    font: 700 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+}
+.ki-field input,
+.ki-field select {
+    width: 100%;
+    min-height: 30px;
+    padding: 4px 6px;
+    border: 1px solid var(--brand-line);
+    border-radius: 8px;
+    background: var(--brand-canvas);
+    color: var(--brand-midnight);
+    font: 500 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+}
+.ki-field input:focus-visible,
+.ki-field select:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
+.ki-field select:disabled { opacity: 0.55; }
+
+/* TRANSIT mm/yyyy — two plain numeric selects instead of the browser's native month input,
+   so the value always reads as digits (mm / yyyy) and never a spelled-out month name. */
+.ki-monthyear { display: flex; align-items: center; gap: 4px; }
+.ki-monthyear select { width: auto; min-width: 3.4em; }
+.ki-monthyear span[aria-hidden] { color: var(--brand-muted); font-weight: 700; }
+
+.ki-wheel {
+    width: min(90%, 972px);
+    min-width: 0;
+    margin: 0 auto 16px;
+}
+.ki-wheel ::deep .ntw { width: 100%; }
+
+/* Tab-strip convention (tokens.css --tab-*, design-language.md "Tabs") — plain hand-rolled
+   pill nav at every level (master rail, 1.1-1.4, 3.1-3.3), not MudBlazor's <MudTabs>
+   (rammyps, 2026-09-23 evening: three separate rounds of fighting MudTabs' internal DOM just
+   to get this exact plain-pill look was enough — the app's own header nav, `.ik-headtab` in
+   MainLayout.razor.css, already proves the plain-markup version of this same look works, so
+   the tab strip here now follows it instead). Same shared `--tab-*` tokens as before, same
+   sunset-fill/navy-text pill, but now on real `<button role="tab">` elements with
+   `aria-selected` driving the active look — no more `::deep` MudBlazor-DOM targeting needed
+   anywhere in this file. */
+.ki-steptab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    min-height: 44px;
+    padding: 6px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--tab-inactive-bg);
+    color: var(--tab-inactive-fg);
+    /* At least as large as the table column headers below (.ki-table th, 1em) — rammyps,
+       2026-09-23 evening: the tabs read as the page's primary nav and shouldn't be smaller
+       than the content they control. */
+    font: 700 calc(var(--font-size-control) * 1.05) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.02em;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+}
+/* Inactive tabs are transparent (tokens.css --tab-inactive-bg), so a plain brightness filter
+   has nothing to darken — hover instead tints in a faint peach so unselected pills still give
+   feedback; the active pill (already solid sunset) just brightens slightly instead.
+   Selector is bare [aria-selected], not [aria-selected="true"] (2026-09-25 fix): Blazor's bool
+   attribute binding (aria-selected="@(_activeTab == X)") never emits the literal string "true" —
+   it renders the attribute with an empty value when true and omits it entirely when false, the
+   same convention as disabled/checked. The ="true" selector never matched anything, so no tab
+   anywhere on this page — master or sub — ever showed an active-state color at all. */
+.ki-steptab:hover { background: var(--brand-peach); }
+.ki-steptab[aria-selected]:hover { filter: brightness(0.96); background: var(--tab-active-bg); }
+.ki-steptab:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 2px; }
+.ki-steptab[aria-selected] {
+    background: var(--tab-active-bg);
+    color: var(--tab-active-fg);
+}
+
+/* Master step rail — rendered inside MainLayout's context band (`Active.HeaderExtra`, see
+   AstroFacts.razor's `MasterNav`), not at the top of this page's own body (rammyps,
+   2026-09-23 evening — reclaim the vertical space the row used to take). As of 2026-09-26 the
+   band holds only this rail (the person name/birth line moved up into the app bar itself,
+   `.ik-appbar-person` in MainLayout.razor.css), so the rail simply fills the band's full width —
+   no more sharing the row with a person block. Single line, no step numbers, left-packed from
+   its own left edge (`justify-content: flex-start`). Never wraps to a second line (rammyps,
+   2026-09-25 — a previous fixed `margin-left: 440px` plus `flex-wrap: wrap` broke on any
+   laptop-width viewport: the 7 pills' own natural width is ~1140px, wider than the space left
+   after that margin, forcing an ugly 5-then-2 wrap with the last pill stranded far right).
+   `flex-wrap: nowrap` + `overflow-x: auto` makes this a single-line, horizontally-scrollable
+   strip instead on any viewport too narrow for all 7 pills at once. */
+.ki-master {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+}
+
+/* Margin halved 16px -> 8px (rammyps, 2026-09-26 — "reduce the space between 1st-level tabs
+   and its sub-tabs"), paired with MainLayout.razor.css's `.ik-page-tight-top` (also cut on this
+   page only) — together they roughly halve the gap between the master rail band above and the
+   first sub-tab row (1.1-1.3 Natal Charts' / 3.1-3.3 Strength's `.ki-subnav`) inside it. */
+.ki-panelbody { min-width: 0; margin-top: 8px; }
+
+/* Nested sub-tab rail (1.1-1.3 Natal Charts, 3.1-3.3 Strength) — same pill, smaller, single line
+   (rammyps, 2026-09-24: was two-line stacked `<span>`s; flattened to one line now that the merged
+   natal labels are shorter than the old 4-tab set). Outlined in the app's sunset accent
+   (`.ki-chart-toggle`'s own border color, same tone/weight) so every second-level sub-tab in the
+   app reads as a distinct step from the solid-fill master rail above it — the border is the same
+   hue as the active fill, so it's invisible on the selected pill and only shows on the rest. */
+.ki-subnav-wrap { min-width: 0; }
+.ki-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.ki-subpanels { min-width: 0; }
+.ki-steptab-sub {
+    border: 1px solid var(--brand-sunrise);
+    min-width: 64px;
+    min-height: 38px;
+    padding: 5px 14px;
+    font-size: calc(var(--font-size-control) * 0.86);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.ki-alert { font-size: 0.85em; }
+
+.ki-scroll {
+    max-width: 100%;
+    overflow: visible;
+    border: 1px solid var(--brand-line);
+    border-radius: 10px;
+}
+
+/* Anchored to `.ki-panelbody` (a plain literal div, not a MudBlazor Class-passthrough) rather
+   than a dedicated wrapper, since the Current Transit table (`Variant="2. TRANSIT CHARTS"`) is
+   this rule's only remaining consumer post-MudTabs-removal — see design-language.md "::deep
+   through a MudBlazor component's Class parameter doesn't work" for why `::deep` off *some*
+   literal scoped ancestor is required at all. */
+.ki-panelbody ::deep .ki-table {
+    box-shadow: none;
+    background: transparent;
+}
+
+.ki-panelbody ::deep .ki-table table {
+    width: 100%;
+    table-layout: auto;
+    border-collapse: collapse;
+    /* Deliberately no font-size here, and no "font:" shorthand (which sets font-size as part of
+       it even when you only meant to set family/weight) — unlike every plain-<table> component's
+       own table-level rule. th/td below must explicitly re-assert 1em to beat MudSimpleTable's
+       own td rule (see their comment); this element's own font-size needs to stay whatever it
+       already inherits (MudBlazor's ambient body size), or that 1em ends up scaling the wrong
+       base. Longhand only, so font-size is never touched. */
+    font-family: 'Manrope', 'Segoe UI', sans-serif;
+    line-height: 1.3;
+}
+
+/* MudSimpleTable ships its own .mud-simple-table table * tr > td rule (font-family/font-size
+   from --mud-typography-body2-*) which beats plain inheritance from the "table" rule above (an
+   explicit rule always beats an inherited value, regardless of specificity) — so font has to be
+   re-asserted here, at .ppt's actual 1em (bumped from 0.86em 2026-09-23 evening, rammyps's
+   call, matched across every standardized table component — PlanetPositionsTable.razor.css
+   and friends), not left to inherit like the other (non-Mud, plain <table>) standardized
+   components can. */
+.ki-panelbody ::deep .ki-table th {
+    padding: 7px 6px;
+    text-align: left;
+    vertical-align: bottom;
+    background: var(--brand-surface);
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+    font-size: 1em;
+    border-bottom: 2px solid var(--brand-line);
+    white-space: normal;
+    position: sticky;
+    top: 0;
+}
+
+.ki-panelbody ::deep .ki-table td {
+    padding: 6px 6px;
+    background: transparent;
+    color: var(--brand-midnight);
+    font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+    font-size: 1em;
+    border-bottom: 1px solid var(--brand-line);
+    white-space: normal;
+}
+
+.ki-panelbody ::deep .ki-table tbody tr:last-child td { border-bottom: 0; }
+.ki-panelbody ::deep .ki-table tbody tr:hover td { background: var(--brand-sunrise); }
+
+.ki-panelbody ::deep .ki-table .num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ki-sectionhead {
+    margin: 20px 0 8px;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.ki-sectionhead:first-child { margin-top: 0; }
+
+.ki-twocol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+.ki-col { min-width: 0; }
+
+@media (max-width: 900px) {
+    .ki-controls { grid-template-columns: 1fr; }
+    .ki-panelbody ::deep .ki-table table { font-size: 0.72em; }
+    .ki-twocol { grid-template-columns: 1fr; }
+    .ki-d1layout { flex-direction: column; }
+    .ki-d1layout .ki-gridwrap { margin: 0 auto; }
+    .ki-d1table { width: 100%; }
+}
+
+/* Natal chart picker — a plain <select>, no "NATAL CHART" label text (rammyps, 2026-09-24: sits
+   directly above the chart it controls, inside .ki-gridwrap, so the label was redundant).
+   Dark-navy surface + cream text (design-language.md "Chart controls" — the documented look for
+   any <select> that chooses/drives a chart, matching SPL LAGNAS's own divisional-chart picker),
+   not this page's ordinary form-field style. Sits to the right of EXPAND/COLLAPSE CHART
+   (rammyps, 2026-09-23). Fixed width sized in `ch` to the longest chart label across every
+   entry in tbl_Dim_ChartType — "Hora (Uma Shambu) · D2-US" (db/ikiastrro.sql's D2-US row) is
+   the longest at 25 characters — so the box never truncates whichever chart is selected and
+   never resizes/jumps as the selection changes (rammyps, 2026-09-24: was `max-width: 130px`,
+   which cut every varga name off after "Rasi · D1"-length text). Options render in caps to
+   match every other tab/label in the app (`text-transform: uppercase` — the values themselves,
+   `LoadedChart.Label`, stay mixed-case for everywhere else that reads them). */
+.ki-chart-picker {
+    flex: 0 0 auto;
+    min-height: 32px;
+    min-width: 0;
+    width: 27ch;
+    padding: 4px 8px;
+    border: 1px solid var(--brand-line);
+    border-radius: 8px;
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
+    font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+}
+.ki-chart-picker:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
+/* Astro Facts → Key Inference for the chart on show (spec_SIND-UNI_GridChart.md "Page links"). */
+.ki-chart-ki {
+    margin-left: auto;
+    font: 800 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: .04em;
+    color: var(--brand-midnight);
+    text-decoration: none;
+    border-bottom: 2px solid var(--brand-sunrise);
+    white-space: nowrap;
+}
+.ki-chart-ki:hover { border-bottom-color: var(--brand-midnight); }
+.ki-chart-ki:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
+
+.ki-natal-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    padding-inline: 12px;
+}
+.ki-natal-layout .ki-gridwrap {
+    position: sticky;
+    top: 12px;
+    width: 100%;
+    margin: 0;
+}
+.ki-natal-detail { min-width: 0; }
+
+@media (max-width: 900px) {
+    .ki-natal-layout { grid-template-columns: 1fr; width: 100%; margin-left: 0; padding-inline: 0; }
+    .ki-natal-layout .ki-gridwrap { position: static; margin: 0 auto 16px; }
+}
+/* Sits above the chart, inside .ki-gridwrap — left-aligned with the chart itself, not spanning
+   the full two-column layout (rammyps, 2026-09-24). */
+.ki-chart-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+/* Was cream/sunset-border at the full nav-tab size (`font: 700 var(--font-size-control) / 1`,
+   the same weight/family as `.ki-steptab`) — close enough to GENERAL/ABOUT PLANETS's sub-tab
+   pills just below it in the layout that it read as one more tab (rammyps, 2026-09-25 bug
+   report: "Collapsed Chart is following the same font as the sub-tabs font"). This toggle
+   changes how the chart *inside* this step displays itself, exactly the case
+   docs/ui/design-language.md's "Chart controls (in-chart toggles) — distinct from navigation
+   tabs" section covers — and its own toolbar sibling `.ki-chart-picker` right next to it
+   already uses that convention's dark-navy/cream look. Matched here (same font-size multiplier,
+   same navy/cream pair) so the toolbar reads as one coherent unit, clearly distinct from the
+   sunset/cream nav-tab family below. */
+.ki-chart-toggle {
+    min-height: 32px;
+    padding: 5px 14px;
+    border: 1px solid var(--brand-line);
+    border-radius: 999px;
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
+    font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.ki-chart-toggle:hover { background: color-mix(in srgb, var(--brand-midnight) 85%, white); }
+
+.ki-chart-toggle:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
+.ki-natal-layout.is-chart-collapsed { grid-template-columns: minmax(0, 1fr); }
+.ki-natal-detail { width: 100%; overflow: visible; }
+.ki-natal-detail ::deep table { width: 100%; min-width: 0 !important; }
+.ki-natal-detail ::deep .gds-scroll,
+.ki-natal-detail ::deep .rds-scroll,
+.ki-natal-detail ::deep .dsp-scroll { overflow: visible; }

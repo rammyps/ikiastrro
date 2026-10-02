@@ -3,7 +3,7 @@ using Ikiastrro.Core.Engines.Strength;
 
 namespace Ikiastrro.Data;
 
-/// <summary>Key Inference 3.2 "House Strength" — one row per bhava, `vw_ChartBhavaBala`
+/// <summary>Astro Facts 3.2 "House Strength" — one row per bhava, `vw_ChartBhavaBala`
 /// (db/053). <c>HouseSign</c>/<c>LordPlanet</c>/... are null only if `tbl_Chart_HouseLords`
 /// hasn't been (re)computed for this chart yet — the view's LEFT JOIN.</summary>
 /// <summary>Virupas/Rupas columns are SQL `DECIMAL(12,3)` (db/39) and house numbers `TINYINT`
@@ -15,14 +15,14 @@ public sealed record BhavaBalaSummaryRow(byte HouseNumber, string? HouseSign, st
     byte? LordPlacedInHouseFromLagna, string? LordPlacedInSign, string? LordDignityStatus,
     decimal BhavaBalaVirupas, decimal BhavaBalaRupas);
 
-/// <summary>Key Inference 3.2 expanded row — the three `tbl_Fact_BhavaStrengthComponent` rows
+/// <summary>Astro Facts 3.2 expanded row — the three `tbl_Fact_BhavaStrengthComponent` rows
 /// under one house (BHAVADHIPATI_BALA / BHAVA_DIG_BALA / BHAVA_DRIK_BALA, BhavaBalaCalculator).</summary>
 public sealed record BhavaBalaComponentRow(byte HouseNumber, string ComponentCode, decimal ValueVirupas);
 
 /// <summary>Independent Bhava Bala — Bhava Dig + Bhava Drik only, without Bhavadhipati Bala (which
 /// IS the house lord's own Ṣaḍbala). Use this, not the raw total, whenever a house's support is
 /// combined with a planet's Ṣaḍbala, or the lord is counted twice (stat_strength.md §0, §1.3).
-/// Shared by Key Inference 3.2 and Life Matters.</summary>
+/// Shared by Astro Facts 3.2 and Key Inference.</summary>
 public static class IndependentBhavaBala
 {
     public static readonly IReadOnlySet<string> ComponentCodes =
@@ -75,7 +75,7 @@ public sealed class BhavaStrengthRepository
         })));
     }
 
-    /// <summary>Key Inference 3.2 — one row per house for the "House Strength" table.</summary>
+    /// <summary>Astro Facts 3.2 — one row per house for the "House Strength" table.</summary>
     public IReadOnlyList<BhavaBalaSummaryRow> GetSummaryByBirthDetailId(int birthDetailId)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
@@ -86,7 +86,7 @@ public sealed class BhavaStrengthRepository
             """, new { birthDetailId }).ToList();
     }
 
-    /// <summary>Key Inference 3.2 — every stored component row, for the per-house expandable
+    /// <summary>Astro Facts 3.2 — every stored component row, for the per-house expandable
     /// breakdown (Bhavadhipati / Bhava Dig / Bhava Drik Bala).</summary>
     public IReadOnlyList<BhavaBalaComponentRow> GetComponentsByBirthDetailId(int birthDetailId)
     {

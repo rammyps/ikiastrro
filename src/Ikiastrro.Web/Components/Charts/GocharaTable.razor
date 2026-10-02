@@ -1,0 +1,95 @@
+@using Ikiastrro.Core.Engines.Strength
+@using Ikiastrro.Core.Engines.Transits
+
+@* Astro Facts step 2 (Transit) — every transiting planet judged from the natal Moon
+   (GocharaReading: PVR ch.26.3's auspicious houses + Vedha, tbl_Rule_GocharaVedha; Rahu read as
+   Saturn, Ketu as Mars), slowest first, with its own BAV bindus in the sign it is crossing beside
+   the verdict, and Saturn's phase from the Moon. *@
+<section class="go" aria-labelledby="go-title">
+    <h3 id="go-title" class="go-head">Gochara from the natal Moon <span>Moon in @Disp(Reading.NatalMoonSign.ToString())</span></h3>
+    @if (Reading.Saturn != SaturnPhase.None)
+    {
+        <p class="go-flag"><b>Saturn</b> @PhaseText(Reading.Saturn)</p>
+    }
+    <div class="go-scroll">
+        <table class="go-table">
+            <thead>
+                <tr>
+                    <th>Planet</th><th>Transit sign</th><th>House from<br />natal Moon</th><th>Reads as</th>
+                    <th>Vedha (obstruction)</th><th>Own BAV bindus<br />in that sign</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Reading.Rows)
+                {
+                    <tr>
+                        <td><b>@r.Planet</b>@if (r.ReadAs is { } proxy)
+                            {
+                                <span class="go-muted"> as @proxy</span>
+                            }</td>
+                        <td>@Disp(r.Sign.ToString())</td>
+                        <td class="num">@r.HouseFromMoon</td>
+                        <td><span class="go-pill is-@r.Verdict.ToString().ToLowerInvariant()">@VerdictText(r.Verdict)</span></td>
+                        <td>@VedhaText(r)</td>
+                        <td class="num">
+                            @if (r.Bindus is { } b)
+                            {
+                                <span class="go-bav is-@Tier(b)">@b</span><span class="go-muted"> /8</span>
+                            }
+                            else
+                            {
+                                <span class="go-muted" title="Rāhu and Ketu have no Bhinnāṣṭakavarga">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="go-note">
+        PVR (ch. 26.3) lists the houses from the natal Moon where each planet's transit is auspicious, and for each a
+        Vedha house: a transiting planet there blocks the good result (Sun and Saturn do not block each other, nor do
+        the Moon and Mercury). Houses not listed are not favourable for that planet. The table has no Rāhu or Ketu
+        row; PVR (ch. 25) says Rāhu behaves like Saturn and Ketu like Mars, so each is read by that planet's row
+        — good in the 3rd, 6th and 11th. The two nodes are always 7th apart, so they are not counted as blocking each
+        other. Bindus are the planet's own Bhinnāṣṭakavarga in the sign it is crossing — 5 or more is good, 3 or fewer is bad (PVR); this is
+        shown beside the verdict, not counted in it.
+    </p>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public GocharaReadingResult Reading { get; set; } = default!;
+
+    private static string VerdictText(GocharaVerdict v) => v switch
+    {
+        GocharaVerdict.Good => "Good",
+        GocharaVerdict.Blocked => "Good, blocked",
+        _ => "Not favourable",
+    };
+
+    private static string VedhaText(GocharaRow r)
+    {
+        if (r.Vedha is not { IsAuspicious: true, VedhaHouse: { } house } v) return "—";
+        return v.IsObstructed
+            ? $"{Ordinal(house)} from Moon — blocked by {string.Join(", ", v.Obstructors)}"
+            : $"{Ordinal(house)} from Moon — clear";
+    }
+
+    private static string PhaseText(SaturnPhase p) => p switch
+    {
+        SaturnPhase.SadeSatiRising => "is 12th from the natal Moon — Sāḍe Sātī, rising phase (first Dhaiya).",
+        SaturnPhase.SadeSatiPeak => "is over the natal Moon — Sāḍe Sātī, peak phase (second Dhaiya).",
+        SaturnPhase.SadeSatiSetting => "is 2nd from the natal Moon — Sāḍe Sātī, setting phase (third Dhaiya).",
+        SaturnPhase.Kantaka => "is 4th from the natal Moon — Kaṇṭaka Śani.",
+        SaturnPhase.Ashtama => "is 8th from the natal Moon — Aṣṭama Śani.",
+        _ => "",
+    };
+
+    private static string Tier(int bindus) =>
+        StrengthBands.BhinnaAshtakavargaBindus.Classify(bindus).ToString().ToLowerInvariant();
+
+    private static string Ordinal(int n) =>
+        n + (n % 100 is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+}

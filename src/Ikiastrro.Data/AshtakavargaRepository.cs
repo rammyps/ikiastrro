@@ -10,7 +10,7 @@ public sealed record AshtakavargaPindaRow(string ChartType, string RecipientCode
 /// Persists Parāśari Ashtakavarga for one chart — the seven Bhinnāṣṭakavargas (+ the 1/0
 /// contribution detail), the Sarvāṣṭakavarga, and the Sodhya Piṇḍa reductions.
 /// Written on each divisional chart's <c>tbl_ChartResults</c> row, mirroring the strength / vargottama facts.
-/// Also the read model for Key Inference 3.3, backed by vw_ChartAshtakavarga and the post-sodhana pinda facts.
+/// Also the read model for Astro Facts 3.3, backed by vw_ChartAshtakavarga and the post-sodhana pinda facts.
 /// </summary>
 public sealed class AshtakavargaRepository
 {

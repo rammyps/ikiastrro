@@ -1,24 +1,26 @@
 ---
 last_updated: 2026-10-01
 workstream: ui
-component: KeyInference
-route: /key-inference/{id}
+component: AstroFacts
+route: /astro-facts/{id}
 togaf: C — component spec
 ---
 
-# Component — Key Inference
+# Component — Astro Facts
 
-`KeyInference.razor` — **all 6 in-page steps built**, plus step 7 (All Charts) as the separate
+> **Chart (2026-10-01):** the natal chart beside the step tabs and the All Charts cards stay on `SouthIndianGrid_Detailed` (the master chart, themed through the page tokens). The Spl Lagnas **grid** view is **SIND-UNI-3** with the special-lagna bars, the same view as Key Inference's chart; see [`spec_SIND-UNI_GridChart.md`](spec_SIND-UNI_GridChart.md). The chart toolbar's **KEY INFERENCE →** and each All Charts card open that chart in Key Inference.
+
+`AstroFacts.razor` — **all 6 in-page steps built**, plus step 7 (All Charts) as the separate
 `/charts/{id}` route (its heading literally reads "7. ALL CHARTS" so the numbering stays
 consistent across the two routes). Final step order (2026-09-16/17, superseding the round-1
 6-step plan below): 1 D1-Transit, 2 About, 3 Strength (3.1 Planet Strength / 3.2 House Strength /
 3.3 Asthavarga / 3.4 Amsabala), 4 Spl Lagnas (was "Karakas"), 5 Yogas, 6 Vargas. This is the
 spec-of-record for the **round-2 redesign** (2026-09-11), which
-restructures the original flat "KEY INFERENCE header, 8 sub-tabs" shape into a **numbered UX
+restructures the original flat "ASTRO FACTS header, 8 sub-tabs" shape into a **numbered UX
 flow**. Mockups:
 
-- Round 1 (flat tabs, frozen): [`../../artifacts/ui/v2-mockup/chart-evidence-hub.html`](../../artifacts/ui/v2-mockup/chart-evidence-hub.html) `#key-inference`
-- **Round 2 (this spec, under review):** [`../../artifacts/ui/v2-mockup/key-inference-v2.html`](../../artifacts/ui/v2-mockup/key-inference-v2.html)
+- Round 1 (flat tabs, frozen): [`../../artifacts/ui/v2-mockup/chart-evidence-hub.html`](../../artifacts/ui/v2-mockup/chart-evidence-hub.html) `#astro-facts`
+- **Round 2 (this spec, under review):** [`../../artifacts/ui/v2-mockup/astro-facts-v2.html`](../../artifacts/ui/v2-mockup/astro-facts-v2.html)
 
 Design rule for this page: **one step, ideally one chart (hand-rolled SVG — bar / stacked
 bar / donut, no library, same discipline as `design-language.md`) + one primary table.**
@@ -39,8 +41,9 @@ below); the rest stay inline here until split out the same way in later work.
 | Step | Chart | Table | Source |
 |---|---|---|---|
 | **1 · D1 / Transit** | D1 South-Indian grid (D1 Birth tab) · natal+transit wheel with date/dasha selector (Current Transit tab) | D1 position table only (Planet · Sign · Degree · Nakṣatra · Pāda · Nakṣatra/Sub-lord chain · direction · house from Lagna/Moon) + D1 Birth / Current Transit toggle; analytical role/condition columns belong exclusively to 2.2 | `vw_ChartPlanetEvidence` (D1) · `tbl_TransitPositionReference` |
+| **2 · Transit — Gochara judgement** (2026-10-01) | — | `GocharaTable` under the transit positions, rows slowest first (Saturn, Jupiter, Rāhu, Ketu, Moon, Venus, Mars, Mercury, Sun): each transiting planet's house from the natal Moon, **Reads as** (Good / Good, blocked / Not favourable — Rāhu read by Saturn's row and Ketu by Mars's per PVR ch.25, the nodes never blocking each other), the Vedha house and the planets blocking it, and its own D1 BAV bindus in the sign it crosses (banded by `StrengthBands.BhinnaAshtakavargaBindus`, shown beside the verdict, not counted). A flag line names Saturn's phase from the Moon (Sāḍe Sātī rising/peak/setting, Kaṇṭaka, Aṣṭama — the `tvf_Chart_SadeSatiPeriods` offsets). Follows the date/daśā picker. Computed live by `GocharaReading` (Core) | `tbl_Rule_GocharaVedha` (migration 158) via `TransitStrengthRuleRepository` + `GocharaVedhaCalculator` + `vw_ChartAshtakavarga` |
 | **1.4 · Relationships** | `GrahaDrishtiMatrix` — D1/D9/D10 selector, focus-body summary, heat matrix, discrete ordinal badges, and selected-cell evidence breakdown | Sphuṭa percentage and discrete aspect metadata remain visually distinct; chart-matched conjunction groups follow the matrix. This is the sole full-detail relationship owner. | `vw_ChartGrahaDrishtiStrengths` via `GrahaDrishtiStrengthRepository` + `tbl_Chart_MultiGrahaConjunction(+Member)` |
-| **1.2 · About Houses** | — | House Lord Placement; House Lord Key Findings; Argala &amp; Virodhargala | `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` + live `ArgalaCalculator` |
+| **1.2 · About Houses** | — | House Lord Placement (with a **Life matters** column linking each house's matters into Key Inference — `LifeMatterHouseIndex`, see `specs_key_inference_page.md` "Links to and from Astro Facts"); House Lord Key Findings; **What acts on each house** (2026-10-01, `HouseVerdictTable`/`HouseVerdicts`: per house, the lord and its functional nature, benefics and malefics in or aspecting it, Raman's count verdict from `HouseBeneficMaleficCalculator`, and PVR step 5's helping / hindering planets from `TargetInfluences` with the same Argala facts as Key Inference — follows the chart picker, computed live); Argala &amp; Virodhargala | `tbl_Chart_HouseLords` + `vw_ChartHouseLordInterpretation` + `tbl_Fact_Argala` + `tbl_Rule_LifeMatterFocus` |
 | — supporting cards | — | Arudha padas (A1…A12, AL) · Upagrahas (11) · Special Lagnas — **computed, previously never surfaced** | `tbl_Chart_KeyDetails` `PointKind IN ('Arudha','Upagraha','SpecialLagna')` |
 | **1.3 · About Planets** | — (closeness-to-exaltation bar dropped 2026-09-14; see note below) | functional nature + ruled houses + independent ownership flags (māraka, bādhaka, dusthāna, triṣaḍāya, Kendrādhipati doṣa) + rationale disclosure + dignity + Chara Kāraka + exaltation point + Δ + closeness, one row per planet/point | `tbl_Chart_KeyDetails` (+ Moon pañchāṅga facts card from `vw_ChartMoonContext`) |
 | **1.1 · Overview** | — | `PlanetPositionsD1Transposed` — the default natal key table, with grahas as columns and Degree / Direction / House / Rāśi / Rāśi Lord / Nakshatra / Nakshatra Lord / Sub-Lord Chain / Nakshatra Pāda rows | `tbl_Chart_KeyDetails` via `ChartViewModel.BuildPlanetRows` |
@@ -49,11 +52,12 @@ below); the rest stay inline here until split out the same way in later work.
 | **4 · Spl Lagnas** | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) — full detail, including the proposed `SouthIndianGrid_Micro` Grid view, moved there 2026-09-17 | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) | See [`specs_KI_spllagna.md`](specs_KI_spllagna.md) |
 | **5 · Yogas** | — (coverage donut planned, not built) | Yogas Present: Type · Yoga · Rule · Source, deduplicated by `YogaCode` (a yoga can match several classical source citations independently — e.g. Daridra against Raman combinations #148/#149/#151/#152 — which used to list it once per citation) and sorted by type in Lagna/Sun/Moon/Combination order, any other `YogaTypeCode` following alphabetically | `vw_ChartYogaEvaluations` (+ `tbl_Rule_Yoga`) via `YogaEvaluationRepository` |
 | **6 · Vargas** | `AmsabalaTable` (2026-09-16 redesign, superseding the original flat `VargaLordsTable` **and** the standalone "3.4 Amsabala" Strength sub-tab) — Vargottama/Shadvarga/Saptavarga/Dasavarga/Shodasavarga scheme selector. Vargottama: D1 Sign/D9 Sign/Match per graha. Each of the 4 varga-group schemes: collapsed numeric split (GoodCount/GroupSize + %) per graha, expanding to a stacked equal-width bar (one segment per varga in that scheme, full 7-tier dignity colour — Exalted/Moolatrikona/Own/Great Friend/Friend/Enemy/Great Enemy — empty for Neutral/Debilitated) | Expanding a graha's bar also reveals a varga-lords detail table underneath it (Varga/Sign/Lord/Dignity/0–1 score) — the "chart doubles as summary, table is the drill-down" shape | `vw_ChartAmsabala` + `tbl_Rule_AmsabalaGroup`/`tbl_Rule_AmsabalaName` (`AmsabalaRepository`/`AmsabalaSchemeRepository`) + `tbl_Fact_Vargottama` (`VargottamaRepository.GetByBirthDetailId`) + `WorkspaceData.Charts` (Grahas/HouseLords, for the lords table and live dignity) — no new repository |
+| **6 · Vargas — Vimśopaka Bala** (2026-10-01) | — | `VimsopakaTable` under `AmsabalaTable`: per graha (seven, no nodes) the 20-point score in Ṣaḍvarga / Saptavarga / Daśavarga / Ṣoḍaśavarga with a bar, and each scheme's chart weights. A scheme a person lacks a varga for shows —. Computed live (`VimsopakaRead` → `VimsopakaCalculator`), nothing stored | `tbl_Rule_VimsopakaWeight` (migration 157, BPHS) via `TransitStrengthRuleRepository` + `WorkspaceData.Charts` |
 | **7 · All Charts** | — | Every stored divisional chart as a plain South-Indian grid (unchanged from before this round) | separate `/charts/{id}` route (`AllCharts.razor`), heading reads "7. ALL CHARTS" |
 
 ## Information ownership and deduplication
 
-Each fact has **one full-detail owner** in Key Inference. Other tabs may show only the minimum
+Each fact has **one full-detail owner** in Astro Facts. Other tabs may show only the minimum
 context needed to identify or explain their own result; they must not reproduce the owner's full
 columns or recompute the fact independently.
 
@@ -68,7 +72,7 @@ columns or recompute the fact independently.
 | Yoga rule, source, result, interpretation | 5 Yogas | Yoga name/status summary only |
 | Cross-varga comparison and confirmation | 6 Vargas | Varga name/sign needed to support a finding |
 
-Implementation consequence: `PlanetPositionsTable` exposes `ShowAnalysis`; Key Inference 1.1
+Implementation consequence: `PlanetPositionsTable` exposes `ShowAnalysis`; Astro Facts 1.1
 sets it false and also hides dignity. `PlanetDignityTable` is the sole full-detail planetary-role
 surface and calls `LagnaFunctionalNature` once per classical planet. The old 84-row database
 mirror must not return; if persisted UI provenance is later required, persist computed chart facts
@@ -96,7 +100,7 @@ flow above instead of sitting in a side panel:
 | Per-planet nakṣatra + pāda | 1 · D1 position table | `tbl_Chart_KeyDetails.Nakshatra` / `NakshatraPada` |
 | Directional aspects (graha dṛṣṭi) | 2.1, per house | `tbl_Chart_Aspects` |
 | Conjunction groups (≥ 2 grahas) | 2.1, per house | `tbl_Chart_MultiGrahaConjunction(+Member)` |
-| Planetary avasthās (Bālādi, Jāgradādi) | **still no table home** — deferred past this round | `tbl_Fact_PlanetaryState` |
+| Planetary avasthās (Bālādi, Jāgradādi, …) | About Planets — `PlanetaryStateTable` | `tbl_Fact_PlanetaryState` |
 
 ## Open questions
 
@@ -106,7 +110,7 @@ flow above instead of sitting in a side panel:
   Transit" tab (`Natal_Transit_Comp_WheelRepository`/`TransitSelection`/
   `Natal_Transit_Comp_WheelMath` reused as-is); the "D1 Birth" tab keeps the plain South-Indian
   grid + position table. `MainLayout`'s standalone TRANSIT nav tab was removed to match — Home's
-  "open person" / post-generate navigation now lands on `/key-inference/{id}`.
+  "open person" / post-generate navigation now lands on `/astro-facts/{id}`.
 - ~~`tbl_Rule_Exaltation`~~ **Dropped (2026-10-01):** the exaltation points were already in the
   database (see the sourcing-status table). The `tbl_Rule_Yoga` Type/Rule fields landed in
   `db/079`.
@@ -340,9 +344,11 @@ Supersedes the "2026-09-23 — Natal/Transit navigation revision" section's sub-
     Argala & Virodhargala), same tab index (2) it already had.
   - **1.4 ASPECTED (%)** (renamed from "1.5 Relationships") — unchanged content (Graha Dṛṣṭi
     strength, Rāśi Dṛṣṭi, Rāśi & graha dispositors, Conjunctions).
-  - `KeyInference.razor`'s `Step` query-param routing updated to match: `overview`/`general`/
+  - `AstroFacts.razor`'s `Step` query-param routing updated to match: `overview`/`general`/
     `generaldetails`/`signs`/`nakshatras` all resolve to the new combined tab 0; `planets` → 1;
     `houses` → 2 (unchanged); `relationships`/`aspected` → 3.
+  - `?chart=` (2026-10-01, any case, e.g. `?step=houses&chart=D9`) opens the chart picker on
+    that chart when the person has it — the target of Key Inference' *… in Astro Facts* links.
 - **Every nested sub-tab strip (1.1–1.4, and 3.1–3.3) now wraps its label onto two lines**
   instead of growing the pill wide — `.ki-subtabs ::deep .mud-tab` caps `max-width: 130px`,
   allows `white-space: normal`, and drops to `0.72×` the base control font size.
@@ -365,7 +371,7 @@ live against a running instance before moving to the next):
   → "5. ALL YOGAS", "6. VARGAS" → "6. VARGA CHARTS" (all wrap via inline padding narrowing the
   text column within each step's already-even grid width). "4. SPL LAGNAS", "5. ALL YOGAS" and
   "7. ALL CHARTS" are short enough to otherwise fit on one line at that width, so their `Text` in
-  `KeyInference.razor` carries an explicit `"\n"` at the word break rammyps wanted ("4. SPL" /
+  `AstroFacts.razor` carries an explicit `"\n"` at the word break rammyps wanted ("4. SPL" /
   "LAGNAS", "5. ALL" / "YOGAS", "7. ALL" / "CHARTS") — `.ki-mastertabs ::deep .ki-master-button`
   switched from `white-space: normal` to `white-space: pre-line` so that literal newline renders
   as a forced break instead of collapsing to a space (labels with no `"\n"` still wrap naturally
@@ -397,7 +403,7 @@ live against a running instance before moving to the next):
   - **Chart column extended past NATAL CHARTS**: the toolbar (collapse/expand + chart picker) +
     `SouthIndianGrid_Detailed` that NATAL CHARTS already showed on the left is now also shown on
     STRENGTH, YOGAS and VARGAS (rammyps's call — those three read the chart while it's on
-    screen too). Extracted into a shared `ChartColumn` `RenderFragment` in `KeyInference.razor`
+    screen too). Extracted into a shared `ChartColumn` `RenderFragment` in `AstroFacts.razor`
     (same `_natalChartCollapsed`/`_natalChart` state as NATAL CHARTS, so the collapse toggle and
     chart-picker selection are shared, not reset per tab) and wrapped each of the three panels'
     existing content in the same `.ki-natal-layout`/`.ki-gridwrap`/`.ki-natal-detail` grid NATAL
@@ -413,7 +419,7 @@ live against a running instance before moving to the next):
     which is what Blazor's own serialization actually produces. This affected every master tab
     and every sub-tab rail on the page, not something newly introduced — a pre-existing, silent
     styling no-op since the tab strip was rewritten off MudTabs (2026-09-23 evening, above).
-  - **Header nav (`HOME`/`KEY INFERENCE`/`NUMEROLOGY`) active state flipped** (rammyps's call):
+  - **Header nav (`HOME`/`ASTRO FACTS`/`NUMEROLOGY`) active state flipped** (rammyps's call):
     `.ik-headtab.is-here` in `MainLayout.razor.css` now reads `background: var(--brand-midnight)`
     / `color: var(--brand-sunset)` — the inverse of the sub-tab rail's sunset-bg/midnight-text.
     Distinct component/token from the `--tab-active-bg` flip-and-revert noted directly above this
@@ -437,7 +443,7 @@ live against a running instance before moving to the next):
 - One set of Strong / Moderate / Weak cut-offs for the whole app: `StrengthBands`
   (`src/Ikiastrro.Core/Engines/Strength/StrengthBands.cs`), mirrored in `tbl_Rule_StrengthBand`
   (migration 154) with one `SourceRefCode` per boundary; CLI `verify-strength` checks the two agree.
-  3.1 Planet Strength, 3.2 House Strength, 3.3's Sarvāṣṭakavarga bar and Life Matters all read it.
+  3.1 Planet Strength, 3.2 House Strength, 3.3's Sarvāṣṭakavarga bar and Key Inference all read it.
 
 | Scale | Strong from | Moderate from | Source |
 |---|---|---|---|
@@ -445,7 +451,7 @@ live against a running instance before moving to the next):
 | Bhava Bala Rūpas | 7 | 5 | both ours (`SRC_IKIASTRRO_SYNTHESIS`) — no classical cut-off found |
 | Sarvāṣṭakavarga bindus | 31 (above 30) | 25 | `SRC_PVR_INTEGRATED` (`docs/research/domain/transit-events.md`) |
 
-- Life Matters used to call Ṣaḍbala Strong at 110% and Weak under 90%, so the same planet could
+- Key Inference used to call Ṣaḍbala Strong at 110% and Weak under 90%, so the same planet could
   read differently on the two pages; rammyps chose 100% / 80% everywhere. Its middle label is now
   MOD (was ADEQ).
 - The 5-band Capacity scale (75/90/110/130%, `stat_strength.md` §1.1) in 3.1's Capacity column and

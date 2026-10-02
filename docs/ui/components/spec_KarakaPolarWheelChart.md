@@ -1,8 +1,10 @@
 ---
+
+> **To align with SIND-UNI** later: the polar wheels will take the grid chart's vocabulary (dignity chips, BEN/MAL/MIX, lens chords, `--sl-*` lagna colours, shared toolbar). See [`spec_SIND-UNI_GridChart.md`](spec_SIND-UNI_GridChart.md) § Extension to the polar wheel.
 last_updated: 2026-09-17
 reflects: PolarGridLagnaSelect implementation
 component: PolarGridLagnaSelect
-route: /key-inference/{id}?step=4 (embedded in Key Inference step "4. Spl Lagnas")
+route: /astro-facts/{id}?step=4 (embedded in Astro Facts step "4. Spl Lagnas")
 ---
 
 # Polar/grid Lagna selector
@@ -17,7 +19,7 @@ Present the selected divisional chart from one of five special-Lagna counting re
 ## Page contract
 
 - **No heading** (2026-09-17, rammyps's call) — the embedded `KarakaPolarWheel`'s own "Special
-  Lagnas & Karakas" `<h1>` was dropped since the Key Inference step pill above it ("4. Spl
+  Lagnas & Karakas" `<h1>` was dropped since the Astro Facts step pill above it ("4. Spl
   Lagnas") already names the step and this is the only tab under it.
 - The Chart `<select>` and the Wheel/Grid toggle are **centred together** on one row where the
   heading used to sit (not right-of-heading, since there is no heading).

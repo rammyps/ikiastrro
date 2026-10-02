@@ -8,7 +8,7 @@ phase: 1A/1B/2 (in progress; 0B specs retrofitted — see note below)
 
 Revision 10 (2026-09-29): the page is restructured as Area → lagna-perspective Question →
 Sub-questions → D1 analysis, read through D1 strength statistics — decisions 12–15; built and
-specified in [`specs_life_matters_page.md`](components/specs_life_matters_page.md). Revision 9: this plan incorporates the structural evidence-assembly review, its schema
+specified in [`specs_key_inference_page.md`](components/specs_key_inference_page.md). Revision 9: this plan incorporates the structural evidence-assembly review, its schema
 corrections, the LifeMatter Interpretation Contract, and the subsequent Subject/Focus,
 canonical-code, Contribution, Bhava Bala, query, drill-through, and safety corrections.
 
@@ -17,14 +17,14 @@ the repository/schema audit, migration-087 reference-audit result, coverage coun
 citation status.
 
 Claude's bounded research output for Phase 0B (A1–A12 citations, the UL/A12-vs-A7 correction,
-proposed Subject/Focus mappings, plain-language copy, and the Key Inference read-path mapping) is
+proposed Subject/Focus mappings, plain-language copy, and the Astro Facts read-path mapping) is
 in [`lifematters_claude_research.md`](lifematters_claude_research.md) — proposals for human audit,
 not implementation. Codex/ChatGPT owns the SQL/C#/Razor implementation this feeds into.
 
 **Out-of-order execution, noted for the record**: Codex built Phase 1A (repositories), Phase 1B
 (`LifeMatterFocusResolver`), and part of Phase 2 (`SindHovGrid`) before the Phase 0B specs
 existed. The two component specs — [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md)
-and [`specs_life_matters_page.md`](components/specs_life_matters_page.md) — were written
+and [`specs_key_inference_page.md`](components/specs_key_inference_page.md) — were written
 afterward, documenting what was actually built (and flagging gaps against this plan, e.g. no
 Escape-key test, no golden SVG yet, the Arudha evidence-repository gap) rather than a clean
 before-implementation contract. Treat them as the live contract going forward.
@@ -117,9 +117,10 @@ The inspector must distinguish the sign's overlapping nakshatra spans, each occu
 nakshatra/pada, and a focused special point's own nakshatra. Never label these collectively as
 “the house's nakshatra.”
 
-Special points are computed from D1 sidereal longitude and projected into every Varga. In a
-non-D1 chart, label this explicitly, for example: “A12 projected into D9 from its D1-derived
-longitude.” Do not imply independent recalculation in that Varga.
+Special lagnas and upagrahas are computed from D1 sidereal longitude and projected into every
+Varga; label that in a non-D1 chart. Arudha padas (bhava and graha) are computed inside each
+Varga from its own placements (PVR §9.2 / §9.5; since 2026-10-01), so a Varga's A12 is that
+Varga's own pada.
 
 ## Simplified evidence projections
 
@@ -136,11 +137,11 @@ The dossier also includes compact projections for house condition (lord, lord pl
 occupants, aspects, conjunctions), planet condition (dignity, functional nature, owned houses,
 combustion/retrograde, avastha, Shadbala), relationships, relevant yogas, direct D1/Varga
 comparison, contradictions/missing evidence, and provenance. House condition does not summarize
-Bhava Bala in v1; it links to Key Inference for that detail.
+Bhava Bala in v1; it links to Astro Facts for that detail.
 
-LifeMatters owns compact projections only. Canonical detail stays in Key Inference, with an
+LifeMatters owns compact projections only. Canonical detail stays in Astro Facts, with an
 addressable drill-through preserving chart, owning tab/step, and focused entity, e.g.
-`/key-inference/{id}?step=about-houses&chart=D9&house=7`.
+`/astro-facts/{id}?step=about-houses&chart=D9&house=7`.
 
 ## Interaction, accessibility, responsiveness, and failures
 
@@ -267,12 +268,12 @@ changes. Phase 3C must record concrete query counts for initial load and Step sw
 - `docs/ui/lifematters_plan.md`: domain flow, data contract, phases, and decisions.
 - [`docs/ui/components/specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md): component
   API, rendering rules, interaction state.
-- [`docs/ui/components/specs_life_matters_page.md`](components/specs_life_matters_page.md): page
+- [`docs/ui/components/specs_key_inference_page.md`](components/specs_key_inference_page.md): page
   layout, orchestration, responsive rules, and simplified-column projections.
 
 Both written 2026-09-25 (Phase 0B). As noted above, implementation ran ahead of them for
 `SindHovGrid`/the resolver/repositories — `specs_sind_hov_grid.md` documents what was built and
-its gaps; `specs_life_matters_page.md` is still a forward design (the page itself isn't built
+its gaps; `specs_key_inference_page.md` is still a forward design (the page itself isn't built
 yet), so it remains the before-implementation contract for Phase 3A onward.
 
 ## Phase sequence
@@ -295,21 +296,21 @@ yet), so it remains the before-implementation contract for Phase 3A onward.
   look per the plan's "a golden validates rendering, not behavior" note). See
   [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md).
 - Phase 3A (complete): page shell, picker, Auto/D1/Manual lifecycle, and Steps panel — built at
-  `Pages/LifeMatters.razor` (`/life-matters/{id}`), browser-verified against a real person (D1
+  `Pages/KeyInference.razor` (`/key-inference/{id}`), browser-verified against a real person (D1
   and D9, one mapped and one deliberately unmapped Step). No bUnit page tests yet (tracked for
   Phase 3C). Evidence cards are not built — that is 3B1-3B3, not this phase.
 - Phase 3B1 (partial): Avastha/Shadbala/planet condition built as one reused
   `PlanetaryStateTable`, scoped to the Step's Karaka planets; house condition built (lord, lord
   placement, occupants — not yet aspects/conjunctions), always empty pending Focus seed data.
   Argala and Arudha are explicitly **blocked**, not built: neither has a read path over its facts
-  today (Argala's gap found during this build, correcting `specs_life_matters_page.md`'s and
+  today (Argala's gap found during this build, correcting `specs_key_inference_page.md`'s and
   `lifematters_claude_research.md`'s prior "ready" claim — see those docs).
 - Phase 3B2 (complete, yogas narrowed): Relationships built via `DignityEngine.
   EvaluatePairRelationship` (no repository needed — a reused Core computation) between every pair
   of the Step's Karaka planets. Yogas built but **not filtered by matter relevance** — no yoga row
   carries structured planet/house involvement today (only free-text `YogaRule`/`Notes`), so v1
   lists every yoga present in the chart, labeled as unfiltered rather than faking a text-match
-  filter. See [`specs_life_matters_page.md`](components/specs_life_matters_page.md).
+  filter. See [`specs_key_inference_page.md`](components/specs_key_inference_page.md).
 - Phase 3B3: explicit D1/Varga comparison, projected-point labels, and provenance.
 - Phase 3C: integration, visual, accessibility, viewport, regression, and measured query-count
   verification.
@@ -385,7 +386,7 @@ Inference read paths to dossier ingredients — all in `lifematters_claude_resea
     a lagna are "sourced"; otherwise its Lagna houses are re-counted from the lagna. Supersedes
     the earlier Category → Step picker with separate lagna tracks.
 13. **(2026-09-29) D1 is read through strength statistics.** Sarva Ashtakavarga (>30 / <25, the
-    cited band), Bhava Bala (7 / 5 rupas), the lord's Ṣaḍbala (100% / 80% of minimum since 2026-10-01 — the shared `StrengthBands`; since 2026-10-01 grouped into Capacity / Consistency / Context axes with independent Bhava Bala, the lord's BAV and kāraka Ṣaḍbala/Amsabala — see `components/specs_life_matters_page.md`), Argala /
+    cited band), Bhava Bala (7 / 5 rupas), the lord's Ṣaḍbala (100% / 80% of minimum since 2026-10-01 — the shared `StrengthBands`; since 2026-10-01 grouped into Capacity / Consistency / Context axes with independent Bhava Bala, the lord's BAV and kāraka Ṣaḍbala/Amsabala — see `components/specs_key_inference_page.md`), Argala /
     Virodhargala (`tbl_Fact_Argala`, count comparison) and avastha drive signals, filters and a
     "Strongest first" sort. Bhava Bala and Ashtakavarga move from Phase 4 into v1. Decision 7
     still holds: signals describe strength (capacity) and never set `Contribution`, and the sort

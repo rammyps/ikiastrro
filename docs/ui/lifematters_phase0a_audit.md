@@ -68,11 +68,11 @@ normalization, not a replacement of an existing table.
 - `SouthIndianGrid_Detailed`, `SouthIndianGrid_Micro`, and `PolarGridLagnaSelect` have no
   highlight/focus parameter today. SIND-HOV-GRID's house/sign highlighting is new component
   surface, not an extension of unused existing props.
-- `KeyInference.razor` only reads a `step` query param via an if-chain; `about-houses` is not a
+- `AstroFacts.razor` only reads a `step` query param via an if-chain; `about-houses` is not a
   recognized step value (only `houses` is), and there is no `chart=`/`house=` query param at all.
-  The plan's example drill-through URL (`/key-inference/{id}?step=about-houses&chart=D9&house=7`)
+  The plan's example drill-through URL (`/astro-facts/{id}?step=about-houses&chart=D9&house=7`)
   is not supported today and will need to be added.
-- No single reusable "evidence-assembly service" exists — `KeyInference.razor`'s code-behind
+- No single reusable "evidence-assembly service" exists — `AstroFacts.razor`'s code-behind
   wires ~20 separate repositories directly into page state per master tab (house/planet
   condition, Shadbala, Bhava Bala, Ashtakavarga, Amsabala, Avastha, Argala, yogas). LifeMatters
   will need to extract or duplicate this repository set, not import an existing bundler.

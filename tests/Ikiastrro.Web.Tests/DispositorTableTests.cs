@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Ikiastrro.Web.Tests;
 
-/// <summary>Key Inference 1.4 "Rāśi &amp; graha dispositors" — one row per graha from the chart's
+/// <summary>Astro Facts 1.4 "Rāśi &amp; graha dispositors" — one row per graha from the chart's
 /// own key details (a real D1 placement: Ramya, Gemini lagna).</summary>
 public class DispositorTableTests : BunitContext
 {
@@ -41,7 +41,7 @@ public class DispositorTableTests : BunitContext
     [Fact]
     public void UnreadableAscendant_ShowsAnEmptyStateInsteadOfABlankTable()
     {
-        // Regression: KeyInference passed the literal text "relationshipChart.AscendantSign" (no @),
+        // Regression: AstroFacts passed the literal text "relationshipChart.AscendantSign" (no @),
         // which parsed as no sign and rendered a header with no rows.
         var cut = Render<DispositorTable>(ps => ps
             .Add(p => p.ChartType, "D1")

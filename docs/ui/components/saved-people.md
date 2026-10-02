@@ -31,8 +31,8 @@ bleed trick" shape as the rest of the app. `object-fit` changed `cover` → `con
 **2026-09-24 — Print removed from this page (header toolbar).** A page-wide Print button briefly
 lived in the header toolbar here (2026-09-23) and printed the whole saved-people list — not any
 one person's charts, which is what printing a chart actually means. Removed; printing moved to
-the "7. ALL CHARTS" gallery (`AllChartsGrid`, shared by `/charts/{id}` and Key Inference's own
-"7. ALL CHARTS" tab — see `key-inference.md`'s 2026-09-24 note). This page also had two native
+the "7. ALL CHARTS" gallery (`AllChartsGrid`, shared by `/charts/{id}` and Astro Facts's own
+"7. ALL CHARTS" tab — see `astro-facts.md`'s 2026-09-24 note). This page also had two native
 browser "Choose File" buttons showing unstyled beneath the header on this same build — a
 casualty of the same change: its CSS file's added print-button rule was missing a closing brace,
 and the file was truncated mid-rule at the end, which broke `.sp-hidden-inputs`' hiding rule

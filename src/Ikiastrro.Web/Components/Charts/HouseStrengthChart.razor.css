@@ -1,4 +1,4 @@
-/* Key Inference 3.2 "House Strength" — tokens.css --status-*/--bala-*/--dignity-* + the shared
+/* Astro Facts 3.2 "House Strength" — tokens.css --status-*/--bala-*/--dignity-* + the shared
    brand-* family (design-language.md). Status/legend classes are re-declared locally under this
    component's own CSS-isolation scope (PlanetStrengthChart's .psc-status-* rules can't reach
    here) — same duplication PlanetDignityTable/HouseLordshipTable already carry for `.pill`/`.dot`. */
@@ -76,9 +76,9 @@
    midnight (readable on the now-sunset-orange moderate fill, matching the tab-active
    sunset-bg/midnight-fg convention elsewhere in the app). Legend dots/other .hsc-status-*
    consumers are unaffected (compound selector, badge-only). */
-.hsc-rankbadge.hsc-status-strong { color: var(--brand-sunrise); }
+.hsc-rankbadge.hsc-status-strong { color: var(--status-on); }
 .hsc-rankbadge.hsc-status-moderate { color: var(--brand-midnight); }
-.hsc-rankbadge.hsc-status-weak { color: var(--brand-sunrise); }
+.hsc-rankbadge.hsc-status-weak { color: var(--status-on); }
 
 .hsc-bala-bhavadhipati { background: var(--bala-bhavadhipati); }
 .hsc-bala-dig { background: var(--bala-dig); }

@@ -1,4 +1,6 @@
 ---
+
+> **Stays** as Astro Facts' natal chart and All Charts cards (rammyps, 2026-10-01). The Lagna cell's translucent `--asc-glow` is now laid over `--paper-raised`, so it no longer turns brown in the light themes. Key Inference and the Spl Lagnas grid use SIND-UNI-3 instead: see [`spec_SIND-UNI_GridChart.md`](spec_SIND-UNI_GridChart.md).
 last_updated: 2026-09-10
 workstream: ui
 component: SouthIndianGrid_Detailed · SouthIndianTemplate
