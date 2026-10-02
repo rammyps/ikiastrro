@@ -2,11 +2,45 @@
 @using Ikiastrro.Data
 
 <section class="yg" aria-labelledby="yg-title">
+    @* Summary card (rammyps, 2026-10-02): the present yogas split by OutcomeNatureCode (migration
+       159). A tile filters the table below to that nature; clicking it again clears the filter. *@
+    <article class="yg-card yg-summary" aria-labelledby="yg-summary-title">
+        <header class="yg-card-head">
+            <h2 id="yg-summary-title">Yoga Summary</h2>
+            <p>@PresentCount present of @EvaluatedCount evaluated · @NotEvaluatedCount pending · @VariantRows.Count catalogued variants</p>
+        </header>
+        <div class="yg-tiles">
+            @foreach (var (nc, label) in NatureTiles)
+            {
+                var count = PresentByNature(nc);
+                <button type="button" class="yg-tile yg-tile-@nc.ToLowerInvariant() @(_nature == nc ? "is-on" : null)"
+                        aria-pressed="@(_nature == nc ? "true" : "false")" @onclick="() => ToggleNature(nc)">
+                    <b>@count</b>
+                    <span>@label</span>
+                    <small>@(PresentCount == 0 ? 0 : (int)Math.Round(100.0 * count / PresentCount))% of present</small>
+                </button>
+            }
+        </div>
+        @if (PresentCount > 0)
+        {
+            <span class="yg-split" aria-hidden="true">
+                @foreach (var (nc, _) in NatureTiles)
+                {
+                    var count = PresentByNature(nc);
+                    @if (count > 0)
+                    {
+                        <i class="yg-nature-@nc.ToLowerInvariant()" style="flex:@count"></i>
+                    }
+                }
+            </span>
+        }
+    </article>
+
     <article class="yg-card">
         <header class="yg-card-head">
             <div>
                 <h2 id="yg-title">Yogas Present</h2>
-                <p>@PresentCount present (@PresentGood good · @PresentBad bad@(PresentOther > 0 ? $" · {PresentOther} mixed" : "")) · @EvaluatedCount evaluated · @NotEvaluatedCount pending · @VariantRows.Count catalogued variants</p>
+                <p>@DisplayRows.Count shown@(_nature is { } n ? $" · {NatureTiles.First(t => t.Code == n).Label} only" : "")</p>
             </div>
         </header>
         <div class="yg-controls" aria-label="Yoga filters">
@@ -204,6 +238,7 @@
         {
             var rows = VariantRows
                 .Where(r => _showAll || r.Present == true)
+                .Where(r => _nature is null || (r.OutcomeNatureCode ?? "") == _nature)
                 .Where(r => string.IsNullOrWhiteSpace(_query) || SearchText(r).Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase));
             if (_sortKey is not { } key)
                 return rows.OrderBy(r => r.YogaSetName).ThenBy(r => TypeRank(r.YogaTypeCode)).ThenBy(r => r.SourceVariantCode).ToList();
@@ -233,10 +268,18 @@
 
     private static string NatureClass(YogaEvaluationRow r) => r.OutcomeNatureCode?.ToLowerInvariant() ?? "none";
 
+    private static readonly (string Code, string Label)[] NatureTiles =
+    {
+        ("AUSPICIOUS", "Good"), ("INAUSPICIOUS", "Bad"), ("MIXED", "Mixed"), ("CONTEXTUAL", "Depends"),
+    };
+
+    private string? _nature;
+
+    private void ToggleNature(string code) => _nature = _nature == code ? null : code;
+
+    private int PresentByNature(string code) => VariantRows.Count(r => r.Present == true && r.OutcomeNatureCode == code);
+
     private int PresentCount => VariantRows.Count(r => r.Present == true);
-    private int PresentGood => VariantRows.Count(r => r.Present == true && r.OutcomeNatureCode == "AUSPICIOUS");
-    private int PresentBad => VariantRows.Count(r => r.Present == true && r.OutcomeNatureCode == "INAUSPICIOUS");
-    private int PresentOther => PresentCount - PresentGood - PresentBad;
     private int EvaluatedCount => VariantRows.Count(r => r.EvaluationStatus == "EVALUATED");
     private int NotEvaluatedCount => VariantRows.Count - EvaluatedCount;
 

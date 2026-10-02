@@ -2,9 +2,10 @@
    family (design-language.md). "psc" = PlanetStrengthChart. */
 
 .psc {
-    border: 1px solid var(--brand-line);
-    border-radius: 12px;
-    background: var(--brand-surface);
+    border: 1px solid var(--card-line);
+    border-radius: var(--card-radius);
+    background: var(--card-bg);
+    color: var(--card-fg);
     padding: 16px 18px 8px;
 }
 
@@ -107,7 +108,8 @@
 
 .psc-colheads {
     padding: 6px 10px;
-    color: var(--brand-muted);
+    background: var(--table-head-bg);
+    color: var(--table-head-fg);
     font: 700 0.7em/1.2 'Manrope', 'Segoe UI', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.04em;

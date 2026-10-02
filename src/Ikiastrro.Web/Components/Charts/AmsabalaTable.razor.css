@@ -1,6 +1,6 @@
 .am { display: grid; gap: 14px; color: var(--brand-midnight); }
-.am-card { border: 1px solid var(--brand-line); border-radius: 12px; background: var(--brand-surface); overflow: hidden; }
-.am-card-head { padding: 14px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-peach); }
+.am-card { border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); overflow: hidden; }
+.am-card-head { padding: 14px 16px; border-bottom: 1px solid var(--card-line); background: var(--card-head-bg); color: var(--card-head-fg); }
 .am-card-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; text-transform: uppercase; letter-spacing: .03em; }
 .am-subtext { margin: 3px 0 8px; color: var(--brand-muted); font-size: .78rem; }
 /* Chart-control convention (2026-09-17, rammyps's call): a dark-navy segmented pill marks a

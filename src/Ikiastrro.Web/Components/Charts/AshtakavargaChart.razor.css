@@ -1,6 +1,6 @@
 .av { display: grid; gap: 14px; color: var(--brand-midnight); }
-.av-card { border: 1px solid var(--brand-line); border-radius: 12px; background: var(--brand-surface); overflow: hidden; }
-.av-card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-peach); }
+.av-card { border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); overflow: hidden; }
+.av-card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--card-line); background: var(--card-head-bg); color: var(--card-head-fg); }
 .av-card-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; text-transform: uppercase; letter-spacing: .03em; }
 .av-head-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .av-context { margin: 4px 0 0; color: var(--brand-muted); font-size: .72rem; }

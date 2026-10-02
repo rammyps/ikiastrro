@@ -317,6 +317,18 @@ html select option {
     text-transform: uppercase;
 }
 
+/* Standard table header (rammyps, 2026-10-02): every header row in the key colour. `!important`
+   because each component's own scoped `th` rule outranks a global selector; the header's
+   buttons (sortable columns), links and captions take its ink. Row headers inside <tbody> keep
+   their component's own look. */
+html thead th {
+    background: var(--table-head-bg) !important;
+    color: var(--table-head-fg) !important;
+}
+html thead th :is(button, a, small) {
+    color: inherit !important;
+}
+
 /* Supplied natal/transit template palette. */
 :root {
     --transit-paper: #fff0a6;
@@ -391,15 +403,28 @@ html select option {
     --tab-inactive-bg: transparent;
     --tab-inactive-fg: var(--brand-midnight);
 
-    /* Dark "card" surface (rammyps, 2026-09-24) — for fact cards that should read as a distinct
-       card rather than blend into the page's parchment background (MoonAndPanchangaCard, and the
-       LunarPhaseCard/PanchangaCard nested inside it). Reuses the app's own midnight/canvas pair
-       (already proven as a dark-shell/light-text combo by .ki-chart-picker) instead of a new hue. */
-    --card-bg: var(--brand-midnight);
-    --card-bg-raised: #1c3566;
-    --card-fg: var(--brand-canvas);
-    --card-fg-muted: rgb(250 245 234 / 0.66);
-    --card-line: rgb(250 245 234 / 0.22);
+    /* The key colour (rammyps, 2026-10-02): each theme's active-tab pair — sunrise/midnight in
+       the brand theme, the cosmos accent in cosmic-light/-dark. Every table header row reads it
+       (the global `html thead th` rule below, and the grid-row headers of the strength charts),
+       so a header looks the same on every page in every theme. */
+    --key-bg: var(--tab-active-bg);
+    --key-fg: var(--tab-active-fg);
+    --table-head-bg: var(--key-bg);
+    --table-head-fg: var(--key-fg);
+
+    /* The one card look (rammyps, 2026-10-02 — superseding the 2026-09-24 dark midnight card that
+       the Moon/Pañchāṅga cards used): surface fill, hairline border, 12px corners, a peach header
+       band. Yoga, Aṁśabala, Vimśopaka, Aṣṭakavarga, the strength charts, the Moon and Pañchāṅga
+       cards and Key Inference's answer card all read these. Defined once — every theme reaches
+       them through the --brand-* aliases. */
+    --card-bg: var(--brand-surface);
+    --card-bg-raised: var(--brand-canvas);
+    --card-fg: var(--brand-midnight);
+    --card-fg-muted: var(--brand-muted);
+    --card-line: var(--brand-line);
+    --card-radius: 12px;
+    --card-head-bg: var(--brand-peach);
+    --card-head-fg: var(--brand-midnight);
 }
 
 /* Adaptive Cosmos theme (2026-10-01). The existing semantic names remain aliases so every
@@ -458,12 +483,6 @@ html select option {
     --relation-malefic: #be3455;
     --relation-mixed: #9a6700;
     --relation-neutral: #64748b;
-
-    --card-bg: var(--cosmos-surface);
-    --card-bg-raised: var(--cosmos-surface-raised);
-    --card-fg: var(--brand-midnight);
-    --card-fg-muted: var(--brand-muted);
-    --card-line: var(--brand-line);
 
     --status-on: #ffffff;
 
@@ -524,12 +543,6 @@ html select option {
     --relation-malefic: #fb7185;
     --relation-mixed: #f2c14e;
     --relation-neutral: #94a3b8;
-
-    --card-bg: var(--cosmos-surface);
-    --card-bg-raised: var(--cosmos-surface-raised);
-    --card-fg: var(--brand-midnight);
-    --card-fg-muted: var(--brand-muted);
-    --card-line: var(--brand-line);
 
     --planet-sun-bg: color-mix(in srgb, var(--planet-sun) 20%, var(--cosmos-surface));
     --planet-moon-bg: color-mix(in srgb, var(--planet-moon) 24%, var(--cosmos-surface));
@@ -634,20 +647,20 @@ html select option {
 .karaka-view-tabs button:not(.is-active),
 .karaka-chart-select,
 .am-schemes button:not(.is-active),
-.av-toggle button:not(.is-active),
-.hsc-toggle button:not(.is-active),
-.psc-toggle button:not(.is-active) {
+.av-toggle button:not(.av-toggle-on),
+.hsc-toggle button:not(.hsc-toggle-on),
+.psc-toggle button:not(.psc-toggle-on) {
     color: var(--control-fg) !important;
 }
 
-:root[data-theme='cosmic-dark'] .gds-toolbar,
-:root[data-theme='cosmic-dark'] .gds-summary > div,
-:root[data-theme='cosmic-dark'] .gds-evidence > div,
-:root[data-theme='cosmic-dark'] .gds-matrix th,
-:root[data-theme='cosmic-dark'] .gds-evidence,
-:root[data-theme='cosmic-dark'] .rds-toolbar,
-:root[data-theme='cosmic-dark'] .rds-summary > div,
-:root[data-theme='cosmic-dark'] .rds-matrix th { background: var(--brand-surface); }
+/* The selected segment of every chart toggle is the key colour (these three mark it with their
+   own *-toggle-on class, not .is-active). */
+.av-toggle button.av-toggle-on,
+.hsc-toggle button.hsc-toggle-on,
+.psc-toggle button.psc-toggle-on {
+    background: var(--key-bg) !important;
+    color: var(--key-fg) !important;
+}
 
 /* Compatibility aliases for older chart/table components that predate the canonical
    --brand-* names. Keeping them semantic makes their fallback literals unreachable in every
@@ -662,24 +675,11 @@ html select option {
 
 html[data-theme] table { color: var(--brand-midnight); }
 
-/* Dense dṛṣṭi matrices were older one-line components with literal white controls and focus
-   cells. Close those last theme leaks here until the components are reformatted. */
-:root[data-theme='cosmic-dark'] .gds-switch button,
-:root[data-theme='cosmic-dark'] .rds-switch button,
-:root[data-theme='cosmic-dark'] .gds-summary > div,
-:root[data-theme='cosmic-dark'] .rds-summary > div {
-    background: var(--brand-surface);
-    color: var(--brand-midnight);
-}
-
-:root[data-theme='cosmic-dark'] .gds-matrix .is-focus,
-:root[data-theme='cosmic-dark'] .rds-matrix .is-focus {
-    background-color: var(--brand-peach);
-}
-
 :root[data-theme='cosmic-dark'] .yg-status-present {
     background: color-mix(in srgb, var(--relation-benefic) 18%, var(--brand-surface));
     color: var(--relation-benefic);
 }
 :root[data-theme='cosmic-dark'] .yg-status-absent {
     background: var(--brand-surface-soft);
+    color: var(--brand-muted);
+}

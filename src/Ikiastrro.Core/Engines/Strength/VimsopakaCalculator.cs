@@ -46,7 +46,10 @@ public static class VimsopakaCalculator
         return results;
     }
 
-    private static decimal PlacementValue(ChartAnalysisInput chart, PlanetName planet)
+    /// <summary>The planet's dignity factor in one varga, out of 20 (own/mūlatrikoṇa 20, great
+    /// friend 18, friend 15, neutral 10, enemy 7, great enemy 5). A scheme's score is
+    /// Σ weight × factor / 20.</summary>
+    public static decimal PlacementValue(ChartAnalysisInput chart, PlanetName planet)
     {
         var position = chart.Planets.FirstOrDefault(p => p.Planet.Equals(planet.ToString(), StringComparison.OrdinalIgnoreCase))
             ?? throw new ArgumentException($"Chart {chart.ChartType} has no {planet} placement.", nameof(chart));

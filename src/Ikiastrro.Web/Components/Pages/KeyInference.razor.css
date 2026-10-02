@@ -112,7 +112,7 @@
 
 .lm-top { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; margin-bottom: 20px; }
 .lm-explore, .lm-answer { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.lm-answer { padding: 16px; border: 1px solid var(--brand-midnight); background: var(--brand-surface); }
+.lm-answer { padding: 16px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); }
 
 /* Area → question drill-down: the selected area's questions open directly under the pills */
 .lm-drill { display: flex; flex-direction: column; gap: 4px; }
