@@ -48,11 +48,6 @@ public static class ShadbalaCalculator
             [PlanetName.Saturn] = 7
         };
 
-    /// <summary>Graha Yuddha (planetary war) participants and orb — tbl_Rule_PlanetaryWar
-    /// (migration 072, SRC_RAMAN_GRAHA_BHAVA_BALAS). Sun/Moon/nodes never take part.</summary>
-    private static readonly PlanetName[] WarParticipants =
-        { PlanetName.Mars, PlanetName.Mercury, PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn };
-    private const double WarOrbDegrees = 1.00;
 
     /// <summary>Calculates the seven classical planets from the D1 and available varga inputs.
     /// <paramref name="panchanga"/> supplies the already-verified Vedic weekday and Hora Lord
@@ -286,7 +281,7 @@ public static class ShadbalaCalculator
 
     /// <summary>
     /// Graha Yuddha (planetary war) among the five tara grahas (tbl_Rule_PlanetaryWar, migration
-    /// 072): within <see cref="WarOrbDegrees"/> of D1 longitude, the planet with the more
+    /// 072): within <see cref="GrahaYuddha.OrbDegrees"/> of D1 longitude, the planet with the more
     /// northern ecliptic latitude wins. The winner/loser detection and criterion are cited
     /// (SRC_RAMAN_GRAHA_BHAVA_BALAS via SRC_PVR_INTEGRATED); the delta MAGNITUDE (the seeded
     /// diameter-based formula) is deliberately left at 0 virupas here -- the Raman edition that
@@ -299,26 +294,15 @@ public static class ShadbalaCalculator
         ChartAnalysisInput d1, SiderealPositions positions)
     {
         var longitude = new Dictionary<PlanetName, double>();
-        foreach (var planet in WarParticipants)
+        foreach (var planet in GrahaYuddha.Participants)
         {
             var pos = d1.Planets.FirstOrDefault(x => x.Planet.Equals(planet.ToString(), StringComparison.OrdinalIgnoreCase));
             if (pos?.NirayanaLongitudeDegrees is { } lon) longitude[planet] = lon;
         }
 
         var result = new Dictionary<PlanetName, ShadbalaComponentResult>();
-        for (var i = 0; i < WarParticipants.Length; i++)
-        for (var j = i + 1; j < WarParticipants.Length; j++)
+        foreach (var (winner, loser, orb) in GrahaYuddha.Find(longitude, positions.PlanetLatitudes))
         {
-            var a = WarParticipants[i];
-            var b = WarParticipants[j];
-            if (!longitude.TryGetValue(a, out var lonA) || !longitude.TryGetValue(b, out var lonB)) continue;
-            var orb = AngularDistance(lonA, lonB);
-            if (orb > WarOrbDegrees) continue;
-
-            var latA = positions.PlanetLatitudes.GetValueOrDefault(a);
-            var latB = positions.PlanetLatitudes.GetValueOrDefault(b);
-            var (winner, loser) = latA >= latB ? (a, b) : (b, a);
-
             result[winner] = Row("YUDDHA_BALA", "YUDDHA_BALA", 0, "GRAHA_YUDDHA_LATITUDE",
                 $"Graha Yuddha vs {loser}: orb {orb:0.###}°, {winner} wins on more northern latitude " +
                 $"({positions.PlanetLatitudes.GetValueOrDefault(winner):0.###}° vs " +

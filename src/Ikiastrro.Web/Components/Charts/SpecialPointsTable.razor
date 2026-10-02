@@ -1,0 +1,57 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@* Upagrahas and Ārūḍha padas for one chart, read from tbl_Chart_KeyDetails (PointKind
+   'Upagraha' / 'Arudha' / 'GrahaArudha'). Astro Facts 1.1 is their only full-detail home; Special
+   Lagnas stay with step 4. An Ārūḍha is a sign, not a degree (it is stored at the Lagna's degree),
+   so ShowDegree=false drops the Degree and Nakṣatra columns for it. *@
+<div class="spt-scroll">
+    <table class="spt">
+        <thead><tr>
+            <th>Point</th><th>Rasi</th>
+            @if (ShowDegree) { <th>Degree</th><th>Nakshatra</th><th>Pada</th> }
+            <th>House</th>
+        </tr></thead>
+        <tbody>
+        @foreach (var p in Rows)
+        {
+            var (nakshatra, pada) = AstroMath.GetNakshatraAndPada(p.NirayanaLongitudeDegrees);
+            <tr>
+                <td><span class="code">@Code(p.Planet)</span> @Label(p.Planet)</td>
+                <td>@Disp(p.Sign)</td>
+                @if (ShowDegree)
+                {
+                    <td class="mono">@(p.DegreesInSignDisplay ?? "—")</td>
+                    <td>@AstroMath.GetNakshatraName(nakshatra)</td>
+                    <td class="mono">@pada</td>
+                }
+                <td class="mono">H@(p.HouseNumberFromLagna)</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> Rows { get; set; } = Array.Empty<ChartKeyDetail>();
+    [Parameter] public bool ShowDegree { get; set; } = true;
+
+    private static readonly IReadOnlyDictionary<string, string> Labels = new Dictionary<string, string>
+    {
+        ["Dhuma"] = "Dhūma", ["Vyatipata"] = "Vyatīpāta", ["Parivesha"] = "Pariveṣa",
+        ["Indrachapa"] = "Indra Chāpa", ["Upaketu"] = "Upaketu", ["Kaala"] = "Kāla",
+        ["Mrityu"] = "Mṛtyu", ["Ardhaprahara"] = "Ardhaprahara", ["Yamaghantaka"] = "Yamaghaṇṭaka",
+        ["Gulika"] = "Gulika", ["Maandi"] = "Māndi",
+        ["AL"] = "Ārūḍha Lagna", ["A2"] = "Dhana pada", ["A3"] = "Vikrama pada", ["A4"] = "Sukha pada",
+        ["A5"] = "Mantra pada", ["A6"] = "Śatru pada", ["A7"] = "Dāra pada", ["A8"] = "Mṛtyu pada",
+        ["A9"] = "Bhāgya pada", ["A10"] = "Rājya pada", ["A11"] = "Lābha pada", ["A12"] = "Upapada (UL)",
+    };
+
+    // Graha arudhas are stored as GA_<Planet>; show them as "Sun's ārūḍha".
+    private static string Label(string point) =>
+        point.StartsWith("GA_", StringComparison.Ordinal) ? $"{point[3..]}'s ārūḍha"
+        : Labels.GetValueOrDefault(point, point);
+
+    private static string Code(string point) =>
+        point.StartsWith("GA_", StringComparison.Ordinal) ? "GA" : point.Length <= 3 ? point : "";
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+}

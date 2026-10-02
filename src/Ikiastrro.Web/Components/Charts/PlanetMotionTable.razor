@@ -1,0 +1,64 @@
+@* Motion, combustion and planetary war for one chart's grahas — the Astro Facts 1.2 home for
+   speed/latitude (tbl_Chart_KeyDetails), combustion (IsCombust + DistanceFromSunDegrees +
+   CombustionOrbUsedDegrees, as stored at generation) and Graha Yuddha (GrahaYuddha.Find, the same
+   detection Yuddha Bala uses). Read-only: nothing here is recomputed except the war pairing. *@
+<div class="pmt-scroll">
+    <table class="pmt">
+        <thead><tr>
+            <th>Planet</th><th>Dir</th><th>Speed&nbsp;°/day</th><th>Ecl&nbsp;lat&nbsp;°</th>
+            <th>From&nbsp;Sun</th><th>Orb</th><th>Combustion</th><th>Graha&nbsp;yuddha</th>
+        </tr></thead>
+        <tbody>
+        @foreach (var g in Grahas)
+        {
+            <tr>
+                <td>@g.Planet</td>
+                <td>@ChartViewModel.DirectionLabel(g.IsRetrograde)</td>
+                <td class="mono">@(g.SpeedLongitudeDegPerDay?.ToString("0.0000") ?? "—")</td>
+                <td class="mono">@(g.EclipticLatitudeDegrees?.ToString("0.0000") ?? "—")</td>
+                <td class="mono">@(g.DistanceFromSunDegrees is { } d ? $"{d:0.00}°" : "—")</td>
+                <td class="mono">@(g.CombustionOrbUsedDegrees is { } o ? $"{o:0.#}°" : "—")</td>
+                <td>
+                    @if (g.IsCombust == true) { <span class="tag tag-bad">Combust</span> }
+                    else if (g.IsCombust == false) { <span class="muted">No</span> }
+                    else { <span class="muted">—</span> }
+                </td>
+                <td>
+                    @if (WarFor(g.Planet) is { } war) { <span class="tag @(war.Wins ? "tag-good" : "tag-bad")">@war.Text</span> }
+                    else if (Enum.TryParse<PlanetName>(g.Planet, out var p) && GrahaYuddha.Participants.Contains(p)) { <span class="muted">No</span> }
+                    else { <span class="muted">—</span> }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private IReadOnlyList<GrahaYuddhaPair> _wars = Array.Empty<GrahaYuddhaPair>();
+
+    private IEnumerable<ChartKeyDetail> Grahas =>
+        KeyDetails.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant");
+
+    protected override void OnParametersSet()
+    {
+        var bodies = Grahas.Select(k => (Ok: Enum.TryParse<PlanetName>(k.Planet, out var p), Planet: p, Row: k))
+            .Where(x => x.Ok).ToList();
+        _wars = GrahaYuddha.Find(
+            bodies.ToDictionary(x => x.Planet, x => x.Row.NirayanaLongitudeDegrees),
+            bodies.Where(x => x.Row.EclipticLatitudeDegrees.HasValue)
+                .ToDictionary(x => x.Planet, x => x.Row.EclipticLatitudeDegrees!.Value));
+    }
+
+    private (bool Wins, string Text)? WarFor(string planet)
+    {
+        foreach (var w in _wars)
+        {
+            if (w.Winner.ToString() == planet) return (true, $"Wins vs {w.Loser} ({w.OrbDegrees:0.00}°)");
+            if (w.Loser.ToString() == planet) return (false, $"Loses to {w.Winner} ({w.OrbDegrees:0.00}°)");
+        }
+        return null;
+    }
+}

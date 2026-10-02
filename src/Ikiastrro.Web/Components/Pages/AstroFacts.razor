@@ -185,6 +185,15 @@ else
 
                     <h3 class="ki-sectionhead">Sign &amp; Nakshatra combination</h3>
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
+
+                    <h3 class="ki-sectionhead">Upagrahas</h3>
+                    <SpecialPointsTable Rows="@(Points(natalChart, "Upagraha"))" />
+
+                    <h3 class="ki-sectionhead">Ārūḍha padas</h3>
+                    <SpecialPointsTable Rows="@(Points(natalChart, "Arudha"))" ShowDegree="false" />
+
+                    <h3 class="ki-sectionhead">Graha ārūḍhas</h3>
+                    <SpecialPointsTable Rows="@(Points(natalChart, "GrahaArudha"))" ShowDegree="false" />
                                 </div>
                             }
                             @if (SubShows(_activeTab, 1))
@@ -205,6 +214,9 @@ else
 
                     <h3 class="ki-sectionhead">Planets — dignity, kāraka, exaltation</h3>
                     <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
+
+                    <h3 class="ki-sectionhead">Motion, combustion &amp; planetary war</h3>
+                    <PlanetMotionTable KeyDetails="natalChart.KeyDetails" />
 
                     <h3 class="ki-sectionhead">Planet states (avasthas)</h3>
                     <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames"
@@ -884,6 +896,10 @@ else
 
     private static IReadOnlyList<ExaltationRow> ExaltationRows(LoadedChart lc) =>
         ChartViewModel.BuildExaltationRows(lc.KeyDetails);
+
+    /// <summary>One kind of stored special point (Upagraha / Arudha / GrahaArudha) in stored order.</summary>
+    private static IReadOnlyList<ChartKeyDetail> Points(LoadedChart lc, string kind) =>
+        lc.KeyDetails.Where(k => k.PointKind == kind).ToList();
 
     /// <summary>House number -> comma-joined occupant graha names (Ascendant excluded — not a
     /// graha) for the "House Lord Placement" table's Occupants column.</summary>

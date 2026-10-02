@@ -462,3 +462,25 @@ live against a running instance before moving to the next):
   (`AscendantSign="relationshipChart.AscendantSign"`), so Razor passed that literal text, no sign
   parsed, and the table rendered a header with no rows. `DispositorTable` now also shows an
   `EmptyState` instead of a silent empty table (`DispositorTableTests`).
+
+## 2026-10-02 — JHora gap step 1: stored-but-hidden facts surfaced
+
+Gap review against Jagannatha Hora's Basics / Strengths views (`cproj_win_app_explorer/explorer_output/jhora`).
+Step 1 shows facts that were already computed and stored; no new calculation or migration.
+
+- **1.1 General** gains `SpecialPointsTable` three times, under Sign &amp; Nakshatra combination:
+  **Upagrahas** (all 11, with degree, nakṣatra and pada derived from the stored longitude),
+  **Ārūḍha padas** (AL, A2–A12 with pada names, A12 shown as Upapada) and **Graha ārūḍhas** (GA_*).
+  Ārūḍhas show sign and house only — they are stored at the Lagna's degree, which means nothing.
+  This builds the "supporting cards" for Upagrahas and Arudhas that this spec listed as not built;
+  Special Lagnas stay with step 4.
+- **1.2 About Planets** gains `PlanetMotionTable`, "Motion, combustion &amp; planetary war", under the
+  dignity table: direction, speed °/day, ecliptic latitude, distance from the Sun, the combustion
+  orb used and the stored combust flag, and Graha Yuddha (wins vs / loses to, with the orb).
+  Speed and latitude went here, not into 1.1's already wide positions table.
+- **`GrahaYuddha`** (Core, `Engines/Strength`) now owns war detection — the five tara grahas, 1° orb,
+  more northern latitude wins. `ShadbalaCalculator`'s Yuddha Bala and the new table both call it.
+- **Not surfaced: Ishta / Kashta phala.** `vw_ChartShadbala.IshtaBala`/`KashtaBala` are wrong:
+  Kashta is stored as 60 − Ishta instead of √((60 − Uchcha) × (60 − Cheshta)), and Sun and Moon read
+  Ishta 0 because their Cheṣṭā bala is 0 (JHora uses Ayana bala for the Sun and Pakṣa bala for the
+  Moon there). Needs a `ShadbalaCalculator` fix and regeneration before it is shown.
