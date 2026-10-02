@@ -188,15 +188,21 @@ public static class ShadbalaCalculator
         SiderealPositions positions, SunTimes sunTimes, PanchangaResult panchanga,
         IReadOnlyDictionary<PlanetName, double> d1Longitudes)
     {
-        var dayStrong = planet is PlanetName.Sun or PlanetName.Jupiter or PlanetName.Venus;
-        var nathonnata = sunTimes.IsNightBirth == dayStrong ? 0 : 60;
-        rows.Add(Row("KALA_BALA", "NATHONNATA_BALA", nathonnata,
-            "DAY_NIGHT_ARC", "Temporal strength from the birth day/night arc."));
+        var birth = BirthMoment(panchanga);
+        rows.Add(Row("KALA_BALA", "NATHONNATA_BALA", NathonnataBala.Compute(planet, birth, sunTimes),
+            "DAY_NIGHT_ARC", "BPHS: graded by the hour from apparent midnight — Sun/Jupiter/Venus rise to noon, Moon/Mars/Saturn to midnight, Mercury always 60."));
 
         rows.Add(Row("KALA_BALA", "PAKSHA_BALA", PakshaBala.Compute(planet, d1Longitudes),
             "MOON_PHASE", "BPHS: benefics e/3, malefics 60 − e/3 (e = Moon–Sun elongation, 0–180°); the Moon's doubled."));
 
-        var birth = BirthMoment(panchanga);
+        var birthDate = DateOnly.FromDateTime(birth.DateTime);
+        var abdaLord = AbdaMasaLords.AbdaLord(birthDate);
+        var masaLord = AbdaMasaLords.MasaLord(birthDate);
+        rows.Add(Row("KALA_BALA", "VARSHA_BALA", planet == abdaLord ? 15 : 0,
+            "YEAR_LORD", $"Abda Bala: 15 virūpas to the lord of the 360-day year's first day ({abdaLord}), Raman's ahargana."));
+        rows.Add(Row("KALA_BALA", "MASA_BALA", planet == masaLord ? 30 : 0,
+            "MONTH_LORD", $"Māsa Bala: 30 virūpas to the lord of the 30-day month's first day ({masaLord}), Raman's ahargana."));
+
         rows.Add(Row("KALA_BALA", "AYANA_BALA",
             AyanaBala.ForKalaBala(planet, p.NirayanaLongitudeDegrees!.Value, positions.AyanamshaDegrees, birth),
             "SOLAR_DECLINATION", "BPHS: (24° ± declination) × 60/48; the Sun's doubled."));

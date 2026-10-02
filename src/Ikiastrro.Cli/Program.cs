@@ -1212,6 +1212,20 @@ if (args.Length > 0 && args[0] == "verify-strength")
     };
     foreach (var (planet, expected) in jhoraAyana)
         Near($"Ayana Bala {planet}", Component(planet, "AYANA_BALA"), expected, 0.5);
+    // JHora kaala-bala: Natonnata, Abda, Maasa columns. Our midnight is the sunset/sunrise midpoint
+    // (00:07:36 here); JHora's sits ~7.5 minutes earlier, hence the 0.7 tolerance.
+    var jhoraNathonnata = new Dictionary<string, double>
+    {
+        ["Sun"] = 27.49, ["Moon"] = 32.51, ["Mars"] = 32.51, ["Mercury"] = 60.00,
+        ["Jupiter"] = 27.49, ["Venus"] = 27.49, ["Saturn"] = 32.51,
+    };
+    foreach (var (planet, expected) in jhoraNathonnata)
+        Near($"Nathonnata Bala {planet}", Component(planet, "NATHONNATA_BALA"), expected, 0.7);
+    foreach (var planet in jhoraNathonnata.Keys)
+    {
+        Check($"Abda Bala {planet}", Component(planet, "VARSHA_BALA"), planet == "Mars" ? 15 : 0);
+        Check($"Māsa Bala {planet}", Component(planet, "MASA_BALA"), planet == "Saturn" ? 30 : 0);
+    }
     foreach (var r in strengths)
     {
         var uchcha = Component(r.Planet, "UCHCHA_BALA");
