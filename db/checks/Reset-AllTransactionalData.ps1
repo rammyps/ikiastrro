@@ -52,7 +52,7 @@ if (-not $Force) {
 
 & sqlcmd -S $Server -d $Database -E -b -i $sqlFile
 if ($LASTEXITCODE -ne 0) {
-    throw "sqlcmd exited with code $LASTEXITCODE — reset did not complete cleanly."
+    throw "sqlcmd exited with code $LASTEXITCODE - reset did not complete cleanly."
 }
 
 Write-Host "Reset complete. Verifying..." -ForegroundColor Green
