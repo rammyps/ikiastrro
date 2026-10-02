@@ -443,10 +443,9 @@ else
 
     @if (_masterTab == 4)
     {
+        @* No chart column here (rammyps, 2026-10-02): yogas are read off the whole chart set, so the
+           D1 grid and chart picker added nothing. *@
         <div class="ki-panelbody" id="ki-panel-4" role="tabpanel" aria-labelledby="ki-tab-4">
-          <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
-            @ChartColumn
-            <div class="ki-natal-detail">
             <div class="ki-stephead">
                 <h1 class="ki-heading">YOGAS</h1>
             </div>
@@ -462,8 +461,6 @@ else
                 <YogaEvaluationTable Rows="_yogaEvaluations" LagnaLordPlanet="@LagnaLord" Interpretations="_interpretations"
                                      OnSaveInterpretation="SaveInterpretation" />
             }
-            </div>
-          </div>
         </div>
     }
 
@@ -481,9 +478,9 @@ else
             }
             else
             {
-                <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" @bind-SelectedChart="_natalChart" />
+                <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" @bind-SelectedChart="_natalChart" @bind-Scheme="_vargaScheme" />
             }
-            <VimsopakaTable Charts="_data.Charts" Weights="_vimsopakaWeights" />
+            <VimsopakaTable Charts="_data.Charts" Weights="_vimsopakaWeights" Scheme="@_vargaScheme" />
             </div>
           </div>
         </div>
@@ -616,6 +613,8 @@ else
     private IReadOnlyList<Ikiastrro.Core.Models.AmsabalaGroupMember> _amsabalaGroups = Array.Empty<Ikiastrro.Core.Models.AmsabalaGroupMember>();
     private IReadOnlyList<Ikiastrro.Data.VargottamaRow> _vargottama = Array.Empty<Ikiastrro.Data.VargottamaRow>();
     private IReadOnlyList<Ikiastrro.Core.Engines.Strength.VimsopakaWeight> _vimsopakaWeights = Array.Empty<Ikiastrro.Core.Engines.Strength.VimsopakaWeight>();
+    /// <summary>Aṁśabala's scheme pill, shared with Vimśopaka Bala below it.</summary>
+    private string _vargaScheme = "VARGOTTAMA";
     private IReadOnlyList<Ikiastrro.Core.Engines.Transits.GocharaVedhaRule> _vedhaRules = Array.Empty<Ikiastrro.Core.Engines.Transits.GocharaVedhaRule>();
     private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
     private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();

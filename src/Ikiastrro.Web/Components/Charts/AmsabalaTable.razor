@@ -10,7 +10,7 @@
                 <nav class="am-schemes" aria-label="Varga scheme">
                     @foreach (var s in SchemeOrder)
                     {
-                        <button type="button" class="@(s == _scheme ? "is-active" : null)" @onclick="@(() => _scheme = s)">@SchemeShort(s)</button>
+                        <button type="button" class="@(s == _scheme ? "is-active" : null)" @onclick="@(() => SelectScheme(s))">@SchemeShort(s)</button>
                     }
                 </nav>
             </div>
@@ -128,7 +128,18 @@
         ["Capricornus"] = "Cap", ["Capricorn"] = "Cap", ["Aquarius"] = "Aqu", ["Pisces"] = "Pis",
     };
 
-    private string _scheme = "VARGOTTAMA";
+    /// <summary>The scheme pill, two-way bound so Vimśopaka Bala below follows it.</summary>
+    [Parameter] public string Scheme { get; set; } = "VARGOTTAMA";
+    [Parameter] public EventCallback<string> SchemeChanged { get; set; }
+
+    private string _scheme => Scheme;
+
+    private async Task SelectScheme(string scheme)
+    {
+        if (scheme == Scheme) return;
+        Scheme = scheme;
+        await SchemeChanged.InvokeAsync(scheme);
+    }
     private readonly HashSet<string> _expanded = new(StringComparer.OrdinalIgnoreCase);
 
     private void Toggle(string planetCode)

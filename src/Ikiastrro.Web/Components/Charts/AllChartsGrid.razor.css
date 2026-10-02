@@ -35,10 +35,9 @@
 }
 
 .ac-card {
-    border: 1px solid var(--brand-line);
-    border-radius: 12px;
-    background: var(--brand-canvas);
-    box-shadow: 0 6px 18px rgb(15 32 65 / 0.08);
+    border: 1px solid var(--card-line);
+    border-radius: var(--card-radius);
+    background: var(--card-bg);
     overflow: hidden;
 
     /* Re-skin the Codex `SouthIndianGrid_Detailed` (Components/Charts/**) from here: CSS custom
@@ -74,8 +73,8 @@
     justify-content: space-between;
     gap: 0.5rem;
     padding: 8px 12px;
-    background: var(--brand-sunrise);
-    color: var(--brand-midnight);
+    background: var(--card-head-bg);
+    color: var(--card-head-fg);
 }
 
 .ac-card-code {

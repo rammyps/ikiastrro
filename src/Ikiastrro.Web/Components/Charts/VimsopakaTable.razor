@@ -4,63 +4,101 @@
 
 @* Vimśopaka Bala (BPHS, Varga Viveka 17-26) — Astro Facts step 6, under Aṁśabala. Aṁśabala
    counts the vargas a planet is well placed in; Vimśopaka weighs each varga's dignity by the
-   chart's points, out of 20. Computed live by VimsopakaRead; nothing stored. *@
+   chart's points, out of 20. Follows Aṁśabala's scheme pill (Vargottama has no Vimśopaka, so it
+   keeps the last varga scheme shown) and reads like PlanetStrengthChart: ranked bars, each row
+   opening to its per-varga points, in the same Strong/Moderate/Weak colours
+   (StrengthBands.VimsopakaScore, migration 160: 15 / 10 of 20). The reference line is 10, the score
+   of a planet neutral in every varga. Computed live by VimsopakaRead; nothing stored. *@
 <section class="vim" aria-labelledby="vim-title">
     <article class="vim-card">
         <header class="vim-head">
-            <h2 id="vim-title">Vimśopaka Bala</h2>
-            <p>Each varga's dignity weighed by that chart's points — out of 20 in every scheme. Own sign or
-                mūlatrikoṇa earns the chart's full points; great friend 18/20 of them, friend 15, neutral 10,
-                enemy 7, great enemy 5.</p>
+            <h2 id="vim-title">Vimśopaka Bala — @SchemeLabel(_shown)</h2>
+            <p>Each varga's dignity weighed by that chart's points, out of 20: @VimsopakaRead.WeightsText(Weights, _shown).
+                Own sign or mūlatrikoṇa earns the chart's full points; great friend 18/20 of them, friend 15,
+                neutral 10, enemy 7, great enemy 5.@(Scheme == "VARGOTTAMA" ? " Vargottama has no Vimśopaka scheme — pick a varga scheme above." : "")</p>
         </header>
-        @if (_scores.Count == 0)
+        @if (Ranked.Count == 0)
         {
-            <p class="vim-empty">Not every varga a scheme needs has been generated for this person.</p>
+            <p class="vim-empty">Not every varga this scheme needs has been generated for this person.</p>
         }
         else
         {
-            <div class="vim-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Graha</th>
-                            @foreach (var s in VimsopakaRead.SchemeOrder)
-                            {
-                                <th title="@VimsopakaRead.WeightsText(Weights, s)">@SchemeLabel(s)</th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var planet in PlanetOrder)
-                        {
-                            <tr>
-                                <th>@planet</th>
-                                @foreach (var s in VimsopakaRead.SchemeOrder)
-                                {
-                                    @if (_scores.TryGetValue(planet, out var schemes) && schemes.TryGetValue(s, out var score))
-                                    {
-                                        <td>
-                                            <b>@score.ToString("0.0", CultureInfo.InvariantCulture)</b>
-                                            <span class="vim-bar" aria-hidden="true"><i style="width:@((score * 5).ToString("0.#", CultureInfo.InvariantCulture))%"></i></span>
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td class="vim-na">—</td>
-                                    }
-                                }
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-            <dl class="vim-weights">
-                @foreach (var s in VimsopakaRead.SchemeOrder)
+            <div class="vim-body">
+                <div class="vim-legend">
+                    <span><i class="vim-status-strong"></i>&ge;@Band.StrongFrom.ToString("0") Strong</span>
+                    <span><i class="vim-status-moderate"></i>@Band.ModerateFrom.ToString("0")&ndash;@((Band.StrongFrom - 0.01m).ToString("0.##", CultureInfo.InvariantCulture)) Moderate</span>
+                    <span><i class="vim-status-weak"></i>&lt;@Band.ModerateFrom.ToString("0") Weak</span>
+                </div>
+                <div class="vim-colheads">
+                    <span>Rank</span>
+                    <span>Planet</span>
+                    <span>Vimśopaka (out of 20)</span>
+                    <span class="vim-num">Score</span>
+                    <span class="vim-num">% of 20</span>
+                    <span class="vim-c-status">Status</span>
+                </div>
+                @foreach (var (rank, planet, score) in Ranked)
                 {
-                    <dt>@SchemeLabel(s)</dt>
-                    <dd>@VimsopakaRead.WeightsText(Weights, s)</dd>
+                    var open = _expanded.Contains(planet);
+                    var (label, css) = StatusOf(score);
+                    <div class="vim-row-wrap">
+                        <button type="button" class="vim-row" aria-expanded="@(open ? "true" : "false")" @onclick="() => Toggle(planet)">
+                            <span><span class="vim-rank @css">@rank</span></span>
+                            <span class="vim-planet"><span class="vim-chevron @(open ? "is-open" : "")">&#8250;</span>@planet</span>
+                            <span class="vim-barwrap">
+                                @if (rank == 1)
+                                {
+                                    <span class="vim-scale">
+                                        <span class="vim-tick-0">0</span>
+                                        <span class="vim-tick-10">10 (all neutral)</span>
+                                        <span class="vim-tick-20">20</span>
+                                    </span>
+                                }
+                                <span class="vim-track">
+                                    <span class="vim-refline"></span>
+                                    <span class="vim-fill @css" style="width:@Pct(score)%"></span>
+                                    <span class="vim-marker @css" style="left:@Pct(score)%"></span>
+                                </span>
+                            </span>
+                            <b class="vim-num">@score.ToString("0.00", CultureInfo.InvariantCulture)</b>
+                            <span class="vim-num">@((score * 5).ToString("0", CultureInfo.InvariantCulture))%</span>
+                            <span class="vim-c-status"><span class="vim-pill @css">@label</span></span>
+                        </button>
+
+                        @if (open)
+                        {
+                            var shares = VimsopakaRead.Breakdown(Charts, Weights, _shown, planet);
+                            <div class="vim-detail">
+                                <span class="vim-stack" aria-hidden="true">
+                                    @foreach (var s in shares)
+                                    {
+                                        var token = DignityToken(s.ChartType, planet);
+                                        <span class="vim-seg @(token is null ? "vim-seg-plain" : null)" style="width:@((s.Weight * 5).ToString("0.##", CultureInfo.InvariantCulture))%;@(token is null ? "" : $"background:var(--dignity-{token})")"
+                                              title="@($"{s.ChartType}: {s.Points:0.00} of {s.Weight:0.##}")">@s.ChartType</span>
+                                    }
+                                </span>
+                                <table>
+                                    <thead><tr><th>Varga</th><th>Sign</th><th>Dignity</th><th class="vim-num">Factor /20</th><th class="vim-num">Weight</th><th class="vim-num">Points</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var s in shares)
+                                        {
+                                            var g = Graha(s.ChartType, planet);
+                                            <tr>
+                                                <th>@s.ChartType</th>
+                                                <td>@(g?.Sign is { } sign ? (sign == "Capricornus" ? "Capricorn" : sign) : "—")</td>
+                                                <td>@(g?.DignityStatus ?? "—")</td>
+                                                <td class="vim-num">@s.Factor.ToString("0", CultureInfo.InvariantCulture)</td>
+                                                <td class="vim-num">@s.Weight.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                                <td class="vim-num"><b>@s.Points.ToString("0.00", CultureInfo.InvariantCulture)</b></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
                 }
-            </dl>
+            </div>
         }
     </article>
 </section>
@@ -68,13 +106,52 @@
 @code {
     [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
     [Parameter, EditorRequired] public IReadOnlyList<VimsopakaWeight> Weights { get; set; } = Array.Empty<VimsopakaWeight>();
-
-    private static readonly string[] PlanetOrder = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"];
+    /// <summary>Aṁśabala's scheme pill (AstroFacts `_vargaScheme`).</summary>
+    [Parameter] public string Scheme { get; set; } = "SHADVARGA";
 
     private IReadOnlyDictionary<string, IReadOnlyDictionary<string, decimal>> _scores =
         new Dictionary<string, IReadOnlyDictionary<string, decimal>>();
+    private string _shown = "SHADVARGA";
+    private readonly HashSet<string> _expanded = new(StringComparer.OrdinalIgnoreCase);
 
-    protected override void OnParametersSet() => _scores = VimsopakaRead.Compute(Charts, Weights);
+    protected override void OnParametersSet()
+    {
+        _scores = VimsopakaRead.Compute(Charts, Weights);
+        if (VimsopakaRead.SchemeOrder.Contains(Scheme)) _shown = Scheme;
+    }
+
+    /// <summary>Strongest first, like PlanetStrengthChart.</summary>
+    private IReadOnlyList<(int Rank, string Planet, decimal Score)> Ranked =>
+        _scores.Where(kv => kv.Value.ContainsKey(_shown))
+            .Select(kv => (Planet: kv.Key, Score: kv.Value[_shown]))
+            .OrderByDescending(x => x.Score)
+            .Select((x, i) => (i + 1, x.Planet, x.Score))
+            .ToList();
+
+    private void Toggle(string planet)
+    {
+        if (!_expanded.Add(planet)) _expanded.Remove(planet);
+    }
+
+    private static readonly StrengthBandScale Band = StrengthBands.VimsopakaScore;
+
+    private static (string Label, string CssClass) StatusOf(decimal score) => Band.Classify(score) switch
+    {
+        StrengthTier.Strong => ("Strong", "vim-status-strong"),
+        StrengthTier.Moderate => ("Moderate", "vim-status-moderate"),
+        _ => ("Weak", "vim-status-weak"),
+    };
+
+    private static string Pct(decimal score) => (Math.Clamp(score, 0, 20) * 5).ToString("0.##", CultureInfo.InvariantCulture);
+
+    private Ikiastrro.Core.Models.ChartKeyDetail? Graha(string chartType, string planet) =>
+        Charts.TryGetValue(chartType, out var chart)
+            ? chart.Grahas.FirstOrDefault(g => g.Planet.Equals(planet, StringComparison.OrdinalIgnoreCase))
+            : null;
+
+    // Same 7-tier dignity colours as Aṁśabala's segments; neutral/debilitated stay plain.
+    private string? DignityToken(string chartType, string planet) =>
+        Ikiastrro.Core.Presentation.ChartViewModel.DignityTierToken(Graha(chartType, planet)?.DignityStatus);
 
     private static string SchemeLabel(string s) => s switch
     {

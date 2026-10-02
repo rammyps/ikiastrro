@@ -54,6 +54,11 @@ public static class StrengthBands
     public static readonly StrengthBandScale IndependentBhavaBalaZ =
         new("BHAVA_BALA_INDEPENDENT_Z", 1m, "SRC_IKIASTRRO_SYNTHESIS", -1m, "SRC_IKIASTRRO_SYNTHESIS");
 
+    /// <summary>Vimśopaka Bala out of 20 (migration 160). No classical cut-off — both boundaries are
+    /// ours, read off the dignity factors: 15 is friend's factor on average, 10 neutral's.</summary>
+    public static readonly StrengthBandScale VimsopakaScore =
+        new("VIMSOPAKA_SCORE", 15m, "SRC_IKIASTRRO_SYNTHESIS", 10m, "SRC_IKIASTRRO_SYNTHESIS");
+
     public static IReadOnlyList<StrengthBandScale> All { get; } =
-        [ShadbalaPercentOfMinimum, BhavaBalaRupas, SarvaAshtakavargaBindus, BhinnaAshtakavargaBindus, IndependentBhavaBalaZ];
+        [ShadbalaPercentOfMinimum, BhavaBalaRupas, SarvaAshtakavargaBindus, BhinnaAshtakavargaBindus, IndependentBhavaBalaZ, VimsopakaScore];
 }
