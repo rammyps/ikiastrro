@@ -67,31 +67,32 @@ the horoscope. Its uses:
 ## 4. The 60 shashtiamsha names and their nature
 
 Number → name → nature. Benefic (B) parts support the significations of a planet placed
-there; malefic (M) parts burden them. (Classical set per BPHS; used as a qualitative tag,
-not a separate calculation. For **odd** signs read 1→60 in order; for **even** signs the
-order **reverses**, so part 1 of an even sign = name 60.)
+there; malefic (M) parts burden them. For **odd** signs read 1→60 in order; for **even** signs
+the order **reverses**, so part 1 of an even sign = name 60.
+
+**Source ([decision 006](../../../decisions/006-shashtiamsa-names-bphs-jhora.md)):** the BPHS
+order as Jagannatha Hora shows it (Basics → Amsa rulers → D-60), which PyJHora (`const.py`,
+varga 60) and Maitreya8 (`Lang::getShastiamsaName`) list identically; the B/M column is
+Maitreya8's `k_shastiamsa_benefic`. Core `ShashtiamsaDeityTable` mirrors this table, and
+`ShashtiamsaDeityTableTests` pins 29 list positions to JHora's export for RamakrishnanP.
 
 | # | Name | | # | Name | | # | Name | | # | Name |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Ghora — M | | 16 | Sarpa — M | | 31 | Kaala — M | | 46 | Paasha — M |
-| 2 | Rakshasa — M | | 17 | Amrita — B | | 32 | Davaagni — M | | 47 | Danda-udyata — M |
-| 3 | Deva — B | | 18 | Chandra (Indu) — B | | 33 | Ghora — M | | 48 | Bhaya — M |
-| 4 | Kubera — B | | 19 | Mridu — B | | 34 | Yama — M | | 49 | Yaksha — B |
-| 5 | Yaksha — B | | 20 | Komala — B | | 35 | Ganda-antaka (Kantaka) — M | | 50 | Kinnara — B |
-| 6 | Kinnara — B | | 21 | Heramba — B | | 36 | Sudha — B | | 51 | Bhrashta — M |
-| 7 | Bhrashta — M | | 22 | Brahma — B | | 37 | Amrita — B | | 52 | Kulaghna — M |
-| 8 | Kulaghna — M | | 23 | Vishnu — B | | 38 | Poorna-Chandra — B | | 53 | Mukhya — B |
-| 9 | Garala (Visha) — M | | 24 | Maheshwara — B | | 39 | Visha-daghdha — M | | 54 | Vamsha-kshaya — M |
-| 10 | Vahni (Agni) — M | | 25 | Deva — B | | 40 | Kulanaasha — M | | 55 | Utpaata — M |
-| 11 | Maaya — M | | 26 | Ardra — M | | 41 | Vamsha-kshaya — M | | 56 | Kaala — M |
-| 12 | Purishaka — M | | 27 | Kalinaasha — M | | 42 | Utpaata — M | | 57 | Saumya — B |
-| 13 | Apampati (Varuna) — B | | 28 | Kshiteesha (Kshudra) — M | | 43 | Kaala — M | | 58 | Komala — B |
-| 14 | Marut (Vaayu) — B | | 29 | Amrita — B | | 44 | Saumya — B | | 59 | Sheetala — B |
-| 15 | Kaala — M | | 30 | Payodhi — B | | 45 | Komala — B | | 60 | Karaala-damshtra (Ghora) — M |
-
-> Sources vary on a handful of names/natures (notably 26–28 and the 40s). The engine, if
-> it surfaces this layer, should carry `MethodSource` the same way the varga rules do;
-> until then treat the nature column as indicative and lean on sign dignity as primary.
+| 1 | Ghora — M | | 16 | Sarpa — M | | 31 | Mrityu — M | | 46 | Komala — B |
+| 2 | Rakshasa — M | | 17 | Amrita — B | | 32 | Kaala — M | | 47 | Sheetala — B |
+| 3 | Deva — B | | 18 | Indu (Chandra) — B | | 33 | Davaagni — M | | 48 | Karaala-damshtra — M |
+| 4 | Kubera — B | | 19 | Mridu — B | | 34 | Ghora — M | | 49 | Chandramukhi — B |
+| 5 | Yaksha — B | | 20 | Komala — B | | 35 | Yama — M | | 50 | Praveena — B |
+| 6 | Kinnara — B | | 21 | Heramba — B | | 36 | Kantaka — M | | 51 | Kaala-paavaka (Kaalaagni) — M |
+| 7 | Bhrashta — M | | 22 | Brahma — B | | 37 | Sudha — B | | 52 | Dandaayudha — M |
+| 8 | Kulaghna — M | | 23 | Vishnu — B | | 38 | Amrita — B | | 53 | Nirmala — B |
+| 9 | Garala (Visha) — M | | 24 | Maheshwara — B | | 39 | Poorna-Chandra — B | | 54 | Saumya — B |
+| 10 | Vahni (Agni) — M | | 25 | Deva — B | | 40 | Visha-dagdha — M | | 55 | Kroora — M |
+| 11 | Maaya — M | | 26 | Ardra — B | | 41 | Kulanaasha — M | | 56 | Ati-sheetala — B |
+| 12 | Purishaka — M | | 27 | Kalinaasha — B | | 42 | Vamsha-kshaya — M | | 57 | Amrita — B |
+| 13 | Apampati (Varuna) — B | | 28 | Kshiteesha — B | | 43 | Utpaata — M | | 58 | Payodhi — B |
+| 14 | Marut (Vaayu) — B | | 29 | Kamalaakara — B | | 44 | Kaala — M | | 59 | Bhramana — M |
+| 15 | Kaala — M | | 30 | Gulika — M | | 45 | Saumya — B | | 60 | Chandra-rekha — B |
 
 Reading it: a functional benefic for the Lagna sitting in a **benefic** shashtiamsha, in
 good D60 sign dignity, is karma "paid up" for its significations. The same planet in a

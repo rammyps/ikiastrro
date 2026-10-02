@@ -27,7 +27,7 @@ public sealed class RamanAfflictionYogaEvaluatorTests
  [Fact]public void Combination_276_Needs_Two_Martian_Cruel_Malefics_In_Eighth()
  {
   var d1=new ChartAnalysisInput("D1",ZodiacName.Aries,
-  [P("Mars","Scorpio",8),new PlanetPosition{Planet="Saturn",Sign="Scorpio",HouseNumber=8,NirayanaLongitudeDegrees=210}]);
+  [P("Mars","Scorpio",8),new PlanetPosition{Planet="Saturn",Sign="Scorpio",HouseNumber=8,NirayanaLongitudeDegrees=239.75}]); // even sign, part 60 -> Ghora (M)
   Assert.True(Row(RamanAfflictionYogaEvaluator.Evaluate(Bundle(d1)),276).Present);
  }
  [Fact]public void Combination_277_Needs_Sun_Rahu_Saturn_Aspected_By_Eighth_Lord_All_In_Cruel_Amsas()
