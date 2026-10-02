@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-17
+last_updated: 2026-10-02
 workstream: database
 togaf: C — Data Architecture
 ---
@@ -15,7 +15,7 @@ work. One repository per table/view in `src/Ikiastrro.Data/`.
 - **Baseline** `db/ikiastrro.sql` — whole schema + reference/master seed + the
   `tbl_Dim_LifeCalendar` day dimension.
 - **Forward changes** are numbered scripts `db/NN_<slug>.sql`, applied in order, each
-  appending its `ScriptName` to `dbo.SchemaMigrations`. Active range `22`–`078`.
+  appending its `ScriptName` to `dbo.SchemaMigrations`. Active range `22`–`162`.
 - **Never edit an applied migration.** A change is a new script. A rule change is a new
   `RuleSetId`, not an `UPDATE`.
 - `db/_archive/` holds the pre-consolidation `001..034` chain (frozen, historical).
@@ -25,14 +25,14 @@ work. One repository per table/view in `src/Ikiastrro.Data/`.
 
 | Group | Tables | Filled by |
 |---|---|---|
-| Input | `tbl_BirthDetails` (incl. `Sex`) | user (CLI / `Add.razor`) |
+| Input | `tbl_BirthDetails` (incl. `Sex`; unique `Name` and unique DOB/time/city/country birth identity, migration 162) | user (CLI / `Add.razor`) |
 | Chart results | `tbl_ChartResults` — one row per person × chart type, one per dasha run; carries `AyanamshaDegrees`, `SiderealTimeHours`, `VargaMethod`, `RuleSetId`, `ResultJson` (frozen audit snapshot) | engine |
 | Chart analytics (chart-type-generic, keyed by `ChartResultId` + `ChartType`) | `tbl_Chart_KeyDetails`, `tbl_Chart_HouseLords`, `tbl_Chart_Conjunctions`, `tbl_Chart_MultiGrahaConjunction` / `…Member`, `tbl_Chart_Aspects` | `ChartAnalyzer` |
 | Dasha | `tbl_Chart_DashaPeriods` (self-referencing via `ParentDashaPeriodId`, 3 levels, age-relative + absolute dates) | `VimshottariDashaService` |
 | Panchanga (D1 `ChartResultId` only — birth-moment, not per-varga) | `tbl_Chart_Panchanga` (Tithi/Karana/Nitya Yoga/Vedic Weekday/Hora Lord + Sunrise/Sunset/Janma Ghatis; migration 081) | calculator pending (`FEAT-DATA-06`) |
 | Reference / master | `tbl_Planets` (9), `tbl_SignAttributes` (12), `tbl_Nakshatras` (27), `tbl_NakshatraPadas` (108; `NakPadaLord`/`NakPadaSubLord` computed columns, migration 123 — pada's own Navamsa-sign lord and the KP sub-lord in effect at the pada's StartDegree), `tbl_NakshatraSubLords` (243, KP L1–L2), `tbl_PlanetSignTransitEvents` (Sa/Ju/Ra sign-crossing log 1930–2060), `tbl_TransitPositionReference` (currently stores current `MotionDirection` only — **UI needs two new columns: `InSignMotion`, `NextChangeMotion`**; see [`../ui/components/spec_Natal_Transit_Comp_Wheel.md`](../ui/components/spec_Natal_Transit_Comp_Wheel.md)), `tbl_Dim_Tithi` (30) / `tbl_Dim_Karana` (11) / `tbl_Dim_NityaYoga` (27) / `tbl_Dim_VedicWeekday` (7) / `tbl_Dim_HoraSequence` (7) (migration 081) | seed / CLI backfill |
 | Rules engine (versioned; every row carries `RuleSetId`) | see [`rules-engine.md`](rules-engine.md) | seed |
-| Dimensions | `tbl_Dim_LifeCalendar`, `tbl_Dim_PlanetaryState`, `tbl_Dim_ChartType`, `tbl_Dim_Source`, `tbl_Dim_LifeArea` / `House` / `HouseCategory` / `HouseReference` / `SubPlanets` / `SpecialLagnas` / `DivisionalSubject` / `InterpretationDimension` / `GrahaAttribute` / `InterpretiveFactor` (4 rows: House/Planet/Sign-Lagna/Varga, migration 109) / `DashaLevel` (3 rows: L1_MAHA/L2_ANTAR/L3_PRAT, migration 110), `tbl_Dim_AyanamsaBenchmark*`, `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden Ṣaḍbala totals), `tbl_Dim_DashaSystems` / `DashaBenchmarkPeriods` | seed / CTE |
+| Dimensions | `tbl_Dim_Cities` (reusable city/country catalogue; coordinates/time zone synchronized from birth-detail inserts and updates, migrations 161–162), `tbl_Dim_LifeCalendar`, `tbl_Dim_PlanetaryState`, `tbl_Dim_ChartType`, `tbl_Dim_Source`, `tbl_Dim_LifeArea` / `House` / `HouseCategory` / `HouseReference` / `SubPlanets` / `SpecialLagnas` / `DivisionalSubject` / `InterpretationDimension` / `GrahaAttribute` / `InterpretiveFactor` (4 rows: House/Planet/Sign-Lagna/Varga, migration 109) / `DashaLevel` (3 rows: L1_MAHA/L2_ANTAR/L3_PRAT, migration 110), `tbl_Dim_AyanamsaBenchmark*`, `tbl_Dim_ShadbalaBenchmarkValues` (JHora golden Ṣaḍbala totals), `tbl_Dim_DashaSystems` / `DashaBenchmarkPeriods` | seed / CTE |
 | Facts (per chart, star-schema) | `tbl_Fact_PlanetaryState`, `tbl_Fact_PlanetaryStrength` / `…Component`, `tbl_Fact_BhavaStrength` / `…Component`, `tbl_Fact_Vargottama`, `tbl_Fact_YogaInputEvaluations`, `tbl_Fact_HouseFromReference`, `tbl_Fact_Ayanamsa*` / `Dasha*Comparisons`, `tbl_Fact_BhinnaAshtakavarga` / `…Contribution`, `tbl_Fact_SarvaAshtakavarga`, `tbl_Fact_AshtakavargaPinda` (written by `AshtakavargaCalculator`), `tbl_Fact_KpSubLordChain` (D1 KP sub-lord levels 2-7; now written by `workstream/cli`'s composition root, see [`rules-engine.md`](rules-engine.md) Facts section) | computers via `ChartGenerationService` |
 | Facts — statistical rollups (on-demand snapshot, not per-chart) | `tbl_Fact_NakshatraLordDistribution`, `tbl_Fact_KpSubLordChainDistribution` (per KP level; migration 117) | `dbo.usp_RefreshNakshatraKpStatDistributions` |
 
