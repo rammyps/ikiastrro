@@ -24,9 +24,10 @@ public sealed class RamanRajaYogaEvaluatorTests
   [
    P("Venus","Aquarius",1),
    new PlanetPosition{Planet="Sun",Sign="Aries",HouseNumber=2,NirayanaLongitudeDegrees=1.0},
-   new PlanetPosition{Planet="Moon",Sign="Taurus",HouseNumber=3,NirayanaLongitudeDegrees=30.5},
-   new PlanetPosition{Planet="Mars",Sign="Capricornus",HouseNumber=5,NirayanaLongitudeDegrees=270.5},
-   new PlanetPosition{Planet="Mercury",Sign="Virgo",HouseNumber=6,NirayanaLongitudeDegrees=150.5}
+   // Even signs at 0.2°: part 1 -> Chandra-rekha (B), so the exaltations stay "clean" (decisions/006).
+   new PlanetPosition{Planet="Moon",Sign="Taurus",HouseNumber=3,NirayanaLongitudeDegrees=30.2},
+   new PlanetPosition{Planet="Mars",Sign="Capricornus",HouseNumber=5,NirayanaLongitudeDegrees=270.2},
+   new PlanetPosition{Planet="Mercury",Sign="Virgo",HouseNumber=6,NirayanaLongitudeDegrees=150.2}
   ]);
   var d9=new ChartAnalysisInput("D9",ZodiacName.Aquarius,[P("Sun","Cancer",1),P("Moon","Cancer",1),P("Mars","Cancer",1),P("Mercury","Cancer",1)]);
   Assert.True(Row(RamanRajaYogaEvaluator.Evaluate(Bundle(d1,d9)),248).Present);
