@@ -255,7 +255,7 @@ else
                     <HouseLordFindingsTable Rows="natalChart.HouseLordInterpretations" />
 
                     @Head(NatalSection.HouseVerdicts)
-                    <HouseVerdictTable Rows="HouseVerdicts.For(natalChart, ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas))" />
+                    <HouseVerdictTable Rows="ArgalaFacts.HouseVerdicts(natalChart.AscendantSign, natalChart.Grahas, ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas))" />
 
                     @Head(NatalSection.Argala)
                     <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />

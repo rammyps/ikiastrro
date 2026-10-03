@@ -1,6 +1,7 @@
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Models;
+using Ikiastrro.Data.Statistics;
 
 namespace Ikiastrro.Data;
 
@@ -24,4 +25,23 @@ public static class ArgalaFacts
                 f.RelationTypeCode, (byte)f.HouseOffset, f.IsPrimary, f.OccupantPlanet.ToString(),
                 f.ExceptionApplied, f.CountedAntiZodiacally, null))
             .ToList();
+
+    /// <summary>"What acts on each house" for a chart (Core <see cref="Core.Engines.Houses.HouseVerdicts"/>),
+    /// with each house's Argala read from <paramref name="argalaFacts"/> through
+    /// <see cref="LifeMatterStatistics.BuildArgala"/> — the same verdicts Key Inference uses, with no
+    /// kāraka since no life matter is chosen. Pairs that hold or are contested count as acting
+    /// Argala; every obstructing planet is Virodhargala.</summary>
+    public static IReadOnlyList<HouseVerdictRow> HouseVerdicts(
+        string ascendantSign, IReadOnlyList<ChartKeyDetail> grahas, IReadOnlyList<ArgalaFactRow> argalaFacts) =>
+        Core.Engines.Houses.HouseVerdicts.For(ascendantSign, grahas, house =>
+        {
+            var argala = LifeMatterStatistics.BuildArgala(argalaFacts.Where(f => f.TargetHouseNumber == house).ToList());
+            return new HouseArgalaPlanets(
+                Planets(argala.Pairs.Where(p => p.Verdict is ArgalaVerdict.Holds or ArgalaVerdict.Contested).SelectMany(p => p.ArgalaPlanets)),
+                Planets(argala.Pairs.SelectMany(p => p.ObstructingPlanets)));
+        });
+
+    private static IReadOnlyList<PlanetName> Planets(IEnumerable<string> names) =>
+        names.Select(n => Enum.TryParse<PlanetName>(n, true, out var p) ? p : (PlanetName?)null)
+            .Where(p => p is not null).Select(p => p!.Value).Distinct().ToList();
 }

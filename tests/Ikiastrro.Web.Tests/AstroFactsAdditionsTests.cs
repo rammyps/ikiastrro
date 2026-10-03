@@ -3,6 +3,7 @@ using Ikiastrro.Core.Engines.Houses;
 using Ikiastrro.Core.Engines.Strength;
 using Ikiastrro.Core.LifeMatters;
 using Ikiastrro.Core.Models;
+using Ikiastrro.Data;
 using Ikiastrro.Web.Components.Charts;
 using Ikiastrro.Web.Components.Workspace;
 using Xunit;
@@ -38,7 +39,7 @@ public class AstroFactsAdditionsTests
     [Fact]
     public void House_verdicts_read_all_twelve_houses_both_ways()
     {
-        var rows = HouseVerdicts.For(Chart("D1", Placements), []);
+        var rows = ArgalaFacts.HouseVerdicts("Aries", Chart("D1", Placements).Grahas, []);
         Assert.Equal(Enumerable.Range(1, 12), rows.Select(r => r.House));
 
         var fourth = rows.Single(r => r.House == 4);
@@ -54,12 +55,32 @@ public class AstroFactsAdditionsTests
     {
         var chart = Chart("D1", Placements);
         var raman = HouseBeneficMaleficCalculator.ComputeAll(ZodiacName.Aries, chart.Grahas);
-        Assert.Equal(raman.Select(r => r.Verdict), HouseVerdicts.For(chart, []).Select(r => r.Raman.Verdict));
+        Assert.Equal(raman.Select(r => r.Verdict), ArgalaFacts.HouseVerdicts(chart.AscendantSign, chart.Grahas, []).Select(r => r.Raman.Verdict));
     }
 
     [Fact]
     public void House_verdicts_are_empty_when_a_graha_is_missing() =>
-        Assert.Empty(HouseVerdicts.For(Chart("D1", Placements.Where(p => p.Planet != PlanetName.Ketu)), []));
+        Assert.Empty(ArgalaFacts.HouseVerdicts("Aries", Chart("D1", Placements.Where(p => p.Planet != PlanetName.Ketu)).Grahas, []));
+
+    [Fact]
+    public void House_verdicts_pass_held_and_obstructed_argala_to_the_influence_reading()
+    {
+        ArgalaFactRow Fact(string relation, byte offset, string planet) =>
+            new("D1", "House", "1", 1, relation, offset, true, planet, false, false, null);
+        // House 1: Mars intervenes from the 2nd (held, nothing obstructs from the 12th);
+        // Mercury intervenes from the 4th and Venus obstructs it from the 10th (contested).
+        var facts = new[]
+        {
+            Fact("ARGALA", 2, "Mars"),
+            Fact("ARGALA", 4, "Mercury"), Fact("VIRODHARGALA", 10, "Venus"),
+        };
+
+        var first = ArgalaFacts.HouseVerdicts("Aries", Chart("D1", Placements).Grahas, facts).Single(r => r.House == 1);
+
+        Assert.True(first.Influences.Planets.Single(p => p.Planet == PlanetName.Mars).Links.HasFlag(InfluenceLink.Argala));
+        Assert.True(first.Influences.Planets.Single(p => p.Planet == PlanetName.Mercury).Links.HasFlag(InfluenceLink.Argala));
+        Assert.True(first.Influences.Planets.Single(p => p.Planet == PlanetName.Venus).Links.HasFlag(InfluenceLink.Virodhargala));
+    }
 
     [Fact]
     public void Vimsopaka_computes_only_the_schemes_whose_charts_exist()
