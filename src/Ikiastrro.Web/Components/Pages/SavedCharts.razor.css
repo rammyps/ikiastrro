@@ -16,18 +16,21 @@
    same convention as Home.razor.css's .home-art. */
 .sp-layout {
     display: grid;
-    grid-template-columns: minmax(120px, 16%) minmax(0, 1fr);
+    /* Art bleeds out through .ik-page's gutter to the viewport's left edge (no left margin);
+       the content column stays where it was, so the art column = gutter + the old ~209px. */
+    --sp-bleed: calc(max(0px, (100vw - var(--maxw)) / 2) + var(--pad-x));
+    margin-left: calc(-1 * var(--sp-bleed));
+    grid-template-columns: calc(var(--sp-bleed) + 209px) minmax(0, 1fr);
     align-items: stretch;
     gap: var(--pad-x);
     min-height: calc(100vh - 220px);
 }
 
-.sp-art { display: flex; align-items: center; justify-content: center; overflow: hidden; background: transparent; }
+.sp-art { display: flex; align-items: center; justify-content: flex-start; overflow: hidden; background: transparent; }
 
 .sp-art img {
     display: block;
     width: 100%;
-    max-width: 200px;
     height: auto;
     max-height: calc(100vh - 220px);
     object-fit: contain;
@@ -40,6 +43,7 @@
 
 @media (max-width: 900px) {
     .sp-layout {
+        margin-left: 0;
         grid-template-columns: 1fr;
         min-height: 0;
     }
