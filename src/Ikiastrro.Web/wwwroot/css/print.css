@@ -127,7 +127,7 @@
     body:has(.cmp-glance) .ik-band,
     body:has(.cmp-glance) .ik-footer,
     body:has(.cmp-glance) .ik-person-scrim,
-    .cmp-nav, .cmp-controls, .cmp-actions, .cmp-note button { display: none !important; }
+    .cmp-nav, .cmp-controls, .cmp-actions, .cmp-note button, .cmp-history .cmp-historyrow, .cmp-notelist button { display: none !important; }
     body:has(.cmp-glance) .mud-main-content { padding-top: 0 !important; }
     body:has(.cmp-glance) .ik-page { padding: 0 !important; margin: 0 !important; max-width: none !important; }
     .cmp-printhead { display: block !important; margin: 0 0 10px; font-weight: 700; }

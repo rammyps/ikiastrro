@@ -9,6 +9,7 @@
 @inject FamilyRepository FamilyRepo
 @inject DashaCompatibilityRepository DashaRepo
 @inject NavamsaChartRepository NavamsaRepo
+@inject PairHistoryRepository HistoryRepo
 @inject ActivePerson Active
 @inject IJSRuntime JS
 
@@ -144,7 +145,7 @@ else
                 <button type="button" class="cmp-swap" @onclick="PrintComparison">Print this comparison</button>
                 <span class="cmp-copystatus" role="status" aria-live="polite">@_copyStatus</span>
             </div>
-            <p class="cmp-legend cmp-stamp">Made @DateTime.Today.ToString("d MMM yyyy") under rule set @CompatibilityRuleSet.Version. Nothing is saved: the same two people and rule set always give the same result.</p>
+            <p class="cmp-legend cmp-stamp">Made @DateTime.Today.ToString("d MMM yyyy") under rule set @CompatibilityRuleSet.Version. The same two people and rule set always give the same result; a snapshot is kept only if you save one under History.</p>
             <p class="cmp-legend">
                 <span class="cmp-flag cmp-flag-good">&#10003; Favourable</span>
                 <span class="cmp-flag cmp-flag-concern">! Concern</span>
@@ -635,6 +636,103 @@ else
 
         <article class="cmp-card">
             <header class="cmp-card-head">
+                <h2 id="cmp-history" tabindex="-1">History and notes</h2>
+                <p class="cmp-sub">What you record about this pair. Notes and saved snapshots are kept as written; the page itself never stores a result.</p>
+            </header>
+            <div class="cmp-pad cmp-history">
+                @if (_kind == FamilyKind.Spouse)
+                {
+                    <h3>Marriage</h3>
+                    <div class="cmp-historyrow">
+                        <label class="cmp-field"><span>Date of marriage</span>
+                            <input type="date" value="@_marriageInput" @onchange="e => _marriageInput = e.Value?.ToString() ?? string.Empty" />
+                        </label>
+                        <button type="button" class="cmp-swap" @onclick="SaveMarriage">Save date</button>
+                        @if (_marriage is not null)
+                        {
+                            <button type="button" class="cmp-swap" @onclick="ClearMarriage">Clear</button>
+                        }
+                    </div>
+                    @if (_marriage is not null)
+                    {
+                        <p class="cmp-sub">Married on @_marriage.Value.ToString("d MMM yyyy"). The Vimshottari periods then running (facts only; no source classifies them):</p>
+                        <table class="cmp-table cmp-cardtable">
+                            <thead><tr><th>Person</th><th>Mahadasha</th><th>Antardasha</th><th>Pratyantar</th></tr></thead>
+                            <tbody>
+                                @foreach (var (name, d) in new[] { (Groom!.Name, _marriageDashaGroom), (Bride!.Name, _marriageDashaBride) })
+                                {
+                                    <tr>
+                                        <td data-label="Person">@name</td>
+                                        <td data-label="Mahadasha">@(d?.Maha ?? "—")</td>
+                                        <td data-label="Antardasha">@(d?.Antar ?? "—")</td>
+                                        <td data-label="Pratyantar">@(d?.Pratyantar ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                }
+
+                <h3>Notes</h3>
+                <div class="cmp-historyrow">
+                    <label class="cmp-field cmp-grow"><span>Add a note about this pair</span>
+                        <textarea rows="2" maxlength="1000" @bind="_newNote" @bind:event="oninput"></textarea>
+                    </label>
+                    <button type="button" class="cmp-swap" @onclick="AddNote" disabled="@(string.IsNullOrWhiteSpace(_newNote))">Add note</button>
+                </div>
+                @if (_notes.Count == 0)
+                {
+                    <p class="cmp-sub">No notes yet.</p>
+                }
+                else
+                {
+                    <ul class="cmp-notelist">
+                        @foreach (var n in _notes)
+                        {
+                            var id = n.Id;
+                            <li>
+                                <span class="cmp-notedate">@n.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy")</span>
+                                <span class="cmp-notetext">@n.NoteText</span>
+                                <button type="button" class="cmp-navlink" @onclick="() => DeleteNote(id)" aria-label="Delete this note">Delete</button>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                <h3>Saved snapshots</h3>
+                @if (_canSave)
+                {
+                    <div class="cmp-historyrow">
+                        <button type="button" class="cmp-swap" @onclick="SaveReport">Save snapshot of this summary</button>
+                    </div>
+                }
+                else
+                {
+                    <p class="cmp-sub">A snapshot can be saved only for a pair with a recorded relationship (spouse, parent, child, grandparent or sibling). Record the family under Saved people first.</p>
+                }
+                @if (_reports.Count > 0)
+                {
+                    <ul class="cmp-notelist">
+                        @foreach (var r in _reports)
+                        {
+                            var id = r.Id;
+                            <li>
+                                <span class="cmp-notedate">@r.SavedAtUtc.ToLocalTime().ToString("d MMM yyyy")</span>
+                                <span class="cmp-notetext">
+                                    Rule set @r.RuleSetVersion@(r.KutaScore is null ? "" : $", Kuta {r.KutaScore:0.#} of {r.KutaMax:0.#}")
+                                    <details class="cmp-detail cmp-inline"><summary>Show the saved text</summary><pre class="cmp-pre">@r.SummaryText</pre></details>
+                                </span>
+                                <button type="button" class="cmp-navlink" @onclick="() => DeleteReport(id)" aria-label="Delete this snapshot">Delete</button>
+                            </li>
+                        }
+                    </ul>
+                }
+                <p class="cmp-copystatus" role="status" aria-live="polite">@_historyMsg</p>
+            </div>
+        </article>
+
+        <article class="cmp-card">
+            <header class="cmp-card-head">
                 <h2 id="cmp-data" tabindex="-1">What this reading is based on</h2>
                 <p class="cmp-sub">What was available for each person, and what this page does not read yet.</p>
             </header>
@@ -867,6 +965,7 @@ else
         _familyNote = FamilyNote(Groom, Bride);
         ComputeRelation();
         ComputeDasha();
+        LoadHistory();
 
         var groomChart = DoshaRepo.GetByBirthDetailId(Groom.BirthDetailId);
         var brideChart = DoshaRepo.GetByBirthDetailId(Bride.BirthDetailId);
@@ -964,6 +1063,80 @@ else
     {
         var ok = await JS.InvokeAsync<bool>("ikiastrroScroll.copyText", SummaryText());
         _copyStatus = ok ? "Summary copied." : "Could not copy; select the summary text instead.";
+    }
+
+    private DateTime? _marriage;
+    private string _marriageInput = "";
+    private DashaOnDate? _marriageDashaGroom;
+    private DashaOnDate? _marriageDashaBride;
+    private IReadOnlyList<PairNote> _notes = [];
+    private IReadOnlyList<SavedPairReport> _reports = [];
+    private string _newNote = "";
+    private string _historyMsg = "";
+    private bool _canSave;
+
+    private void LoadHistory()
+    {
+        _newNote = "";
+        _historyMsg = "";
+        _marriage = null;
+        _marriageInput = "";
+        _marriageDashaGroom = _marriageDashaBride = null;
+        _canSave = HistoryRepo.HasRecordedRelationship(Groom!.BirthDetailId, Bride!.BirthDetailId);
+        _notes = HistoryRepo.GetNotes(Groom.BirthDetailId, Bride.BirthDetailId);
+        _reports = HistoryRepo.GetReports(Groom.BirthDetailId, Bride.BirthDetailId);
+        if (_kind != FamilyKind.Spouse) return;
+        _marriage = HistoryRepo.GetMarriageDate(Groom.BirthDetailId, Bride.BirthDetailId);
+        if (_marriage is null) return;
+        _marriageInput = _marriage.Value.ToString("yyyy-MM-dd");
+        _marriageDashaGroom = HistoryRepo.DashaOn(Groom.BirthDetailId, _marriage.Value);
+        _marriageDashaBride = HistoryRepo.DashaOn(Bride.BirthDetailId, _marriage.Value);
+    }
+
+    private void SaveMarriage()
+    {
+        if (!DateTime.TryParse(_marriageInput, out var date)) { _historyMsg = "Enter the marriage date first."; return; }
+        HistoryRepo.SetMarriageDate(Groom!.BirthDetailId, Bride!.BirthDetailId, date);
+        LoadHistory();
+        _historyMsg = "Marriage date saved.";
+    }
+
+    private void ClearMarriage()
+    {
+        HistoryRepo.ClearMarriageDate(Groom!.BirthDetailId, Bride!.BirthDetailId);
+        LoadHistory();
+        _historyMsg = "Marriage date cleared.";
+    }
+
+    private void AddNote()
+    {
+        HistoryRepo.AddNote(Groom!.BirthDetailId, Bride!.BirthDetailId, _newNote);
+        LoadHistory();
+        _historyMsg = "Note added.";
+    }
+
+    private void DeleteNote(int id)
+    {
+        HistoryRepo.DeleteNote(Groom!.BirthDetailId, Bride!.BirthDetailId, id);
+        LoadHistory();
+        _historyMsg = "Note deleted.";
+    }
+
+    private void SaveReport()
+    {
+        var saved = HistoryRepo.SaveReport(Groom!.BirthDetailId, Bride!.BirthDetailId, CompatibilityRuleSet.Version,
+            MarriageApplies && _result is not null ? (decimal)_result.TotalMin : null,
+            MarriageApplies && _result is not null ? (decimal)AshtakootaResult.MaxTotal : null,
+            SummaryText());
+        LoadHistory();
+        _historyMsg = saved ? "Snapshot saved." : "Nothing saved: this pair has no recorded relationship.";
+    }
+
+    private void DeleteReport(int id)
+    {
+        HistoryRepo.DeleteReport(Groom!.BirthDetailId, Bride!.BirthDetailId, id);
+        LoadHistory();
+        _historyMsg = "Snapshot deleted.";
     }
 
     private async Task PrintComparison() => await JS.InvokeVoidAsync("ikiastrroScroll.printCompare");
@@ -1094,6 +1267,7 @@ else
         if (_dasha is not null) yield return ("cmp-dasha", "Dasha");
         if (_dasha is not null) yield return ("cmp-timing", "Timing");
         if (_timeline is not null) yield return ("cmp-changes", "Changes");
+        yield return ("cmp-history", "History");
         yield return ("cmp-data", "Data");
         yield return ("cmp-notes", "Notes");
     }

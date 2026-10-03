@@ -315,3 +315,21 @@
 .cmp-copystatus { color: var(--card-fg-muted); font-size: var(--font-size-support); }
 .cmp-stamp { font-size: var(--font-size-meta); }
 .cmp-printhead { display: none; }
+
+/* History and notes */
+.cmp-history h3 { margin: 14px 0 6px; font-size: var(--font-size-control); }
+.cmp-historyrow { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 8px; }
+.cmp-historyrow .cmp-swap { margin-left: 0; padding: 8px 14px; }
+.cmp-historyrow .cmp-swap:disabled { opacity: 0.45; cursor: default; }
+.cmp-grow { flex: 1 1 260px; }
+.cmp-field input[type="date"], .cmp-field textarea {
+    padding: 6px 8px; border: 1px solid var(--card-line); border-radius: 6px;
+    background: var(--card-bg); color: var(--card-fg); font: inherit; font-size: var(--font-size-control);
+}
+.cmp-field textarea { resize: vertical; width: 100%; box-sizing: border-box; }
+.cmp-field input:focus-visible, .cmp-field textarea:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 1px; }
+.cmp-notelist { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.cmp-notelist li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; padding: 6px 0; border-top: 1px solid var(--card-line); }
+.cmp-notedate { color: var(--card-fg-muted); font-size: var(--font-size-support); white-space: nowrap; }
+.cmp-notetext { white-space: pre-wrap; overflow-wrap: anywhere; }
+.cmp-pre { margin: 6px 0 0; white-space: pre-wrap; font: inherit; font-size: var(--font-size-support); }
