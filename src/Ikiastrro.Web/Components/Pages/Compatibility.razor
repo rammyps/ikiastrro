@@ -47,7 +47,7 @@ else
         @if (_partner is not null)
         {
             <span class="cmp-roles">
-                <b>@Groom!.Name</b> is the groom · <b>@Bride!.Name</b> is the bride
+                <b>@Groom!.Name</b> is the @GroomLabel.ToLowerInvariant() · <b>@Bride!.Name</b> is the @BrideLabel.ToLowerInvariant()
                 <button type="button" class="cmp-swap" @onclick="Swap">Swap roles</button>
             </span>
         }
@@ -65,15 +65,33 @@ else
             <p class="cmp-family">@_familyNote</p>
         }
 
+        @if (_kind is not null && _kind != FamilyKind.Spouse)
+        {
+            <p class="cmp-note" role="status">
+                Kuta, the dosha balance and the Navamsa 7th-house facts are marriage factors, so they are @(_showMarriage ? "shown here at your request" : "left out for this relationship").
+                <button type="button" class="cmp-swap" @onclick="() => _showMarriage = !_showMarriage">@(_showMarriage ? "Hide marriage factors" : "Show marriage factors anyway")</button>
+            </p>
+        }
+
         <section class="cmp-glance" aria-label="Pair at a glance">
             <p class="cmp-kicker">Pair at a glance</p>
             <h2 class="cmp-glance-title" id="cmp-overview" tabindex="-1">@Groom!.Name &amp; @Bride!.Name</h2>
             <dl class="cmp-tiles">
-                <div>
-                    <dt>Kuta agreement</dt>
-                    <dd class="cmp-t-@VerdictClass">@TotalText / @AshtakootaResult.MaxTotal</dd>
-                </div>
-                @if (_balance is not null)
+                @if (MarriageApplies)
+                {
+                    <div>
+                        <dt>Kuta agreement</dt>
+                        <dd class="cmp-t-@VerdictClass">@TotalText / @AshtakootaResult.MaxTotal</dd>
+                    </div>
+                }
+                @if (_link is not null && _kind != FamilyKind.Spouse)
+                {
+                    <div>
+                        <dt>Relationship</dt>
+                        <dd>@BrideLabel of @Groom!.Name · @FamilyRelation.LayerOf(_kind!.Value) layer</dd>
+                    </div>
+                }
+                @if (MarriageApplies && _balance is not null)
                 {
                     <div>
                         <dt>Mars &amp; malefics</dt>
@@ -95,12 +113,15 @@ else
                     </div>
                 }
             </dl>
+            @if (MarriageApplies)
+            {
             <div class="cmp-meter" role="meter" aria-label="Kuta agreement out of @AshtakootaResult.MaxTotal" aria-valuemin="0" aria-valuemax="@AshtakootaResult.MaxTotal" aria-valuenow="@_result.TotalMin">
                 <span class="cmp-meter-min" style="width:@MeterPercent(_result.TotalMin)%"></span>
                 <span class="cmp-meter-range" style="left:@MeterPercent(_result.TotalMin)%;width:@MeterPercent(_result.TotalMax - _result.TotalMin)%"></span>
                 <i class="cmp-meter-pass" style="left:@MeterPercent(AshtakootaResult.PassMark)%" title="Pass mark @AshtakootaResult.PassMark"></i>
             </div>
             <small>Bar shows the score out of @AshtakootaResult.MaxTotal; the line marks the book's pass mark of @AshtakootaResult.PassMark@(_result.IsComplete ? "" : "; the lighter part is the range left open by the unscored Yoni").</small>
+            }
         </section>
 
         <nav class="cmp-nav" id="cmp-nav" aria-label="Sections on this page">
@@ -120,7 +141,7 @@ else
                 <span class="cmp-flag cmp-flag-good">&#10003; Favourable</span>
                 <span class="cmp-flag cmp-flag-concern">! Concern</span>
                 <span class="cmp-flag cmp-flag-open">? Unresolved</span>
-                Each line comes from the calculation it links to. The pass-mark line on the bar is the book's traditional threshold, not a verdict of this application.
+                Each line comes from the calculation it links to.@(MarriageApplies ? " The pass-mark line on the bar is the book's traditional threshold, not a verdict of this application." : "")
             </p>
             <div class="cmp-findings">
                 @foreach (var group in new[] { FindingKind.Good, FindingKind.Concern, FindingKind.Open })
@@ -144,9 +165,11 @@ else
                     </div>
                 }
             </div>
-            <p class="cmp-caution">No single score decides compatibility. The Kuta total, the dosha balance, Saturn and the dashas are read separately and never combined. The book itself ranks Kuta agreement after the dosha checks (p.79).</p>
+            <p class="cmp-caution">No single score decides compatibility. @(MarriageApplies ? "The Kuta total, the dosha balance, Saturn and the dashas are read separately and never combined. The book itself ranks Kuta agreement after the dosha checks (p.79)." : "Saturn, the dashas, the cross-chart contacts and the shared facts are read separately and never combined.")</p>
         </section>
 
+        @if (MarriageApplies)
+        {
         <article class="cmp-card">
             <header class="cmp-card-head">
                 <h2 id="cmp-kuta" tabindex="-1">Kuta agreement</h2>
@@ -157,8 +180,8 @@ else
             </header>
 
             <div class="cmp-people">
-                @PersonCard("Groom", Groom!)
-                @PersonCard("Bride", Bride!)
+                @PersonCard(GroomLabel, Groom!)
+                @PersonCard(BrideLabel, Bride!)
             </div>
 
             <details class="cmp-detail" open>
@@ -251,7 +274,9 @@ else
             </article>
         }
 
-        @if (_d9Groom is not null && _d9Bride is not null)
+        }
+
+        @if (MarriageApplies && _d9Groom is not null && _d9Bride is not null)
         {
             <article class="cmp-card">
                 <header class="cmp-card-head">
@@ -277,6 +302,112 @@ else
                     </div>
                 </details>
                 <p class="cmp-pad cmp-sub">Houses are counted from each chart's own D9 Lagna; signs, houses and dignity are the stored D9 values, and the Darakaraka is the chara karaka stored for D1.</p>
+            </article>
+        }
+
+        @if (_synastry is not null)
+        {
+            <article class="cmp-card">
+                <header class="cmp-card-head">
+                    <h2 id="cmp-synastry" tabindex="-1">Cross-chart contacts (synastry)</h2>
+                    <p class="cmp-sub">Directional facts from D1 signs: no source is cited yet for what a contact means.</p>
+                </header>
+                @if (!MarriageApplies)
+                {
+                    <div class="cmp-people">
+                        @PersonCard(GroomLabel, Groom!)
+                        @PersonCard(BrideLabel, Bride!)
+                    </div>
+                }
+                <details class="cmp-detail" open>
+                    <summary>Moon to Moon and Venus to Mars, each way</summary>
+                    <div class="cmp-scroll">
+                        <table class="cmp-table">
+                            <thead><tr><th>Contact</th><th>Counted from the first to the second</th></tr></thead>
+                            <tbody>
+                                @foreach (var row in SynastryPairRows())
+                                {
+                                    <tr>
+                                        <th scope="row">@row.Contact</th>
+                                        <td data-label="Reading">@row.Reading</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+                <details class="cmp-detail" open>
+                    <summary>Each person's planets in the other's houses</summary>
+                    <div class="cmp-scroll">
+                        <table class="cmp-table">
+                            <thead><tr><th>Point</th><th>@Groom!.Name's points in @Bride!.Name's chart</th><th>@Bride!.Name's points in @Groom!.Name's chart</th></tr></thead>
+                            <tbody>
+                                @foreach (var row in OverlayRows())
+                                {
+                                    <tr>
+                                        <th scope="row">@row.Point</th>
+                                        <td data-label="@(Groom!.Name + " in " + Bride!.Name)">@row.GroomInBride</td>
+                                        <td data-label="@(Bride!.Name + " in " + Groom!.Name)">@row.BrideInGroom</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+                <details class="cmp-detail">
+                    <summary>Planets sharing a sign or in opposite signs (@_synastry.Contacts.Count)</summary>
+                    <div class="cmp-scroll">
+                        <table class="cmp-table">
+                            <thead><tr><th>@Groom!.Name's planet</th><th>@Bride!.Name's planet</th><th>Contact</th></tr></thead>
+                            <tbody>
+                                @foreach (var c in _synastry.Contacts)
+                                {
+                                    <tr>
+                                        <th scope="row">@c.First</th>
+                                        <td data-label="@Bride!.Name">@c.Second</td>
+                                        <td data-label="Contact">@(c.Kind == ContactKind.SameSign ? "Same sign" : "Opposite signs")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+                <p class="cmp-pad cmp-sub">Houses are Whole Sign, counted from the other person's Lagna. Contacts are by sign, not by degree, and the special aspects of Mars, Jupiter and Saturn are not computed. "Key house" marks the houses that signify this relationship (@Bride!.Name as @BrideLabel.ToLowerInvariant() in @Groom!.Name's chart: @KeyHousesText(KeyKindInGroomChart); @Groom!.Name as @GroomLabel.ToLowerInvariant() in @Bride!.Name's chart: @KeyHousesText(KeyKindInBrideChart)). They are a display choice on the standard house meanings, and traditions differ on parents; no verdict is given.</p>
+            </article>
+        }
+
+        @if (_shared is not null)
+        {
+            <article class="cmp-card">
+                <header class="cmp-card-head">
+                    <h2 id="cmp-similarity" tabindex="-1">What the two charts share</h2>
+                    <p class="cmp-sub">@_shared.Count shared @(_shared.Count == 1 ? "fact" : "facts"). A count of coincidences, not a score.</p>
+                </header>
+                @if (_shared.Count == 0)
+                {
+                    <p class="cmp-pad">The two charts share no Lagna, Moon, Sun, nakshatra or planetary sign.</p>
+                }
+                else
+                {
+                    <details class="cmp-detail" open>
+                        <summary>Shared facts by kind</summary>
+                        <div class="cmp-scroll">
+                            <table class="cmp-table">
+                                <thead><tr><th>Kind</th><th>Shared</th></tr></thead>
+                                <tbody>
+                                    @foreach (var f in _shared)
+                                    {
+                                        <tr>
+                                            <th scope="row">@f.Category</th>
+                                            <td data-label="Shared">@f.Text</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                }
+                <p class="cmp-pad cmp-sub">How common each coincidence is in the general population has not been measured yet (base rates are a later step), so a shared fact is not offered as evidence of a connection. This works for any two saved people, whatever their recorded relationship.</p>
             </article>
         }
 
@@ -439,12 +570,15 @@ else
         </article>
 
         <ul class="cmp-notes" id="cmp-notes" tabindex="-1">
-            @if (_result.SameSignLord)
+            @if (MarriageApplies && _result.SameSignLord)
             {
                 <li>Both Moon signs share a ruler. The book says the absence of Rajju, Vedha, Gana and Rasi Kutas then need not be considered (p.77–78).</li>
             }
+            @if (MarriageApplies)
+            {
             <li>Yoni for different animals uses PyJHora's pair values (the book gives only the same-animal 4, a hostile 0 and "2 to 3" for passable pairs, with no pair table). Vedha, the tenth factor, is not computed: no pair table is available from a cited source. Rajju, Stree Deergha and Mahendra score 1 per pass by PyJHora's South Indian weight and are kept outside the 36 (p.66, p.77).</li>
             <li>Kuta agreement is not decisive. The book places it after longevity, health, balance of doshas and Kuja dosha have been cleared (p.79). The dosha reading above is the book's Chapter V; it states its results are not absolute (p.54).</li>
+            }
         </ul>
     }
 }
@@ -499,6 +633,7 @@ else
         _result = null;
         _notice = null;
         _partner = null;
+        _showMarriage = false;
         if (_person is null) return;
 
         if (_me is null)
@@ -626,6 +761,9 @@ else
     {
         _doshaGroom = _doshaBride = null;
         _d9Groom = _d9Bride = null;
+        _synastry = null;
+        _shared = null;
+        _chartGroom = _chartBride = null;
         _dataGroom = _dataBride = new(false, false, false, false);
         _balance = null;
         _saturn = null;
@@ -634,10 +772,13 @@ else
         if (Groom is null || Bride is null) return;
 
         _familyNote = FamilyNote(Groom, Bride);
+        ComputeRelation();
         ComputeDasha();
 
         var groomChart = DoshaRepo.GetByBirthDetailId(Groom.BirthDetailId);
         var brideChart = DoshaRepo.GetByBirthDetailId(Bride.BirthDetailId);
+        _chartGroom = groomChart;
+        _chartBride = brideChart;
         _dataGroom = _dataGroom with { Dosha = groomChart is not null };
         _dataBride = _dataBride with { Dosha = brideChart is not null };
         if (groomChart is not null && brideChart is not null)
@@ -663,10 +804,84 @@ else
         _dataBride = _dataBride with { Saturn = brideSaturn.Count > 0 };
         if (groomSaturn.Count > 0 && brideSaturn.Count > 0)
             _saturn = SadeSatiCompatibility.Compare(groomSaturn, brideSaturn, DateTime.UtcNow);
+        if (groomChart is not null && brideChart is not null)
+        {
+            _synastry = SynastryCalculator.Read(groomChart, brideChart);
+            _shared = ChartSimilarity.Compare(
+                new SimilarityInput(groomChart, Groom.Person, Groom.Pada, groomD9),
+                new SimilarityInput(brideChart, Bride.Person, Bride.Pada, brideD9),
+                Groom.Name, Bride.Name);
+        }
         _findings = BuildFindings();
     }
 
     private string? _familyNote;
+
+    private FamilyMember? _link;
+    private FamilyMember? _reverseLink;
+    private FamilyKind? _kind;
+    private bool _showMarriage;
+    private DoshaChart? _chartGroom;
+    private DoshaChart? _chartBride;
+    private SynastryCalculator.Reading? _synastry;
+    private IReadOnlyList<SharedFact>? _shared;
+
+    // The marriage factors (Kuta, doshas, the D9 7th-house facts) apply to a spouse or to a pair with no
+    // recorded relationship (a prospective match); for a recorded parent, child, grandparent or sibling
+    // they are hidden unless asked for.
+    private bool MarriageApplies => _kind is null or FamilyKind.Spouse || _showMarriage;
+
+    private FamilyKind KindOfBrideFromGroom => _kind ?? FamilyKind.Spouse;
+    private FamilyKind KeyKindInGroomChart => KindOfBrideFromGroom;
+    private FamilyKind KeyKindInBrideChart => FamilyRelation.Invert(KindOfBrideFromGroom);
+
+    // The role as the stored view names it from the other person (it keeps the paternal or maternal side of a grandparent),
+    // else the turned-around kind labelled by sex.
+    private string GroomLabel => _kind is null or FamilyKind.Spouse ? "Groom" : _reverseLink?.Role ?? FamilyRelation.Label(FamilyRelation.Invert(_kind.Value), Groom?.Sex);
+    private string BrideLabel => _kind is null or FamilyKind.Spouse ? "Bride" : _link!.Role;
+
+    private void ComputeRelation()
+    {
+        _link = FamilyRepo.GetFor(Groom!.BirthDetailId).FirstOrDefault(f => f.RelativeId == Bride!.BirthDetailId);
+        _kind = _link is null ? null : FamilyRelation.FromRole(_link.Role);
+        _reverseLink = FamilyRepo.GetFor(Bride!.BirthDetailId).FirstOrDefault(f => f.RelativeId == Groom.BirthDetailId);
+    }
+
+    private static string KeyHousesText(FamilyKind otherIs) => string.Join(", ", FamilyRelation.KeyHouses(otherIs).Select(Ordinal));
+
+    private static string DistanceText(SignDistance d) =>
+        d.IsSameSign ? "Same sign (1st)" : d.IsOpposite ? "Opposite sign (7th)" : $"{Ordinal(d.Count)} sign";
+
+    private IEnumerable<(string Contact, string Reading)> SynastryPairRows()
+    {
+        var s = _synastry!;
+        var g = Groom!.Name;
+        var b = Bride!.Name;
+        yield return ($"{g}'s Moon to {b}'s Moon", DistanceText(s.MoonFirstToSecond));
+        yield return ($"{b}'s Moon to {g}'s Moon", DistanceText(s.MoonSecondToFirst));
+        yield return ($"{g}'s Venus to {b}'s Mars", DistanceText(s.VenusFirstToMarsSecond));
+        yield return ($"{b}'s Venus to {g}'s Mars", DistanceText(s.VenusSecondToMarsFirst));
+    }
+
+    private IEnumerable<(string Point, string GroomInBride, string BrideInGroom)> OverlayRows()
+    {
+        var s = _synastry!;
+        // Groom's points lie in the bride's chart, where the groom is the other: key houses are those of the groom's kind to the bride.
+        var inBride = FamilyRelation.KeyHouses(KeyKindInBrideChart);
+        var inGroom = FamilyRelation.KeyHouses(KeyKindInGroomChart);
+        string Cell(ZodiacName sign, int house, IReadOnlyList<int> keys) =>
+            $"{SignLabels.For(sign)}, {Ordinal(house)} house" + (keys.Contains(house) ? " · key house" : "");
+
+        yield return ("Lagna", Cell(s.FirstInSecond.LagnaSign, s.FirstInSecond.LagnaHouseInOther, inBride),
+                               Cell(s.SecondInFirst.LagnaSign, s.SecondInFirst.LagnaHouseInOther, inGroom));
+        for (var i = 0; i < s.FirstInSecond.Planets.Count; i++)
+        {
+            var a = s.FirstInSecond.Planets[i];
+            var b = s.SecondInFirst.Planets[i];
+            yield return (a.Malefic ? $"{a.Planet} (malefic)" : a.Planet.ToString(),
+                          Cell(a.Sign, a.HouseInOther, inBride), Cell(b.Sign, b.HouseInOther, inGroom));
+        }
+    }
 
     private NavamsaReading? _d9Groom;
     private NavamsaReading? _d9Bride;
@@ -719,9 +934,11 @@ else
     {
         yield return ("cmp-overview", "Overview");
         yield return ("cmp-summary", "Summary");
-        yield return ("cmp-kuta", "Kuta");
-        if (_balance is not null) yield return ("cmp-dosha", "Doshas");
-        if (_d9Groom is not null) yield return ("cmp-d9", "Navamsa");
+        if (MarriageApplies) yield return ("cmp-kuta", "Kuta");
+        if (MarriageApplies && _balance is not null) yield return ("cmp-dosha", "Doshas");
+        if (MarriageApplies && _d9Groom is not null) yield return ("cmp-d9", "Navamsa");
+        if (_synastry is not null) yield return ("cmp-synastry", "Synastry");
+        if (_shared is not null) yield return ("cmp-similarity", "Similarity");
         if (_saturn is not null) yield return ("cmp-saturn", "Saturn");
         if (_dasha is not null) yield return ("cmp-dasha", "Dasha");
         if (_dasha is not null) yield return ("cmp-timing", "Timing");
@@ -752,6 +969,8 @@ else
         var r = _result!;
         void Add(FindingKind k, string t, string target) => list.Add(new(k, t, target));
 
+        if (MarriageApplies)
+        {
         foreach (var k in r.Scored)
         {
             if (k.Status == KutaStatus.Unscored) Add(FindingKind.Open, $"{k.Name} could not be scored", "cmp-kuta");
@@ -772,6 +991,10 @@ else
 
         if (_d9Groom is null)
             Add(FindingKind.Open, "Navamsa could not be compared (a chart lacks stored D1 or D9 positions)", "cmp-data");
+        }
+
+        if (_synastry is not null)
+            Add(FindingKind.Open, "Cross-chart contacts are shown as facts only: no cited source classifies them", "cmp-synastry");
 
         if (_saturn is not null)
             Add(_saturn.SadeSatiOverlaps ? FindingKind.Concern : FindingKind.Good,
@@ -782,8 +1005,11 @@ else
         if (_dasha is null) Add(FindingKind.Open, "Dashas could not be compared (a chart lacks stored periods)", "cmp-data");
         else Add(FindingKind.Open, "Dasha periods are shown as facts only: no cited source classifies them", "cmp-dasha");
 
-        Add(FindingKind.Open, "Vedha is not computed (no cited pair table)", "cmp-notes");
-        Add(FindingKind.Open, "Rasi is scored 7 or 0 from the book's qualitative verdicts; the Vashya direction is read from one example", "cmp-notes");
+        if (MarriageApplies)
+        {
+            Add(FindingKind.Open, "Vedha is not computed (no cited pair table)", "cmp-notes");
+            Add(FindingKind.Open, "Rasi is scored 7 or 0 from the book's qualitative verdicts; the Vashya direction is read from one example", "cmp-notes");
+        }
         return list;
     }
 
@@ -804,7 +1030,7 @@ else
         if (link is not null)
             parts.Add(link.Role is "Wife" or "Husband"
                 ? $"Recorded as married ({(link.Status == "Current" ? "current" : "ended")})."
-                : $"Recorded as {link.Role.ToLowerInvariant()}.");
+                : $"{bride.Name} is recorded as {groom.Name}'s {link.Role.ToLowerInvariant()} ({FamilyRelation.LayerOf(FamilyRelation.FromRole(link.Role))} family).");
         if (children.Count > 0) parts.Add($"Children together: {string.Join(", ", children)}.");
         return string.Join(" ", parts);
     }

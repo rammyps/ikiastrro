@@ -297,3 +297,11 @@ Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 
 - Phase 1 (summary, section bar, data panel, status labels), phase 2 (folded evidence tables, mobile card rows, focus styles) and phase 3 (Navamsa card) are built on `workstream/ui`; the Rajju, Stree Deergha, Mahendra and Yoni changes and `NavamsaCompatibility` are on `workstream/cli`.
 - The Navamsa card is facts only: D9 Lagna and 7th, the D9 7th lord, Venus and Jupiter in D9, the Darakaraka (the D1 chara karaka), and which of the D1 7th lord, Venus, Jupiter and Darakaraka are vargottama. All values are stored positions; nothing is recomputed. Verdicts wait for a cited source.
 - Not built: the side-by-side mini D9 chart wheels the audit suggested.
+
+### 10.5 Phase 4 and family layers (2026-10-04)
+
+- **Layers** (migration 170, per viewer, derived and never stored): Core is spouse, parents and children; Extended is grandparents (paternal or maternal by the parent they come through) and grandchildren; Lateral is siblings and, later, uncles and aunts, cousins and in-laws. Siblings were Extended in 168; they are Lateral from 170.
+- **Synastry** (any pair): each person's Lagna and grahas in the other's houses, Moon-to-Moon and Venus-to-Mars each way, and same-sign / opposite-sign contacts, all directional and from D1 signs only. Key houses depend on the relationship (spouse 1, 5, 7, 8, 12; child 1, 5; parent 1, 4, 9; sibling 1, 3, 11; none suggested for grandparents or grandchildren) and are a display choice, not a verdict.
+- **Pair similarity** (any pair): a list of shared facts (Lagna, Moon, Sun, nakshatra and pada, gana, yoni, nadi, each graha in the same D1 or D9 sign, one Lagna being the other's Moon sign). A count, not a score: base rates (5.3) are not built, so it is not offered as evidence.
+- **Compatibility page**: for a recorded non-spouse relationship the page names both people by their roles, shows the layer, and hides Kuta, the dosha balance and the D9 7th-house facts unless asked ("Show marriage factors anyway"). A spouse or an unrecorded pair keeps the marriage view.
+- Not built: the full similarity module (feature atoms, pattern search, corpus, 5.1 to 5.4); this is the pair-level slice of it.
