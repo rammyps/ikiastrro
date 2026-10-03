@@ -19,7 +19,7 @@
 
 @using Ikiastrro.Core.Engines.Astronomy
 
-<div class="grid-root @(Compact ? "compact" : "")">
+<div class="grid-root @(Compact ? "compact" : "") @(Square ? "square" : "")">
     <div class="chart-wrap">
         <div class="chart">
             @foreach (var cell in GridCells)
@@ -61,6 +61,18 @@
                     <div class="planets">
                         @foreach (var g in glyphs)
                         {
+                            @if (Square)
+                            {
+                                <span class="planet-glyph combined" title="@g.PlanetName @(g.IsRetrograde ? "(retrograde)" : "(direct)")">
+                                    <span class="pg-name">@(g.IsRetrograde ? $"({ChartViewModel.PlanetGlyph(g.PlanetName)})" : ChartViewModel.PlanetGlyph(g.PlanetName))</span>
+                                    @if (g.DignityToken is not null)
+                                    {
+                                        <span class="dot" style="background:var(--dignity-@g.DignityToken)"></span>
+                                    }
+                                    @if (g.IsCombust) { <span class="combust-icon" title="Combust">🔥</span> }
+                                </span>
+                            }
+                            else {
                             <span class="planet-glyph">
                                 <PlanetChip Planet="@g.PlanetName" />
                                 @if (g.DignityToken is not null)
@@ -70,6 +82,7 @@
                                 <span class="direction">(@(g.IsRetrograde ? "R" : "D"))</span>
                                 @if (g.IsCombust) { <span class="combust-icon" title="Combust">🔥</span> }
                             </span>
+                            }
                         }
                     </div>
                     @if (aspectedBy.Count > 0)
@@ -113,6 +126,11 @@
     /// <summary>Smaller, reduced-detail rendering for the saved-charts card gallery: hides
     /// Sanskrit sign names, the LAGNA tag text emphasis, the dignity legend, and the aspect strips.</summary>
     [Parameter] public bool Compact { get; set; }
+
+    /// <summary>Perfect-square chart (aspect-ratio 1, type scaled to the chart width) with each planet
+    /// as one chip: "Ju" when direct, "(Ju)" when retrograde. Several planets share a row. Used by the
+    /// Compatibility page; other callers keep the content-driven layout.</summary>
+    [Parameter] public bool Square { get; set; }
 
     /// <summary>
     /// Sign → distinct glyphs of the planets casting an aspect (Drishti) into that sign, sourced from

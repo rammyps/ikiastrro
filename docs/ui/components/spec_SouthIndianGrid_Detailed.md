@@ -1,7 +1,7 @@
 ---
 
 > **Stays** as Astro Facts' natal chart and All Charts cards (rammyps, 2026-10-01). The Lagna cell's translucent `--asc-glow` is now laid over `--paper-raised`, so it no longer turns brown in the light themes. Key Inference and the Spl Lagnas grid use SIND-UNI-3 instead: see [`spec_SIND-UNI_GridChart.md`](spec_SIND-UNI_GridChart.md).
-last_updated: 2026-09-10
+last_updated: 2026-10-04
 workstream: ui
 component: SouthIndianGrid_Detailed · SouthIndianTemplate
 route: /charts/{id}/south-indian-template
@@ -34,6 +34,12 @@ The fixed 4×4 sign-position grid, one component for every chart type (D1…D60)
   (`MoonSign` param; omitted when not supplied). Both via `AstroMath.CountFromSignToSign`.
 - Planet glyphs (`Su` / `Mo` / …) via `PlanetChip`: dignity dot + `(D)` / `(R)` suffix +
   🔥 combust icon.
+- **`Square` mode** (parameter, off by default; the Compatibility page sets it, 2026-10-04): the chart is a
+  perfect square (`aspect-ratio: 1`) and every size is in container units (`cqi`), so type scales with
+  the chart. Each planet is one chip: `Ju` when direct, `(Ju)` when retrograde (no separate `(D)`/`(R)`
+  suffix); dignity dot and combust flame stay. Several planets share a row; the Sanskrit sign name
+  and LAGNA tag are hidden, house badges sit side by side in the top-right corner. Other pages keep
+  the content-driven layout above.
 - "Aspected by" strip at the cell foot — dashed ghost chips in `Ma(a)-8` notation
   (`--aspect-faint`), only on cells receiving an aspect.
 - `SpecialPointLabels` param renders AL / Arudha / HL / upagraha labels.

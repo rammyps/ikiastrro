@@ -1501,12 +1501,12 @@ else
                 @foreach (var gc in grids)
                 {
                     <div class="cmp-grid">
-                        <SouthIndianGrid_Detailed AscendantSign="@gc.Ascendant" MoonSign="@gc.Moon" PlanetsBySign="gc.Planets" CenterTitle="@gc.Title">
+                        <SouthIndianGrid_Detailed Square="true" AscendantSign="@gc.Ascendant" MoonSign="@gc.Moon" PlanetsBySign="gc.Planets" CenterTitle="@gc.Title">
                             <CenterMeta><b>Lagna</b> @(gc.Ascendant == "Capricornus" ? "Capricorn" : gc.Ascendant)</CenterMeta>
                         </SouthIndianGrid_Detailed>
                     </div>
                 }
-                <p class="cmp-pad cmp-sub">Placements as stored. The gold number in each cell is the house from Lagna, the silver one the house from the Moon; the dot shows dignity, (R) retrograde, (D) direct.</p>
+                <p class="cmp-pad cmp-sub">Placements as stored. The gold number in each cell is the house from Lagna, the silver one the house from the Moon; the dot shows dignity, and a planet in brackets, such as (Ju), is retrograde.</p>
             }
             else if (tab == "mars" && dosha is not null)
             {
