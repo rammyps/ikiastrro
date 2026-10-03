@@ -34,4 +34,23 @@ public sealed class DoshaChartRepository
         }
         return lagna is { } l && signs.Count == 9 ? new DoshaChart(l, signs) : null;
     }
+
+    private sealed record DignityRow(string Planet, string? DignityStatus);
+
+    /// <summary>The dignity the chart pipeline stored for each D1 graha (Exalted, Own, Debilitated, ...), null
+    /// where none was recorded. Shown beside the dosha comparison; no cancellation is applied from it.</summary>
+    public IReadOnlyDictionary<PlanetName, string?> GetDignities(int birthDetailId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        var rows = connection.Query<DignityRow>("""
+            SELECT k.Planet, k.DignityStatus
+            FROM dbo.tbl_ChartResults c
+            JOIN dbo.tbl_Chart_KeyDetails k ON k.ChartResultId = c.Id AND k.PointKind = 'Graha'
+            WHERE c.BirthDetailId = @Id AND c.ChartType = 'D1'
+            """, new { Id = birthDetailId });
+        var result = new Dictionary<PlanetName, string?>();
+        foreach (var r in rows)
+            if (Enum.TryParse<PlanetName>(r.Planet, out var planet)) result[planet] = r.DignityStatus;
+        return result;
+    }
 }
