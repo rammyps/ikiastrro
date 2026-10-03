@@ -41,7 +41,7 @@
     background: var(--brand-midnight);
     color: var(--brand-canvas);
     cursor: pointer;
-    font: 700 0.72rem / 1 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 var(--font-size-meta) / 1 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.02em;
     text-transform: uppercase;
 }
@@ -107,7 +107,7 @@
     background: var(--card-bg-raised);
     font-size: var(--font-size-support);
 }
-.cmp-role { color: var(--brand-muted); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.cmp-role { color: var(--brand-muted); font-size: var(--font-size-meta); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 
 .cmp-scroll { overflow-x: auto; }
 .cmp-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-support); }
@@ -115,7 +115,7 @@
 .cmp-table thead th {
     border-top: 0;
     color: var(--brand-muted);
-    font-size: 0.68rem;
+    font-size: var(--font-size-meta);
     letter-spacing: 0.03em;
     text-transform: uppercase;
 }
@@ -124,7 +124,7 @@
 .cmp-present { color: var(--status-strong); }
 .cmp-absent { color: var(--status-weak); }
 .cmp-unscored { color: var(--brand-muted); }
-.cmp-src { color: var(--brand-muted); white-space: nowrap; }
+.cmp-src { color: var(--brand-muted); }
 
 .cmp-notes { margin: 0 0 24px; padding-left: 18px; color: var(--brand-muted); font-size: var(--font-size-support); }
 .cmp-notes li { margin-bottom: 4px; }
@@ -171,7 +171,7 @@
 .cmp-glance-title { margin: 2px 0 0; color: var(--card-fg); font: 800 1.22rem / 1.2 var(--font-interface); }
 .cmp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin: 14px 0 12px; }
 .cmp-tiles > div { padding: 8px 10px; border-radius: 8px; background: var(--card-bg-raised); }
-.cmp-tiles dt { color: var(--card-fg-muted); font: 700 0.62rem / 1.2 var(--font-interface); text-transform: uppercase; }
+.cmp-tiles dt { color: var(--card-fg-muted); font: 700 var(--font-size-meta) / 1.2 var(--font-interface); text-transform: uppercase; }
 .cmp-tiles dd { margin: 3px 0 0; color: var(--card-fg); font: 700 0.9rem / 1.25 var(--font-interface); font-variant-numeric: tabular-nums; }
 .cmp-t-pass { color: var(--status-strong) !important; }
 .cmp-t-fail { color: var(--status-weak) !important; }
@@ -180,7 +180,7 @@
 .cmp-meter-min { left: 0; background: var(--key-bg); }
 .cmp-meter-range { background: color-mix(in srgb, var(--key-bg) 45%, transparent); border-radius: 0 999px 999px 0; }
 .cmp-meter-pass { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--card-fg); }
-.cmp-glance small { display: block; margin-top: 8px; color: var(--card-fg-muted); font-size: 0.7rem; }
+.cmp-glance small { display: block; margin-top: 8px; color: var(--card-fg-muted); font-size: var(--font-size-support); }
 
 /* Table heads take the theme key colour, as on every other card. */
 .cmp-table thead th { background: var(--key-bg); color: var(--key-fg); }
@@ -270,4 +270,42 @@
 .cmp-flag-concern { color: var(--status-weak); }
 .cmp-flag-open { color: var(--brand-midnight); border-style: dashed; }
 
-.cmp-glance small, .cmp-src { font-size: var(--font-size-meta); }
+.cmp-src { font-size: var(--font-size-support); }
+
+/* Two detail levels: the summary and the cards' headline facts stay visible; the evidence tables fold. */
+.cmp-detail > summary {
+    padding: 8px 16px;
+    border-top: 1px solid var(--card-line);
+    color: var(--card-fg);
+    font: 700 var(--font-size-support) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+    cursor: pointer;
+}
+.cmp-detail > summary::marker { color: var(--card-fg-muted); }
+.cmp-detail > summary:focus-visible, .cmp-navlink:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: -2px; }
+.cmp-navtools { margin-left: auto; display: flex; gap: 4px 16px; }
+
+/* Narrow screens: each table row becomes a labelled card instead of a sideways-scrolling row. */
+@media (max-width: 620px) {
+    .cmp-table, .cmp-table tbody, .cmp-table tr { display: block; width: 100%; }
+    .cmp-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .cmp-table tbody tr { padding: 8px 14px; border-top: 1px solid var(--card-line); }
+    .cmp-table tbody th { display: block; padding: 0 0 4px; border: 0; white-space: normal; }
+    .cmp-table td {
+        display: grid;
+        grid-template-columns: minmax(7.5em, 36%) 1fr;
+        gap: 8px;
+        padding: 3px 0;
+        border: 0;
+    }
+    .cmp-table td[data-label]::before {
+        content: attr(data-label);
+        color: var(--brand-muted);
+        font-size: var(--font-size-meta);
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .cmp-table td[colspan] { display: block; }
+    .cmp-nav { top: 58px; }
+    .cmp-navtools { margin-left: 0; }
+    .cmp-controls .cmp-field select { min-width: 0; width: 100%; }
+}

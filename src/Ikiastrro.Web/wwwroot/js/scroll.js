@@ -8,6 +8,10 @@
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             el.focus({ preventScroll: true });
         },
+        // Compatibility page: open or close every <details> matching the selector.
+        setDetails: function (selector, open) {
+            document.querySelectorAll(selector).forEach(function (d) { d.open = open; });
+        },
         // Compatibility page: mark the nav button of the section nearest the top of the viewport
         // with aria-current, so the sticky section bar shows where the reader is.
         spy: function (navId, ids) {

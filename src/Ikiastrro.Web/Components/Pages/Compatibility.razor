@@ -107,6 +107,10 @@ else
             {
                 <button type="button" class="cmp-navlink" data-target="@id" @onclick="() => Jump(id)">@label</button>
             }
+            <span class="cmp-navtools">
+                <button type="button" class="cmp-navlink" @onclick="() => SetDetails(true)">Expand all</button>
+                <button type="button" class="cmp-navlink" @onclick="() => SetDetails(false)">Collapse all</button>
+            </span>
         </nav>
 
         <section class="cmp-summary" aria-labelledby="cmp-summary">
@@ -156,6 +160,10 @@ else
                 @PersonCard("Bride", Bride!)
             </div>
 
+            <details class="cmp-detail" open>
+
+                <summary>Kuta by Kuta: score, reading and source</summary>
+
             <div class="cmp-scroll">
                 <table class="cmp-table">
                     <thead><tr><th>Kuta</th><th>Score</th><th>Reading</th><th>Source</th></tr></thead>
@@ -164,14 +172,16 @@ else
                         {
                             <tr>
                                 <th scope="row">@k.Name</th>
-                                <td class="cmp-score cmp-@StatusClass(k)">@(k.Score?.ToString() ?? "—") / @k.MaxScore <span class="cmp-flag cmp-flag-@KutaFlagClass(k)">@KutaFlagText(k)</span></td>
-                                <td>@k.Reason</td>
-                                <td class="cmp-src">@k.SourceLocator</td>
+                                <td data-label="Score" class="cmp-score cmp-@StatusClass(k)">@(k.Score?.ToString() ?? "—") / @k.MaxScore <span class="cmp-flag cmp-flag-@KutaFlagClass(k)">@KutaFlagText(k)</span></td>
+                                <td data-label="Reading">@k.Reason</td>
+                                <td data-label="Source" class="cmp-src">@k.SourceLocator</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+
+            </details>
         </article>
 
         <article class="cmp-card">
@@ -179,6 +189,8 @@ else
                 <h2>Also tested (South Indian)</h2>
                 <p class="cmp-sub">@_result.AdditionalScore / @_result.AdditionalMax. The book gives these no numeric value; 1 per pass is PyJHora's weight, kept outside the 36.</p>
             </header>
+            <details class="cmp-detail" open>
+                <summary>South Indian factors: score, reading and source</summary>
             <div class="cmp-scroll">
                 <table class="cmp-table">
                     <thead><tr><th>Factor</th><th>Score</th><th>Reading</th><th>Source</th></tr></thead>
@@ -187,14 +199,15 @@ else
                         {
                             <tr>
                                 <th scope="row">@k.Name</th>
-                                <td class="cmp-score cmp-@StatusClass(k)">@(k.Score?.ToString() ?? "—") / @k.MaxScore <span class="cmp-flag cmp-flag-@KutaFlagClass(k)">@KutaFlagText(k)</span></td>
-                                <td>@k.Reason</td>
-                                <td class="cmp-src">@k.SourceLocator</td>
+                                <td data-label="Score" class="cmp-score cmp-@StatusClass(k)">@(k.Score?.ToString() ?? "—") / @k.MaxScore <span class="cmp-flag cmp-flag-@KutaFlagClass(k)">@KutaFlagText(k)</span></td>
+                                <td data-label="Reading">@k.Reason</td>
+                                <td data-label="Source" class="cmp-src">@k.SourceLocator</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            </details>
         </article>
 
         @if (_doshaGroom is not null && _doshaBride is not null && _balance is not null)
@@ -209,6 +222,8 @@ else
                     @MarsCard("Bride", Bride!.Name, _doshaBride)
                 </div>
                 <p class="cmp-pad">@_balance.Reason <span class="cmp-src">@_balance.SourceLocator</span></p>
+                <details class="cmp-detail">
+                    <summary>Each affliction: malefic, reference point, house and weight</summary>
                 <div class="cmp-scroll">
                     <table class="cmp-table">
                         <thead><tr><th>Person</th><th>Malefic</th><th>From</th><th>House</th><th>Weight</th><th>Reading</th></tr></thead>
@@ -217,11 +232,11 @@ else
                             {
                                 <tr>
                                     <th scope="row">@row.Person</th>
-                                    <td>@row.A.Malefic</td>
-                                    <td>@row.A.From</td>
-                                    <td class="cmp-score">@Ordinal(row.A.House)</td>
-                                    <td class="cmp-score cmp-w-@row.A.Weight.ToString().ToLowerInvariant()">@row.A.Weight</td>
-                                    <td>@row.A.Note</td>
+                                    <td data-label="Malefic">@row.A.Malefic</td>
+                                    <td data-label="From">@row.A.From</td>
+                                    <td data-label="House" class="cmp-score">@Ordinal(row.A.House)</td>
+                                    <td data-label="Weight" class="cmp-score cmp-w-@row.A.Weight.ToString().ToLowerInvariant()">@row.A.Weight</td>
+                                    <td data-label="Reading">@row.A.Note</td>
                                 </tr>
                             }
                             @if (!AfflictionRows().Any())
@@ -231,6 +246,7 @@ else
                         </tbody>
                     </table>
                 </div>
+                </details>
             </article>
         }
 
@@ -241,6 +257,8 @@ else
                     <h2 id="cmp-saturn" tabindex="-1">Saturn from the Moon (Sade Sati)</h2>
                     <p class="cmp-total"><em class="cmp-verdict cmp-verdict-@(_saturn.SadeSatiOverlaps ? "open" : "pass")">@(_saturn.SadeSatiOverlaps ? "Sade Sati overlaps in the next 30 years" : "Sade Sati does not overlap in the next 30 years")</em></p>
                 </header>
+                <details class="cmp-detail" open>
+                    <summary>Saturn periods by category</summary>
                 <div class="cmp-scroll">
                     <table class="cmp-table">
                         <thead><tr><th>Period</th><th>@Groom!.Name (Moon in @SignLabels.For(Groom.Person.MoonSign))</th><th>@Bride!.Name (Moon in @SignLabels.For(Bride.Person.MoonSign))</th><th>Both at once</th></tr></thead>
@@ -250,14 +268,15 @@ else
                                 var category = _saturn.First[i].Category;
                                 <tr>
                                     <th scope="row">@category</th>
-                                    <td>@Standing(_saturn.First[i])</td>
-                                    <td>@Standing(_saturn.Second[i])</td>
-                                    <td class="cmp-score">@Overlaps(category)</td>
+                                    <td data-label="@Groom!.Name">@Standing(_saturn.First[i])</td>
+                                    <td data-label="@Bride!.Name">@Standing(_saturn.Second[i])</td>
+                                    <td data-label="Both at once" class="cmp-score">@Overlaps(category)</td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
+                </details>
                 <p class="cmp-pad cmp-sub">Saturn over the 12th, 1st and 2nd signs from the Moon is Sade Sati (Rising, Peak, Setting); over the 4th and 8th it is Kantaka and Ashtama Shani. The periods come from the stored Saturn transit table; neither the book nor the stored rules give a verdict on two people's periods coinciding, so only the dates are shown.</p>
             </article>
         }
@@ -270,15 +289,19 @@ else
                     <p class="cmp-sub">Vimshottari, from the stored periods. Facts only: no verdict is given on whether a period supports or strains a marriage.</p>
                 </header>
 
+                <details class="cmp-detail">
+
+                    <summary>Dasha table: birth, Mahadasha, Antardasha and Pratyantar lords</summary>
+
                 <div class="cmp-scroll">
                     <table class="cmp-table">
                         <thead><tr><th>Dasha</th><th>@Groom!.Name</th><th>@Bride!.Name</th><th>How each lord regards the other</th></tr></thead>
                         <tbody>
                             <tr>
                                 <th scope="row">Birth dasha (Moon's nakshatra lord)</th>
-                                <td class="cmp-score">@_dashaGroom.BirthLord</td>
-                                <td class="cmp-score">@_dashaBride.BirthLord</td>
-                                <td>@Regard(_dasha.BirthLordFirstToSecond) · @Regard(_dasha.BirthLordSecondToFirst)</td>
+                                <td data-label="@Groom!.Name" class="cmp-score">@_dashaGroom.BirthLord</td>
+                                <td data-label="@Bride!.Name" class="cmp-score">@_dashaBride.BirthLord</td>
+                                <td data-label="Regard">@Regard(_dasha.BirthLordFirstToSecond) · @Regard(_dasha.BirthLordSecondToFirst)</td>
                             </tr>
                             @foreach (var level in new[] { 1, 2, 3 })
                             {
@@ -286,9 +309,9 @@ else
                                 var b = _dashaBride.Running.FirstOrDefault(s => s.Level == level);
                                 <tr>
                                     <th scope="row">@LevelName(level)</th>
-                                    <td>@RunningText(g)</td>
-                                    <td>@RunningText(b)</td>
-                                    <td>
+                                    <td data-label="@Groom!.Name">@RunningText(g)</td>
+                                    <td data-label="@Bride!.Name">@RunningText(b)</td>
+                                    <td data-label="Regard">
                                         @if (level == 1 && _dasha.MahaFirstToSecond is not null && _dasha.MahaSecondToFirst is not null)
                                         {
                                             @($"{Regard(_dasha.MahaFirstToSecond)} · {Regard(_dasha.MahaSecondToFirst)}")
@@ -299,6 +322,8 @@ else
                         </tbody>
                     </table>
                 </div>
+
+                </details>
                 <p class="cmp-pad cmp-sub">Regard is permanent (natural) friendship from the stored table, which is not defined for Rahu and Ketu.</p>
 
                 @if (_dasha.SandhiNotes.Count > 0)
@@ -317,6 +342,8 @@ else
                     <h2>Running lords in their own charts</h2>
                     <p class="cmp-sub">Houses counted from each person's own Lagna.</p>
                 </header>
+                <details class="cmp-detail">
+                    <summary>Running lords: lordships, placement and end dates</summary>
                 <div class="cmp-scroll">
                     <table class="cmp-table">
                         <thead><tr><th>Person</th><th>Period</th><th>Lord</th><th>Rules</th><th>Sits in</th><th>Also</th><th>Ends</th></tr></thead>
@@ -325,17 +352,18 @@ else
                             {
                                 <tr>
                                     <th scope="row">@row.Person</th>
-                                    <td>@LevelName(row.F.Level)</td>
-                                    <td class="cmp-score">@row.F.Lord</td>
-                                    <td>@(row.F.Rules.Count == 0 ? "no sign" : string.Join(", ", row.F.Rules.Select(Ordinal)))</td>
-                                    <td>@(row.F.PlacedIn is int h ? Ordinal(h) : "—")</td>
-                                    <td>@AlsoText(row.F)</td>
-                                    <td class="cmp-src">@row.F.End.ToString("d MMM yyyy")</td>
+                                    <td data-label="Period">@LevelName(row.F.Level)</td>
+                                    <td data-label="Lord" class="cmp-score">@row.F.Lord</td>
+                                    <td data-label="Rules">@(row.F.Rules.Count == 0 ? "no sign" : string.Join(", ", row.F.Rules.Select(Ordinal)))</td>
+                                    <td data-label="Sits in">@(row.F.PlacedIn is int h ? Ordinal(h) : "—")</td>
+                                    <td data-label="Also">@AlsoText(row.F)</td>
+                                    <td data-label="Ends" class="cmp-src">@row.F.End.ToString("d MMM yyyy")</td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
+                </details>
                 <p class="cmp-pad cmp-sub">These are facts only. Which lordships help or hinder a marriage is not classified here until a source is cited. The Upapada lord is not yet included.</p>
             </article>
 
@@ -360,20 +388,23 @@ else
                 <h2 id="cmp-data" tabindex="-1">What this reading is based on</h2>
                 <p class="cmp-sub">What was available for each person, and what this page does not read yet.</p>
             </header>
+            <details class="cmp-detail" open>
+                <summary>Inputs and sources</summary>
             <div class="cmp-scroll">
                 <table class="cmp-table">
                     <thead><tr><th>Input</th><th>@Groom!.Name</th><th>@Bride!.Name</th></tr></thead>
                     <tbody>
-                        <tr><th scope="row">Moon sign, nakshatra and pada (Kuta)</th><td>@Have(true)</td><td>@Have(true)</td></tr>
-                        <tr><th scope="row">D1 positions for the dosha balance</th><td>@Have(_dataGroom.Dosha)</td><td>@Have(_dataBride.Dosha)</td></tr>
-                        <tr><th scope="row">Saturn transit periods</th><td>@Have(_dataGroom.Saturn)</td><td>@Have(_dataBride.Saturn)</td></tr>
-                        <tr><th scope="row">Vimshottari periods</th><td>@Have(_dataGroom.Dasha)</td><td>@Have(_dataBride.Dasha)</td></tr>
+                        <tr><th scope="row">Moon sign, nakshatra and pada (Kuta)</th><td data-label="@Groom!.Name">@Have(true)</td><td data-label="@Bride!.Name">@Have(true)</td></tr>
+                        <tr><th scope="row">D1 positions for the dosha balance</th><td data-label="@Groom!.Name">@Have(_dataGroom.Dosha)</td><td data-label="@Bride!.Name">@Have(_dataBride.Dosha)</td></tr>
+                        <tr><th scope="row">Saturn transit periods</th><td data-label="@Groom!.Name">@Have(_dataGroom.Saturn)</td><td data-label="@Bride!.Name">@Have(_dataBride.Saturn)</td></tr>
+                        <tr><th scope="row">Vimshottari periods</th><td data-label="@Groom!.Name">@Have(_dataGroom.Dasha)</td><td data-label="@Bride!.Name">@Have(_dataBride.Dasha)</td></tr>
                         <tr><th scope="row">Birth-time confidence</th><td colspan="2">Not recorded in the saved details, so every reading assumes the entered time is exact.</td></tr>
                         <tr><th scope="row">Not read by this page yet</th><td colspan="2">Navamsa (D9) comparison, Upapada Lagna, cross-chart synastry, Vedha, and any good-or-bad verdict on dasha periods.</td></tr>
                         <tr><th scope="row">Rules and sources</th><td colspan="2">Vasudev, <em>The Art of Matching Charts</em>, Ch. V and VI; Yoni pair values and the weight of Rajju, Stree Deergha and Mahendra from PyJHora's South Indian scheme. Rule gaps are listed in the notes below.</td></tr>
                     </tbody>
                 </table>
             </div>
+            </details>
         </article>
 
         <ul class="cmp-notes" id="cmp-notes" tabindex="-1">
@@ -622,6 +653,8 @@ else
         yield return ("cmp-data", "Data");
         yield return ("cmp-notes", "Notes");
     }
+
+    private async Task SetDetails(bool open) => await JS.InvokeVoidAsync("ikiastrroScroll.setDetails", ".cmp-detail", open);
 
     private async Task Jump(string id) => await JS.InvokeVoidAsync("ikiastrroScroll.toSection", id);
 
