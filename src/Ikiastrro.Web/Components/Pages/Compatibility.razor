@@ -1654,7 +1654,7 @@ else
         var markup = new System.Text.StringBuilder();
         markup.Append($"<line class=\"cmp-br-zero\" x1=\"{pad / 2}\" x2=\"{width - pad / 2}\" y1=\"{N(Y(0))}\" y2=\"{N(Y(0))}\"/>");
         markup.Append($"<line class=\"cmp-br-pass\" x1=\"{pad / 2}\" x2=\"{width - pad / 2}\" y1=\"{N(Y(AshtakootaResult.PassMark))}\" y2=\"{N(Y(AshtakootaResult.PassMark))}\"/>");
-        markup.Append($"<text class=\"cmp-br-lab\" x=\"{width - pad / 2}\" y=\"{N(Y(AshtakootaResult.PassMark) - 4)}\" text-anchor=\"end\">pass mark {AshtakootaResult.PassMark}</text>");
+        markup.Append($"<text class=\"cmp-br-lab\" x=\"{pad / 2}\" y=\"{N(Y(AshtakootaResult.PassMark) - 4)}\">pass mark {AshtakootaResult.PassMark}</text>");
         markup.Append($"<text class=\"cmp-br-lab\" x=\"{pad / 2}\" y=\"{N(Y(max) - 6)}\">{max}</text>");
 
         var running = 0;
