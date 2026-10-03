@@ -22,13 +22,15 @@
     min-height: calc(100vh - 220px);
 }
 
-.sp-art { overflow: hidden; border-radius: 16px; background: var(--brand-canvas); }
+.sp-art { display: flex; align-items: center; justify-content: center; overflow: hidden; background: transparent; }
 
 .sp-art img {
     display: block;
     width: 100%;
-    height: 100%;
+    height: auto;
+    max-height: calc(100vh - 220px);
     object-fit: contain;
+    background: transparent;
 }
 
 .sp-content {
@@ -132,20 +134,26 @@ h1 {
     color: var(--brand-midnight);
 }
 
-.saved-charts-table ::deep .dt th:first-child,
-.saved-charts-table ::deep .dt td:first-child { width: 20%; }
+/* No horizontal scroll: fixed layout, every column wraps inside the card (8 columns). */
+.saved-charts-table ::deep .dt-scroll { overflow-x: visible; }
+.saved-charts-table ::deep .dt { table-layout: fixed; width: 100%; }
+.saved-charts-table ::deep .dt td, .saved-charts-table ::deep .dt-sort { overflow-wrap: anywhere; }
+.saved-charts-table ::deep .dt th:nth-child(1),
+.saved-charts-table ::deep .dt td:nth-child(1) { width: 17%; }
 .saved-charts-table ::deep .dt th:nth-child(2),
-.saved-charts-table ::deep .dt td:nth-child(2) { width: 16%; white-space: nowrap; }
+.saved-charts-table ::deep .dt td:nth-child(2) { width: 8%; }
 .saved-charts-table ::deep .dt th:nth-child(3),
-.saved-charts-table ::deep .dt td:nth-child(3) { width: 14%; white-space: nowrap; }
+.saved-charts-table ::deep .dt td:nth-child(3) { width: 12%; }
 .saved-charts-table ::deep .dt th:nth-child(4),
-.saved-charts-table ::deep .dt td:nth-child(4) { width: 24%; }
+.saved-charts-table ::deep .dt td:nth-child(4) { width: 8%; }
 .saved-charts-table ::deep .dt th:nth-child(5),
-.saved-charts-table ::deep .dt td:nth-child(5) { width: 14%; }
-/* 3 icon buttons now (Edit/Delete/Print, rammyps 2026-09-23) — a touch wider than the 2-button
-   original so they don't crowd. */
-.saved-charts-table ::deep .dt th:last-child,
-.saved-charts-table ::deep .dt td:last-child { width: 12%; }
+.saved-charts-table ::deep .dt td:nth-child(5) { width: 19%; }
+.saved-charts-table ::deep .dt th:nth-child(6),
+.saved-charts-table ::deep .dt td:nth-child(6) { width: 10%; }
+.saved-charts-table ::deep .dt th:nth-child(7),
+.saved-charts-table ::deep .dt td:nth-child(7) { width: 15%; }
+.saved-charts-table ::deep .dt th:nth-child(8),
+.saved-charts-table ::deep .dt td:nth-child(8) { width: 11%; }
 
 .row-actions {
     display: flex;
@@ -412,6 +420,7 @@ h1 {
     color: var(--brand-midnight);
     font: 500 calc(var(--font-size-control) * 0.9) / 1.2 'Manrope', 'Segoe UI', sans-serif;
 }
+
 
 /* Name / Date of Birth / Time of Birth / City / Country — centred label + input, each input
    capped to a readable width instead of stretching the full modal (rammyps, 2026-09-14). Sex

@@ -36,11 +36,12 @@
                             <span class="home-row-open">View chart →</span>
                         </button>
                     }
-                    <button type="button" class="home-add-new" @onclick="StartAdd">＋ Add New</button>
                     @if (_people.Count >= 2)
                     {
                         <button type="button" class="home-add-new" aria-expanded="@_pairing" @onclick="() => _pairing = !_pairing">♡ Check compatibility</button>
                     }
+                    <button type="button" class="home-add-new" @onclick="@(() => Nav.NavigateTo("/charts"))">☰ View charts</button>
+                    <button type="button" class="home-add-new" @onclick="StartAdd">＋ Add New</button>
                 </div>
 
                 @if (_pairing)
