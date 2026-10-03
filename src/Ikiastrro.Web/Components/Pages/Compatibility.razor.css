@@ -342,8 +342,6 @@
     border: 1px solid var(--card-line); border-radius: var(--card-radius);
     background: var(--card-bg); color: var(--card-fg);
 }
-.cmp-panel-left { border-top: 4px solid var(--brand-midnight); }
-.cmp-panel-right { border-top: 4px solid var(--brand-sunrise); }
 .cmp-panel-name { font: 800 1.1rem / 1.2 var(--font-interface); }
 .cmp-panel-born { color: var(--card-fg-muted); font-size: var(--font-size-support); }
 .cmp-facts { margin: 4px 0 0; display: grid; gap: 2px; font-size: var(--font-size-support); }
@@ -355,8 +353,6 @@
 .cmp-duo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
 .cmp-side .cmp-card { margin-bottom: 0; }
 .cmp-side-title { margin: 0; font-size: var(--font-size-control); }
-.cmp-side-left .cmp-card { border-top: 4px solid var(--brand-midnight); }
-.cmp-side-right .cmp-card { border-top: 4px solid var(--brand-sunrise); }
 .cmp-together-title { margin-top: 22px; }
 
 @media (max-width: 960px) {
@@ -387,14 +383,23 @@
 
 /* Bridge chart of the findings. */
 .cmp-bridge { margin: 0 0 14px; }
-.cmp-bridge svg { display: block; width: 100%; max-width: 640px; height: auto; }
-.cmp-br-good { fill: var(--status-strong); }
-.cmp-br-concern { fill: var(--status-weak); }
-.cmp-br-net { fill: var(--brand-midnight); }
-.cmp-br-zero { stroke: var(--brand-midnight); stroke-width: 1; }
-.cmp-br-link { stroke: var(--brand-muted); stroke-width: 1; stroke-dasharray: 3 3; }
-.cmp-br-val { fill: var(--brand-midnight); font: 800 12px 'Manrope', 'Segoe UI', sans-serif; }
-.cmp-br-lab { fill: var(--brand-muted); font: 700 11px 'Manrope', 'Segoe UI', sans-serif; }
+.cmp-bridge ::deep svg { display: block; width: 100%; max-width: 640px; height: auto; }
+.cmp-bridge ::deep .cmp-bk-0 { fill: var(--el-water); background: var(--el-water); }
+.cmp-bridge ::deep .cmp-bk-1 { fill: var(--el-fire); background: var(--el-fire); }
+.cmp-bridge ::deep .cmp-bk-2 { fill: var(--el-earth); background: var(--el-earth); }
+.cmp-bridge ::deep .cmp-bk-3 { fill: var(--el-air); background: var(--el-air); }
+.cmp-bridge ::deep rect.cmp-br-down { fill-opacity: .5; stroke: currentColor; stroke-width: 1.5; stroke-dasharray: 4 3; }
+.cmp-bridge ::deep .cmp-bk-0 { color: var(--el-water); } .cmp-bridge ::deep .cmp-bk-1 { color: var(--el-fire); } .cmp-bridge ::deep .cmp-bk-2 { color: var(--el-earth); } .cmp-bridge ::deep .cmp-bk-3 { color: var(--el-air); }
+.cmp-bridge ::deep .cmp-br-total-good { fill: var(--status-strong); }
+.cmp-bridge ::deep .cmp-br-net { fill: var(--brand-midnight); }
+.cmp-bridge ::deep .cmp-br-key { display: inline-flex; align-items: center; gap: 5px; margin: 0 14px 4px 0; font-size: var(--font-size-support); }
+.cmp-bridge ::deep .cmp-br-key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.cmp-bridge ::deep .cmp-br-key i.cmp-br-down { opacity: .5; border: 1.5px dashed currentColor; }
+.cmp-bridge ::deep small { display: block; }
+.cmp-bridge ::deep .cmp-br-zero { stroke: var(--brand-midnight); stroke-width: 1; }
+.cmp-bridge ::deep .cmp-br-link { stroke: var(--brand-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.cmp-bridge ::deep .cmp-br-val { fill: var(--brand-midnight); font: 800 12px 'Manrope', 'Segoe UI', sans-serif; }
+.cmp-bridge ::deep .cmp-br-lab { fill: var(--brand-muted); font: 700 11px 'Manrope', 'Segoe UI', sans-serif; }
 .cmp-bridge figcaption { margin-top: 6px; font-size: var(--font-size-support); color: var(--brand-muted); }
 
 .cmp-grid { margin: 0 0 12px; }

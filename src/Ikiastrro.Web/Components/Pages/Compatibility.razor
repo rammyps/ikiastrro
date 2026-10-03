@@ -150,7 +150,16 @@ else
                 <span class="cmp-flag cmp-flag-open">? Unresolved</span>
                 Each line comes from the calculation it links to.@(MarriageApplies ? " The pass-mark line on the bar is the book's traditional threshold, not a verdict of this application." : "")
             </p>
-            @BridgeChart()
+            @if (BuildBridge() is { } bridge)
+            {
+                <figure class="cmp-bridge">
+                    <div role="img" aria-label="@bridge.Aria">@((MarkupString)bridge.Svg)</div>
+                    <figcaption>
+                        @((MarkupString)bridge.Legend)
+                        <small>Favourable findings add up bucket on bucket; the concerns then come off the total. A count of findings, not a score of the match.</small>
+                    </figcaption>
+                </figure>
+            }
             <div class="cmp-findings">
                 @foreach (var group in new[] { FindingKind.Good, FindingKind.Concern, FindingKind.Open })
                 {
@@ -1228,7 +1237,8 @@ else
         if (PrintMode && !_detailsOpened)
         {
             _detailsOpened = true;
-            await SetDetails(true);
+            try { await SetDetails(true); }
+            catch (JSException) { /* a cached older scroll.js lacks setDetails; the report still prints, details as they were */ }
         }
         var ids = NavSections().Select(n => n.Id).ToArray();
         var key = string.Join(",", ids);
@@ -1658,71 +1668,74 @@ else
 
     private static string PctText(int? p) => p is null ? "—" : $"{p}%";
 
-    // Bridge (waterfall) of the findings: each topic steps up by its favourable findings and down by its
-    // concerns, so the bars show where the weight sits. Counts of findings, never a score; unresolved
+    // Bridge (waterfall) of the findings. Favourable findings stack up bucket on bucket to a favourable
+    // total; the concerns then step down from that total, bucket by bucket, to the net. One colour per
+    // bucket; solid is favourable, faded is concern. Counts of findings, never a score; unresolved
     // findings are not plotted.
     private static readonly (string Target, string Label)[] BridgeTopics =
     [
         ("cmp-kuta", "Kuta"), ("cmp-dosha", "Doshas"), ("cmp-individual", "7th house"), ("cmp-saturn", "Saturn"),
     ];
 
-    private RenderFragment BridgeChart() => builder =>
+    private (string Svg, string Legend, string Aria)? BuildBridge()
     {
-        var steps = new List<(string Label, int Start, int End, bool Good)>();
+        // Kind: 0 bucket step up, 1 bucket step down, 2 total bar (from zero).
+        var steps = new List<(string Label, int Start, int End, int Bucket, int Kind)>();
         var running = 0;
-        foreach (var (target, label) in BridgeTopics)
+        for (var i = 0; i < BridgeTopics.Length; i++)
         {
-            var good = _findings.Count(f => f.Kind == FindingKind.Good && f.Target == target);
-            var concern = _findings.Count(f => f.Kind == FindingKind.Concern && f.Target == target);
-            if (good > 0) { steps.Add(($"{label} favourable", running, running + good, true)); running += good; }
-            if (concern > 0) { steps.Add(($"{label} concern", running, running - concern, false)); running -= concern; }
+            var good = _findings.Count(f => f.Kind == FindingKind.Good && f.Target == BridgeTopics[i].Target);
+            if (good == 0) continue;
+            steps.Add((BridgeTopics[i].Label, running, running + good, i, 0));
+            running += good;
         }
-        if (steps.Count == 0) return;
+        if (steps.Count == 0 && !_findings.Any(f => f.Kind == FindingKind.Concern)) return null;
+        var favourable = running;
+        steps.Add(("Favourable", 0, favourable, -1, 2));
+        for (var i = 0; i < BridgeTopics.Length; i++)
+        {
+            var concern = _findings.Count(f => f.Kind == FindingKind.Concern && f.Target == BridgeTopics[i].Target);
+            if (concern == 0) continue;
+            steps.Add((BridgeTopics[i].Label, running, running - concern, i, 1));
+            running -= concern;
+        }
+        steps.Add(("Net", 0, running, -2, 2));
 
         var lo = Math.Min(0, steps.Min(x => Math.Min(x.Start, x.End)));
         var hi = Math.Max(0, steps.Max(x => Math.Max(x.Start, x.End)));
-        const int colW = 76, barW = colW - 20, pad = 28, top = 18, plotH = 150, labelH = 46;
-        var width = pad * 2 + (steps.Count + 1) * colW;
+        const int colW = 78, barW = 54, pad = 20, top = 22, plotH = 170, labelH = 34;
+        var width = pad * 2 + steps.Count * colW;
         double Y(int v) => top + (hi - v) * (double)plotH / Math.Max(1, hi - lo);
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         string N(double d) => d.ToString("0.#", inv);
-        string Sgn(int d) => d > 0 ? "+" + d : d < 0 ? "−" + Math.Abs(d) : "0";
+        string Sgn(int d) => d > 0 ? "+" + d : d < 0 ? "\u2212" + Math.Abs(d) : "0";
 
         var markup = new System.Text.StringBuilder();
         markup.Append($"<line class=\"cmp-br-zero\" x1=\"{pad / 2}\" x2=\"{width - pad / 2}\" y1=\"{N(Y(0))}\" y2=\"{N(Y(0))}\"/>");
         for (var i = 0; i < steps.Count; i++)
         {
-            var (label, start, end, good) = steps[i];
-            var x = pad + i * colW + 10;
-            var top1 = Y(Math.Max(start, end));
+            var (label, start, end, bucket, kind) = steps[i];
+            var x = pad + i * colW + (colW - barW) / 2;
+            var yTop = Y(Math.Max(start, end));
             var h = Math.Max(2, Math.Abs(Y(start) - Y(end)));
-            var words = label.Split(' ');
-            markup.Append($"<rect class=\"cmp-br-{(good ? "good" : "concern")}\" x=\"{x}\" y=\"{N(top1)}\" width=\"{barW}\" height=\"{N(h)}\" rx=\"3\"><title>{System.Net.WebUtility.HtmlEncode(label)}: {Sgn(end - start)}</title></rect>");
-            markup.Append($"<text class=\"cmp-br-val\" x=\"{x + barW / 2}\" y=\"{N(top1 - 4)}\" text-anchor=\"middle\">{Sgn(end - start)}</text>");
-            markup.Append($"<line class=\"cmp-br-link\" x1=\"{x + barW}\" x2=\"{x + colW}\" y1=\"{N(Y(end))}\" y2=\"{N(Y(end))}\"/>");
-            markup.Append($"<text class=\"cmp-br-lab\" x=\"{x + barW / 2}\" y=\"{top + plotH + 16}\" text-anchor=\"middle\"><tspan x=\"{x + barW / 2}\">{words[0]}</tspan><tspan x=\"{x + barW / 2}\" dy=\"14\">{string.Join(' ', words.Skip(1))}</tspan></text>");
+            var cls = kind == 2 ? (bucket == -1 ? "cmp-br-total-good" : "cmp-br-net") : $"cmp-bk-{bucket}" + (kind == 1 ? " cmp-br-down" : "");
+            var delta = kind == 2 ? end : end - start;
+            markup.Append($"<rect class=\"{cls}\" x=\"{x}\" y=\"{N(yTop)}\" width=\"{barW}\" height=\"{N(h)}\" rx=\"3\"><title>{System.Net.WebUtility.HtmlEncode(label)}{(kind == 1 ? " concerns" : kind == 0 ? " favourable" : "")}: {Sgn(delta)}</title></rect>");
+            markup.Append($"<text class=\"cmp-br-val\" x=\"{x + barW / 2}\" y=\"{N(yTop - 5)}\" text-anchor=\"middle\">{(kind == 2 ? end.ToString() : Sgn(delta))}</text>");
+            // The bar's far edge carries on to the next bar so the steps read as one bridge.
+            if (i < steps.Count - 1)
+                markup.Append($"<line class=\"cmp-br-link\" x1=\"{x + barW}\" x2=\"{x + colW}\" y1=\"{N(Y(end))}\" y2=\"{N(Y(end))}\"/>");
+            markup.Append($"<text class=\"cmp-br-lab\" x=\"{x + barW / 2}\" y=\"{top + plotH + 16}\" text-anchor=\"middle\">{System.Net.WebUtility.HtmlEncode(label)}</text>");
         }
-        var nx = pad + steps.Count * colW + 10;
-        var netTop = Y(Math.Max(0, running));
-        var netH = Math.Max(2, Math.Abs(Y(0) - Y(running)));
-        markup.Append($"<rect class=\"cmp-br-net\" x=\"{nx}\" y=\"{N(netTop)}\" width=\"{barW}\" height=\"{N(netH)}\" rx=\"3\"><title>Net: {Sgn(running)}</title></rect>");
-        markup.Append($"<text class=\"cmp-br-val\" x=\"{nx + barW / 2}\" y=\"{N(netTop - 4)}\" text-anchor=\"middle\">{Sgn(running)}</text>");
-        markup.Append($"<text class=\"cmp-br-lab\" x=\"{nx + barW / 2}\" y=\"{top + plotH + 16}\" text-anchor=\"middle\">Net</text>");
 
-        var seq = 0;
-        builder.OpenElement(seq++, "figure");
-        builder.AddAttribute(seq++, "class", "cmp-bridge");
-        builder.OpenElement(seq++, "svg");
-        builder.AddAttribute(seq++, "viewBox", $"0 0 {width} {top + plotH + labelH}");
-        builder.AddAttribute(seq++, "role", "img");
-        builder.AddAttribute(seq++, "aria-label", $"Bridge chart of the findings: {steps.Count(x => x.Good)} favourable steps up, {steps.Count(x => !x.Good)} concern steps down, ending at a net of {running}.");
-        builder.AddMarkupContent(seq++, markup.ToString());
-        builder.CloseElement();
-        builder.OpenElement(seq++, "figcaption");
-        builder.AddContent(seq++, "Each bar counts the findings listed below: green steps up for favourable, red steps down for concerns. It is a count of findings, not a score of the match.");
-        builder.CloseElement();
-        builder.CloseElement();
-    };
+        var legend = new System.Text.StringBuilder();
+        for (var i = 0; i < BridgeTopics.Length; i++)
+            legend.Append($"<span class=\"cmp-br-key\"><i class=\"cmp-bk-{i}\"></i>{BridgeTopics[i].Label}</span>");
+        legend.Append("<span class=\"cmp-br-key\"><i class=\"cmp-bk-0 cmp-br-down\"></i>faded = concerns</span>");
+        var svg = $"<svg viewBox=\"0 0 {width} {top + plotH + labelH}\" aria-hidden=\"true\">{markup}</svg>";
+        return (svg, legend.ToString(),
+            $"Bridge chart of the findings: {favourable} favourable findings stack up, the concerns step down, and the net is {running}.");
+    }
 
     private RenderFragment MarsCard(string role, string name, DoshaReading r) => @<div class="cmp-person">
         <span class="cmp-role">@role</span>
