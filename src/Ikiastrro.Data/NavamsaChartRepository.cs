@@ -11,7 +11,7 @@ public sealed class NavamsaChartRepository
     private readonly SqlConnectionFactory _connectionFactory;
     public NavamsaChartRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
 
-    private sealed record Row(string ChartType, string Planet, string Sign, int? HouseNumberFromLagna, string? DignityStatus, string? CharaKaraka);
+    private sealed record Row(string ChartType, string Planet, string Sign, byte? HouseNumberFromLagna, string? DignityStatus, string? CharaKaraka);
 
     /// <summary>Null when the person lacks a stored D1 or D9 Ascendant or any of the nine grahas in either chart.</summary>
     public NavamsaChart? GetByBirthDetailId(int birthDetailId)
@@ -38,7 +38,7 @@ public sealed class NavamsaChartRepository
                 if (isD1) d1Lagna = sign; else d9Lagna = sign;
                 continue;
             }
-            if (!Enum.TryParse<PlanetName>(r.Planet, out var planet) || r.HouseNumberFromLagna is not int house) continue;
+            if (!Enum.TryParse<PlanetName>(r.Planet, out var planet) || r.HouseNumberFromLagna is not byte house) continue;
             if (isD1)
             {
                 d1[planet] = sign;
