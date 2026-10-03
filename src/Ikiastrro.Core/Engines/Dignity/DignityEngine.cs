@@ -210,6 +210,17 @@ public static class DignityEngine
         return CombineToPanchadha(naturalFriend, naturalEnemy, temporaryFriend);
     }
 
+    /// <summary>How <paramref name="planet"/> regards <paramref name="other"/> by Naisargika Maitri alone
+    /// ("Friend", "Neutral" or "Enemy"), asymmetric per BPHS. Null for the nodes, which the table
+    /// does not cover. Used by matching's Grahamaitra, which reads permanent friendship only.</summary>
+    public static string? NaturalAttitude(string planet, string other)
+    {
+        if (!NaturalRelationship.TryGetValue(planet, out var relationship)) return null;
+        if (relationship.Friends.Contains(other)) return "Friend";
+        if (relationship.Enemies.Contains(other)) return "Enemy";
+        return "Neutral";
+    }
+
     private static bool IsPvrExaltationSegment(string planet, double? degreeInSign) =>
         degreeInSign is null || planet switch
         {
