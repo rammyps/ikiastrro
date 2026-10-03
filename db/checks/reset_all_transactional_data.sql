@@ -66,6 +66,11 @@ IF OBJECT_ID('dbo.tbl_Fact_StatisticalComparisons', 'U') IS NOT NULL
 IF OBJECT_ID('dbo.tbl_Dim_AnalyticsSubjects', 'U') IS NOT NULL
     DELETE FROM dbo.tbl_Dim_AnalyticsSubjects;
 
+-- Family relationships (db/168): both person columns FK tbl_BirthDetails, so these rows must go
+-- before the people do (this missing delete made the reset fail on the FK, 2026-10-04).
+IF OBJECT_ID('dbo.tbl_Person_Relationship', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Person_Relationship;
+
 -------------------------------------------------------------------------------------------------
 -- 2. tbl_Chart_* (children of tbl_ChartResults)
 -------------------------------------------------------------------------------------------------
@@ -130,6 +135,8 @@ IF OBJECT_ID('dbo.tbl_Fact_StatisticalComparisons', 'U') IS NOT NULL
     DBCC CHECKIDENT ('dbo.tbl_Fact_StatisticalComparisons', RESEED, 0);
 IF OBJECT_ID('dbo.tbl_Dim_AnalyticsSubjects', 'U') IS NOT NULL
     DBCC CHECKIDENT ('dbo.tbl_Dim_AnalyticsSubjects', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Person_Relationship', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Person_Relationship', RESEED, 0);
 
 DBCC CHECKIDENT ('dbo.tbl_Chart_Conjunctions', RESEED, 0);
 DBCC CHECKIDENT ('dbo.tbl_Chart_MultiGrahaConjunctionMember', RESEED, 0);
