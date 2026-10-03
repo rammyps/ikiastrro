@@ -329,3 +329,9 @@ Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 
 - Life matters: marriage: the Key Inference "Marriage" area read from Lagna in D1 (`MarriageMattersReader`, same `LifeMatterStatistics`), no new rule.
 - Helps and hinders: PVR step 5 (Ch. 13) via `TargetInfluences` on the 7th house of each person's own chart. A planet in a quadrant, trine or upachaya from the 7th supports it; in a dusthana from it, as its badhaka, or in the badhaka sign obstructs it; both gives Mixed. The 7th lord and the Darakaraka add Favourable, Concern or Unresolved findings. Nothing classifies how one person's karakas help or hinder the other: no source is cited.
 
+
+### 10.9 Print module (2026-10-04)
+
+- Saved Charts' Print picker (`PrintModuleDialog`) gains a "Compatibility" group: one option per recorded spouse of the person being printed ("With X (wife)"), ticked by default; the group is hidden when no spouse is recorded. The URL carries the partner ids as `cp=` (`/print/{id}?af=...&ki=...&cp=12`).
+- `PrintReport` renders each ticked partner as a sheet: a "Compatibility" heading band, then `<Compatibility Id PrintPartner>`. Print mode drops the controls, jump nav and History and notes card, lays out every per-person tab in turn (instead of one tab at a time) and opens every detail; the page's own print rules still apply.
+- Other pairs (siblings, parent and child) are not offered yet; the page itself prints any pair with `PrintPartner`.

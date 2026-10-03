@@ -398,3 +398,5 @@
 .cmp-bridge figcaption { margin-top: 6px; font-size: var(--font-size-support); color: var(--brand-muted); }
 
 .cmp-grid { margin: 0 0 12px; }
+
+.cmp-print-tab { margin: 14px 0 6px; font-size: var(--font-size-heading); text-transform: uppercase; break-after: avoid; }

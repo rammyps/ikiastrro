@@ -2,6 +2,7 @@
 @using System.Globalization
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject LifeMatterReferenceRepository LifeMatterReferenceRepo
+@inject BirthDetailsRepository PartnerRepo
 @inject Microsoft.JSInterop.IJSRuntime JS
 
 @* Print report (rammyps, 2026-10-02) — opened in a new tab from Saved Charts' Print picker
@@ -29,6 +30,7 @@ else
                 <p class="pr-contents">
                     @if (_astroFacts.Count > 0) { <span><b>Astro Facts</b> @Labels(PrintModules.AstroFacts, _astroFacts)</span> }
                     @if (_keyInference.Count > 0) { <span><b>Key Inference</b> @Labels(_keyInferenceCatalog, _keyInference)</span> }
+                    @if (_partners.Count > 0) { <span><b>Compatibility</b> @string.Join(" · ", _partners.Select(p => $"with {p.Name}"))</span> }
                 </p>
                 <p class="pr-generated">Printed @DateTime.Now.ToString("d MMM yyyy, HH:mm", CultureInfo.InvariantCulture)</p>
             </div>
@@ -43,6 +45,13 @@ else
         {
             <KeyInference Id="Id" PrintModules="_keyInference" />
         }
+        @foreach (var partner in _partners)
+        {
+            <section class="pr-ki-sec">
+                <h2 class="pr-modhead"><span>Compatibility</span>@_person.Name &amp; @partner.Name</h2>
+                <Compatibility Id="Id" PrintPartner="partner.Id" />
+            </section>
+        }
     </div>
 }
 
@@ -52,6 +61,10 @@ else
     [Parameter] public int Id { get; set; }
     [SupplyParameterFromQuery(Name = "af")] public string? AstroFactsList { get; set; }
     [SupplyParameterFromQuery(Name = "ki")] public string? KeyInferenceList { get; set; }
+    /// <summary>Partner ids to compare the printed person with (print picker's Compatibility group).</summary>
+    [SupplyParameterFromQuery(Name = "cp")] public string? CompatibilityList { get; set; }
+
+    private IReadOnlyList<BirthDetails> _partners = [];
 
     private BirthDetails? _person;
     private IReadOnlySet<string> _astroFacts = new HashSet<string>();
@@ -63,6 +76,9 @@ else
         _person = BirthDetailsRepo.GetById(Id);
         _astroFacts = PrintModules.Parse(AstroFactsList);
         _keyInference = PrintModules.Parse(KeyInferenceList);
+        _partners = PrintModules.Parse(CompatibilityList)
+            .Select(c => int.TryParse(c, out var id) && id != Id ? PartnerRepo.GetById(id) : null)
+            .Where(b => b is not null).Select(b => b!).ToList();
         _keyInferenceCatalog =
         PrintModules.KeyInference(LifeMatterReferenceRepo.GetCategories(1));
     }
@@ -70,7 +86,7 @@ else
     // Opens the print dialog once, after the modules have rendered and the fonts have loaded.
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && _person is not null && _astroFacts.Count + _keyInference.Count > 0)
+        if (firstRender && _person is not null && _astroFacts.Count + _keyInference.Count + _partners.Count > 0)
             await PrintAsync();
     }
 

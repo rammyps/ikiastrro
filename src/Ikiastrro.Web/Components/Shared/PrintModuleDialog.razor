@@ -9,12 +9,16 @@
         <div class="pmd-groups">
             @Group("Astro Facts", PrintModules.AstroFacts, _astroFacts)
             @Group("Key Inference", KeyInference, _keyInference)
+            @if (Compatibility.Count > 0)
+            {
+                @Group("Compatibility", Compatibility, _compatibility)
+            }
         </div>
 
         <div class="pmd-actions">
-            <span class="pmd-count">@(_astroFacts.Count + _keyInference.Count) selected</span>
+            <span class="pmd-count">@(_astroFacts.Count + _keyInference.Count + _compatibility.Count) selected</span>
             <button type="button" class="pmd-cancel" @onclick="Cancel">Cancel</button>
-            <button type="button" class="pmd-print" disabled="@(_astroFacts.Count + _keyInference.Count == 0)" @onclick="Print">Print</button>
+            <button type="button" class="pmd-print" disabled="@(_astroFacts.Count + _keyInference.Count + _compatibility.Count == 0)" @onclick="Print">Print</button>
         </div>
     </div>
 </div>
@@ -24,16 +28,20 @@
     /// <summary>Foundation plus one module per life area.</summary>
     [Parameter, EditorRequired] public IReadOnlyList<PrintModule> KeyInference { get; set; } = [];
     /// <summary>The ticked Astro Facts and Key Inference codes, in catalog order.</summary>
-    [Parameter] public EventCallback<(IReadOnlyList<string> AstroFacts, IReadOnlyList<string> KeyInference)> OnPrint { get; set; }
+    /// <summary>One module per partner to compare the person with (code = partner id); none hides the group.</summary>
+    [Parameter] public IReadOnlyList<PrintModule> Compatibility { get; set; } = [];
+    [Parameter] public EventCallback<(IReadOnlyList<string> AstroFacts, IReadOnlyList<string> KeyInference, IReadOnlyList<string> Compatibility)> OnPrint { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
 
     private readonly HashSet<string> _astroFacts = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _keyInference = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _compatibility = new(StringComparer.OrdinalIgnoreCase);
 
     protected override void OnInitialized()
     {
         _astroFacts.UnionWith(PrintModules.AstroFacts.Select(m => m.Code));
         _keyInference.UnionWith(KeyInference.Select(m => m.Code));
+        _compatibility.UnionWith(Compatibility.Select(m => m.Code));
     }
 
     private RenderFragment Group(string title, IReadOnlyList<PrintModule> modules, HashSet<string> picked) =>
@@ -55,7 +63,8 @@
 
     private Task Print() => OnPrint.InvokeAsync((
         PrintModules.AstroFacts.Select(m => m.Code).Where(_astroFacts.Contains).ToList(),
-        KeyInference.Select(m => m.Code).Where(_keyInference.Contains).ToList()));
+        KeyInference.Select(m => m.Code).Where(_keyInference.Contains).ToList(),
+        Compatibility.Select(m => m.Code).Where(_compatibility.Contains).ToList()));
 
     private Task Cancel() => OnCancel.InvokeAsync();
 

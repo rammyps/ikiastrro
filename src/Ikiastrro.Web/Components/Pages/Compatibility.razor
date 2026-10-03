@@ -37,6 +37,8 @@
 }
 else
 {
+    @if (!PrintMode)
+    {
     <h1 class="cmp-heading">COMPATIBILITY</h1>
 
     <section class="cmp-controls" aria-label="Choose the partner">
@@ -50,6 +52,7 @@ else
             </select>
         </label>
     </section>
+    }
 
     @if (_notice is not null)
     {
@@ -124,6 +127,8 @@ else
             @PersonPanel(Bride!, BrideLabel, _chartBride, false)
         </section>
 
+        @if (!PrintMode)
+        {
         <nav class="cmp-nav" id="cmp-nav" aria-label="Sections on this page">
             @foreach (var (id, label) in NavSections())
             {
@@ -134,6 +139,7 @@ else
                 <button type="button" class="cmp-navlink" @onclick="() => SetDetails(false)">Collapse all</button>
             </span>
         </nav>
+        }
 
         <section class="cmp-summary" aria-labelledby="cmp-summary">
             <h2 class="cmp-summary-head" id="cmp-summary" tabindex="-1">Summary of findings</h2>
@@ -172,6 +178,19 @@ else
 
         <section class="cmp-duo" id="cmp-individual" tabindex="-1" aria-label="Each person's own facts">
             <span id="cmp-d9"></span>
+            @if (PrintMode)
+            {
+                @foreach (var (tabId, tabLabel) in SideTabs())
+                {
+                    <h3 class="cmp-print-tab">@tabLabel</h3>
+                    <div class="cmp-duo-grid">
+                        @SideFacts(true, tabId)
+                        @SideFacts(false, tabId)
+                    </div>
+                }
+            }
+            else
+            {
             <div class="cmp-tabs" role="tablist" aria-label="Facts about each person">
                 @foreach (var (id, label) in SideTabs())
                 {
@@ -182,6 +201,7 @@ else
                 @SideFacts(true)
                 @SideFacts(false)
             </div>
+            }
         </section>
 
         <h2 class="cmp-duo-title cmp-together-title" id="cmp-together" tabindex="-1">The two together</h2>
@@ -553,6 +573,8 @@ else
             </article>
         }
 
+        @if (!PrintMode)
+        {
         <article class="cmp-card">
             <header class="cmp-card-head">
                 <h2 id="cmp-history" tabindex="-1">History and notes</h2>
@@ -649,6 +671,7 @@ else
                 <p class="cmp-copystatus" role="status" aria-live="polite">@_historyMsg</p>
             </div>
         </article>
+        }
 
         <article class="cmp-card">
             <header class="cmp-card-head">
@@ -695,6 +718,13 @@ else
     /// <summary>Optional partner to open the pair directly: /compatibility/5?with=6.</summary>
     [SupplyParameterFromQuery(Name = "with")] public int? With { get; set; }
 
+    /// <summary>Print mode (PrintReport.razor, Saved Charts' Print picker): the comparison with this
+    /// partner as a static report: no controls, jump nav or history form, every tab laid out in turn,
+    /// every detail opened.</summary>
+    [Parameter] public int? PrintPartner { get; set; }
+    private bool PrintMode => PrintPartner is not null;
+    private bool _detailsOpened;
+
     private BirthDetails? _person;
     private IReadOnlyList<BirthDetails> _others = [];
     private MatchPersonSnapshot? _me;
@@ -722,11 +752,15 @@ else
             return;
         }
 
-        Active.Set(Id, _person.Name,
-            $"{_person.DateOfBirth:dd MMM yyyy} · {_person.TimeOfBirth:HH\\:mm} · {_person.PlaceCity}, {_person.PlaceCountry}");
-        Active.SetHeaderExtra(null);
+        if (!PrintMode)
+        {
+            Active.Set(Id, _person.Name,
+                $"{_person.DateOfBirth:dd MMM yyyy} · {_person.TimeOfBirth:HH\\:mm} · {_person.PlaceCity}, {_person.PlaceCountry}");
+            Active.SetHeaderExtra(null);
+        }
 
-        if (With is int requested && requested != Id) _partnerId = requested;
+        if (PrintPartner is int printPartner) _partnerId = printPartner;
+        else if (With is int requested && requested != Id) _partnerId = requested;
         if (_partnerId == Id) _partnerId = 0;
         _others = BirthDetailsRepo.GetAll().Where(p => p.Id != Id).OrderBy(p => p.Name).ToList();
         _me = MatchPersonRepo.GetByBirthDetailId(Id);
@@ -1191,6 +1225,11 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_result is null) return;
+        if (PrintMode && !_detailsOpened)
+        {
+            _detailsOpened = true;
+            await SetDetails(true);
+        }
         var ids = NavSections().Select(n => n.Id).ToArray();
         var key = string.Join(",", ids);
         if (key == _spyKey) return;
@@ -1428,7 +1467,7 @@ else
         return rows;
     }
 
-    private RenderFragment SideFacts(bool left) => @<div class="cmp-side cmp-side-@(left ? "left" : "right")">
+    private RenderFragment SideFacts(bool left, string? tabOverride = null) => @<div class="cmp-side cmp-side-@(left ? "left" : "right")">
         @{
             var m = left ? Groom! : Bride!;
             var dosha = left ? _doshaGroom : _doshaBride;
@@ -1437,7 +1476,7 @@ else
             var lords = LordFactRows().Where(r => r.Person == m.Name).ToList();
             var karakas = left ? _karakaGroom : _karakaBride;
             var marriage = left ? _marriageGroom : _marriageBride;
-            var tab = ActiveSideTab;
+            var tab = tabOverride ?? ActiveSideTab;
             var grids = left ? _gridsGroom : _gridsBride;
         }
         <article class="cmp-card">

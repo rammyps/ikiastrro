@@ -32,8 +32,17 @@ public static class PrintModules
         .. areas.Select(a => new PrintModule(a.CategoryCode, LifeMatters.LifeMatterQuestions.AreaLabel(a.CategoryCode, a.CategoryName))),
     ];
 
-    public static string Url(int personId, IEnumerable<string> astroFacts, IEnumerable<string> keyInference) =>
-        $"/print/{personId}?af={Uri.EscapeDataString(string.Join(',', astroFacts))}&ki={Uri.EscapeDataString(string.Join(',', keyInference))}";
+    /// <summary>Compatibility modules: one per partner, the code being the partner's saved-person id.
+    /// Offered for the person's recorded spouse(s); the report compares the printed person with each.</summary>
+    public static PrintModule Partner(int partnerId, string name) => new(partnerId.ToString(), name);
+
+    public static string Url(int personId, IEnumerable<string> astroFacts, IEnumerable<string> keyInference,
+        IEnumerable<string>? compatibility = null)
+    {
+        var url = $"/print/{personId}?af={Uri.EscapeDataString(string.Join(',', astroFacts))}&ki={Uri.EscapeDataString(string.Join(',', keyInference))}";
+        var cp = string.Join(',', compatibility ?? []);
+        return cp.Length == 0 ? url : $"{url}&cp={Uri.EscapeDataString(cp)}";
+    }
 
     /// <summary>A comma list from the URL; null or blank means none.</summary>
     public static IReadOnlySet<string> Parse(string? list) =>

@@ -14,6 +14,7 @@
 @inject Microsoft.JSInterop.IJSRuntime JS
 @inject ActivePerson Active
 @inject LifeMatterReferenceRepository LifeMatterReferenceRepo
+@inject FamilyRepository FamilyRepo
 @inject Ikiastrro.Data.Statistics.AnalyticsSubjectRepository AnalyticsSubjectRepo
 
 <PageTitle>Saved Charts — ikiastrro</PageTitle>
@@ -160,7 +161,7 @@
 @if (_pendingPrint is not null)
 {
     <PrintModuleDialog PersonName="@_pendingPrint.Person.Name" KeyInference="_keyInferenceModules"
-                       OnPrint="OpenPrint" OnCancel="() => _pendingPrint = null" />
+                       Compatibility="_compatibilityModules" OnPrint="OpenPrint" OnCancel="() => _pendingPrint = null" />
 }
 
 @if (_edit is not null)
@@ -451,6 +452,7 @@
     // --- print ---
     private Row? _pendingPrint;
     private IReadOnlyList<PrintModule> _keyInferenceModules = [];
+    private IReadOnlyList<PrintModule> _compatibilityModules = [];
 
     /// <summary>Print opens the module picker (PrintModuleDialog) rather than printing straight
     /// away (rammyps, 2026-10-02): the report holds any Astro Facts tabs and Key Inference
@@ -459,15 +461,20 @@
     {
         _keyInferenceModules =
         PrintModules.KeyInference(LifeMatterReferenceRepo.GetCategories(1));
+        // Compatibility: the person's recorded spouse(s), ticked by default.
+        _compatibilityModules = FamilyRepo.GetFor(r.Person.Id)
+            .Where(f => f.Role is "Wife" or "Husband")
+            .Select(f => PrintModules.Partner(f.RelativeId, $"With {f.RelativeName} ({f.Role.ToLowerInvariant()})"))
+            .ToList();
         _pendingPrint = r;
     }
 
     /// <summary>The report opens in a new tab and prints itself once rendered (PrintReport.razor).</summary>
-    private async Task OpenPrint((IReadOnlyList<string> AstroFacts, IReadOnlyList<string> KeyInference) picked)
+    private async Task OpenPrint((IReadOnlyList<string> AstroFacts, IReadOnlyList<string> KeyInference, IReadOnlyList<string> Compatibility) picked)
     {
         var id = _pendingPrint!.Person.Id;
         _pendingPrint = null;
-        await JS.InvokeVoidAsync("open", PrintModules.Url(id, picked.AstroFacts, picked.KeyInference), "_blank");
+        await JS.InvokeVoidAsync("open", PrintModules.Url(id, picked.AstroFacts, picked.KeyInference, picked.Compatibility), "_blank");
     }
 
     private async Task HandleCsvSelected(InputFileChangeEventArgs e)
