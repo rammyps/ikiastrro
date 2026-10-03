@@ -40,6 +40,8 @@ builder.Services.AddScoped<KpSubLordChainRepository>();
 builder.Services.AddScoped<ArgalaFactRepository>();
 builder.Services.AddScoped<Ikiastrro.Data.Statistics.HouseStrengthStatisticsRepository>();
 builder.Services.AddScoped<Ikiastrro.Data.Statistics.HouseStrengthStatisticsService>();
+builder.Services.AddScoped<Ikiastrro.Data.Statistics.PopulationEvidenceRepository>();
+builder.Services.AddScoped<Ikiastrro.Data.Statistics.AnalyticsSubjectRepository>();
 builder.Services.AddScoped<GrahaDrishtiStrengthRepository>();
 builder.Services.AddScoped<PanchangaRepository>();
 builder.Services.AddScoped<MatchPersonRepository>();

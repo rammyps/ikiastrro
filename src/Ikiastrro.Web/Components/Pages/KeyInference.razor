@@ -31,6 +31,7 @@
 @inject AshtakavargaRepository AshtakavargaRepo
 @inject AmsabalaRepository AmsabalaRepo
 @inject ArgalaFactRepository ArgalaFactRepo
+@inject Ikiastrro.Data.Statistics.PopulationEvidenceRepository PopulationEvidenceRepo
 @inject InterpretationRepository InterpretationRepo
 @inject ActivePerson Active
 @inject NavigationManager Nav
@@ -251,6 +252,43 @@ else
                         }
                     </div>
                 }
+
+                <section class="lm-population" aria-label="Population comparison">
+                    <div class="lm-population-head">
+                        <span class="lm-kicker">@PopulationEvidenceText.Heading(_populationEvidence)</span>
+                        <span class="lm-population-count">@_populationEvidence.EligiblePeople eligible people</span>
+                    </div>
+                    @if (!_populationEvidence.IsAvailable)
+                    {
+                        <p class="lm-note">@PopulationEvidenceText.Message(_populationEvidence)</p>
+                    }
+                    else
+                    {
+                        var populationRows = PopulationRows(d1Read);
+                        @if (populationRows.Count == 0)
+                        {
+                            <p class="lm-note">No compatible D1 house comparison is available for this question.</p>
+                        }
+                        else
+                        {
+                            <div class="lm-population-grid">
+                                @foreach (var comparison in populationRows)
+                                {
+                                    <article>
+                                        <span>House @comparison.HouseFromLagna · overall support</span>
+                                        <b>@PopulationEvidenceText.Percentile(comparison.Percentile)</b>
+                                        <small>@PopulationEvidenceText.Sufficiency(comparison) · median @(comparison.ReferenceMedian?.ToString("0.#") ?? "—")% · @comparison.MeasuredCount measured</small>
+                                    </article>
+                                }
+                            </div>
+                        }
+                    }
+                    <p class="lm-population-note">Compares the D1 house's lord-only chart strength with compatible saved charts. It is not an outcome probability.</p>
+                    @if (_populationEvidence.CompletedAtUtc is { } completed)
+                    {
+                        <p class="lm-population-provenance">Dataset @_populationEvidence.DatasetCode v@_populationEvidence.DatasetVersion · feature @_populationEvidence.FeatureContractVersion · rule set @_populationEvidence.RuleSetId · run @_populationEvidence.AnalyticsRunId · @completed.ToString("dd MMM yyyy") UTC</p>
+                    }
+                </section>
 
                 <dl class="lm-compare">
                     <div>
@@ -737,6 +775,8 @@ else
         new Dictionary<(byte, byte), PostureStateInterpretationRow>();
     private IReadOnlyList<ShadbalaSummaryRow> _shadbala = [];
     private IReadOnlyList<FoundationItem> _foundation = [];
+    private Ikiastrro.Data.Statistics.PopulationEvidenceSnapshot _populationEvidence =
+        new("NOT_ENROLLED", null, null, 0, null, null, null, null, null, null, []);
 
     // Sourced rationale for a matter's special-lagna Focus row, tbl_Content_Interpretation
     // SubjectType 'LIFE_MATTER_FOCUS' keyed '{LifeMatterCode}_{ReferenceCode}' (db/153). Seeded so
@@ -804,6 +844,7 @@ else
         _postureInterpretations = PostureStateInterpretationRepo.GetByRuleSet(avasthaRuleSetId);
         _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
         _foundation = LifeMatterFoundation.Build(_data.Charts["D1"], _shadbala);
+        _populationEvidence = PopulationEvidenceRepo.GetLatestForBirthDetail(Id);
         _ashtakavarga = AshtakavargaRepo.GetByBirthDetailId(Id);
         _bhavaBala = BhavaStrengthRepo.GetSummaryByBirthDetailId(Id);
         _bhavaComponents = BhavaStrengthRepo.GetComponentsByBirthDetailId(Id);
@@ -1436,6 +1477,17 @@ else
     // One axis (0 Capacity, 1 Consistency, 2 Context) averaged over a read's houses.
     private static int? Axis(SubRead? read, int axis) =>
         read is null ? null : LifeMatterStatistics.Mean(read.Items.Select(i => i.Stats.Axes[axis]));
+
+    private IReadOnlyList<Ikiastrro.Data.Statistics.PopulationComparison> PopulationRows(SubRead? d1Read)
+    {
+        if (d1Read is null) return [];
+        var houses = d1Read.Items.Select(item => item.Stats.HouseFromLagna).ToHashSet();
+        return _populationEvidence.Comparisons
+            .Where(row => row.FeatureCode is "KI_D1_HOUSE_SUPPORT_V1" or "KI_D1_HOUSE_SUPPORT_V2"
+                && houses.Contains(row.HouseFromLagna))
+            .OrderBy(row => row.HouseFromLagna)
+            .ToList();
+    }
 
     private static RenderFragment Factor(StrengthFactor f) =>
         @<span class="lm-factor">@Pct(f.Percent, f.Technical)<span><b>@f.Name</b> <span class="lm-muted">@f.Detail</span><span class="lm-tech">@f.Technical</span></span></span>;
