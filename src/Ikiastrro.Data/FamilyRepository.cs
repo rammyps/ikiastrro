@@ -16,7 +16,7 @@ public sealed class FamilyRepository
     private readonly SqlConnectionFactory _connectionFactory;
     public FamilyRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
 
-    /// <summary>Every relative of the person, core family first, then by role and name.</summary>
+    /// <summary>Every relative of the person, Core first, then Extended, then Lateral, then by role and name.</summary>
     public IReadOnlyList<FamilyMember> GetFor(int personId)
     {
         using var connection = _connectionFactory.CreateOpenConnection();
@@ -24,7 +24,7 @@ public sealed class FamilyRepository
             SELECT RelativeId, RelativeName, RelativeSex, Role, Tier, IsAdopted, IsStep, Status
             FROM dbo.vw_PersonFamily
             WHERE PersonId = @PersonId
-            ORDER BY CASE Tier WHEN 'Core' THEN 0 ELSE 1 END, Role, RelativeName
+            ORDER BY CASE Tier WHEN 'Core' THEN 0 WHEN 'Extended' THEN 1 ELSE 2 END, Role, RelativeName
             """, new { PersonId = personId }).ToList();
     }
 
