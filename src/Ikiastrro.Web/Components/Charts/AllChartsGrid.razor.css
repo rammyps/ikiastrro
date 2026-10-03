@@ -99,6 +99,7 @@
 
 /* trim SindUniDtlGrid's heavy parchment framing for a gallery card */
 .ac-card-grid ::deep .chart {
+    width: 100%;
     max-width: none;
     border-width: 1.5px;
     box-shadow: none;

@@ -9,8 +9,8 @@
 
 .chart {
     container-type: inline-size;
-    width: 100%;
-    max-width: 480px;
+    width: 480px;
+    max-width: 100%;
     margin-inline: auto;
     aspect-ratio: 1;
     display: grid;
@@ -63,3 +63,6 @@
 /* Special-point labels (AL / A2..A12 / HL / Gk / Md), a small wrap strip under the sign name. */
 .special-labels { display: flex; flex-wrap: wrap; gap: 0.4cqi; }
 .special-label { font-size: 1.7cqi; color: var(--accent); border: 1px solid var(--accent-line); border-radius: 2px; padding: 0 0.5cqi; line-height: 1.3; }
+
+/* Gallery cards: little room, so only the house from Lagna is shown. */
+.compact .house-num.from-moon { display: none; }
