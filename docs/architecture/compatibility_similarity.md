@@ -175,3 +175,44 @@ Steps 6 and 7 can run in parallel with step 3 once step 1 is done. Feature work 
 4. Schemes: Ashtakoota only first, or both Ashtakoota and Dasakoota.
 5. Sources: Vasudev for the kuta matrices, and which second source for the dosha rules.
 6. Scope of "kids" in v1: birth order, adopted and step flags and life events are included. Per-child notes or putra-bhava prediction versus actual children are not.
+
+## 8. Build log
+
+### 8.1 Slice 1 (2026-10-03): Ashtakoota calculator in Core
+
+Branch `workstream/cli` (worktree `ikiastrro.wt/cli`), uncommitted at the time of writing.
+
+- `Core/Engines/Matching/AshtakootaCalculator.cs` with `KutaModels.cs`: a pure calculator over a `MatchPerson` (Moon sign, nakshatra number, Gana, Yoni animal, Nadi). Gana, Yoni and Nadi stay inputs read from `tbl_Nakshatras` (migration 098), so the stored table is the single source.
+- `DignityEngine.NaturalAttitude(planet, other)`: a small public accessor over the existing natural-friendship table, for Grahamaitra.
+- `tests/Ikiastrro.Yoga.Tests/AshtakootaCalculatorTests.cs`: 43 tests built from the book's own examples, all passing. The suite is 473/473.
+- No database or UI changes yet. The rule tables are in code, with page citations, following the existing precedent where a C# truth table is checked against reference rows.
+
+### 8.2 What the source book actually says (read from the scanned pages, Ch. VI, pp.65-83)
+
+This corrects assumptions made earlier in this document.
+
+| Factor | What the book gives | How the calculator treats it |
+|---|---|---|
+| Varna (1) | Rasi groups, planet Varnas, compensation by sign rulers (p.66-67) | Implemented as written. |
+| Vashya (2) | A list of "signs - sign" rows (p.67), not the five-class scheme assumed earlier | Implemented as boy's sign in the girl's sign's list. The direction is fixed only by the book's one example. **To confirm.** |
+| Dina / Tara (3) | Count from the girl's star to the boy's, remainder 2, 4, 6, 8 or 0 is good (p.68) | Implemented. |
+| Yoni (4) | Animal table (p.69), 4 for the same animal, 0 for hostile, "2 to 3" for passable. **No hostile-pair table.** | Same animal 4; different animals left **Unscored**, which widens the total to a min-max range. **Needs a second source.** |
+| Grahamaitra (5) | 5 / 4 / 3 / 2 / 0 by the two rulers' attitudes (p.70-71) | Implemented from the existing natural-friendship table. |
+| Gana (6) | Nine-way score table (p.72) | Implemented. |
+| Rasi / Bhoo (7) | Qualitative verdicts per distance, directional, with exceptions (pp.73-75), maximum 7 | Favourable scores 7, unfavourable 0. **That 7/0 mapping is this project's reading.** |
+| Nadi (8) | 8 if different, 0 if same (p.75) | Implemented. |
+| Rajju | Five groups, no numeric value (p.76-77) | Reported as Present/Absent, no score. No ascending/descending direction is given. |
+| Stree Deergha, Mahendra | Rules with no numeric value (p.77) | Reported as Present/Absent. |
+| Vedha | Named as the tenth factor (p.66, p.78). **No table in the scanned chapter.** | Not computed. **Needs a second source.** |
+| Dasakoota | The book lists ten factors but scores only the eight Ashtakoota ones | The 10-factor scheme is therefore not a separate scored scheme here. |
+
+The book's pass mark is 18 of 36. Its worked example (Jyeshta boy, Anuradha girl, both Scorpio) totals 28, or 37 of 45 if Rajju is given 9; the calculator reproduces 28.
+
+The book also says Kuta agreement "is not decisive" and should come only after longevity, health, balance of doshas and Kuja dosha have been cleared (p.79). This supports keeping the dosha comparison separate from the Kuta total, as designed above.
+
+### 8.3 Next slices
+
+1. Read the saved Moon nakshatra, Gana, Yoni and Nadi into `MatchPerson` for two saved people, and show the Kuta table on a pair page.
+2. A second source for the Yoni hostile pairs and for Vedha; a decision on the Vashya direction and the Rasi 7/0 reading.
+3. Kuja dosha, papasamya and Rahu-Ketu dosha (the book's Ch. on Dosha Samya, around p.55-61, is already in the same PDF).
+4. The L4 relationship tables and the match-profile view.
