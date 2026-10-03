@@ -9,6 +9,10 @@ public sealed record FamilyMember(
 /// <summary>A recorded married couple: the man (left) and the woman (right), by recorded sex, else the lower id first.</summary>
 public sealed record FamilyCouple(int GroomId, string GroomName, int BrideId, string BrideName, string Status);
 
+/// <summary>A pair in the Extended or Lateral layer (grandparent and grandchild, or siblings): the elder on the left.
+/// <see cref="Relation"/> says who the left person is to the right ("Paternal Grandfather", "Siblings").</summary>
+public sealed record FamilyExtendedPair(int LeftId, string LeftName, int RightId, string RightName, string Relation, string Layer);
+
 /// <summary>
 /// Reads vw_PersonFamily (migration 168): the core family from the stored SPOUSE and PARENT_OF edges
 /// and siblings derived from a shared parent. Writes only direct edges; nothing else is stored, so a
@@ -68,4 +72,34 @@ public sealed class FamilyRepository
                 ? new FamilyCouple(r.BId, r.BName, r.AId, r.AName, r.Status)
                 : new FamilyCouple(r.AId, r.AName, r.BId, r.BName, r.Status)).ToList();
     }
+
+    /// <summary>Grandparent-grandchild and sibling pairs, one row per pair, the elder on the left.</summary>
+    public IReadOnlyList<FamilyExtendedPair> GetExtendedPairs()
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        var rows = connection.Query<(int PersonId, string PersonName, DateTime PersonDob, int RelativeId, string RelativeName, DateTime RelativeDob, string Role, string Tier)>("""
+            SELECT f.PersonId, p.Name AS PersonName, p.DateOfBirth AS PersonDob,
+                   f.RelativeId, f.RelativeName, r.DateOfBirth AS RelativeDob, f.Role, f.Tier
+            FROM dbo.vw_PersonFamily f
+            JOIN dbo.tbl_BirthDetails p ON p.Id = f.PersonId
+            JOIN dbo.tbl_BirthDetails r ON r.Id = f.RelativeId
+            WHERE f.Tier IN ('Extended', 'Lateral')
+            """).ToList();
+
+        var result = new List<FamilyExtendedPair>();
+        foreach (var r in rows)
+        {
+            if (r.Role.Contains("Grandfather") || r.Role.Contains("Grandmother"))
+                result.Add(new FamilyExtendedPair(r.RelativeId, r.RelativeName, r.PersonId, r.PersonName, r.Role, r.Tier));
+            else if (r.Tier == "Lateral" && r.PersonId < r.RelativeId)
+            {
+                var personFirst = r.PersonDob < r.RelativeDob;
+                result.Add(personFirst
+                    ? new FamilyExtendedPair(r.PersonId, r.PersonName, r.RelativeId, r.RelativeName, "Siblings", r.Tier)
+                    : new FamilyExtendedPair(r.RelativeId, r.RelativeName, r.PersonId, r.PersonName, "Siblings", r.Tier));
+            }
+        }
+        return result.OrderBy(x => x.Relation == "Siblings").ThenBy(x => x.LeftName).ThenBy(x => x.RightName).ToList();
+    }
 }
+
