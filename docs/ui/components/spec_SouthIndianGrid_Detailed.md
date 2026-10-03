@@ -19,6 +19,13 @@ catalogued_in: chart-catalog.md
 
 ## `SouthIndianGrid_Detailed.razor`
 
+**Named the master chart (rammyps, 2026-10-04).** It is the one South Indian grid that follows all
+three themes through the global tokens, and the one to use wherever placements are compared.
+Placements: Astro Facts natal step, All Charts cards, Varga view, and the Compatibility page's
+"Charts: D1 and D9" tab (each person's D1 and D9 one above the other, groom left, bride right, so
+the same sign sits in the same place in both columns). SIND-UNI-2 was not adopted for it. Several
+planets share a row: the glyph chips wrap within the cell instead of one planet per line.
+
 The fixed 4×4 sign-position grid, one component for every chart type (D1…D60). Per cell:
 
 - Sign name (full, e.g. "Aries"), Sanskrit name below (hidden in Compact).

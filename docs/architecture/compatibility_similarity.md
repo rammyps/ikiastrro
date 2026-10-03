@@ -310,12 +310,22 @@ Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 
 
 - **Dasha changes ahead**: every Mahadasha and Antardasha change for either person in the next 25 years in date order, naming whose period changes and what the new lord rules and where it sits in that person's chart, plus the windows both people share the same lord at the same level. Facts only: no source classifies a period for a marriage, so no supportive or difficult label is given.
 - **Dosha matchup**: the afflictions sorted by kind with a "same in both or neither" column, and Mars and Rahu stored D1 dignity shown beside it. The book's one balancing rule (pp.56-58) remains the only cancellation applied; cancellation by dignity, benefic aspect or dispositor is listed as not applied (no cited source).
-- **Copy summary and Print**: the summary as plain text with the date and rule set, and a print of the whole comparison (details opened, default-light, app chrome hidden). `CompatibilityRuleSet.Version` is bumped whenever a matching rule changes; nothing is stored per pair.
+- **Copy summary and Print** (removed 2026-10-04, see section 10.8; print moves to the Saved charts print module): the summary as plain text with the date and rule set, and a print of the whole comparison (details opened, default-light, app chrome hidden). `CompatibilityRuleSet.Version` is bumped whenever a matching rule changes; nothing is stored per pair.
 - Not built: saved comparisons (L5, phase 6) and any sourced supportive/difficult classification of dasha periods.
 
 ### 10.7 Phase 6 results (2026-10-04)
 
 - Migration 171: `tbl_Person_LifeEvent` (marriage now; divorce, child birth, death allowed), `tbl_Pair_Note`, `tbl_Pair_SavedReport`. Reports are saved only for pairs with a recorded relationship; arbitrary pairs are never stored. `PairHistoryRepository` holds marriage date, notes, snapshots and the dasha running on a date.
-- Pair page layout: left is the man, right the woman (recorded sex, else the elder on the left); no Swap. A board shows each person's panel with a small South Indian D1 chart (`PairChart`) beside a Kuta dial (`KutaDial`). Per-person facts (Mars and malefics, D9, Saturn, running lords) sit in a left and right column under "Each person on their own"; only connected facts (Kuta, dosha matchup, synastry, shared dasha windows, coinciding Saturn periods) are combined under "The two together".
+- Pair page layout: left is the man, right the woman (recorded sex, else the elder on the left); no Swap. A board shows each person's panel beside a Kuta dial (`KutaDial`); the small `PairChart` was replaced on 2026-10-04 by the D1 and D9 grids in section 10.8. Per-person facts sit in a left and right column (see 10.8); only connected facts (Kuta, dosha matchup, synastry, shared dasha windows, coinciding Saturn periods) are combined under "The two together".
 - Saved charts: a "Family pairs" table of recorded couples (Left, Right, Kuta, Married, Mahadasha now, Children) opens the pair page. Children are the third group, ready for a family view.
+
+### 10.8 Page revisions (2026-10-04)
+
+- Removed from the page: the "Compare X with" label text, the "(left) is the groom" line, the family note ("Recorded as married..."), the "Each person on their own" heading and its sub-line, and the Copy summary and Print buttons. Printing the comparison belongs to the Saved charts print module. `SummaryText` stays for the saved snapshot.
+- Summary of findings opens with a bridge (waterfall) chart: per topic (Kuta, Doshas, 7th house, Saturn) a green step up for favourable findings and a red step down for concerns, then a net bar. A count of findings, never a score; unresolved findings are not plotted.
+- Per-person facts are one set of connected tabs driving the left and right columns together: Charts: D1 and D9, Mars and the malefics, Navamsa (D9) facts, Chara karakas, Life matters: marriage, Saturn from the Moon, Running dasha lords.
+- Charts: D1 and D9 use `SouthIndianGrid_Detailed` (the master chart, theme-aware), fed from the stored D1 and D9 `tbl_Chart_KeyDetails` rows.
+- Chara karakas: AK to DK from the stored D1 labels, with D1 sign, dignity, house and D9 sign.
+- Life matters: marriage: the Key Inference "Marriage" area read from Lagna in D1 (`MarriageMattersReader`, same `LifeMatterStatistics`), no new rule.
+- Helps and hinders: PVR step 5 (Ch. 13) via `TargetInfluences` on the 7th house of each person's own chart. A planet in a quadrant, trine or upachaya from the 7th supports it; in a dusthana from it, as its badhaka, or in the badhaka sign obstructs it; both gives Mixed. The 7th lord and the Darakaraka add Favourable, Concern or Unresolved findings. Nothing classifies how one person's karakas help or hinder the other: no source is cited.
 

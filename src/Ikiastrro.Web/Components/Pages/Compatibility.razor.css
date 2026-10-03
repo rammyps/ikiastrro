@@ -366,3 +366,35 @@
 @media (max-width: 720px) {
     .cmp-duo-grid { grid-template-columns: 1fr; }
 }
+
+/* Connected tabs: one strip drives the left and right columns together. */
+.cmp-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.cmp-tab {
+    padding: 6px 14px;
+    border: 1px solid var(--card-border, var(--brand-midnight));
+    border-radius: 999px;
+    background: var(--brand-canvas);
+    color: var(--brand-midnight);
+    font: 800 var(--font-size-support) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.cmp-tab:hover { background: var(--brand-sunrise); }
+.cmp-tab[aria-selected="true"] { background: var(--brand-sunrise); box-shadow: inset 0 0 0 1px var(--brand-midnight); }
+.cmp-tab:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 2px; }
+.cmp-row-key > * { font-weight: 800; }
+
+/* Bridge chart of the findings. */
+.cmp-bridge { margin: 0 0 14px; }
+.cmp-bridge svg { display: block; width: 100%; max-width: 640px; height: auto; }
+.cmp-br-good { fill: var(--status-strong); }
+.cmp-br-concern { fill: var(--status-weak); }
+.cmp-br-net { fill: var(--brand-midnight); }
+.cmp-br-zero { stroke: var(--brand-midnight); stroke-width: 1; }
+.cmp-br-link { stroke: var(--brand-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.cmp-br-val { fill: var(--brand-midnight); font: 800 12px 'Manrope', 'Segoe UI', sans-serif; }
+.cmp-br-lab { fill: var(--brand-muted); font: 700 11px 'Manrope', 'Segoe UI', sans-serif; }
+.cmp-bridge figcaption { margin-top: 6px; font-size: var(--font-size-support); color: var(--brand-muted); }
+
+.cmp-grid { margin: 0 0 12px; }

@@ -18,6 +18,9 @@ existing components (`SouthIndianGrid_Detailed`, `SouthIndianGrid_Micro`, `SindH
 | SIND-UNI-2 · Reading | `SindUni2Grid` | not placed yet (built, tested) | 640px+ |
 | SIND-UNI-3 · Micro | `SindUni3Grid` | Key Inference chart and Astro Facts → Spl Lagnas grid view, both with the special lagnas (one shared view) | 260–600px |
 
+The Compatibility page shows D1 and D9 with `SouthIndianGrid_Detailed`, not SIND-UNI-2
+(rammyps, 2026-10-04: the SIND-UNI-2 design was not liked).
+
 Astro Facts keeps the master chart, `SouthIndianGrid_Detailed`, on the natal step and the All
 Charts cards (rammyps, 2026-10-01); it follows all three themes through the page tokens.
 
