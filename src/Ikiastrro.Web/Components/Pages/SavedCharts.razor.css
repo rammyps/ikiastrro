@@ -95,8 +95,8 @@ h1 {
 }
 
 .saved-charts-table ::deep .dt td {
-    padding: 1rem 1.05rem;
-    font-size: 1.05rem;
+    padding: .9rem .6rem;
+    font-size: .95rem;
     line-height: 1.4;
 }
 
@@ -127,8 +127,9 @@ h1 {
 
 /* Name column — larger than the rest of the row. */
 .saved-charts-table ::deep .dt tbody td:first-child a {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
+    white-space: nowrap;
     color: var(--brand-midnight);
     text-decoration: none;
 }
@@ -140,23 +141,26 @@ h1 {
 /* No horizontal scroll: fixed layout, every column wraps inside the card (8 columns). */
 .saved-charts-table ::deep .dt-scroll { overflow-x: visible; }
 .saved-charts-table ::deep .dt { table-layout: fixed; width: 100%; }
-.saved-charts-table ::deep .dt td, .saved-charts-table ::deep .dt-sort { overflow-wrap: anywhere; }
+.saved-charts-table ::deep .dt td { overflow-wrap: anywhere; }
+.saved-charts-table ::deep .dt-sort { overflow-wrap: break-word; }
 .saved-charts-table ::deep .dt th:nth-child(1),
-.saved-charts-table ::deep .dt td:nth-child(1) { width: 17%; }
+.saved-charts-table ::deep .dt td:nth-child(1) { width: 19%; }
 .saved-charts-table ::deep .dt th:nth-child(2),
-.saved-charts-table ::deep .dt td:nth-child(2) { width: 8%; }
+.saved-charts-table ::deep .dt td:nth-child(2) { width: 7%; }
 .saved-charts-table ::deep .dt th:nth-child(3),
-.saved-charts-table ::deep .dt td:nth-child(3) { width: 12%; }
+.saved-charts-table ::deep .dt td:nth-child(3) { width: 8%; }
 .saved-charts-table ::deep .dt th:nth-child(4),
-.saved-charts-table ::deep .dt td:nth-child(4) { width: 8%; }
+.saved-charts-table ::deep .dt td:nth-child(4) { width: 11%; }
 .saved-charts-table ::deep .dt th:nth-child(5),
-.saved-charts-table ::deep .dt td:nth-child(5) { width: 19%; }
+.saved-charts-table ::deep .dt td:nth-child(5) { width: 7%; }
 .saved-charts-table ::deep .dt th:nth-child(6),
-.saved-charts-table ::deep .dt td:nth-child(6) { width: 10%; }
+.saved-charts-table ::deep .dt td:nth-child(6) { width: 15%; }
 .saved-charts-table ::deep .dt th:nth-child(7),
-.saved-charts-table ::deep .dt td:nth-child(7) { width: 15%; }
+.saved-charts-table ::deep .dt td:nth-child(7) { width: 9%; }
 .saved-charts-table ::deep .dt th:nth-child(8),
-.saved-charts-table ::deep .dt td:nth-child(8) { width: 11%; }
+.saved-charts-table ::deep .dt td:nth-child(8) { width: 14%; }
+.saved-charts-table ::deep .dt th:nth-child(9),
+.saved-charts-table ::deep .dt td:nth-child(9) { width: 10%; }
 
 .row-actions {
     display: flex;
