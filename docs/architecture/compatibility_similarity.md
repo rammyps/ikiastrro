@@ -216,3 +216,36 @@ The book also says Kuta agreement "is not decisive" and should come only after l
 2. A second source for the Yoni hostile pairs and for Vedha; a decision on the Vashya direction and the Rasi 7/0 reading.
 3. Kuja dosha, papasamya and Rahu-Ketu dosha (the book's Ch. on Dosha Samya, around p.55-61, is already in the same PDF).
 4. The L4 relationship tables and the match-profile view.
+
+## 9. Dasha aspects for compatibility (proposal, 2026-10-03)
+
+### 9.1 What is already stored
+
+`tbl_Chart_DashaPeriods` holds the whole Vimshottari tree for every saved person (892 and 836 rows for the two people checked), under the chart type `VimshottariDasha`. `tvf_Chart_DashaLordRelationship` already joins each period's lord to its D1 sign, nakshatra and KP sub-lords. `tbl_Chart_HouseLords` gives each planet's lordships and placements. `DignityEngine.NaturalAttitude` gives permanent friendship. An Ashtottari calculator exists in Core. No Jaimini (Chara) dasha is persisted.
+
+Spot-check on 2026-10-03 for the two saved charts used in the audit:
+
+| | RamakrishnanP | RameshwariS |
+|---|---|---|
+| Birth Mahadasha (from the Moon nakshatra lord) | Saturn (Anuradha) | Moon (Shravana) |
+| Running Mahadasha | Venus, 2018-10-14 to 2038-10-13 | Saturn, 2026-06-06 to 2045-06-05 |
+| Running Antardasha | Rahu, 2025-12-13 to 2028-12-13 | Saturn, 2026-06-06 to 2029-06-09 |
+| Running Pratyantar | Jupiter, to 2026-10-20 | Saturn, to 2026-11-27 |
+| Running Mahadasha lord's role | Venus rules his 7th (Libra) and sits in his 1st | Saturn is exalted in her 5th |
+
+### 9.2 Aspects worth adding, in build order
+
+1. **Birth-dasha lord pair.** The two Moon-nakshatra lords and how each regards the other (Saturn and Moon here: Saturn regards the Moon an enemy, the Moon regards Saturn neutral). Pure lookup; available now.
+2. **Running dasha pair.** Both people's current Mahadasha, Antardasha and Pratyantar lords, the natural attitude between the two Mahadasha lords (Venus and Saturn here: friends both ways), and the dates each period ends.
+3. **Each running lord's marriage role in its own chart.** Flag when the Mahadasha or Antardasha lord rules or occupies the 7th, 2nd or 11th (marriage), the 5th (children) or the 6th, 8th, 12th (strain), is Venus or Jupiter, or is the Darakaraka or the Upapada lord. Data exists (house lords, key details, chara karakas, Arudha A12). The marriage-supportive and strain classifications need a cited source before they ship; the library holds *Astrology and timing of Marriage*, PVR, Raman and the Bhrigu texts.
+4. **Dasha sandhi.** Whether either person is near a Mahadasha junction (RameshwariS entered a new Mahadasha in June 2026). The width of the window is a rule that needs a source.
+5. **Aligned timeline.** The next 25 years of both people's Mahadasha and Antardasha on one axis, coloured by the classification in item 3, with the windows where both are in a supportive period marked. This turns the page from "are they suited" into "when".
+6. **Cross-chart dasha overlay (tier 2).** Whether one person's running lord occupies or aspects the other's 7th house, Venus or Moon. Needs the synastry layer.
+7. **Event anchoring.** With `tbl_Person_LifeEvent`, record the Mahadasha and Antardasha at each marriage, so the rules in item 3 can be checked against known marriages (and, for the similarity work, against a reference corpus).
+8. **Seeker mode.** For one unmarried seeker against a list, compare the seeker's upcoming supportive windows with each candidate's (item 5 computed in memory).
+9. **Other dasha systems.** Ashtottari can reuse the calculator already in Core. Jaimini marriage timing uses the Chara dasha of the Upapada and the 7th, which is not built.
+
+### 9.3 Cautions
+
+- Items 3 to 5 depend on classification rules that are not yet sourced. Until they are, show the facts (lord, lordship, placement, dates) without a good-or-bad verdict.
+- The Kuta total, the dosha comparison and the dasha picture stay separate on the page, as the book itself keeps Kuta agreement subordinate to the other checks.
