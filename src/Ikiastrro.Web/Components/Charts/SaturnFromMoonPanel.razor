@@ -1,0 +1,37 @@
+@using Ikiastrro.Core.Engines.Transits
+
+@* Astro Facts step 2 (Transit) — Saturn from the natal Moon: the phase on the chosen transit date
+   (GocharaReading.PhaseOf) and every Sāḍe Sātī, Kaṇṭaka Śani (4th) and Aṣṭama Śani (8th) window of
+   this life (tvf_Chart_SadeSatiPeriods through SadeSatiTable), the one covering the date
+   highlighted. The transit wheel shades the same signs. *@
+<section class="sfm" aria-labelledby="sfm-title">
+    <h3 id="sfm-title" class="sfm-head">Saturn from the natal Moon <span>Sāḍe Sātī · Kaṇṭaka · Aṣṭama@(string.IsNullOrEmpty(MoonSign) ? "" : $" — Moon in {Disp(MoonSign)}")</span></h3>
+    <p class="sfm-flag @(Phase == SaturnPhase.None ? "is-clear" : null)">
+        <b>@AsOf.ToString("dd MMM yyyy")</b> @PhaseText(Phase)
+    </p>
+    <div class="sfm-scroll">
+        <SadeSatiTable Periods="Periods" BirthDate="BirthDate" AsOf="AsOf" />
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<SadeSatiPeriod> Periods { get; set; } = Array.Empty<SadeSatiPeriod>();
+    [Parameter, EditorRequired] public DateTime BirthDate { get; set; }
+    /// <summary>The chosen transit date; the window covering it is highlighted.</summary>
+    [Parameter, EditorRequired] public DateTime AsOf { get; set; }
+    /// <summary>Saturn's phase from the natal Moon on <see cref="AsOf"/>.</summary>
+    [Parameter] public SaturnPhase Phase { get; set; }
+    [Parameter] public string? MoonSign { get; set; }
+
+    private static string PhaseText(SaturnPhase p) => p switch
+    {
+        SaturnPhase.SadeSatiRising => "Saturn is 12th from the natal Moon — Sāḍe Sātī, rising phase (first Dhaiya).",
+        SaturnPhase.SadeSatiPeak => "Saturn is over the natal Moon — Sāḍe Sātī, peak phase (second Dhaiya).",
+        SaturnPhase.SadeSatiSetting => "Saturn is 2nd from the natal Moon — Sāḍe Sātī, setting phase (third Dhaiya).",
+        SaturnPhase.Kantaka => "Saturn is 4th from the natal Moon — Kaṇṭaka Śani.",
+        SaturnPhase.Ashtama => "Saturn is 8th from the natal Moon — Aṣṭama Śani.",
+        _ => "Saturn is in none of Sāḍe Sātī, Kaṇṭaka or Aṣṭama from the natal Moon.",
+    };
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+}

@@ -1,7 +1,24 @@
 @using System.Globalization
+@using Ikiastrro.Core.Engines.Transits
 
 <svg class="ntw" viewBox="0 0 800 800" role="img" aria-label="Natal and current transit zodiac wheel">
+    <defs>
+        <pattern id="ntw-ashtama-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="8" height="8" class="ntw-hatch-bg" />
+            <line x1="0" y1="0" x2="0" y2="8" class="ntw-hatch-line" />
+        </pattern>
+    </defs>
     <circle cx="400" cy="400" r="338" class="ntw-transit" />
+    @* Saturn's afflicting signs counted from the natal Moon (Sāḍe Sātī 12/1/2, Kaṇṭaka 4,
+       Aṣṭama 8 — GocharaReading.PhaseOf), shaded on the transit ring; the one Saturn occupies on
+       the chosen date is outlined. *@
+    @foreach (var zone in SaturnZones)
+    {
+        <path d="@AnnularSector(Rotate(zone.SignIndex * 30d), Rotate(zone.SignIndex * 30d + 30d), 274, 338)"
+              class="ntw-zone @zone.Css @(zone.SignIndex == SaturnSignIndex ? "is-active" : null)">
+            <title>@zone.Title</title>
+        </path>
+    }
     <circle cx="400" cy="400" r="274" class="ntw-nak" />
     <circle cx="400" cy="400" r="208" class="ntw-natal" />
     <circle cx="400" cy="400" r="116" class="ntw-core" />
@@ -79,7 +96,20 @@
         <g><text x="400" y="@rowY" class="ntw-karaka">@KarakaRows[rowIndex]</text></g>
     }
     <text x="400" y="442" class="ntw-center-date">@IndiaTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)</text>
+    @if (PhaseBadge is { } badge)
+    {
+        <g><text x="400" y="466" class="ntw-phase">@badge</text></g>
+    }
 </svg>
+@if (SaturnZones.Count > 0)
+{
+    <ul class="ntw-legend" aria-label="Saturn from the natal Moon">
+        <li><span class="ntw-swatch ntw-zone-sadesati"></span>Sāḍe Sātī (12th, 1st, 2nd from Moon)</li>
+        <li><span class="ntw-swatch ntw-zone-kantaka"></span>Kaṇṭaka Śani (4th)</li>
+        <li><span class="ntw-swatch ntw-zone-ashtama"></span>Aṣṭama Śani (8th)</li>
+        <li><span class="ntw-swatch ntw-zone-active"></span>Saturn there now</li>
+    </ul>
+}
 
 @code {
     public sealed record Point(string Label, double LongitudeDegrees, string? DegreeDisplay = null,
@@ -90,6 +120,58 @@
     [Parameter] public IReadOnlyList<Point> TransitPoints { get; set; } = Array.Empty<Point>();
     [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
     [Parameter] public DateTime AsOfUtc { get; set; }
+    /// <summary>Natal Moon sign; when set, Saturn's Sāḍe Sātī / Kaṇṭaka / Aṣṭama signs are shaded.</summary>
+    [Parameter] public string? NatalMoonSign { get; set; }
+
+    private sealed record SaturnZone(int SignIndex, string Css, string Title);
+
+    private int MoonSignIndex => SignIndexOf(NatalMoonSign);
+
+    /// <summary>Transiting Saturn's sign index on the chosen date, or -1 without a transit Saturn.</summary>
+    private int SaturnSignIndex => TransitPoints.FirstOrDefault(p => p.Label == "Saturn") is { } s
+        ? (int)Math.Floor(((s.LongitudeDegrees % 360) + 360) % 360 / 30d) : -1;
+
+    private IReadOnlyList<SaturnZone> SaturnZones => MoonSignIndex < 0
+        ? Array.Empty<SaturnZone>()
+        : new[] { 12, 1, 2, 4, 8 }.Select(house =>
+            {
+                var phase = GocharaReading.PhaseOf(house);
+                var css = phase switch
+                {
+                    SaturnPhase.Kantaka => "ntw-zone-kantaka",
+                    SaturnPhase.Ashtama => "ntw-zone-ashtama",
+                    _ => "ntw-zone-sadesati",
+                };
+                return new SaturnZone((MoonSignIndex + house - 1) % 12, css, PhaseTitle(phase));
+            }).ToList();
+
+    /// <summary>Centre badge: Saturn's phase from the natal Moon on the chosen date, if any.</summary>
+    private string? PhaseBadge
+    {
+        get
+        {
+            if (MoonSignIndex < 0 || SaturnSignIndex < 0) return null;
+            var phase = GocharaReading.PhaseOf((SaturnSignIndex - MoonSignIndex + 12) % 12 + 1);
+            return phase == SaturnPhase.None ? null : "♄ " + PhaseTitle(phase);
+        }
+    }
+
+    private static string PhaseTitle(SaturnPhase phase) => phase switch
+    {
+        SaturnPhase.SadeSatiRising => "Sāḍe Sātī · rising (12th)",
+        SaturnPhase.SadeSatiPeak => "Sāḍe Sātī · peak (1st)",
+        SaturnPhase.SadeSatiSetting => "Sāḍe Sātī · setting (2nd)",
+        SaturnPhase.Kantaka => "Kaṇṭaka Śani (4th)",
+        SaturnPhase.Ashtama => "Aṣṭama Śani (8th)",
+        _ => "",
+    };
+
+    private static int SignIndexOf(string? sign)
+    {
+        if (string.IsNullOrWhiteSpace(sign)) return -1;
+        var name = sign.Trim().Equals("Capricorn", StringComparison.OrdinalIgnoreCase) ? "Capricornus" : sign.Trim();
+        return Array.FindIndex(SignNames, s => s.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
 
     private DateTimeOffset IndiaTime =>
         new DateTimeOffset(DateTime.SpecifyKind(AsOfUtc, DateTimeKind.Utc)).ToOffset(TimeSpan.FromMinutes(330));

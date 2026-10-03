@@ -1,0 +1,7 @@
+/* Same frame as the Gochara table beside it (GocharaTable.razor.css). */
+.sfm { margin-top: 18px; color: var(--brand-midnight); }
+.sfm-head { margin: 0 0 6px; font: 800 .82rem/1.3 'Manrope', 'Segoe UI', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.sfm-head span { margin-left: 6px; color: var(--brand-muted); font-weight: 600; text-transform: none; letter-spacing: 0; }
+.sfm-flag { margin: 0 0 8px; padding: 6px 10px; border-left: 3px solid var(--status-weak); background: var(--status-weak-bg); font-size: var(--font-size-support); }
+.sfm-flag.is-clear { border-left-color: var(--status-strong); background: var(--status-strong-bg); }
+.sfm-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--brand-line); border-radius: 10px; }

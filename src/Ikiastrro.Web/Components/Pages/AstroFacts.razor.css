@@ -419,3 +419,17 @@
 .ki-natal-detail ::deep .gds-scroll,
 .ki-natal-detail ::deep .rds-scroll,
 .ki-natal-detail ::deep .dsp-scroll { overflow: visible; }
+
+/* Transit table: NATAL (D1) column group beside the TRANSIT columns. */
+.ki-panelbody ::deep .ki-table .ki-colgroup th {
+    position: static;
+    padding: 4px 6px;
+    text-align: center;
+    font-size: .8em;
+    letter-spacing: .08em;
+    border-bottom: 1px solid var(--brand-line);
+}
+.ki-panelbody ::deep .ki-table th.ki-group-natal,
+.ki-panelbody ::deep .ki-table td.ki-group-natal {
+    background: color-mix(in srgb, var(--brand-sunrise) 35%, transparent);
+}

@@ -15,6 +15,7 @@
 @inject Ikiastrro.Data.GocharaRepository Gochara
 @inject Ikiastrro.Data.Natal_Transit_Comp_WheelRepository D1WheelRepo
 @inject DashaPeriodsRepository DashaRepo
+@inject SadeSatiRepository SadeSatiRepo
 @inject Ikiastrro.Data.PlanetaryStrengthRepository PlanetaryStrengthRepo
 @inject Ikiastrro.Data.BhavaStrengthRepository BhavaStrengthRepo
 @inject Ikiastrro.Data.AshtakavargaRepository AshtakavargaRepo
@@ -352,6 +353,7 @@ else
                             <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
                                                NatalPoints="@D1WheelPoints"
                                                TransitPoints="@TransitWheelPoints"
+                                               NatalMoonSign="@_natalSignByPlanet.GetValueOrDefault("Moon")"
                                                AsOfUtc="@_asOfUtc" />
                         }
                         else
@@ -373,9 +375,15 @@ else
                         <div class="ki-scroll">
                             <MudSimpleTable Dense="true" Hover="false" Bordered="false" Class="ki-table">
                                 <thead>
+                                    <tr class="ki-colgroup">
+                                        <th></th><th colspan="4" class="ki-group-natal">NATAL (D1)</th><th colspan="10" class="ki-group-transit">TRANSIT</th>
+                                    </tr>
                                     <tr>
+                                        <th>Planet</th>
+                                        <th class="ki-group-natal">Natal<br />position</th><th class="ki-group-natal">Nakshatra<br />pada</th>
+                                        <th class="ki-group-natal">Natal<br />house</th><th class="ki-group-natal">Dignity</th>
                                         <th>Planet in<br />Natal House</th><th>House from<br />Natal Planet</th>
-                                        <th>Planet</th><th>Motion</th><th>Degree</th>
+                                        <th>Motion</th><th>Degree</th>
                                         <th>Speed<br />°/day</th><th>In sign<br />since</th>
                                         <th>In-sign<br />motion</th><th>Next<br />change</th><th>Next-change<br />motion</th>
                                     </tr>
@@ -383,10 +391,15 @@ else
                                 <tbody>
                                     @foreach (var s in TransitRows)
                                     {
+                                        var natal = NatalRow(s);
                                         <tr>
+                                            <td>@s.Planet</td>
+                                            <td class="num ki-group-natal">@(natal is null ? "—" : $"{SignAbbrev(natal.Sign)} {natal.DegreesInSignDisplay}{(natal.IsRetrograde ? " R" : "")}")</td>
+                                            <td class="ki-group-natal">@(natal?.Nakshatra is { } nak ? $"{nak} {natal.NakshatraPada}" : "—")</td>
+                                            <td class="num ki-group-natal">@(natal?.House?.ToString() ?? "—")</td>
+                                            <td class="ki-group-natal">@(natal?.DignityStatus ?? "—")</td>
                                             <td class="num">@(PlanetInNatalHouse(s)?.ToString() ?? "—")</td>
                                             <td class="num">@(HouseFromNatalPlanet(s)?.ToString() ?? "—")</td>
-                                            <td>@s.Planet</td>
                                             <td>@s.MotionDirection</td>
                                             <td class="num">@SignName(s.SignId) @s.DegreeInSign.ToString("0.00", CultureInfo.InvariantCulture)°</td>
                                             <td class="num">@s.SpeedDegreesPerDay.ToString("0.0000", CultureInfo.InvariantCulture)</td>
@@ -403,6 +416,14 @@ else
                         {
                             <GocharaTable Reading="gochara" />
                         }
+                    }
+                    @if (_d1.Count > 0)
+                    {
+                        <SaturnFromMoonPanel Periods="_sadeSati"
+                                             BirthDate="_data.Person.DateOfBirth.ToDateTime(_data.Person.EffectiveTimeOfBirth)"
+                                             AsOf="@(_selection?.ActiveIst ?? _asOfUtc)"
+                                             Phase="SaturnPhaseOnDate"
+                                             MoonSign="@_natalSignByPlanet.GetValueOrDefault("Moon")" />
                     }
         </div>
     }
@@ -859,6 +880,7 @@ else
             .ToDictionary(g => g.Key, g => g.First().Sign, StringComparer.OrdinalIgnoreCase);
 
         _d1 = D1WheelRepo.LoadD1Birth(Id);
+        _sadeSati = SadeSatiRepo.GetByBirthDetailId(Id);
         _moon = ChartMoonContextRepo.GetByBirthDetailId(Id);
         _shadbala = PlanetaryStrengthRepo.GetSummaryByBirthDetailId(Id);
         _shadbalaComponents = PlanetaryStrengthRepo.GetComponentsByBirthDetailId(Id);
@@ -1017,6 +1039,37 @@ else
 
     private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> TransitWheelPoints => _transits
         .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();
+
+    private IReadOnlyList<SadeSatiPeriod> _sadeSati = Array.Empty<SadeSatiPeriod>();
+
+    /// <summary>The transiting planet's own D1 row (natal sign, degree, nakshatra, house, dignity)
+    /// for the transit table's NATAL columns.</summary>
+    private Ikiastrro.Data.Natal_Transit_Comp_WheelD1Row? NatalRow(PlanetTransitSnapshot s) =>
+        _d1.FirstOrDefault(r => r.Planet.Equals(s.Planet.ToString(), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Saturn's phase from the natal Moon on the chosen transit date — the same
+    /// GocharaReading.PhaseOf the Gochara table and the wheel use.</summary>
+    private Ikiastrro.Core.Engines.Transits.SaturnPhase SaturnPhaseOnDate
+    {
+        get
+        {
+            var saturn = _transits.FirstOrDefault(t => t.Planet == PlanetName.Saturn);
+            var moon = _natalSignByPlanet.GetValueOrDefault("Moon");
+            var house = saturn is null ? null : Natal_Transit_Comp_WheelMath.HouseFromD1(moon, SignName(saturn.SignId));
+            return house is { } h
+                ? Ikiastrro.Core.Engines.Transits.GocharaReading.PhaseOf(h)
+                : Ikiastrro.Core.Engines.Transits.SaturnPhase.None;
+        }
+    }
+
+    private static string SignAbbrev(string? sign) => sign switch
+    {
+        null or "" => "—",
+        "Capricornus" or "Capricorn" => "Cp",
+        "Cancer" => "Cn",
+        "Sagittarius" => "Sg",
+        _ => sign[..2],
+    };
 
     private IEnumerable<PlanetTransitSnapshot> TransitRows =>
         _transits.OrderBy(s => Natal_Transit_Comp_WheelMath.PlanetRank(s.Planet.ToString()));
