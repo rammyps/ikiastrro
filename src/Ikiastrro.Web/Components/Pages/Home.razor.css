@@ -166,6 +166,7 @@
 /* Sex — an always-visible option box (no dropdown), required (enforced by validation on
    submit, not a visible label — keeps this row the same compact height as Name beside it). */
 .home-sex {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
 }

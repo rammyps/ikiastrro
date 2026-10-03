@@ -5,6 +5,7 @@
 @inject MatchPersonRepository MatchPersonRepo
 @inject DoshaChartRepository DoshaRepo
 @inject SadeSatiRepository SadeSatiRepo
+@inject FamilyRepository FamilyRepo
 @inject ActivePerson Active
 
 @* Compatibility tab — Kuta agreement for the opened person and one chosen partner, computed live by
@@ -55,6 +56,11 @@ else
 
     @if (_result is not null)
     {
+        @if (_familyNote is not null)
+        {
+            <p class="cmp-family">@_familyNote</p>
+        }
+
         <article class="cmp-card">
             <header class="cmp-card-head">
                 <h2>Kuta agreement</h2>
@@ -294,7 +300,10 @@ else
         _doshaGroom = _doshaBride = null;
         _balance = null;
         _saturn = null;
+        _familyNote = null;
         if (Groom is null || Bride is null) return;
+
+        _familyNote = FamilyNote(Groom, Bride);
 
         var groomChart = DoshaRepo.GetByBirthDetailId(Groom.BirthDetailId);
         var brideChart = DoshaRepo.GetByBirthDetailId(Bride.BirthDetailId);
@@ -309,6 +318,30 @@ else
         var brideSaturn = SadeSatiRepo.GetByBirthDetailId(Bride.BirthDetailId);
         if (groomSaturn.Count > 0 && brideSaturn.Count > 0)
             _saturn = SadeSatiCompatibility.Compare(groomSaturn, brideSaturn, DateTime.UtcNow);
+    }
+
+    private string? _familyNote;
+
+    // What the saved family details say about this pair: how the bride is related to the groom, and the
+    // children they have in common. Null when nothing is recorded between them.
+    private string? FamilyNote(MatchPersonSnapshot groom, MatchPersonSnapshot bride)
+    {
+        var groomFamily = FamilyRepo.GetFor(groom.BirthDetailId);
+        var brideFamily = FamilyRepo.GetFor(bride.BirthDetailId);
+        var link = groomFamily.FirstOrDefault(f => f.RelativeId == bride.BirthDetailId);
+        var children = groomFamily
+            .Where(f => f.Role is "Son" or "Daughter" or "Child")
+            .Where(f => brideFamily.Any(b => b.RelativeId == f.RelativeId && b.Role is "Son" or "Daughter" or "Child"))
+            .Select(f => $"{f.RelativeName} ({f.Role.ToLowerInvariant()})").ToList();
+
+        if (link is null && children.Count == 0) return null;
+        var parts = new List<string>();
+        if (link is not null)
+            parts.Add(link.Role is "Wife" or "Husband"
+                ? $"Recorded as married ({(link.Status == "Current" ? "current" : "ended")})."
+                : $"Recorded as {link.Role.ToLowerInvariant()}.");
+        if (children.Count > 0) parts.Add($"Children together: {string.Join(", ", children)}.");
+        return string.Join(" ", parts);
     }
 
     private string BalanceClass => _balance?.Status switch
@@ -379,5 +412,9 @@ else
         <strong>@s.Name</strong>
         <span>Moon in @SignLabels.For(s.Person.MoonSign), @s.NakshatraName pada @s.Pada</span>
         <span>@s.Person.Gana gana · @s.Person.YoniAnimal (@s.Person.YoniGender.ToLowerInvariant()) · @s.Person.Nadi nadi</span>
+        @if (s.NameNumberRoot is int root)
+        {
+            <span>Name number @root (compound @s.NameNumberCompound)</span>
+        }
     </div>;
 }

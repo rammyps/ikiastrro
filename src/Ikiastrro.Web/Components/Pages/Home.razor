@@ -78,7 +78,8 @@
         @if (_adding)
         {
             <div class="home-form">
-                <MudTextField T="string" Label="Name" @bind-Value="_f.Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField T="string" Label="First name" @bind-Value="_f.First" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField T="string" Label="Last name" @bind-Value="_f.Last" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 <div class="home-sex">
                     <MudRadioGroup T="string" @bind-Value="_f.Sex" Class="home-sex-group">
                         <MudRadio T="string" Value="@("Male")" Color="Color.Primary" Size="Size.Small">Male</MudRadio>
@@ -140,7 +141,7 @@
         string.IsNullOrWhiteSpace(_query)
             ? Enumerable.Empty<BirthDetails>()
             : _people
-                .Where(p => p.Name.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase))
+                .Where(p => PersonName.Matches(p.Name, _query))
                 .OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase);
 
     private static string BirthLine(BirthDetails p) => $"{p.DateOfBirth:dd/MM/yyyy} · {p.PlaceCity}";
@@ -170,7 +171,7 @@
 
         if (!Matches.Any())
         {
-            _f.Name = q;
+            (_f.First, _f.Last) = PersonName.Split(q);
             if (!_adding) { _adding = true; _autoAdded = true; _error = null; }
         }
         else if (_adding && _autoAdded && FormIsPristine())
@@ -192,7 +193,7 @@
         _autoAdded = false; // explicit click — never auto-retract
         _error = null;
         if (!string.IsNullOrWhiteSpace(_query))
-            _f.Name = _query.Trim(); // the search text is always the new person's Name
+            (_f.First, _f.Last) = PersonName.Split(_query); // the search text carries over as the new person's name
     }
 
     private void CancelAdd()
@@ -207,12 +208,12 @@
         if (_busy) return;
         _error = null;
 
-        if (string.IsNullOrWhiteSpace(_f.Name) || string.IsNullOrWhiteSpace(_f.Sex)
+        if (string.IsNullOrWhiteSpace(_f.First) || string.IsNullOrWhiteSpace(_f.Last) || string.IsNullOrWhiteSpace(_f.Sex)
             || _f.Dob is null || _f.Tob is null
             || string.IsNullOrWhiteSpace(_f.City) || string.IsNullOrWhiteSpace(_f.Country))
         {
             // Country can blur before the rest is filled — only nag on an explicit submit.
-            if (showErrors) _error = "Fill in name, sex, date, time, city and country — none can be blank.";
+            if (showErrors) _error = "Fill in first name, last name, sex, date, time, city and country — none can be blank.";
             return;
         }
 
@@ -225,7 +226,9 @@
 
             var birth = new BirthDetails
             {
-                Name = _f.Name!.Trim(),
+                Name = PersonName.Compose(_f.First, _f.Last),
+                FirstName = _f.First!.Trim(),
+                LastName = _f.Last!.Trim(),
                 Sex = string.IsNullOrWhiteSpace(_f.Sex) ? null : _f.Sex,
                 DateOfBirth = dob,
                 TimeOfBirth = tob,
@@ -236,6 +239,12 @@
                 UtcOffset = place.UtcOffset.ToString(),
                 IanaTimeZoneId = place.IanaTimeZoneId,
             };
+
+            if (BirthDetailsRepo.ExistsByName(birth.Name))
+            {
+                _error = $"A saved person named {birth.Name} already exists — use their saved chart, or add a distinguishing last name.";
+                return;
+            }
 
             BirthDetailsRepo.Insert(birth);
             ChartGenerationService.GenerateAll(birth);   // uses the DB's active-default ayanamsa
@@ -253,7 +262,8 @@
 
     private sealed class AddForm
     {
-        public string? Name { get; set; }
+        public string? First { get; set; }
+        public string? Last { get; set; }
         public string Sex { get; set; } = string.Empty;
         public DateTime? Dob { get; set; }
         public TimeSpan? Tob { get; set; }

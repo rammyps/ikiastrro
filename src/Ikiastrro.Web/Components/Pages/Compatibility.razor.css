@@ -133,3 +133,5 @@
 .cmp-w-severe { color: var(--status-weak); }
 .cmp-w-notable, .cmp-w-lesser, .cmp-w-conditional { color: var(--brand-midnight); }
 .cmp-w-untiered { color: var(--brand-muted); }
+
+.cmp-family { margin: 0 0 14px; padding: 8px 14px; border-left: 3px solid var(--brand-sunrise); background: var(--card-bg); color: var(--brand-midnight); font-size: var(--font-size-support); }

@@ -6,7 +6,8 @@ namespace Ikiastrro.Data;
 
 /// <summary>A saved person's Kuta-matching inputs plus the labels a page shows next to them.</summary>
 public sealed record MatchPersonSnapshot(
-    int BirthDetailId, string Name, string? Sex, MatchPerson Person, string NakshatraName, int Pada);
+    int BirthDetailId, string Name, string? Sex, MatchPerson Person, string NakshatraName, int Pada,
+    int? NameNumberCompound = null, int? NameNumberRoot = null);
 
 /// <summary>
 /// Reads the Moon facts Kuta matching needs from what is already stored: the D1 Moon row in
@@ -21,7 +22,7 @@ public sealed class MatchPersonRepository
 
     private sealed record Row(
         int BirthDetailId, string Name, string? Sex, string Sign, byte NakshatraId, string NakshatraName, byte? Pada,
-        string? Gana, string? YoniAnimal, string? YoniGender, string? Nadi);
+        string? Gana, string? YoniAnimal, string? YoniGender, string? Nadi, byte? NameNumberCompound, byte? NameNumberRoot);
 
     /// <summary>Null when the person has no stored D1 Moon, or the nakshatra reference rows are not
     /// seeded (Gana, Yoni or Nadi missing), so matching cannot be read.</summary>
@@ -30,7 +31,8 @@ public sealed class MatchPersonRepository
         using var connection = _connectionFactory.CreateOpenConnection();
         var row = connection.QuerySingleOrDefault<Row>("""
             SELECT b.Id AS BirthDetailId, b.Name, b.Sex, k.Sign, n.Id AS NakshatraId, n.NakshatraName,
-                   k.NakshatraPada AS Pada, n.Gana, n.YoniAnimal, n.YoniGender, n.Nadi
+                   k.NakshatraPada AS Pada, n.Gana, n.YoniAnimal, n.YoniGender, n.Nadi,
+                   b.NameNumberCompound, b.NameNumberRoot
             FROM dbo.tbl_BirthDetails b
             JOIN dbo.tbl_ChartResults c ON c.BirthDetailId = b.Id AND c.ChartType = 'D1'
             JOIN dbo.tbl_Chart_KeyDetails k ON k.ChartResultId = c.Id AND k.Planet = 'Moon' AND k.PointKind = 'Graha'
@@ -44,6 +46,6 @@ public sealed class MatchPersonRepository
         return new MatchPersonSnapshot(
             row.BirthDetailId, row.Name, row.Sex,
             new MatchPerson(sign, row.NakshatraId, row.Gana, row.YoniAnimal, row.YoniGender, row.Nadi),
-            row.NakshatraName, row.Pada ?? 0);
+            row.NakshatraName, row.Pada ?? 0, row.NameNumberCompound, row.NameNumberRoot);
     }
 }

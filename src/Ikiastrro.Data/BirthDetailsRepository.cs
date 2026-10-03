@@ -20,19 +20,27 @@ public class BirthDetailsRepository
         const string sql = """
             DECLARE @Inserted TABLE (Id int);
             INSERT INTO dbo.tbl_BirthDetails
-                (Name, Sex, DateOfBirth, TimeOfBirth,
+                (Name, FirstName, LastName, NameNumberCompound, NameNumberRoot, Sex, DateOfBirth, TimeOfBirth,
                  PlaceCity, PlaceCountry, Latitude, Longitude, UtcOffset, IanaTimeZoneId, CreatedAt)
             OUTPUT INSERTED.Id INTO @Inserted
             VALUES
-                (@Name, @Sex, @DateOfBirth, @TimeOfBirth,
+                (@Name, @FirstName, @LastName, @NameNumberCompound, @NameNumberRoot, @Sex, @DateOfBirth, @TimeOfBirth,
                  @PlaceCity, @PlaceCountry, @Latitude, @Longitude, @UtcOffset, @IanaTimeZoneId, @CreatedAt);
             SELECT Id FROM @Inserted;
             """;
+
+        // The name number is stored with the person so it is calculated once, at save, and every later
+        // reader (matching, similarity, exports) sees the same value.
+        ApplyNameNumber(birthDetails);
 
         using var connection = _connectionFactory.CreateOpenConnection();
         var newId = connection.ExecuteScalar<int>(sql, new
         {
             birthDetails.Name,
+            FirstName = NullIfBlank(birthDetails.FirstName),
+            LastName = NullIfBlank(birthDetails.LastName),
+            birthDetails.NameNumberCompound,
+            birthDetails.NameNumberRoot,
             Sex = string.IsNullOrWhiteSpace(birthDetails.Sex) ? null : birthDetails.Sex,
             DateOfBirth = birthDetails.DateOfBirth.ToDateTime(TimeOnly.MinValue),
             TimeOfBirth = birthDetails.TimeOfBirth.ToTimeSpan(),
@@ -63,8 +71,15 @@ public class BirthDetailsRepository
     /// </summary>
     public void Update(BirthDetails b)
     {
+        // FirstName/LastName are only overwritten when the caller supplies them; a caller that edits just
+        // Name (the Saved Charts editor) clears them, since the old split no longer describes the new name.
         const string sql = """
             UPDATE dbo.tbl_BirthDetails SET
+                FirstName = CASE WHEN @FirstName IS NOT NULL OR @LastName IS NOT NULL THEN @FirstName
+                                 WHEN Name <> @Name THEN NULL ELSE FirstName END,
+                LastName = CASE WHEN @FirstName IS NOT NULL OR @LastName IS NOT NULL THEN @LastName
+                                WHEN Name <> @Name THEN NULL ELSE LastName END,
+                NameNumberCompound = @NameNumberCompound, NameNumberRoot = @NameNumberRoot,
                 Name = @Name, Sex = @Sex,
                 DateOfBirth = @DateOfBirth, TimeOfBirth = @TimeOfBirth,
                 PlaceCity = @PlaceCity, PlaceCountry = @PlaceCountry,
@@ -72,11 +87,17 @@ public class BirthDetailsRepository
                 UtcOffset = @UtcOffset, IanaTimeZoneId = @IanaTimeZoneId
             WHERE Id = @Id
             """;
+        ApplyNameNumber(b);
+
         using var connection = _connectionFactory.CreateOpenConnection();
         connection.Execute(sql, new
         {
             b.Id,
             b.Name,
+            FirstName = NullIfBlank(b.FirstName),
+            LastName = NullIfBlank(b.LastName),
+            b.NameNumberCompound,
+            b.NameNumberRoot,
             Sex = string.IsNullOrWhiteSpace(b.Sex) ? null : b.Sex,
             DateOfBirth = b.DateOfBirth.ToDateTime(TimeOnly.MinValue),
             TimeOfBirth = b.TimeOfBirth.ToTimeSpan(),
@@ -135,7 +156,12 @@ public class BirthDetailsRepository
     /// </summary>
     public void Delete(int id)
     {
-        const string sql = "DELETE FROM dbo.tbl_BirthDetails WHERE Id = @Id";
+        // Family edges (tbl_Person_Relationship) reference the person from both sides, so they go with
+        // the person; the relatives themselves are untouched.
+        const string sql = """
+            DELETE FROM dbo.tbl_Person_Relationship WHERE PersonAId = @Id OR PersonBId = @Id;
+            DELETE FROM dbo.tbl_BirthDetails WHERE Id = @Id;
+            """;
         using var connection = _connectionFactory.CreateOpenConnection();
         connection.Execute(sql, new { Id = id });
     }
@@ -158,11 +184,40 @@ public class BirthDetailsRepository
         connection.Execute(sql, new { BirthDetailId = birthDetailId });
     }
 
+    private static string? NullIfBlank(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+    private static void ApplyNameNumber(BirthDetails b)
+    {
+        var n = Ikiastrro.Core.Numerology.CheiroNumerology.Calculate(b.Name);
+        b.NameNumberCompound = n.CompoundTotal;
+        b.NameNumberRoot = n.RootNumber;
+    }
+
+    /// <summary>Fills the stored name numbers for every row that lacks them (rows saved before they existed).
+    /// Returns how many rows were written.</summary>
+    public int BackfillNameNumbers()
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        var rows = connection.Query<(int Id, string Name)>(
+            "SELECT Id, Name FROM dbo.tbl_BirthDetails WHERE NameNumberRoot IS NULL OR NameNumberCompound IS NULL").ToList();
+        foreach (var (id, name) in rows)
+        {
+            var n = Ikiastrro.Core.Numerology.CheiroNumerology.Calculate(name);
+            connection.Execute("UPDATE dbo.tbl_BirthDetails SET NameNumberCompound = @C, NameNumberRoot = @R WHERE Id = @Id",
+                new { C = n.CompoundTotal, R = n.RootNumber, Id = id });
+        }
+        return rows.Count;
+    }
+
     /// <summary>Dapper needs concrete TimeOnly/DateOnly mapping help — this row shape bridges that.</summary>
     private class BirthDetailsRow
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public byte? NameNumberCompound { get; set; }
+        public byte? NameNumberRoot { get; set; }
         public string? Sex { get; set; }
         public DateTime DateOfBirth { get; set; }
         public TimeSpan TimeOfBirth { get; set; }
@@ -178,6 +233,10 @@ public class BirthDetailsRepository
         {
             Id = Id,
             Name = Name,
+            FirstName = FirstName,
+            LastName = LastName,
+            NameNumberCompound = NameNumberCompound,
+            NameNumberRoot = NameNumberRoot,
             Sex = Sex,
             DateOfBirth = DateOnly.FromDateTime(DateOfBirth),
             TimeOfBirth = TimeOnly.FromTimeSpan(TimeOfBirth),

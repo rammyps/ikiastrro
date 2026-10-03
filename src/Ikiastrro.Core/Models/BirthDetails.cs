@@ -9,7 +9,20 @@ public class BirthDetails
 {
     public int Id { get; set; }
 
+    /// <summary>The one displayed, unique name. For people entered with name parts it is "First Last".</summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>Given name(s); null for people saved before name parts existed whose Name has no clear split.</summary>
+    public string? FirstName { get; set; }
+
+    /// <summary>Family name or initial; null as for <see cref="FirstName"/>.</summary>
+    public string? LastName { get; set; }
+
+    /// <summary>Cheiro compound name number, written with the person on every insert and update.</summary>
+    public int? NameNumberCompound { get; set; }
+
+    /// <summary>Cheiro root name number (1-9), written with the person.</summary>
+    public int? NameNumberRoot { get; set; }
 
     /// <summary>Explicit user input; null means unspecified.</summary>
     public string? Sex { get; set; }

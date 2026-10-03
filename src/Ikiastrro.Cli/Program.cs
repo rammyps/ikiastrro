@@ -2801,6 +2801,16 @@ if (args.Length > 0 && args[0] == "backfill-charts")
     return;
 }
 
+// --- One-off backfill mode: `dotnet run -- backfill-numerology` ---
+// Fills tbl_BirthDetails.NameNumberCompound/NameNumberRoot (migration 168) for people saved before
+// the columns existed. New and edited people get them from BirthDetailsRepository on every write.
+if (args.Length > 0 && args[0] == "backfill-numerology")
+{
+    var written = birthDetailsRepo.BackfillNameNumbers();
+    Console.WriteLine($"backfill-numerology: {written} person(s) updated.");
+    return;
+}
+
 // --- One-off backfill mode: `dotnet run -- backfill-argala` ---
 // Computes ArgalaCalculator's Argala/Virodhargala results (PVR sec.10.5-10.6) for every saved
 // D1 chart's 12 houses (Exercise 16's own scope) plus the 9 grahas' own occupied signs (PVR's
