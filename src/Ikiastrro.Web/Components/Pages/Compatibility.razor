@@ -8,6 +8,7 @@
 @inject SadeSatiRepository SadeSatiRepo
 @inject FamilyRepository FamilyRepo
 @inject DashaCompatibilityRepository DashaRepo
+@inject NavamsaChartRepository NavamsaRepo
 @inject ActivePerson Active
 @inject IJSRuntime JS
 
@@ -250,6 +251,35 @@ else
             </article>
         }
 
+        @if (_d9Groom is not null && _d9Bride is not null)
+        {
+            <article class="cmp-card">
+                <header class="cmp-card-head">
+                    <h2 id="cmp-d9" tabindex="-1">Navamsa (D9)</h2>
+                    <p class="cmp-sub">Facts only: no source is cited yet for what these placements mean for a marriage.</p>
+                </header>
+                <details class="cmp-detail" open>
+                    <summary>D9 Lagna, 7th house, Venus, Jupiter and the Darakaraka</summary>
+                    <div class="cmp-scroll">
+                        <table class="cmp-table">
+                            <thead><tr><th>Fact</th><th>@Groom!.Name</th><th>@Bride!.Name</th></tr></thead>
+                            <tbody>
+                                @foreach (var row in D9Rows())
+                                {
+                                    <tr>
+                                        <th scope="row">@row.Fact</th>
+                                        <td data-label="@Groom!.Name">@row.Groom</td>
+                                        <td data-label="@Bride!.Name">@row.Bride</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+                <p class="cmp-pad cmp-sub">Houses are counted from each chart's own D9 Lagna; signs, houses and dignity are the stored D9 values, and the Darakaraka is the chara karaka stored for D1.</p>
+            </article>
+        }
+
         @if (_saturn is not null)
         {
             <article class="cmp-card">
@@ -396,10 +426,11 @@ else
                     <tbody>
                         <tr><th scope="row">Moon sign, nakshatra and pada (Kuta)</th><td data-label="@Groom!.Name">@Have(true)</td><td data-label="@Bride!.Name">@Have(true)</td></tr>
                         <tr><th scope="row">D1 positions for the dosha balance</th><td data-label="@Groom!.Name">@Have(_dataGroom.Dosha)</td><td data-label="@Bride!.Name">@Have(_dataBride.Dosha)</td></tr>
+                        <tr><th scope="row">D1 and D9 positions for the Navamsa comparison</th><td data-label="@Groom!.Name">@Have(_dataGroom.D9)</td><td data-label="@Bride!.Name">@Have(_dataBride.D9)</td></tr>
                         <tr><th scope="row">Saturn transit periods</th><td data-label="@Groom!.Name">@Have(_dataGroom.Saturn)</td><td data-label="@Bride!.Name">@Have(_dataBride.Saturn)</td></tr>
                         <tr><th scope="row">Vimshottari periods</th><td data-label="@Groom!.Name">@Have(_dataGroom.Dasha)</td><td data-label="@Bride!.Name">@Have(_dataBride.Dasha)</td></tr>
                         <tr><th scope="row">Birth-time confidence</th><td colspan="2">Not recorded in the saved details, so every reading assumes the entered time is exact.</td></tr>
-                        <tr><th scope="row">Not read by this page yet</th><td colspan="2">Navamsa (D9) comparison, Upapada Lagna, cross-chart synastry, Vedha, and any good-or-bad verdict on dasha periods.</td></tr>
+                        <tr><th scope="row">Not read by this page yet</th><td colspan="2">Upapada Lagna, cross-chart synastry, Vedha, and any good-or-bad verdict on dasha periods.</td></tr>
                         <tr><th scope="row">Rules and sources</th><td colspan="2">Vasudev, <em>The Art of Matching Charts</em>, Ch. V and VI; Yoni pair values and the weight of Rajju, Stree Deergha and Mahendra from PyJHora's South Indian scheme. Rule gaps are listed in the notes below.</td></tr>
                     </tbody>
                 </table>
@@ -594,7 +625,8 @@ else
     private void ComputeDetails()
     {
         _doshaGroom = _doshaBride = null;
-        _dataGroom = _dataBride = new(false, false, false);
+        _d9Groom = _d9Bride = null;
+        _dataGroom = _dataBride = new(false, false, false, false);
         _balance = null;
         _saturn = null;
         _familyNote = null;
@@ -617,6 +649,16 @@ else
 
         var groomSaturn = SadeSatiRepo.GetByBirthDetailId(Groom.BirthDetailId);
         var brideSaturn = SadeSatiRepo.GetByBirthDetailId(Bride.BirthDetailId);
+        var groomD9 = NavamsaRepo.GetByBirthDetailId(Groom.BirthDetailId);
+        var brideD9 = NavamsaRepo.GetByBirthDetailId(Bride.BirthDetailId);
+        _dataGroom = _dataGroom with { D9 = groomD9 is not null };
+        _dataBride = _dataBride with { D9 = brideD9 is not null };
+        if (groomD9 is not null && brideD9 is not null)
+        {
+            _d9Groom = NavamsaCompatibility.Read(groomD9);
+            _d9Bride = NavamsaCompatibility.Read(brideD9);
+        }
+
         _dataGroom = _dataGroom with { Saturn = groomSaturn.Count > 0 };
         _dataBride = _dataBride with { Saturn = brideSaturn.Count > 0 };
         if (groomSaturn.Count > 0 && brideSaturn.Count > 0)
@@ -626,13 +668,45 @@ else
 
     private string? _familyNote;
 
+    private NavamsaReading? _d9Groom;
+    private NavamsaReading? _d9Bride;
+
+    private static string D9Place(PlanetName planet, VargaPoint p) =>
+        $"{planet} in {SignLabels.For(p.Sign)}, {Ordinal(p.House)} house" + (p.Dignity is null ? "" : $", {p.Dignity.ToLowerInvariant()}");
+
+    private static string D9Rows_Karaka(NavamsaReading r) =>
+        r.Darakaraka is { } dk && r.DarakarakaD9 is { } d9 && r.DarakarakaD1Sign is { } d1
+            ? $"{dk}: D1 {SignLabels.For(d1)}; D9 {SignLabels.For(d9.Sign)}, {Ordinal(d9.House)} house" + (d9.Dignity is null ? "" : $", {d9.Dignity.ToLowerInvariant()}")
+            : "Not stored";
+
+    private IEnumerable<(string Fact, string Groom, string Bride)> D9Rows()
+    {
+        var g = _d9Groom!;
+        var b = _d9Bride!;
+        yield return ("D9 Lagna", $"{SignLabels.For(g.D9Lagna)}, ruled by {g.D9LagnaLord}", $"{SignLabels.For(b.D9Lagna)}, ruled by {b.D9LagnaLord}");
+        yield return ("D9 7th house", $"{SignLabels.For(g.SeventhSign)}, ruled by {g.SeventhLord}", $"{SignLabels.For(b.SeventhSign)}, ruled by {b.SeventhLord}");
+        yield return ("D9 7th lord", D9Place(g.SeventhLord, g.SeventhLordPlacement), D9Place(b.SeventhLord, b.SeventhLordPlacement));
+        yield return ("Planets in the D9 7th", g.SeventhOccupants.Count == 0 ? "None" : string.Join(", ", g.SeventhOccupants),
+                                               b.SeventhOccupants.Count == 0 ? "None" : string.Join(", ", b.SeventhOccupants));
+        yield return ("Venus in D9", D9Place(PlanetName.Venus, g.Venus), D9Place(PlanetName.Venus, b.Venus));
+        yield return ("Jupiter in D9", D9Place(PlanetName.Jupiter, g.Jupiter), D9Place(PlanetName.Jupiter, b.Jupiter));
+        yield return ("Darakaraka", D9Rows_Karaka(g), D9Rows_Karaka(b));
+        yield return ("D1 and D9 7th lords", $"D1 {g.D1SeventhLord}, D9 {g.SeventhLord}: {(g.SameSeventhLord ? "the same planet" : "different planets")}",
+                                              $"D1 {b.D1SeventhLord}, D9 {b.SeventhLord}: {(b.SameSeventhLord ? "the same planet" : "different planets")}");
+        yield return ("Same sign in D1 and D9 (vargottama)", VargottamaText(g), VargottamaText(b));
+    }
+
+    private static string VargottamaText(NavamsaReading r) =>
+        r.Vargottama.Count == 0 ? "None of the 7th lord, Venus, Jupiter or Darakaraka"
+            : string.Join("; ", r.Vargottama.Select(v => $"{v.Point} ({v.Planet})"));
+
     private enum FindingKind { Good, Concern, Open }
     private sealed record Finding(FindingKind Kind, string Text, string Target);
-    private sealed record PersonData(bool Dosha, bool Saturn, bool Dasha);
+    private sealed record PersonData(bool Dosha, bool Saturn, bool Dasha, bool D9);
 
     private List<Finding> _findings = [];
-    private PersonData _dataGroom = new(false, false, false);
-    private PersonData _dataBride = new(false, false, false);
+    private PersonData _dataGroom = new(false, false, false, false);
+    private PersonData _dataBride = new(false, false, false, false);
     private string _spyKey = "";
 
     private static string FlagClass(FindingKind k) => k switch { FindingKind.Good => "good", FindingKind.Concern => "concern", _ => "open" };
@@ -647,6 +721,7 @@ else
         yield return ("cmp-summary", "Summary");
         yield return ("cmp-kuta", "Kuta");
         if (_balance is not null) yield return ("cmp-dosha", "Doshas");
+        if (_d9Groom is not null) yield return ("cmp-d9", "Navamsa");
         if (_saturn is not null) yield return ("cmp-saturn", "Saturn");
         if (_dasha is not null) yield return ("cmp-dasha", "Dasha");
         if (_dasha is not null) yield return ("cmp-timing", "Timing");
@@ -694,6 +769,9 @@ else
             Add(BalanceClass == "pass" ? FindingKind.Good : FindingKind.Concern, $"Mars and malefics: {char.ToLowerInvariant(BalanceText[0])}{BalanceText[1..]}", "cmp-dosha");
         else
             Add(FindingKind.Open, "Mars and malefic balance could not be read (a chart lacks stored positions)", "cmp-data");
+
+        if (_d9Groom is null)
+            Add(FindingKind.Open, "Navamsa could not be compared (a chart lacks stored D1 or D9 positions)", "cmp-data");
 
         if (_saturn is not null)
             Add(_saturn.SadeSatiOverlaps ? FindingKind.Concern : FindingKind.Good,

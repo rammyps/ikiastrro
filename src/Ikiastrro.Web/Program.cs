@@ -46,6 +46,7 @@ builder.Services.AddScoped<GrahaDrishtiStrengthRepository>();
 builder.Services.AddScoped<PanchangaRepository>();
 builder.Services.AddScoped<MatchPersonRepository>();
 builder.Services.AddScoped<DoshaChartRepository>();
+builder.Services.AddScoped<NavamsaChartRepository>();
 builder.Services.AddScoped<DashaCompatibilityRepository>();
 builder.Services.AddScoped<FamilyRepository>();
 builder.Services.AddScoped<YogaInputRepository>();

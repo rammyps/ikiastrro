@@ -291,3 +291,9 @@ Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 
 - Yoni for different animals now uses PyJHora's 14x14 matrix. Cross-checks: its 27-nakshatra animal mapping equals migration 098 on every row; the matrix is symmetric, 4 only on the diagonal, 0 on the seven classical enemy pairs. Conflict with Vasudev: the matrix scores some pairs 1, where the book says passable pairs are 2 to 3. Those pairs show as Absent with that note. The Anuradha/Shravana worked pair goes from a 22-26 range to a single 24.
 - Vedha is **not** adopted. PyJHora tests `boy + girl star number in {19, 28, 37}`, which also flags pairs such as Ashlesha-Magha (9+10) that are not Vedha pairs in the Tamil lists. It needs an explicit pair table from a cited source first.
 - Still open from the Vasudev gaps: the Vashya direction and the Rasi 7/0 reading.
+
+### 10.4 Phase 1 to 3 result (2026-10-04)
+
+- Phase 1 (summary, section bar, data panel, status labels), phase 2 (folded evidence tables, mobile card rows, focus styles) and phase 3 (Navamsa card) are built on `workstream/ui`; the Rajju, Stree Deergha, Mahendra and Yoni changes and `NavamsaCompatibility` are on `workstream/cli`.
+- The Navamsa card is facts only: D9 Lagna and 7th, the D9 7th lord, Venus and Jupiter in D9, the Darakaraka (the D1 chara karaka), and which of the D1 7th lord, Venus, Jupiter and Darakaraka are vargottama. All values are stored positions; nothing is recomputed. Verdicts wait for a cited source.
+- Not built: the side-by-side mini D9 chart wheels the audit suggested.
