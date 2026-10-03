@@ -81,7 +81,7 @@ public static class VimshottariDashaCalculator
                 StartDate = localMoment.AddDays(mahaStartDays),
                 EndDate = localMoment.AddDays(mahaEndDays),
                 StartDayOffset = (int)Math.Round(mahaStartDays),
-                EndDayOffset = (int)Math.Round(mahaEndDays) - 1
+                EndDayOffset = EndOffset(mahaStartDays, mahaEndDays)
             };
             roots.Add(mahaPeriod);
 
@@ -107,7 +107,7 @@ public static class VimshottariDashaCalculator
                     StartDate = localMoment.AddDays(antarStartDays),
                     EndDate = localMoment.AddDays(antarEndDays),
                     StartDayOffset = (int)Math.Round(antarStartDays),
-                    EndDayOffset = (int)Math.Round(antarEndDays) - 1
+                    EndDayOffset = EndOffset(antarStartDays, antarEndDays)
                 };
                 mahaPeriod.Children.Add(antarPeriod);
 
@@ -133,7 +133,7 @@ public static class VimshottariDashaCalculator
                         StartDate = localMoment.AddDays(pratyaStartDays),
                         EndDate = localMoment.AddDays(pratyaEndDays),
                         StartDayOffset = (int)Math.Round(pratyaStartDays),
-                        EndDayOffset = (int)Math.Round(pratyaEndDays) - 1
+                        EndDayOffset = EndOffset(pratyaStartDays, pratyaEndDays)
                     });
 
                     pratyaCursorDays = pratyaEndDays;
@@ -150,6 +150,14 @@ public static class VimshottariDashaCalculator
 
         return roots;
     }
+
+    /// <summary>
+    /// Last whole day of a period, never before its first day: a birth within half a day of a
+    /// period's end leaves a sliver that would otherwise round to an end before its start
+    /// (tbl_Chart_DashaPeriods' CK_DashaPeriods_Offsets).
+    /// </summary>
+    private static int EndOffset(double startDays, double endDays) =>
+        Math.Max((int)Math.Round(startDays), (int)Math.Round(endDays) - 1);
 
     /// <summary>
     /// Given a period's own starting-lord index and full duration, plus how many years have already

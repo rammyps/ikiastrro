@@ -905,10 +905,13 @@ if (args.Length > 0 && args[0] == "verify-jaimini")
         Check("GL (D1) -> Pisces",      SpSign("D1", "GL"), "Pisces");
         Check("GL (D9) -> Leo",         SpSign("D9", "GL"), "Leo");
         Check("SL (D1) -> Cancer",      SpSign("D1", "SL"), "Cancer");
-        Check("SL (D9) -> Sagittarius", SpSign("D9", "SL"), "Sagittarius");
+        // SL is driven by the Moon, so it follows the 2026-09-23 Traditional Lahiri export
+        // (15 Cn 17'37.70", D9 Sc) that decision 009 reconciles against; the older True
+        // Chitrapaksha export above computed the Moon on the plain ecliptic (17 Cn 33'01", D9 Sg).
+        Check("SL (D9) -> Scorpio", SpSign("D9", "SL"), "Scorpio");
         CheckLon("BL longitude", SpLon("BL"), 0.5835,   0.5);
         CheckLon("GL longitude", SpLon("GL"), 333.9254, 0.5);
-        CheckLon("SL longitude", SpLon("SL"), 107.5502, 0.5);
+        CheckLon("SL longitude", SpLon("SL"), 105.2938, 0.5);
     }
 
     // --- Phase 6: Karakamsa (AK in D9) — JHora export: Rahu (AK) Navamsa column "Li" ---

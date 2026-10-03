@@ -14,8 +14,10 @@ droppable into another .NET project as-is.
 ## What it wraps
 
 - **`SwissEphemerisInterpreter.GetPositions(localMoment, latitudeDeg, longitudeDeg, ayanamsa, houseSystem)`**
-  — sidereal longitude/latitude/daily-motion-speed for the Sun, Moon, Mars, Mercury, Jupiter,
-  Venus, Saturn, Rahu (true lunar node, `SE_TRUE_NODE`) and Ketu (Rahu + 180°), plus the Ascendant longitude,
+  — sidereal longitude/latitude/daily-motion-speed, projected on the solar-system plane as true
+  positions (`SE_SIDBIT_SSY_PLANE`, `SEFLG_TRUEPOS`), for the Sun, Moon, Mars, Mercury, Jupiter,
+  Venus, Saturn, Rahu (true lunar node, `SE_TRUE_NODE`) and Ketu (Rahu + 180°), plus the Ascendant longitude
+  (plain sidereal ecliptic, not projected),
   the ayanamsha applied, and local sidereal time. `houseSystem` only supports
   `HouseSystem.WholeSign` today (`swe_houses_ex`'s `'W'` system char) — the parameter exists so
   other systems are additive later.

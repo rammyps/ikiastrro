@@ -26,16 +26,17 @@ public class GetPositionsTests
     public static IEnumerable<object[]> ExpectedLongitudes =>
         new List<object[]>
         {
-            new object[] { "Sun", 8.1838962001970987 },
-            new object[] { "Moon", 217.27711923514235 },
-            new object[] { "Mars", 3.9241242774169556 },
-            new object[] { "Mercury", 1.8115564192190432 },
-            new object[] { "Jupiter", 158.71365169336244 },
-            new object[] { "Venus", 11.964536501879603 },
-            new object[] { "Saturn", 160.94421816272668 },
-            // Rahu/Ketu: the true node since decision 008 (12°55'11" Cancer; JHora 12°54'53").
-            new object[] { "Rahu", 102.9195893953891 },
-            new object[] { "Ketu", 282.9195893953891 },
+            new object[] { "Sun", 8.2009071927320161 },
+            new object[] { "Moon", 217.20777319080989 },
+            new object[] { "Mars", 3.9423471793158806 },
+            new object[] { "Mercury", 1.8316128024392635 },
+            new object[] { "Jupiter", 158.72289503163395 },
+            new object[] { "Venus", 11.982232867907282 },
+            new object[] { "Saturn", 160.95855158855355 },
+            // Planets on the solar-system plane as true positions since decision 009; Rahu/Ketu
+            // the true node since decision 008 (12°55'08" Cancer; JHora 12°54'53").
+            new object[] { "Rahu", 102.91896206108494 },
+            new object[] { "Ketu", 282.91896206108493 },
         };
 
     [Theory]
@@ -45,6 +46,36 @@ public class GetPositionsTests
         var snapshot = GetReferenceSnapshot();
         var planet = Assert.Single(snapshot.Planets, p => p.Body == body);
         Assert.Equal(expectedLongitudeDeg, planet.LongitudeDeg, precision: 6);
+    }
+
+    // JHora's own export for this chart (05:30:01, 80E17 13N05): sidereal longitude and the
+    // latitude column of "Latitudes, speeds etc". The latitudes are measured from the
+    // solar-system plane, which pins the projection (decision 009).
+    public static IEnumerable<object[]> JhoraPositions =>
+        new List<object[]>
+        {
+            new object[] { "Sun", 8.20185556, 1.530 },
+            new object[] { "Moon", 217.20875833, 3.410 },
+            new object[] { "Mars", 3.94327778, 1.098 },
+            new object[] { "Mercury", 1.83256389, 0.349 },
+            new object[] { "Jupiter", 158.72377222, 0.036 },
+            new object[] { "Venus", 11.98317500, 0.670 },
+            new object[] { "Saturn", 160.95951111, 1.097 },
+        };
+
+    [Theory]
+    [MemberData(nameof(JhoraPositions))]
+    public void Planet_matches_Jagannatha_Hora_within_the_ayanamsa_difference(
+        string body, double jhoraLongitudeDeg, double jhoraLatitudeDeg)
+    {
+        var snapshot = SwissEphemerisInterpreter.GetPositions(
+            new DateTimeOffset(1981, 4, 22, 5, 30, 1, TimeSpan.FromHours(5.5)),
+            13 + 5 / 60.0, 80 + 17 / 60.0, AyanamsaDefinition.TraditionalLahiri);
+        var planet = Assert.Single(snapshot.Planets, p => p.Body == body);
+
+        // JHora's ayanamsa is 3.4 arcsec smaller than Traditional Lahiri's; allow 5 arcsec.
+        Assert.InRange((planet.LongitudeDeg - jhoraLongitudeDeg) * 3600, -5.0, 5.0);
+        Assert.Equal(jhoraLatitudeDeg, planet.LatitudeDeg, precision: 2);
     }
 
     [Fact]

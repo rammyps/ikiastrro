@@ -604,6 +604,7 @@ nothing stored, no regeneration needed. `KeyInfoTests` checks every figure again
 - **6 Vargas → "Ṣaṣṭyaṃśa (D60) deities"** (`ShashtiamsaTable`, D1 tag): part, deity and nature for
   the Lagna and nine grahas, live from the D1 degree. Names and natures follow
   [decision 006](../../../decisions/006-shashtiamsa-names-bphs-jhora.md); all nine bodies but the
-  nodes match JHora (our node longitude is ~8′ from JHora's).
+  nodes match JHora.
 - **KP sub-lords** were already in 1.1's Planet positions (Sub Lord, chain L2–L7). They match JHora
-  through the prati-sub; from the sookshma down the ~1′ ayanamsa difference (decision 004) moves them.
+  through the prati-sub; from the sookshma down the few arcseconds left between our positions and
+  JHora's (decision 009) can move them.

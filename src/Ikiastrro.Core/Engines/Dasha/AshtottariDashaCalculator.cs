@@ -111,6 +111,6 @@ public static class AshtottariDashaCalculator
         StartDate = birth.AddDays(startDays),
         EndDate = birth.AddDays(endDays),
         StartDayOffset = (int)Math.Round(startDays),
-        EndDayOffset = (int)Math.Round(endDays) - 1
+        EndDayOffset = Math.Max((int)Math.Round(startDays), (int)Math.Round(endDays) - 1)
     };
 }

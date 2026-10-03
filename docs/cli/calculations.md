@@ -20,10 +20,15 @@ Every calculation ikiastrro performs, its convention, and its source. All code i
   default other than `AYANAMSA_LAHIRI`. True Chitrapaksha (mode 27) is closer still but needs `sefstars.txt`, which the
   file-less Moshier build omits. Every `tbl_ChartResults` row records `AyanamshaDegrees` +
   `SiderealTimeHours`.
+- **Frame:** grahas are projected onto the **solar-system (invariable) plane**
+  (`SE_SIDBIT_SSY_PLANE`) as **true positions** (`SEFLG_TRUEPOS`), as JHora computes them with
+  Traditional Lahiri — every planet within 3.5″ of JHora's export (decision 009). The ascendant
+  and houses stay on the plain sidereal ecliptic.
 - **Nodes:** Rahu = **true node** (`SE_TRUE_NODE`), as JHora uses (decision 008; the mean node
   until then); Ketu = Rahu + 180° (derived, never stored separately). Both are always flagged
   retrograde, even when the true node's speed turns positive. `vw_KetuSignTransitEvents` = Rahu events + 6 signs.
-- **Speed & latitude:** from the same `swe_calc_ut` call (`SEFLG_SPEED`); persisted per planet
+- **Speed & latitude:** from the same `swe_calc_ut` call (`SEFLG_SPEED`); latitude is measured
+  from the solar-system plane (decision 009), as JHora shows it; persisted per planet
   for D1 and every varga. Speed drives retrograde + combustion-orb selection.
 - **House system:** **Whole Sign** everywhere. House *n* from a reference sign =
   `AstroMath.CountFromSignToSign` (the sign holding the reference point is house 1). Confirmed

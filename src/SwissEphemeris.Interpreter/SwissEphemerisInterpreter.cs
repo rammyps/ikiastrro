@@ -23,6 +23,14 @@ public static class SwissEphemerisInterpreter
     /// <see cref="AyanamsaDefinition.SwissSiderealMode"/> — Swiss Ephemeris subtracts the
     /// ayanamsha internally before returning xx[0], no separate correction step needed.
     ///
+    /// Planets are computed as Jagannatha Hora computes them (ikiastrro decision 009): projected
+    /// onto the solar-system (invariable) plane (SE_SIDBIT_SSY_PLANE) and as true positions
+    /// (SEFLG_TRUEPOS — no light-time, aberration or light deflection). The returned latitude is
+    /// therefore measured from that plane, not the ecliptic. On the 22 Apr 1981 Chennai test chart
+    /// every planet then lands within 3.5 arcsec of JHora (the 3.4 arcsec ayanamsa difference);
+    /// the plain ecliptic apparent positions were up to 4.1 arcmin off (the Moon). The ascendant
+    /// stays on the plain sidereal ecliptic, as JHora's does.
+    ///
     /// Rahu is the TRUE (osculating) lunar node (SE_TRUE_NODE), as Jagannatha Hora uses: on the
     /// 22 Apr 1981 Chennai test chart it lands 18 arcsec from JHora's Rahu, where the mean node
     /// (SE_MEAN_NODE, used until ikiastrro decision 008) was 7.7 arcmin off. Prokerala / AstroSage
@@ -45,13 +53,13 @@ public static class SwissEphemerisInterpreter
 
         using var sweph = new SwissEph();
         if (!ayanamsa.IsTropical)
-            sweph.swe_set_sid_mode(ayanamsa.SwissSiderealMode!.Value, 0, 0);
+            sweph.swe_set_sid_mode(ayanamsa.SwissSiderealMode!.Value | SwissEph.SE_SIDBIT_SSY_PLANE, 0, 0);
 
         var utc = localMoment.ToUniversalTime();
         var utHours = utc.Hour + utc.Minute / 60.0 + utc.Second / 3600.0;
         var jd = sweph.swe_julday(utc.Year, utc.Month, utc.Day, utHours, SwissEph.SE_GREG_CAL);
 
-        var flags = SwissEph.SEFLG_MOSEPH | SwissEph.SEFLG_SPEED;
+        var flags = SwissEph.SEFLG_MOSEPH | SwissEph.SEFLG_SPEED | SwissEph.SEFLG_TRUEPOS;
         if (!ayanamsa.IsTropical) flags |= SwissEph.SEFLG_SIDEREAL;
 
         // xx[0] = longitude, xx[1] = ecliptic latitude (deg), xx[3] = daily motion speed in
@@ -92,6 +100,10 @@ public static class SwissEphemerisInterpreter
         var ketuLongitude = Normalize(rahuLongitude + 180);
         planets.Add(new PlanetPosition("Ketu", ketuLongitude, -rahuLatitude, rahuSpeed));
 
+        // The ascendant is not projected: with the solar-system-plane bit it moves ~1.1 deg off
+        // JHora's Lagna, so houses (and the ayanamsa read below) use the plain sidereal mode.
+        if (!ayanamsa.IsTropical)
+            sweph.swe_set_sid_mode(ayanamsa.SwissSiderealMode!.Value, 0, 0);
         var cusps = new double[13];
         var ascmc = new double[10];
         var houseErr = "";
