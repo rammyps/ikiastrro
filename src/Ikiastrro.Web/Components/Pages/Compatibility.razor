@@ -60,6 +60,8 @@ else
 
     @if (_result is not null)
     {
+        <p class="cmp-printhead">Compatibility comparison · @Groom!.Name &amp; @Bride!.Name · @DateTime.Today.ToString("d MMM yyyy") · rule set @CompatibilityRuleSet.Version</p>
+
         @if (_familyNote is not null)
         {
             <p class="cmp-family">@_familyNote</p>
@@ -137,6 +139,12 @@ else
 
         <section class="cmp-summary" aria-labelledby="cmp-summary">
             <h2 class="cmp-summary-head" id="cmp-summary" tabindex="-1">Summary of findings</h2>
+            <div class="cmp-actions">
+                <button type="button" class="cmp-swap" @onclick="CopySummary">Copy summary</button>
+                <button type="button" class="cmp-swap" @onclick="PrintComparison">Print this comparison</button>
+                <span class="cmp-copystatus" role="status" aria-live="polite">@_copyStatus</span>
+            </div>
+            <p class="cmp-legend cmp-stamp">Made @DateTime.Today.ToString("d MMM yyyy") under rule set @CompatibilityRuleSet.Version. Nothing is saved: the same two people and rule set always give the same result.</p>
             <p class="cmp-legend">
                 <span class="cmp-flag cmp-flag-good">&#10003; Favourable</span>
                 <span class="cmp-flag cmp-flag-concern">! Concern</span>
@@ -271,6 +279,38 @@ else
                     </table>
                 </div>
                 </details>
+                <details class="cmp-detail" open>
+                    <summary>Does each chart carry the same affliction?</summary>
+                    <div class="cmp-scroll">
+                        <table class="cmp-table">
+                            <thead><tr><th>Affliction</th><th>@Groom!.Name</th><th>@Bride!.Name</th><th>In both or neither?</th></tr></thead>
+                            <tbody>
+                                @foreach (var row in _matchup!)
+                                {
+                                    <tr>
+                                        <th scope="row">@row.Dosha</th>
+                                        <td data-label="@Groom!.Name">@(row.First.Count == 0 ? "None" : string.Join("; ", row.First))</td>
+                                        <td data-label="@Bride!.Name">@(row.Second.Count == 0 ? "None" : string.Join("; ", row.Second))</td>
+                                        <td data-label="In both or neither?">@(row.SameInBoth ? "Yes" : "No")</td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <th scope="row">Mars' stored D1 dignity</th>
+                                    <td data-label="@Groom!.Name">@DignityText(_dignityGroom, PlanetName.Mars)</td>
+                                    <td data-label="@Bride!.Name">@DignityText(_dignityBride, PlanetName.Mars)</td>
+                                    <td data-label="In both or neither?">Shown only</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Rahu's stored D1 dignity</th>
+                                    <td data-label="@Groom!.Name">@DignityText(_dignityGroom, PlanetName.Rahu)</td>
+                                    <td data-label="@Bride!.Name">@DignityText(_dignityBride, PlanetName.Rahu)</td>
+                                    <td data-label="In both or neither?">Shown only</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+                <p class="cmp-pad cmp-sub">The book's one balancing rule (pp.56-58) is the only cancellation applied, and it is the result above. Not applied, because no cited source gives them: cancellation by Mars or Rahu being in its own, exalted or debilitated sign, by benefic aspects on the afflicted planet, or by its dispositor. The dignity row is shown for the reader and changes nothing. Whether Sun, Saturn or Ketu afflictions need balancing is not stated by the book.</p>
             </article>
         }
 
@@ -542,6 +582,55 @@ else
                     }
                 </div>
             </article>
+
+            <article class="cmp-card">
+                <header class="cmp-card-head">
+                    <h2 id="cmp-changes" tabindex="-1">Dasha changes ahead</h2>
+                    <p class="cmp-sub">Every Mahadasha and Antardasha change for either person in the next @DashaYears years, in date order. Facts only: no source classifies a period as supportive or difficult.</p>
+                </header>
+                <details class="cmp-detail" open>
+                    <summary>Next @Math.Min(12, _timeline!.Changes.Count) changes</summary>
+                    <div class="cmp-scroll">
+                        @ChangesTable(_timeline.Changes.Take(12))
+                    </div>
+                </details>
+                @if (_timeline.Changes.Count > 12)
+                {
+                    <details class="cmp-detail">
+                        <summary>Later changes (@(_timeline.Changes.Count - 12))</summary>
+                        <div class="cmp-scroll">
+                            @ChangesTable(_timeline.Changes.Skip(12))
+                        </div>
+                    </details>
+                }
+                <details class="cmp-detail" open>
+                    <summary>Periods both people share (same lord, same level, at the same time)</summary>
+                    @if (_timeline.SharedWindows.Count == 0)
+                    {
+                        <p class="cmp-pad">No Mahadasha or Antardasha lord is shared at the same time in the next @DashaYears years.</p>
+                    }
+                    else
+                    {
+                        <div class="cmp-scroll">
+                            <table class="cmp-table">
+                                <thead><tr><th>Level</th><th>Lord</th><th>From</th><th>To</th></tr></thead>
+                                <tbody>
+                                    @foreach (var w in _timeline.SharedWindows)
+                                    {
+                                        <tr>
+                                            <th scope="row">@LevelName(w.Level)</th>
+                                            <td data-label="Lord" class="cmp-score">@w.Lord</td>
+                                            <td data-label="From">@w.Start.ToString("d MMM yyyy")</td>
+                                            <td data-label="To">@w.End.ToString("d MMM yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </details>
+                <p class="cmp-pad cmp-sub">"Rules" and "sits in" are houses counted from that person's own Lagna, for the lord that begins. Which of them help or hinder a marriage is not classified here until a source is cited.</p>
+            </article>
         }
 
         <article class="cmp-card">
@@ -701,6 +790,7 @@ else
         _dashaGroom = groom;
         _dashaBride = bride;
         _dasha = DashaCompatibility.Compare(groom, bride, _tlStart, _tlEnd);
+        _timeline = PairDashaTimeline.Build(groom, bride, _tlStart, _tlEnd);
     }
 
     private static string LevelName(int level) => level switch { 1 => "Mahadasha", 2 => "Antardasha", _ => "Pratyantar" };
@@ -763,6 +853,9 @@ else
         _d9Groom = _d9Bride = null;
         _synastry = null;
         _shared = null;
+        _timeline = null;
+        _matchup = null;
+        _copyStatus = "";
         _chartGroom = _chartBride = null;
         _dataGroom = _dataBride = new(false, false, false, false);
         _balance = null;
@@ -786,6 +879,9 @@ else
             _doshaGroom = DoshaSamyaCalculator.Read(groomChart);
             _doshaBride = DoshaSamyaCalculator.Read(brideChart);
             _balance = DoshaSamyaCalculator.Balance(_doshaGroom, _doshaBride);
+            _matchup = DoshaMatchup.Build(_doshaGroom, _doshaBride);
+            _dignityGroom = DoshaRepo.GetDignities(Groom.BirthDetailId);
+            _dignityBride = DoshaRepo.GetDignities(Bride.BirthDetailId);
         }
 
         var groomSaturn = SadeSatiRepo.GetByBirthDetailId(Groom.BirthDetailId);
@@ -816,6 +912,61 @@ else
     }
 
     private string? _familyNote;
+
+    private DashaTimelineReading? _timeline;
+    private IReadOnlyList<DoshaMatchupRow>? _matchup;
+    private IReadOnlyDictionary<PlanetName, string?> _dignityGroom = new Dictionary<PlanetName, string?>();
+    private IReadOnlyDictionary<PlanetName, string?> _dignityBride = new Dictionary<PlanetName, string?>();
+    private string _copyStatus = "";
+
+    private static string DignityText(IReadOnlyDictionary<PlanetName, string?> d, PlanetName planet) =>
+        d.TryGetValue(planet, out var v) && !string.IsNullOrWhiteSpace(v) ? v : "None recorded";
+
+    private RenderFragment ChangesTable(IEnumerable<DashaChange> rows) => @<table class="cmp-table">
+        <thead><tr><th>Date</th><th>Whose period</th><th>Level</th><th>Change</th><th>New lord rules</th><th>New lord sits in</th></tr></thead>
+        <tbody>
+            @foreach (var c in rows)
+            {
+                <tr>
+                    <th scope="row">@c.Date.ToString("d MMM yyyy")</th>
+                    <td data-label="Whose period">@c.Person</td>
+                    <td data-label="Level">@LevelName(c.Level)</td>
+                    <td data-label="Change" class="cmp-score">@c.FromLord to @c.ToLord</td>
+                    <td data-label="Rules">@(c.Rules.Count == 0 ? "no sign" : string.Join(", ", c.Rules.Select(Ordinal)))</td>
+                    <td data-label="Sits in">@(c.PlacedIn is int h ? Ordinal(h) : "—")</td>
+                </tr>
+            }
+        </tbody>
+    </table>;
+
+    // The summary as plain text, with the date and rule set it was made under, for pasting into notes or a message.
+    private string SummaryText()
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Compatibility: {Groom!.Name} ({GroomLabel}) and {Bride!.Name} ({BrideLabel})");
+        sb.AppendLine($"Made {DateTime.Today:d MMM yyyy} under rule set {CompatibilityRuleSet.Version}");
+        if (_familyNote is not null) sb.AppendLine(_familyNote);
+        foreach (var kind in new[] { FindingKind.Good, FindingKind.Concern, FindingKind.Open })
+        {
+            sb.AppendLine();
+            sb.AppendLine(kind switch { FindingKind.Good => "Favourable:", FindingKind.Concern => "Concern:", _ => "Unresolved:" });
+            var items = _findings.Where(f => f.Kind == kind).ToList();
+            if (items.Count == 0) sb.AppendLine("  none");
+            foreach (var f in items) sb.AppendLine($"  - {f.Text}");
+        }
+        sb.AppendLine();
+        sb.AppendLine("No single score decides compatibility; the results are read separately and never combined.");
+        sb.AppendLine($"Sources: {CompatibilityRuleSet.Sources}");
+        return sb.ToString();
+    }
+
+    private async Task CopySummary()
+    {
+        var ok = await JS.InvokeAsync<bool>("ikiastrroScroll.copyText", SummaryText());
+        _copyStatus = ok ? "Summary copied." : "Could not copy; select the summary text instead.";
+    }
+
+    private async Task PrintComparison() => await JS.InvokeVoidAsync("ikiastrroScroll.printCompare");
 
     private FamilyMember? _link;
     private FamilyMember? _reverseLink;
@@ -942,6 +1093,7 @@ else
         if (_saturn is not null) yield return ("cmp-saturn", "Saturn");
         if (_dasha is not null) yield return ("cmp-dasha", "Dasha");
         if (_dasha is not null) yield return ("cmp-timing", "Timing");
+        if (_timeline is not null) yield return ("cmp-changes", "Changes");
         yield return ("cmp-data", "Data");
         yield return ("cmp-notes", "Notes");
     }

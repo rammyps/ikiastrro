@@ -121,6 +121,22 @@
     .pr-report .ac-card,
     .pr-report svg { break-inside: avoid; }
 
+    /* --- 3. Compatibility comparison printed on its own: the page content, opened out, with a header
+          line naming the pair, the date and the rule set. --- */
+    body:has(.cmp-glance) .ik-appbar-scope,
+    body:has(.cmp-glance) .ik-band,
+    body:has(.cmp-glance) .ik-footer,
+    body:has(.cmp-glance) .ik-person-scrim,
+    .cmp-nav, .cmp-controls, .cmp-actions, .cmp-note button { display: none !important; }
+    body:has(.cmp-glance) .mud-main-content { padding-top: 0 !important; }
+    body:has(.cmp-glance) .ik-page { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+    .cmp-printhead { display: block !important; margin: 0 0 10px; font-weight: 700; }
+    .cmp-scroll { overflow: visible !important; }
+    .cmp-table { width: 100% !important; }
+    .cmp-table th, .cmp-table td { white-space: normal !important; overflow-wrap: break-word; }
+    .cmp-table tr, .cmp-person, .cmp-finding-col { break-inside: avoid; }
+    .cmp-card-head { break-after: avoid; }
+
     /* --- 2. All Charts gallery printed on its own: the charts and nothing else, on white. --- */
     body:has(.ac-grid):not(:has(.pr-report)) { background: #ffffff !important; color: #2a2118 !important; }
     body:has(.ac-grid):not(:has(.pr-report)) .ik-appbar-scope,

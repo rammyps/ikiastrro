@@ -309,3 +309,9 @@
     .cmp-navtools { margin-left: 0; }
     .cmp-controls .cmp-field select { min-width: 0; width: 100%; }
 }
+
+/* Copy and print: the actions sit under the summary heading; the print header only shows on paper. */
+.cmp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 8px; }
+.cmp-copystatus { color: var(--card-fg-muted); font-size: var(--font-size-support); }
+.cmp-stamp { font-size: var(--font-size-meta); }
+.cmp-printhead { display: none; }

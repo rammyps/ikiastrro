@@ -305,3 +305,10 @@ Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 
 - **Pair similarity** (any pair): a list of shared facts (Lagna, Moon, Sun, nakshatra and pada, gana, yoni, nadi, each graha in the same D1 or D9 sign, one Lagna being the other's Moon sign). A count, not a score: base rates (5.3) are not built, so it is not offered as evidence.
 - **Compatibility page**: for a recorded non-spouse relationship the page names both people by their roles, shows the layer, and hides Kuta, the dosha balance and the D9 7th-house facts unless asked ("Show marriage factors anyway"). A spouse or an unrecorded pair keeps the marriage view.
 - Not built: the full similarity module (feature atoms, pattern search, corpus, 5.1 to 5.4); this is the pair-level slice of it.
+
+### 10.6 Phase 5 result (2026-10-04)
+
+- **Dasha changes ahead**: every Mahadasha and Antardasha change for either person in the next 25 years in date order, naming whose period changes and what the new lord rules and where it sits in that person's chart, plus the windows both people share the same lord at the same level. Facts only: no source classifies a period for a marriage, so no supportive or difficult label is given.
+- **Dosha matchup**: the afflictions sorted by kind with a "same in both or neither" column, and Mars and Rahu stored D1 dignity shown beside it. The book's one balancing rule (pp.56-58) remains the only cancellation applied; cancellation by dignity, benefic aspect or dispositor is listed as not applied (no cited source).
+- **Copy summary and Print**: the summary as plain text with the date and rule set, and a print of the whole comparison (details opened, default-light, app chrome hidden). `CompatibilityRuleSet.Version` is bumped whenever a matching rule changes; nothing is stored per pair.
+- Not built: saved comparisons (L5, phase 6) and any sourced supportive/difficult classification of dasha periods.
