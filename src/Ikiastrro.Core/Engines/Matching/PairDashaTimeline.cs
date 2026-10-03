@@ -19,7 +19,7 @@ public sealed record DashaTimelineReading(
 /// supportive or difficult: no source is cited that classifies periods for a marriage, so none is given
 /// (docs/architecture/compatibility_similarity.md, section 9.3). Pure; no I/O.
 /// </summary>
-public static class DashaTimeline
+public static class PairDashaTimeline
 {
     public static DashaTimelineReading Build(DashaPerson first, DashaPerson second, DateTime asOf, DateTime horizon)
     {

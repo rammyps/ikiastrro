@@ -29,7 +29,7 @@ public class DashaTimelineAndDoshaMatchupTests
     [Fact]
     public void Changes_are_every_maha_and_antar_start_after_the_as_of_date_in_date_order()
     {
-        var r = DashaTimeline.Build(First(), Second(), AsOf, Horizon);
+        var r = PairDashaTimeline.Build(First(), Second(), AsOf, Horizon);
         (DateTime, string, int, string, string)[] expected =
         [
             (D(2028), "A", 2, "Venus", "Moon"), (D(2028), "B", 2, "Venus", "Sun"), (D(2029), "B", 1, "Moon", "Sun"),
@@ -41,7 +41,7 @@ public class DashaTimelineAndDoshaMatchupTests
     [Fact]
     public void A_change_names_the_person_it_affects_and_what_the_new_lord_rules_in_their_chart()
     {
-        var r = DashaTimeline.Build(First(), Second(), AsOf, Horizon);
+        var r = PairDashaTimeline.Build(First(), Second(), AsOf, Horizon);
         var aSun = r.Changes.Single(c => c.IsFirst && c.Level == 1);
         Assert.Equal("A", aSun.Person);
         Assert.Equal("Venus", aSun.FromLord);
@@ -53,7 +53,7 @@ public class DashaTimelineAndDoshaMatchupTests
     [Fact]
     public void Changes_outside_the_window_are_left_out()
     {
-        var r = DashaTimeline.Build(First(), Second(), AsOf, D(2028, 6, 1));
+        var r = PairDashaTimeline.Build(First(), Second(), AsOf, D(2028, 6, 1));
         Assert.DoesNotContain(r.Changes, c => c.Date > D(2028, 6, 1));
         Assert.DoesNotContain(r.Changes, c => c.Date <= AsOf);
     }
@@ -61,7 +61,7 @@ public class DashaTimelineAndDoshaMatchupTests
     [Fact]
     public void Shared_windows_are_where_both_are_in_the_same_lord_at_the_same_level()
     {
-        var r = DashaTimeline.Build(First(), Second(), AsOf, Horizon);
+        var r = PairDashaTimeline.Build(First(), Second(), AsOf, Horizon);
         // Antardasha: both are in Venus 2026-01-01 to 2028-01-01 (clipped to the as-of date).
         Assert.Contains(new SharedDashaWindow(2, "Venus", AsOf, D(2028)), r.SharedWindows);
         // Mahadasha: A is Sun from 2030, B is Sun from 2029: shared 2030 to the horizon.
