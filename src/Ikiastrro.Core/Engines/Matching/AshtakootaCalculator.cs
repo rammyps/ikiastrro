@@ -13,7 +13,8 @@ namespace Ikiastrro.Core.Engines.Matching;
 ///
 /// Where the source gives no rule the result says so instead of guessing:
 ///  - Yoni (p.69-70): the book scores 4 for the same animal, 0 for hostile animals and "between 2 and 3"
-///    for passable pairs, but lists no hostile-pair table. Different animals are therefore Unscored.
+///    for passable pairs, but lists no pair table. Different animals take PyJHora's 14x14 matrix, which
+///    agrees with the book on the same-animal 4 and the hostile 0 (it also scores some pairs 1).
 ///  - Rasi (p.73-75): the book gives only qualitative verdicts per distance and a maximum of 7; a
 ///    favourable verdict scores 7 and an unfavourable one 0. That 7/0 mapping is this project's reading.
 ///  - Vashya (p.67): the table lists "signs - sign"; read as boy's sign in the list of the girl's sign.
@@ -123,13 +124,45 @@ public static class AshtakootaCalculator
 
     // ---- Yoni (p.69-70) ----------------------------------------------------------------------
 
+    // Animal order of PyJHora's YoniArray (horoscope/match/compatibility.py); symmetric, 4 on the diagonal,
+    // 0 for the seven enemy pairs (Horse-Buffalo, Elephant-Lion, Sheep-Monkey, Snake-Mongoose, Dog-Deer,
+    // Cat-Rat, Cow-Tiger). Its nakshatra->animal mapping equals tbl_Nakshatras (migration 098) on all 27.
+    private static readonly string[] YoniOrder =
+        ["Horse", "Elephant", "Sheep", "Snake", "Dog", "Cat", "Rat", "Cow", "Buffalo", "Tiger", "Deer", "Monkey", "Mongoose", "Lion"];
+
+    private static readonly int[,] YoniScore =
+    {
+        { 4, 2, 2, 3, 2, 2, 2, 1, 0, 1, 1, 3, 2, 1 },
+        { 2, 4, 3, 3, 2, 2, 2, 2, 3, 1, 2, 3, 2, 0 },
+        { 2, 3, 4, 2, 1, 2, 1, 3, 3, 1, 2, 0, 3, 1 },
+        { 3, 3, 2, 4, 2, 1, 1, 1, 1, 2, 2, 2, 0, 2 },
+        { 2, 2, 1, 2, 4, 2, 1, 2, 2, 1, 0, 2, 1, 1 },
+        { 2, 2, 2, 1, 2, 4, 0, 2, 2, 1, 3, 3, 2, 1 },
+        { 2, 2, 1, 1, 1, 0, 4, 2, 2, 2, 2, 2, 1, 2 },
+        { 1, 2, 3, 1, 2, 2, 2, 4, 3, 0, 3, 2, 2, 1 },
+        { 0, 3, 3, 1, 2, 2, 2, 3, 4, 1, 2, 2, 2, 1 },
+        { 1, 1, 1, 2, 1, 1, 2, 0, 1, 4, 1, 1, 2, 1 },
+        { 1, 2, 2, 2, 0, 3, 2, 3, 2, 1, 4, 2, 2, 1 },
+        { 3, 3, 0, 2, 2, 3, 2, 2, 2, 1, 2, 4, 3, 2 },
+        { 2, 2, 3, 0, 1, 2, 1, 2, 2, 2, 2, 3, 4, 2 },
+        { 1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 2, 4 },
+    };
+
+    public static int YoniPoints(string boyAnimal, string girlAnimal) =>
+        YoniScore[Array.FindIndex(YoniOrder, a => a.Equals(girlAnimal, StringComparison.OrdinalIgnoreCase)),
+                  Array.FindIndex(YoniOrder, a => a.Equals(boyAnimal, StringComparison.OrdinalIgnoreCase))];
+
     private static KutaResult Yoni(MatchPerson boy, MatchPerson girl)
     {
-        const string loc = "p.69-70";
+        const string loc = "p.69-70; PyJHora YoniArray";
         if (string.Equals(boy.YoniAnimal, girl.YoniAnimal, StringComparison.OrdinalIgnoreCase))
             return new("YONI", "Yoni", 4, 4, KutaStatus.Present, $"Same Yoni ({boy.YoniAnimal}).", loc);
-        return new("YONI", "Yoni", null, 4, KutaStatus.Unscored,
-            $"{boy.YoniAnimal} and {girl.YoniAnimal} differ; the book scores hostile pairs 0 and passable pairs 2-3 but lists no hostile-pair table.", loc);
+        var points = YoniPoints(boy.YoniAnimal, girl.YoniAnimal);
+        var note = points == 0 ? "hostile animals (the book's 0)"
+            : points >= 2 ? "passable (the book's 2 to 3)"
+            : "weak; the book gives no value for it, PyJHora's matrix scores 1";
+        return new("YONI", "Yoni", points, 4, points >= 2 ? KutaStatus.Present : KutaStatus.Absent,
+            $"Boy {boy.YoniAnimal}, girl {girl.YoniAnimal}: {note}. Different-animal values are PyJHora's matrix; the book lists no pair table.", loc);
     }
 
     // ---- Grahamaitra (p.70-71) ---------------------------------------------------------------

@@ -285,3 +285,9 @@ Not raised by the audit but the cause of the 22-26 score range: Yoni (different 
 | 6 | Pair history and notes; saved reports | L4 tables, L5 design |
 
 Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 3 to 4 core on `workstream/cli` and UI on `workstream/ui`. The current Rajju, Stree Deergha and Mahendra change (2026-10-04) is uncommitted on `master` and must move to `workstream/cli` first.
+
+### 10.3 Phase 0 result (2026-10-04)
+
+- Yoni for different animals now uses PyJHora's 14x14 matrix. Cross-checks: its 27-nakshatra animal mapping equals migration 098 on every row; the matrix is symmetric, 4 only on the diagonal, 0 on the seven classical enemy pairs. Conflict with Vasudev: the matrix scores some pairs 1, where the book says passable pairs are 2 to 3. Those pairs show as Absent with that note. The Anuradha/Shravana worked pair goes from a 22-26 range to a single 24.
+- Vedha is **not** adopted. PyJHora tests `boy + girl star number in {19, 28, 37}`, which also flags pairs such as Ashlesha-Magha (9+10) that are not Vedha pairs in the Tamil lists. It needs an explicit pair table from a cited source first.
+- Still open from the Vasudev gaps: the Vashya direction and the Rasi 7/0 reading.

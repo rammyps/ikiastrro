@@ -131,14 +131,39 @@ public class AshtakootaCalculatorTests
     }
 
     [Fact]
-    public void Different_yoni_animals_are_left_unscored_and_widen_the_total_range()
+    public void Different_yoni_animals_take_the_pyjhora_matrix_so_the_total_is_a_single_value()
     {
         var r = AshtakootaCalculator.Score(P(ZodiacName.Scorpio, animal: "Deer"), P(ZodiacName.Scorpio, animal: "Monkey"));
         var yoni = r.Scored.Single(k => k.Code == "YONI");
-        Assert.Null(yoni.Score);
-        Assert.Equal(KutaStatus.Unscored, yoni.Status);
-        Assert.False(r.IsComplete);
-        Assert.Equal(r.TotalMin + 4, r.TotalMax);
+        Assert.Equal(2, yoni.Score);
+        Assert.Equal(KutaStatus.Present, yoni.Status);
+        Assert.True(r.IsComplete);
+    }
+
+    [Theory]
+    [InlineData("Horse", "Buffalo")]
+    [InlineData("Elephant", "Lion")]
+    [InlineData("Sheep", "Monkey")]
+    [InlineData("Snake", "Mongoose")]
+    [InlineData("Dog", "Deer")]
+    [InlineData("Cat", "Rat")]
+    [InlineData("Cow", "Tiger")]
+    public void Hostile_yoni_pairs_score_0_in_both_directions(string a, string b)
+    {
+        Assert.Equal(0, AshtakootaCalculator.YoniPoints(a, b));
+        Assert.Equal(0, AshtakootaCalculator.YoniPoints(b, a));
+    }
+
+    [Fact]
+    public void Yoni_matrix_is_symmetric_and_4_only_for_the_same_animal()
+    {
+        string[] animals = ["Horse", "Elephant", "Sheep", "Snake", "Dog", "Cat", "Rat", "Cow", "Buffalo", "Tiger", "Deer", "Monkey", "Mongoose", "Lion"];
+        foreach (var x in animals)
+            foreach (var y in animals)
+            {
+                Assert.Equal(AshtakootaCalculator.YoniPoints(x, y), AshtakootaCalculator.YoniPoints(y, x));
+                Assert.Equal(x == y, AshtakootaCalculator.YoniPoints(x, y) == 4);
+            }
     }
 
     [Theory]
@@ -173,7 +198,7 @@ public class AshtakootaCalculatorTests
     {
         // Boy: Anuradha (17), Scorpio, Deva, Deer, Pitta. Girl: Shravana (22), Capricorn, Deva, Monkey, Kapha.
         // Varna 1 (girl Vaisya is below the boy's Brahmin); Vashya 0 (Capricorn's list is Aquarius, Aries);
-        // Dina 0 (girl's star to boy's counts 23, remainder 5); Yoni unscored (Deer vs Monkey);
+        // Dina 0 (girl's star to boy's counts 23, remainder 5); Yoni 2 (Deer vs Monkey, PyJHora matrix);
         // Grahamaitra 0 (Mars regards Saturn neutral, Saturn regards Mars an enemy); Gana 6; Rasi 7
         // (the girl's sign is 3rd from the boy's); Nadi 8.
         var boy = P(ZodiacName.Scorpio, 17, "Deva", "Deer", "Pitta");
@@ -184,13 +209,13 @@ public class AshtakootaCalculatorTests
         Assert.Equal(1, Score(r, "VARNA"));
         Assert.Equal(0, Score(r, "VASHYA"));
         Assert.Equal(0, Score(r, "DINA"));
-        Assert.Null(r.Scored.Single(k => k.Code == "YONI").Score);
+        Assert.Equal(2, Score(r, "YONI"));
         Assert.Equal(0, Score(r, "GRAHAMAITRA"));
         Assert.Equal(6, Score(r, "GANA"));
         Assert.Equal(7, Score(r, "RASI"));
         Assert.Equal(8, Score(r, "NADI"));
-        Assert.Equal(22, r.TotalMin);
-        Assert.Equal(26, r.TotalMax);
+        Assert.Equal(24, r.TotalMin);
+        Assert.Equal(24, r.TotalMax);
         Assert.True(r.Passes);
         Assert.False(r.SameSignLord);
         Assert.Equal(KutaStatus.Present, r.Additional.Single(k => k.Code == "RAJJU").Status);
