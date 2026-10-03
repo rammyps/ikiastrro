@@ -1,6 +1,7 @@
 @page "/compatibility/{Id:int}"
 @using Ikiastrro.Core.Engines.Matching
 @using Ikiastrro.Core.Models
+@using Microsoft.JSInterop
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject MatchPersonRepository MatchPersonRepo
 @inject DoshaChartRepository DoshaRepo
@@ -8,6 +9,7 @@
 @inject FamilyRepository FamilyRepo
 @inject DashaCompatibilityRepository DashaRepo
 @inject ActivePerson Active
+@inject IJSRuntime JS
 
 @* Compatibility tab — Kuta agreement for the opened person and one chosen partner, computed live by
    Core's AshtakootaCalculator from each person's stored D1 Moon (MatchPersonRepository). Nothing is
@@ -64,7 +66,7 @@ else
 
         <section class="cmp-glance" aria-label="Pair at a glance">
             <p class="cmp-kicker">Pair at a glance</p>
-            <h2 class="cmp-glance-title">@Groom!.Name &amp; @Bride!.Name</h2>
+            <h2 class="cmp-glance-title" id="cmp-overview" tabindex="-1">@Groom!.Name &amp; @Bride!.Name</h2>
             <dl class="cmp-tiles">
                 <div>
                     <dt>Kuta agreement</dt>
@@ -100,9 +102,49 @@ else
             <small>Bar shows the score out of @AshtakootaResult.MaxTotal; the line marks the book's pass mark of @AshtakootaResult.PassMark@(_result.IsComplete ? "" : "; the lighter part is the range left open by the unscored Yoni").</small>
         </section>
 
+        <nav class="cmp-nav" id="cmp-nav" aria-label="Sections on this page">
+            @foreach (var (id, label) in NavSections())
+            {
+                <button type="button" class="cmp-navlink" data-target="@id" @onclick="() => Jump(id)">@label</button>
+            }
+        </nav>
+
+        <section class="cmp-summary" aria-labelledby="cmp-summary">
+            <h2 class="cmp-summary-head" id="cmp-summary" tabindex="-1">Summary of findings</h2>
+            <p class="cmp-legend">
+                <span class="cmp-flag cmp-flag-good">&#10003; Favourable</span>
+                <span class="cmp-flag cmp-flag-concern">! Concern</span>
+                <span class="cmp-flag cmp-flag-open">? Unresolved</span>
+                Each line comes from the calculation it links to. The pass-mark line on the bar is the book's traditional threshold, not a verdict of this application.
+            </p>
+            <div class="cmp-findings">
+                @foreach (var group in new[] { FindingKind.Good, FindingKind.Concern, FindingKind.Open })
+                {
+                    var items = _findings.Where(f => f.Kind == group).ToList();
+                    <div class="cmp-finding-col">
+                        <h3><span class="cmp-flag cmp-flag-@FlagClass(group)">@FlagText(group)</span> <span class="cmp-count">@items.Count</span></h3>
+                        @if (items.Count == 0)
+                        {
+                            <p class="cmp-none">None found.</p>
+                        }
+                        else
+                        {
+                            <ul>
+                                @foreach (var f in items)
+                                {
+                                    <li><button type="button" class="cmp-findlink" @onclick="() => Jump(f.Target)">@f.Text</button></li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                }
+            </div>
+            <p class="cmp-caution">No single score decides compatibility. The Kuta total, the dosha balance, Saturn and the dashas are read separately and never combined. The book itself ranks Kuta agreement after the dosha checks (p.79).</p>
+        </section>
+
         <article class="cmp-card">
             <header class="cmp-card-head">
-                <h2>Kuta agreement</h2>
+                <h2 id="cmp-kuta" tabindex="-1">Kuta agreement</h2>
                 <p class="cmp-total">
                     <strong>@TotalText</strong><span> of @AshtakootaResult.MaxTotal</span>
                     <em class="cmp-verdict cmp-verdict-@VerdictClass">@VerdictText</em>
@@ -122,7 +164,7 @@ else
                         {
                             <tr>
                                 <th scope="row">@k.Name</th>
-                                <td class="cmp-score cmp-@StatusClass(k)">@(k.Score?.ToString() ?? "—") / @k.MaxScore</td>
+                                <td class="cmp-score cmp-@StatusClass(k)">@(k.Score?.ToString() ?? "—") / @k.MaxScore <span class="cmp-flag cmp-flag-@KutaFlagClass(k)">@KutaFlagText(k)</span></td>
                                 <td>@k.Reason</td>
                                 <td class="cmp-src">@k.SourceLocator</td>
                             </tr>
@@ -139,13 +181,13 @@ else
             </header>
             <div class="cmp-scroll">
                 <table class="cmp-table">
-                    <thead><tr><th>Factor</th><th>Result</th><th>Reading</th><th>Source</th></tr></thead>
+                    <thead><tr><th>Factor</th><th>Score</th><th>Reading</th><th>Source</th></tr></thead>
                     <tbody>
                         @foreach (var k in _result.Additional)
                         {
                             <tr>
                                 <th scope="row">@k.Name</th>
-                                <td class="cmp-score cmp-@StatusClass(k)">@(k.Status == KutaStatus.Present ? "Present" : "Absent")</td>
+                                <td class="cmp-score cmp-@StatusClass(k)">@(k.Score?.ToString() ?? "—") / @k.MaxScore <span class="cmp-flag cmp-flag-@KutaFlagClass(k)">@KutaFlagText(k)</span></td>
                                 <td>@k.Reason</td>
                                 <td class="cmp-src">@k.SourceLocator</td>
                             </tr>
@@ -159,7 +201,7 @@ else
         {
             <article class="cmp-card">
                 <header class="cmp-card-head">
-                    <h2>Mars and the malefics (Dosha Samya)</h2>
+                    <h2 id="cmp-dosha" tabindex="-1">Mars and the malefics (Dosha Samya)</h2>
                     <p class="cmp-total"><em class="cmp-verdict cmp-verdict-@BalanceClass">@BalanceText</em></p>
                 </header>
                 <div class="cmp-people">
@@ -196,7 +238,7 @@ else
         {
             <article class="cmp-card">
                 <header class="cmp-card-head">
-                    <h2>Saturn from the Moon (Sade Sati)</h2>
+                    <h2 id="cmp-saturn" tabindex="-1">Saturn from the Moon (Sade Sati)</h2>
                     <p class="cmp-total"><em class="cmp-verdict cmp-verdict-@(_saturn.SadeSatiOverlaps ? "open" : "pass")">@(_saturn.SadeSatiOverlaps ? "Sade Sati overlaps in the next 30 years" : "Sade Sati does not overlap in the next 30 years")</em></p>
                 </header>
                 <div class="cmp-scroll">
@@ -224,7 +266,7 @@ else
         {
             <article class="cmp-card">
                 <header class="cmp-card-head">
-                    <h2>Dasha picture</h2>
+                    <h2 id="cmp-dasha" tabindex="-1">Dasha picture</h2>
                     <p class="cmp-sub">Vimshottari, from the stored periods. Facts only: no verdict is given on whether a period supports or strains a marriage.</p>
                 </header>
 
@@ -299,7 +341,7 @@ else
 
             <article class="cmp-card">
                 <header class="cmp-card-head">
-                    <h2>Dashas on one timeline</h2>
+                    <h2 id="cmp-timing" tabindex="-1">Dashas on one timeline</h2>
                     <p class="cmp-sub">Mahadasha (upper bar) and Antardasha (lower bar) for the next @DashaYears years, both people on the same dates.</p>
                 </header>
                 @TimelineLane(Groom!.Name, _dashaGroom)
@@ -313,15 +355,33 @@ else
             </article>
         }
 
-        <ul class="cmp-notes">
+        <article class="cmp-card">
+            <header class="cmp-card-head">
+                <h2 id="cmp-data" tabindex="-1">What this reading is based on</h2>
+                <p class="cmp-sub">What was available for each person, and what this page does not read yet.</p>
+            </header>
+            <div class="cmp-scroll">
+                <table class="cmp-table">
+                    <thead><tr><th>Input</th><th>@Groom!.Name</th><th>@Bride!.Name</th></tr></thead>
+                    <tbody>
+                        <tr><th scope="row">Moon sign, nakshatra and pada (Kuta)</th><td>@Have(true)</td><td>@Have(true)</td></tr>
+                        <tr><th scope="row">D1 positions for the dosha balance</th><td>@Have(_dataGroom.Dosha)</td><td>@Have(_dataBride.Dosha)</td></tr>
+                        <tr><th scope="row">Saturn transit periods</th><td>@Have(_dataGroom.Saturn)</td><td>@Have(_dataBride.Saturn)</td></tr>
+                        <tr><th scope="row">Vimshottari periods</th><td>@Have(_dataGroom.Dasha)</td><td>@Have(_dataBride.Dasha)</td></tr>
+                        <tr><th scope="row">Birth-time confidence</th><td colspan="2">Not recorded in the saved details, so every reading assumes the entered time is exact.</td></tr>
+                        <tr><th scope="row">Not read by this page yet</th><td colspan="2">Navamsa (D9) comparison, Upapada Lagna, cross-chart synastry, Vedha, and any good-or-bad verdict on dasha periods.</td></tr>
+                        <tr><th scope="row">Rules and sources</th><td colspan="2">Vasudev, <em>The Art of Matching Charts</em>, Ch. V and VI; Yoni pair values and the weight of Rajju, Stree Deergha and Mahendra from PyJHora's South Indian scheme. Rule gaps are listed in the notes below.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <ul class="cmp-notes" id="cmp-notes" tabindex="-1">
             @if (_result.SameSignLord)
             {
                 <li>Both Moon signs share a ruler. The book says the absence of Rajju, Vedha, Gana and Rasi Kutas then need not be considered (p.77–78).</li>
             }
-            @if (!_result.IsComplete)
-            {
-                <li>Yoni is not scored: the book scores hostile animals 0 and passable pairs 2–3 but gives no table of hostile pairs, so the total is shown as a range. Vedha, the tenth factor of the ten-factor scheme, is not tabulated in the book and is not computed.</li>
-            }
+            <li>Yoni for different animals uses PyJHora's pair values (the book gives only the same-animal 4, a hostile 0 and "2 to 3" for passable pairs, with no pair table). Vedha, the tenth factor, is not computed: no pair table is available from a cited source. Rajju, Stree Deergha and Mahendra score 1 per pass by PyJHora's South Indian weight and are kept outside the 36 (p.66, p.77).</li>
             <li>Kuta agreement is not decisive. The book places it after longevity, health, balance of doshas and Kuja dosha have been cleared (p.79). The dosha reading above is the book's Chapter V; it states its results are not absolute (p.54).</li>
         </ul>
     }
@@ -438,6 +498,8 @@ else
         _tlEnd = _tlStart.AddYears(DashaYears);
         var groom = DashaRepo.Get(Groom.BirthDetailId, Groom.Name, _tlStart, _tlEnd);
         var bride = DashaRepo.Get(Bride.BirthDetailId, Bride.Name, _tlStart, _tlEnd);
+        _dataGroom = _dataGroom with { Dasha = groom is not null };
+        _dataBride = _dataBride with { Dasha = bride is not null };
         if (groom is null || bride is null) return;
         _dashaGroom = groom;
         _dashaBride = bride;
@@ -501,9 +563,11 @@ else
     private void ComputeDetails()
     {
         _doshaGroom = _doshaBride = null;
+        _dataGroom = _dataBride = new(false, false, false);
         _balance = null;
         _saturn = null;
         _familyNote = null;
+        _findings = [];
         if (Groom is null || Bride is null) return;
 
         _familyNote = FamilyNote(Groom, Bride);
@@ -511,6 +575,8 @@ else
 
         var groomChart = DoshaRepo.GetByBirthDetailId(Groom.BirthDetailId);
         var brideChart = DoshaRepo.GetByBirthDetailId(Bride.BirthDetailId);
+        _dataGroom = _dataGroom with { Dosha = groomChart is not null };
+        _dataBride = _dataBride with { Dosha = brideChart is not null };
         if (groomChart is not null && brideChart is not null)
         {
             _doshaGroom = DoshaSamyaCalculator.Read(groomChart);
@@ -520,11 +586,95 @@ else
 
         var groomSaturn = SadeSatiRepo.GetByBirthDetailId(Groom.BirthDetailId);
         var brideSaturn = SadeSatiRepo.GetByBirthDetailId(Bride.BirthDetailId);
+        _dataGroom = _dataGroom with { Saturn = groomSaturn.Count > 0 };
+        _dataBride = _dataBride with { Saturn = brideSaturn.Count > 0 };
         if (groomSaturn.Count > 0 && brideSaturn.Count > 0)
             _saturn = SadeSatiCompatibility.Compare(groomSaturn, brideSaturn, DateTime.UtcNow);
+        _findings = BuildFindings();
     }
 
     private string? _familyNote;
+
+    private enum FindingKind { Good, Concern, Open }
+    private sealed record Finding(FindingKind Kind, string Text, string Target);
+    private sealed record PersonData(bool Dosha, bool Saturn, bool Dasha);
+
+    private List<Finding> _findings = [];
+    private PersonData _dataGroom = new(false, false, false);
+    private PersonData _dataBride = new(false, false, false);
+    private string _spyKey = "";
+
+    private static string FlagClass(FindingKind k) => k switch { FindingKind.Good => "good", FindingKind.Concern => "concern", _ => "open" };
+    private static string FlagText(FindingKind k) => k switch { FindingKind.Good => "\u2713 Favourable", FindingKind.Concern => "! Concern", _ => "? Unresolved" };
+    private static string KutaFlagClass(KutaResult k) => k.Status switch { KutaStatus.Present => "good", KutaStatus.Absent => "concern", _ => "open" };
+    private static string KutaFlagText(KutaResult k) => k.Status switch { KutaStatus.Present => "\u2713 Favourable", KutaStatus.Absent => "! Concern", _ => "? Unresolved" };
+    private static string Have(bool ok) => ok ? "Available" : "Missing";
+
+    private IEnumerable<(string Id, string Label)> NavSections()
+    {
+        yield return ("cmp-overview", "Overview");
+        yield return ("cmp-summary", "Summary");
+        yield return ("cmp-kuta", "Kuta");
+        if (_balance is not null) yield return ("cmp-dosha", "Doshas");
+        if (_saturn is not null) yield return ("cmp-saturn", "Saturn");
+        if (_dasha is not null) yield return ("cmp-dasha", "Dasha");
+        if (_dasha is not null) yield return ("cmp-timing", "Timing");
+        yield return ("cmp-data", "Data");
+        yield return ("cmp-notes", "Notes");
+    }
+
+    private async Task Jump(string id) => await JS.InvokeVoidAsync("ikiastrroScroll.toSection", id);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_result is null) return;
+        var ids = NavSections().Select(n => n.Id).ToArray();
+        var key = string.Join(",", ids);
+        if (key == _spyKey) return;
+        _spyKey = key;
+        try { await JS.InvokeVoidAsync("ikiastrroScroll.spy", "cmp-nav", ids); }
+        catch (JSException) { /* the section highlight is cosmetic; a cached older scroll.js must not break the page */ }
+    }
+
+    // Every line is read straight off a computed result and names the card that shows it; nothing here
+    // is a new rule, and no line combines results into a score.
+    private List<Finding> BuildFindings()
+    {
+        var list = new List<Finding>();
+        var r = _result!;
+        void Add(FindingKind k, string t, string target) => list.Add(new(k, t, target));
+
+        foreach (var k in r.Scored)
+        {
+            if (k.Status == KutaStatus.Unscored) Add(FindingKind.Open, $"{k.Name} could not be scored", "cmp-kuta");
+            else if (k.Score == k.MaxScore) Add(FindingKind.Good, $"{k.Name}: full score ({k.Score} of {k.MaxScore})", "cmp-kuta");
+            else if (k.Score == 0) Add(FindingKind.Concern, $"{k.Name}: 0 of {k.MaxScore}", "cmp-kuta");
+        }
+        Add(r.Passes == false ? FindingKind.Concern : FindingKind.Good,
+            r.Passes == false ? $"Kuta total {TotalText} is below the book's traditional pass mark of {AshtakootaResult.PassMark}"
+                              : $"Kuta total {TotalText} reaches the book's traditional pass mark of {AshtakootaResult.PassMark}", "cmp-kuta");
+
+        foreach (var k in r.Additional)
+            Add(k.Status == KutaStatus.Present ? FindingKind.Good : FindingKind.Concern, $"{k.Name}: {(k.Status == KutaStatus.Present ? "passes" : "does not pass")}", "cmp-kuta");
+
+        if (_balance is not null)
+            Add(BalanceClass == "pass" ? FindingKind.Good : FindingKind.Concern, $"Mars and malefics: {char.ToLowerInvariant(BalanceText[0])}{BalanceText[1..]}", "cmp-dosha");
+        else
+            Add(FindingKind.Open, "Mars and malefic balance could not be read (a chart lacks stored positions)", "cmp-data");
+
+        if (_saturn is not null)
+            Add(_saturn.SadeSatiOverlaps ? FindingKind.Concern : FindingKind.Good,
+                _saturn.SadeSatiOverlaps ? "Sade Sati overlaps within 30 years" : "No Sade Sati overlap within 30 years", "cmp-saturn");
+        else
+            Add(FindingKind.Open, "Saturn periods could not be compared (a chart lacks stored periods)", "cmp-data");
+
+        if (_dasha is null) Add(FindingKind.Open, "Dashas could not be compared (a chart lacks stored periods)", "cmp-data");
+        else Add(FindingKind.Open, "Dasha periods are shown as facts only: no cited source classifies them", "cmp-dasha");
+
+        Add(FindingKind.Open, "Vedha is not computed (no cited pair table)", "cmp-notes");
+        Add(FindingKind.Open, "Rasi is scored 7 or 0 from the book's qualitative verdicts; the Vashya direction is read from one example", "cmp-notes");
+        return list;
+    }
 
     // What the saved family details say about this pair: how the bride is related to the groom, and the
     // children they have in common. Null when nothing is recorded between them.
