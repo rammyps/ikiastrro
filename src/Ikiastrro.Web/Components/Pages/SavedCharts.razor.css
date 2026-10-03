@@ -138,29 +138,27 @@ h1 {
     color: var(--brand-midnight);
 }
 
-/* No horizontal scroll: fixed layout, every column wraps inside the card (8 columns). */
+/* No horizontal scroll: fixed layout, every column wraps inside the card (8 columns, Sex added / Statistical use dropped 2026-10-04). */
 .saved-charts-table ::deep .dt-scroll { overflow-x: visible; }
 .saved-charts-table ::deep .dt { table-layout: fixed; width: 100%; }
 .saved-charts-table ::deep .dt td { overflow-wrap: anywhere; }
 .saved-charts-table ::deep .dt-sort { overflow-wrap: break-word; }
 .saved-charts-table ::deep .dt th:nth-child(1),
-.saved-charts-table ::deep .dt td:nth-child(1) { width: 19%; }
+.saved-charts-table ::deep .dt td:nth-child(1) { width: 17%; }
 .saved-charts-table ::deep .dt th:nth-child(2),
-.saved-charts-table ::deep .dt td:nth-child(2) { width: 7%; }
+.saved-charts-table ::deep .dt td:nth-child(2) { width: 8%; }
 .saved-charts-table ::deep .dt th:nth-child(3),
-.saved-charts-table ::deep .dt td:nth-child(3) { width: 8%; }
+.saved-charts-table ::deep .dt td:nth-child(3) { width: 9%; }
 .saved-charts-table ::deep .dt th:nth-child(4),
-.saved-charts-table ::deep .dt td:nth-child(4) { width: 11%; }
+.saved-charts-table ::deep .dt td:nth-child(4) { width: 13%; }
 .saved-charts-table ::deep .dt th:nth-child(5),
-.saved-charts-table ::deep .dt td:nth-child(5) { width: 7%; }
+.saved-charts-table ::deep .dt td:nth-child(5) { width: 10%; }
 .saved-charts-table ::deep .dt th:nth-child(6),
-.saved-charts-table ::deep .dt td:nth-child(6) { width: 15%; }
+.saved-charts-table ::deep .dt td:nth-child(6) { width: 21%; }
 .saved-charts-table ::deep .dt th:nth-child(7),
-.saved-charts-table ::deep .dt td:nth-child(7) { width: 9%; }
+.saved-charts-table ::deep .dt td:nth-child(7) { width: 12%; }
 .saved-charts-table ::deep .dt th:nth-child(8),
-.saved-charts-table ::deep .dt td:nth-child(8) { width: 14%; }
-.saved-charts-table ::deep .dt th:nth-child(9),
-.saved-charts-table ::deep .dt td:nth-child(9) { width: 10%; }
+.saved-charts-table ::deep .dt td:nth-child(8) { width: 10%; }
 
 .row-actions {
     display: flex;
