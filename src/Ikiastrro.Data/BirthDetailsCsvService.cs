@@ -25,6 +25,11 @@ public class BirthDetailsCsvService
     private static readonly string[] Headers =
         { "Name", "Sex", "DateOfBirth", "TimeOfBirth", "City", "Country", "Latitude", "Longitude", "UtcOffset", "IanaTimeZoneId" };
 
+    // Export-only extras appended after the 10 import columns (2026-10-04) so older readers of the
+    // 10-column shape still work; import reads FirstName/LastName when present, ignores the rest
+    // (name numbers are recomputed from the name).
+    private static readonly string[] ExtraHeaders = { "NameNumberCompound", "NameNumberRoot", "FirstName", "LastName" };
+
     private readonly BirthDetailsRepository _repo;
     private readonly IPlaceResolver _placeResolver;
 
@@ -104,6 +109,8 @@ public class BirthDetailsCsvService
                     Longitude = lon,
                     UtcOffset = offset,
                     IanaTimeZoneId = ianaId,
+                    FirstName = NullIfBlank(Field(r, "FirstName")),
+                    LastName = NullIfBlank(Field(r, "LastName")),
                     CreatedAt = DateTime.UtcNow,
                 });
                 added++;
@@ -120,7 +127,7 @@ public class BirthDetailsCsvService
     public string ExportCsv(IEnumerable<BirthDetails> people)
     {
         var sb = new StringBuilder();
-        sb.Append(string.Join(",", Headers)).Append("\r\n");
+        sb.Append(string.Join(",", Headers.Concat(ExtraHeaders))).Append("\r\n");
         foreach (var p in people)
         {
             sb.Append(string.Join(",", new[]
@@ -130,9 +137,40 @@ public class BirthDetailsCsvService
                 p.Latitude.ToString("0.######", CultureInfo.InvariantCulture),
                 p.Longitude.ToString("0.######", CultureInfo.InvariantCulture),
                 Escape(p.UtcOffset), Escape(p.IanaTimeZoneId ?? ""),
+                p.NameNumberCompound?.ToString(CultureInfo.InvariantCulture) ?? "",
+                p.NameNumberRoot?.ToString(CultureInfo.InvariantCulture) ?? "",
+                Escape(p.FirstName ?? ""), Escape(p.LastName ?? ""),
             })).Append("\r\n");
         }
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Writes every saved person to <c>&lt;repo&gt;/exports/ikiastrro-saved-people-{timestamp}-{tag}.csv</c>
+    /// (UTF-8 with BOM, same as the download). Used as the automatic safety copy before a database
+    /// reset. Returns the file path, or null when there is nobody to save.
+    /// </summary>
+    public string? ExportToDefaultFolder(string tag)
+    {
+        var people = _repo.GetAll().ToList();
+        if (people.Count == 0) return null;
+
+        var root = FindRepoRoot();
+        var folder = Path.Combine(root, "exports");
+        Directory.CreateDirectory(folder);
+        var path = Path.Combine(folder, $"ikiastrro-saved-people-{DateTime.Now:yyyy-MM-dd-HHmmss}-{tag}.csv");
+        File.WriteAllText(path, ExportCsv(people), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        return path;
+    }
+
+    private static string? NullIfBlank(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+    private static string FindRepoRoot()
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+            if (File.Exists(Path.Combine(dir.FullName, "Ikiastrro.slnx")))
+                return dir.FullName;
+        throw new InvalidOperationException("Could not locate repo root (Ikiastrro.slnx) from " + AppContext.BaseDirectory);
     }
 
     // --- minimal RFC 4180 CSV, no external dependency (the app has no CSV library, and this is

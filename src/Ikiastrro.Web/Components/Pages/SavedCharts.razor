@@ -558,8 +558,11 @@
         _error = null;
         try
         {
+            // Safety copy first: if it can't be written the reset is aborted (caught below).
+            var backup = CsvService.ExportToDefaultFolder("pre-reset");
             await DbMaintenanceService.ResetAllDataAsync();
             _pendingDbReset = false;
+            if (backup is not null) _importStatus = $"Saved people backed up to {backup} before the reset.";
             Load();
         }
         catch (Exception ex)
