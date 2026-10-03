@@ -14,6 +14,7 @@
 @inject Microsoft.JSInterop.IJSRuntime JS
 @inject ActivePerson Active
 @inject LifeMatterReferenceRepository LifeMatterReferenceRepo
+@inject Ikiastrro.Data.Statistics.AnalyticsSubjectRepository AnalyticsSubjectRepo
 
 <PageTitle>Saved Charts — ikiastrro</PageTitle>
 
@@ -205,6 +206,62 @@
     </div>
 }
 
+@if (_researchEdit is not null)
+{
+    <div class="edit-backdrop" @onclick="CancelResearchEdit">
+        <div class="edit-box research-box" role="dialog" aria-modal="true"
+             aria-labelledby="research-title" @onclick:stopPropagation="true">
+            <h2 class="edit-title" id="research-title">Statistical use · @_researchName</h2>
+            <p class="edit-note">Saving a chart does not grant research permission. Only mark a
+                person eligible when their explicit permission has been recorded.</p>
+
+            <label class="edit-field">
+                <span>Research status</span>
+                <select @bind="_researchEdit.ResearchUseStatus">
+                    <option value="PENDING">Pending — not included</option>
+                    <option value="ELIGIBLE">Eligible — include in future datasets</option>
+                    <option value="EXCLUDED">Excluded</option>
+                    <option value="WITHDRAWN">Withdrawn</option>
+                </select>
+            </label>
+            <label class="edit-field">
+                <span>Record classification</span>
+                <select @bind="_researchEdit.SubjectClassification">
+                    <option value="PERSONAL">Personal</option>
+                    <option value="RESEARCH">Research participant</option>
+                    <option value="TEST">Test fixture</option>
+                    <option value="DEMO">Demonstration</option>
+                    <option value="SYNTHETIC">Synthetic</option>
+                </select>
+            </label>
+            <label class="edit-field">
+                <span>Birth-time quality</span>
+                <select @bind="_researchEdit.BirthTimeQuality">
+                    <option value="UNKNOWN">Unknown</option>
+                    <option value="APPROXIMATE">Approximate</option>
+                    <option value="RECORDED">Recorded</option>
+                    <option value="RECTIFIED">Rectified</option>
+                </select>
+            </label>
+            @if (_researchEdit.ResearchUseStatus == "ELIGIBLE")
+            {
+                <label class="research-confirm">
+                    <input type="checkbox" @bind="_researchEdit.ExplicitPermissionConfirmed" />
+                    I confirm that explicit permission for statistical use has been recorded.
+                </label>
+            }
+            @if (_researchError is not null)
+            {
+                <p class="edit-error" role="alert">@_researchError</p>
+            }
+            <div class="edit-actions">
+                <button type="button" class="btn-cancel" @onclick="CancelResearchEdit">Cancel</button>
+                <button type="button" class="btn-confirm" @onclick="SaveResearchEdit">Save status</button>
+            </div>
+        </div>
+    </div>
+}
+
         @if (_error is not null)
         {
             <p class="saved-charts-error" role="alert">@_error</p>
@@ -216,7 +273,9 @@
     private const int BuildBatchCap = 25;   // per press; the button re-shows for the rest if more remain (decisions/002)
     private const string BuiltChartType = "D1";
 
-    private record Row(BirthDetails Person, bool IsBuilt, string Lagna, IReadOnlyDictionary<string, IReadOnlyList<string>> Glyphs);
+    private record Row(BirthDetails Person, bool IsBuilt, string Lagna,
+        IReadOnlyDictionary<string, IReadOnlyList<string>> Glyphs,
+        Ikiastrro.Data.Statistics.AnalyticsSubjectRecord? AnalyticsSubject);
 
     private readonly List<Row> _rows = new();
     private Row? _pendingDelete;
@@ -256,6 +315,7 @@
     private IReadOnlyList<DataTable<Row>.Column> Cols => new[]
     {
         new DataTable<Row>.Column("Name", r => r.Person.Name, r => @<a href="@($"/astro-facts/{r.Person.Id}")">@r.Person.Name</a>),
+        new DataTable<Row>.Column("Sex", r => r.Person.Sex ?? "", r => @<text>@r.Person.Sex</text>),
         new DataTable<Row>.Column("Name No.", r => r.Person.NameNumberRoot ?? 0, r => r.Person.NameNumberRoot is null
             ? @<text>—</text>
             : @<text>@r.Person.NameNumberCompound/@r.Person.NameNumberRoot</text>),
@@ -306,6 +366,7 @@
     {
         _rows.Clear();
         var built = ChartResultsRepo.GetBirthDetailIdsWithChartType(BuiltChartType);
+        var analyticsSubjects = AnalyticsSubjectRepo.GetAll();
         foreach (var p in BirthDetailsRepo.GetAll())
         {
             var d1 = ChartResultsRepo.GetByBirthDetailId(p.Id).FirstOrDefault(r => r.ChartType == "D1");
@@ -314,8 +375,57 @@
             var glyphs = kd.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant")
                 .GroupBy(k => k.Sign)
                 .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(k => k.Planet).ToList());
-            _rows.Add(new Row(p, built.Contains(p.Id), lagna, glyphs));
+            _rows.Add(new Row(p, built.Contains(p.Id), lagna, glyphs,
+                analyticsSubjects.GetValueOrDefault(p.Id)));
         }
+    }
+
+    private ResearchForm? _researchEdit;
+    private string _researchName = "";
+    private string? _researchError;
+
+    private void StartResearchEdit(Row row)
+    {
+        _researchName = row.Person.Name;
+        _researchError = null;
+        _researchEdit = new ResearchForm
+        {
+            BirthDetailId = row.Person.Id,
+            ResearchUseStatus = row.AnalyticsSubject?.ResearchUseStatus ?? "PENDING",
+            SubjectClassification = row.AnalyticsSubject?.SubjectClassification ?? "PERSONAL",
+            BirthTimeQuality = row.AnalyticsSubject?.BirthTimeQuality ?? "UNKNOWN"
+        };
+    }
+
+    private void CancelResearchEdit() => _researchEdit = null;
+
+    private void SaveResearchEdit()
+    {
+        if (_researchEdit is null) return;
+        try
+        {
+            AnalyticsSubjectRepo.Save(new(
+                _researchEdit.BirthDetailId,
+                _researchEdit.ResearchUseStatus,
+                _researchEdit.SubjectClassification,
+                _researchEdit.BirthTimeQuality,
+                _researchEdit.ExplicitPermissionConfirmed));
+            _researchEdit = null;
+            Load();
+        }
+        catch (ArgumentException ex)
+        {
+            _researchError = ex.Message;
+        }
+    }
+
+    private sealed class ResearchForm
+    {
+        public int BirthDetailId { get; set; }
+        public string ResearchUseStatus { get; set; } = "PENDING";
+        public string SubjectClassification { get; set; } = "PERSONAL";
+        public string BirthTimeQuality { get; set; } = "UNKNOWN";
+        public bool ExplicitPermissionConfirmed { get; set; }
     }
 
     private void ToggleMenu(string menu) => _openMenu = _openMenu == menu ? null : menu;
