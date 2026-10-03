@@ -2,23 +2,59 @@
 @inject FamilyRepository FamilyRepo
 @inject MatchPersonRepository MatchPersonRepo
 @inject PairHistoryRepository HistoryRepo
+@inject BirthDetailsRepository BirthDetailsRepo
 
 @* Recorded family pairs laid out left and right: the man on the left and the woman on the right for a
    marriage; the parents on the left and right with their children for a core family; the elder on the left
    for grandparents and siblings. Every row opens the pair page. Kuta is computed live from the stored Moon
    facts; nothing here is stored. Filter narrows the rows to names containing the text. *@
 
+@if (Mode != PairMode.Individual)
+{
+    <details class="fp-record">
+        <summary>@(Mode == PairMode.Marriage ? "Record a couple" : Mode == PairMode.FamilyCore ? "Record a parent and child" : "How grandparents and siblings are recorded")</summary>
+        @if (Mode == PairMode.Marriage)
+        {
+            <div class="fp-form">
+                <label class="fp-field"><span>Person</span>
+                    <select @bind="_spouseA"><option value="0">Choose a saved person…</option>@foreach (var p in _people) { <option value="@p.Id">@p.Name</option> }</select></label>
+                <label class="fp-field"><span>Spouse</span>
+                    <select @bind="_spouseB"><option value="0">Choose a saved person…</option>@foreach (var p in _people) { <option value="@p.Id">@p.Name</option> }</select></label>
+                <button type="button" class="fp-btn" @onclick="SaveCouple" disabled="@(_spouseA == 0 || _spouseB == 0 || _spouseA == _spouseB)">Record couple</button>
+            </div>
+        }
+        else if (Mode == PairMode.FamilyCore)
+        {
+            <div class="fp-form">
+                <label class="fp-field"><span>Parent</span>
+                    <select @bind="_parent"><option value="0">Choose a saved person…</option>@foreach (var p in _people) { <option value="@p.Id">@p.Name</option> }</select></label>
+                <label class="fp-field"><span>Child</span>
+                    <select @bind="_child"><option value="0">Choose a saved person…</option>@foreach (var p in _people) { <option value="@p.Id">@p.Name</option> }</select></label>
+                <label class="fp-check"><input type="checkbox" @bind="_adopted" /> Adopted</label>
+                <label class="fp-check"><input type="checkbox" @bind="_step" /> Step</label>
+                <button type="button" class="fp-btn" @onclick="SaveParent" disabled="@(_parent == 0 || _child == 0 || _parent == _child)">Record parent</button>
+            </div>
+            <p class="fp-hint">Record each parent separately. Siblings and grandparents then follow on their own.</p>
+        }
+        else
+        {
+            <p class="fp-hint">Nothing is entered here. Grandparents, grandchildren and siblings are worked out from the parent links under Family Core and the couples under Marriage, so they never go out of date.</p>
+        }
+        <p class="fp-status" role="status" aria-live="polite">@_status</p>
+    </details>
+}
+
 @if (Mode == PairMode.Individual)
 {
 }
 else if (Mode == PairMode.Marriage)
 {
-    @if (_marriage.Count == 0) { <p class="fp-empty">No married couples recorded yet. Record a spouse under family details.</p> }
+    @if (_marriage.Count == 0) { <p class="fp-empty">No married couples recorded yet. Use "Record a couple" above.</p> }
     else
     {
         <div class="fp-scroll">
             <table class="fp-table">
-                <thead><tr><th scope="col">Left</th><th scope="col">Right</th><th scope="col">Kuta</th><th scope="col">Mahadasha now</th><th scope="col"><span class="fp-hide">Open</span></th></tr></thead>
+                <thead><tr><th scope="col">Left</th><th scope="col">Right</th><th scope="col">Kuta</th><th scope="col">Mahadasha now</th><th scope="col"><span class="fp-hide">Open</span></th><th scope="col"><span class="fp-hide">Remove</span></th></tr></thead>
                 <tbody>
                     @foreach (var r in _marriage.Where(m => Keep(m.GroomName, m.BrideName)))
                     {
@@ -28,6 +64,7 @@ else if (Mode == PairMode.Marriage)
                             <td data-label="Kuta" class="fp-num">@r.Kuta</td>
                             <td data-label="Mahadasha now">@r.Dasha</td>
                             <td><a href="/compatibility/@r.GroomId?with=@r.BrideId" aria-label="Open @r.GroomName and @r.BrideName">Open pair</a></td>
+                            <td>@RemoveControl($"m{r.GroomId}-{r.BrideId}", $"Remove the couple {r.GroomName} and {r.BrideName}", () => RemoveCouple(r.GroomId, r.BrideId))</td>
                         </tr>
                     }
                 </tbody>
@@ -37,7 +74,7 @@ else if (Mode == PairMode.Marriage)
 }
 else if (Mode == PairMode.FamilyCore)
 {
-    @if (_core.Count == 0) { <p class="fp-empty">No parents with children recorded yet.</p> }
+    @if (_core.Count == 0) { <p class="fp-empty">No parents with children recorded yet. Use "Record a parent and child" above.</p> }
     else
     {
         <div class="fp-scroll">
@@ -55,7 +92,9 @@ else if (Mode == PairMode.FamilyCore)
                                     {
                                         <li><span>@k.Name</span>
                                             <a href="/compatibility/@r.GroomId?with=@k.Id" aria-label="Open @r.GroomName and @k.Name">with @r.GroomName</a>
-                                            <a href="/compatibility/@r.BrideId?with=@k.Id" aria-label="Open @r.BrideName and @k.Name">with @r.BrideName</a></li>
+                                            <a href="/compatibility/@r.BrideId?with=@k.Id" aria-label="Open @r.BrideName and @k.Name">with @r.BrideName</a>
+                                            @RemoveControl($"cg{r.GroomId}-{k.Id}", $"Unlink {k.Name} from {r.GroomName}", () => RemoveParentLink(r.GroomId, k.Id), $"unlink {r.GroomName}")
+                                            @RemoveControl($"cb{r.BrideId}-{k.Id}", $"Unlink {k.Name} from {r.BrideName}", () => RemoveParentLink(r.BrideId, k.Id), $"unlink {r.BrideName}")</li>
                                     }
                                 </ul>
                                 <a href="/compatibility/@r.GroomId?with=@r.BrideId" class="fp-couple" aria-label="Open @r.GroomName and @r.BrideName">Open the couple</a>
@@ -93,6 +132,18 @@ else if (Mode == PairMode.FamilyExtended)
 }
 
 @code {
+    private RenderFragment RemoveControl(string key, string label, Action act, string? text = null) => @<span class="fp-remove">
+        @if (_confirm == key)
+        {
+            <button type="button" class="fp-link fp-danger" @onclick="() => { act(); _confirm = null; }" aria-label="@label: confirm">Confirm @(text ?? "remove")</button>
+            <button type="button" class="fp-link" @onclick="() => _confirm = null">Cancel</button>
+        }
+        else
+        {
+            <button type="button" class="fp-link" @onclick="() => _confirm = key" aria-label="@label">@(char.ToUpperInvariant((text ?? "remove")[0]) + (text ?? "remove")[1..])</button>
+        }
+    </span>;
+
     [Parameter] public PairMode Mode { get; set; }
     [Parameter] public string? Filter { get; set; }
 
@@ -103,14 +154,54 @@ else if (Mode == PairMode.FamilyExtended)
     private readonly List<MarriageRow> _marriage = [];
     private readonly List<CoreRow> _core = [];
     private IReadOnlyList<FamilyExtendedPair> _extended = [];
+    private IReadOnlyList<BirthDetails> _people = [];
+    private int _spouseA, _spouseB, _parent, _child;
+    private bool _adopted, _step;
+    private string? _confirm;
+    private string _status = "";
+
+    private string NameOf(int id) => _people.FirstOrDefault(p => p.Id == id)?.Name ?? "Person";
+
+    private void SaveCouple()
+    {
+        if (_spouseA == _spouseB) return;
+        FamilyRepo.AddSpouses(_spouseA, _spouseB);
+        _status = $"Recorded {NameOf(_spouseA)} and {NameOf(_spouseB)} as a couple.";
+        _spouseA = _spouseB = 0;
+        Load();
+    }
+
+    private void SaveParent()
+    {
+        if (_parent == _child) return;
+        // A person cannot be a parent of their own parent.
+        if (FamilyRepo.GetFor(_child).Any(f => f.RelativeId == _parent && f.Role is "Son" or "Daughter" or "Child"))
+        {
+            _status = $"{NameOf(_parent)} is already recorded as {NameOf(_child)}'s child, so cannot also be their parent.";
+            return;
+        }
+        FamilyRepo.AddParent(_parent, _child, _adopted, _step);
+        _status = $"Recorded {NameOf(_parent)} as a parent of {NameOf(_child)}.";
+        _parent = _child = 0;
+        _adopted = _step = false;
+        Load();
+    }
+
+    private void RemoveCouple(int a, int b) { FamilyRepo.RemoveSpouses(a, b); _status = "Couple removed."; Load(); }
+    private void RemoveParentLink(int parent, int child) { FamilyRepo.RemoveParent(parent, child); _status = "Parent link removed."; Load(); }
 
     private bool Contains(string name) => string.IsNullOrWhiteSpace(Filter) || name.Contains(Filter.Trim(), StringComparison.OrdinalIgnoreCase);
     private bool Keep(string a, string b) => Contains(a) || Contains(b);
 
     private static bool IsChild(FamilyMember f) => f.Role is "Son" or "Daughter" or "Child";
 
-    protected override void OnInitialized()
+    protected override void OnInitialized() => Load();
+
+    private void Load()
     {
+        _marriage.Clear();
+        _core.Clear();
+        _people = BirthDetailsRepo.GetAll().OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase).ToList();
         var today = DateTime.Today;
         foreach (var c in FamilyRepo.GetCouples())
         {

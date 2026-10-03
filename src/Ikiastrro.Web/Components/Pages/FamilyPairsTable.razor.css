@@ -20,3 +20,20 @@
     .fp-table th, .fp-table td { display: grid; grid-template-columns: 110px 1fr; gap: 8px; border: 0 !important; padding: 3px 14px; }
     .fp-table td::before, .fp-table tbody th::before { content: attr(data-label); color: var(--brand-muted); font-weight: 700; }
 }
+
+.fp-record { margin: 0 0 12px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); }
+.fp-record > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: var(--font-size-support); }
+.fp-record > summary:focus-visible { outline: 2px solid var(--card-fg); outline-offset: -2px; }
+.fp-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; padding: 4px 14px 12px; }
+.fp-field { display: grid; gap: 4px; min-width: 200px; font-size: var(--font-size-support); }
+.fp-field > span { font-weight: 700; }
+.fp-field select { padding: 7px 8px; border: 1px solid var(--card-line); border-radius: 6px; background: var(--card-bg-raised); color: var(--card-fg); font: inherit; font-size: var(--font-size-control); }
+.fp-check { display: flex; gap: 6px; align-items: center; font-size: var(--font-size-support); }
+.fp-btn { padding: 8px 16px; border: 0; border-radius: 999px; cursor: pointer; background: var(--card-fg); color: var(--card-bg); font: 700 var(--font-size-support) / 1 'Manrope', 'Segoe UI', sans-serif; text-transform: uppercase; letter-spacing: 0.04em; }
+.fp-btn:disabled { opacity: 0.4; cursor: default; }
+.fp-btn:focus-visible, .fp-link:focus-visible { outline: 2px solid var(--card-fg); outline-offset: 2px; }
+.fp-hint, .fp-status { margin: 0; padding: 0 14px 10px; color: var(--brand-muted); font-size: var(--font-size-support); }
+.fp-status:empty { display: none; }
+.fp-remove { display: inline-flex; gap: 8px; }
+.fp-link { padding: 0; border: 0; background: none; color: inherit; cursor: pointer; font: inherit; font-size: var(--font-size-meta); text-decoration: underline; }
+.fp-danger { font-weight: 800; }
