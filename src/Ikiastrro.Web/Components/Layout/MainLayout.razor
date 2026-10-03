@@ -39,6 +39,7 @@
                     <a href="@($"/astro-facts/{personId}")" class="ik-headtab @TabClass("astrofacts")"><span>ASTRO</span> <span>FACTS</span></a>
                     <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinference")"><span>KEY</span> <span>INFERENCE</span></a>
                     <a href="@($"/numerology/{personId}")" class="ik-headtab @TabClass("numerology")">NUMEROLOGY</a>
+                    <a href="@($"/compatibility/{personId}")" class="ik-headtab @TabClass("compatibility")">COMPATIBILITY</a>
                 </nav>
             }
         </div>
@@ -204,6 +205,7 @@
             "astrofacts"  => p.Contains("/timing", StringComparison.Ordinal) || p.Contains("/astro-facts", StringComparison.Ordinal),
             "keyinference" => p.StartsWith("/key-inference", StringComparison.Ordinal) || p.StartsWith("/life-matters", StringComparison.Ordinal),
             "numerology" => p.StartsWith("/numerology", StringComparison.Ordinal),
+            "compatibility" => p.StartsWith("/compatibility", StringComparison.Ordinal),
             _ => false
         };
         return here ? "is-here" : "";

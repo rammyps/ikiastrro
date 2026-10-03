@@ -1,0 +1,239 @@
+@page "/compatibility/{Id:int}"
+@using Ikiastrro.Core.Engines.Matching
+@using Ikiastrro.Core.Models
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject MatchPersonRepository MatchPersonRepo
+@inject ActivePerson Active
+
+@* Compatibility tab — Kuta agreement for the opened person and one chosen partner, computed live by
+   Core's AshtakootaCalculator from each person's stored D1 Moon (MatchPersonRepository). Nothing is
+   persisted: a pair result is a pure function of the two people and the rules, so there is no pair
+   table to go stale (docs/architecture/compatibility_similarity.md). Rules and their gaps are the
+   Vasudev book's (SRC_VASUDEV_MATCHING_CHARTS, Ch. VI); a factor the book gives no rule for is shown as
+   "not scored", never guessed. *@
+
+<PageTitle>@(_person?.Name ?? "Compatibility") &middot; Compatibility</PageTitle>
+
+@if (_person is null)
+{
+    <section class="cmp-unavailable" role="status">
+        <h1 class="cmp-heading">COMPATIBILITY</h1>
+        <p>No saved person found.</p>
+        <a href="/">Choose a saved person</a>
+    </section>
+}
+else
+{
+    <h1 class="cmp-heading">COMPATIBILITY</h1>
+
+    <section class="cmp-controls" aria-label="Choose the partner">
+        <label class="cmp-field">
+            <span>Compare @_person.Name with</span>
+            <select @bind="PartnerId" @bind:after="Recompute">
+                <option value="0">Choose a saved person…</option>
+                @foreach (var other in _others)
+                {
+                    <option value="@other.Id">@other.Name</option>
+                }
+            </select>
+        </label>
+        @if (_partner is not null)
+        {
+            <span class="cmp-roles">
+                <b>@Groom!.Name</b> is the groom · <b>@Bride!.Name</b> is the bride
+                <button type="button" class="cmp-swap" @onclick="Swap">Swap roles</button>
+            </span>
+        }
+    </section>
+
+    @if (_notice is not null)
+    {
+        <p class="cmp-note" role="status">@_notice</p>
+    }
+
+    @if (_result is not null)
+    {
+        <article class="cmp-card">
+            <header class="cmp-card-head">
+                <h2>Kuta agreement</h2>
+                <p class="cmp-total">
+                    <strong>@TotalText</strong><span> of @AshtakootaResult.MaxTotal</span>
+                    <em class="cmp-verdict cmp-verdict-@VerdictClass">@VerdictText</em>
+                </p>
+            </header>
+
+            <div class="cmp-people">
+                @PersonCard("Groom", Groom!)
+                @PersonCard("Bride", Bride!)
+            </div>
+
+            <div class="cmp-scroll">
+                <table class="cmp-table">
+                    <thead><tr><th>Kuta</th><th>Score</th><th>Reading</th><th>Source</th></tr></thead>
+                    <tbody>
+                        @foreach (var k in _result.Scored)
+                        {
+                            <tr>
+                                <th scope="row">@k.Name</th>
+                                <td class="cmp-score cmp-@StatusClass(k)">@(k.Score?.ToString() ?? "—") / @k.MaxScore</td>
+                                <td>@k.Reason</td>
+                                <td class="cmp-src">@k.SourceLocator</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="cmp-card">
+            <header class="cmp-card-head">
+                <h2>Also tested, not scored</h2>
+                <p class="cmp-sub">The book gives these no numeric value.</p>
+            </header>
+            <div class="cmp-scroll">
+                <table class="cmp-table">
+                    <thead><tr><th>Factor</th><th>Result</th><th>Reading</th><th>Source</th></tr></thead>
+                    <tbody>
+                        @foreach (var k in _result.Additional)
+                        {
+                            <tr>
+                                <th scope="row">@k.Name</th>
+                                <td class="cmp-score cmp-@StatusClass(k)">@(k.Status == KutaStatus.Present ? "Present" : "Absent")</td>
+                                <td>@k.Reason</td>
+                                <td class="cmp-src">@k.SourceLocator</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <ul class="cmp-notes">
+            @if (_result.SameSignLord)
+            {
+                <li>Both Moon signs share a ruler. The book says the absence of Rajju, Vedha, Gana and Rasi Kutas then need not be considered (p.77–78).</li>
+            }
+            @if (!_result.IsComplete)
+            {
+                <li>Yoni is not scored: the book scores hostile animals 0 and passable pairs 2–3 but gives no table of hostile pairs, so the total is shown as a range. Vedha, the tenth factor of the ten-factor scheme, is not tabulated in the book and is not computed.</li>
+            }
+            <li>Kuta agreement is not decisive. The book places it after longevity, health, balance of doshas and Kuja dosha have been cleared (p.79). Doshas are not part of this page yet.</li>
+        </ul>
+    }
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    /// <summary>Optional partner to open the pair directly: /compatibility/5?with=6.</summary>
+    [SupplyParameterFromQuery(Name = "with")] public int? With { get; set; }
+
+    private BirthDetails? _person;
+    private IReadOnlyList<BirthDetails> _others = [];
+    private MatchPersonSnapshot? _me;
+    private MatchPersonSnapshot? _partner;
+    private bool _meIsGroom = true;
+    private AshtakootaResult? _result;
+    private string? _notice;
+    private int _partnerId;
+
+    private int PartnerId
+    {
+        get => _partnerId;
+        set => _partnerId = value;
+    }
+
+    private MatchPersonSnapshot? Groom => _meIsGroom ? _me : _partner;
+    private MatchPersonSnapshot? Bride => _meIsGroom ? _partner : _me;
+
+    protected override void OnParametersSet()
+    {
+        _person = BirthDetailsRepo.GetById(Id);
+        if (_person is null)
+        {
+            Active.Clear();
+            return;
+        }
+
+        Active.Set(Id, _person.Name,
+            $"{_person.DateOfBirth:dd MMM yyyy} · {_person.TimeOfBirth:HH\\:mm} · {_person.PlaceCity}, {_person.PlaceCountry}");
+        Active.SetHeaderExtra(null);
+
+        if (With is int requested && requested != Id) _partnerId = requested;
+        if (_partnerId == Id) _partnerId = 0;
+        _others = BirthDetailsRepo.GetAll().Where(p => p.Id != Id).OrderBy(p => p.Name).ToList();
+        _me = MatchPersonRepo.GetByBirthDetailId(Id);
+        _meIsGroom = !string.Equals(_person.Sex, "Female", StringComparison.OrdinalIgnoreCase);
+        Recompute();
+    }
+
+    private void Recompute()
+    {
+        _result = null;
+        _notice = null;
+        _partner = null;
+        if (_person is null) return;
+
+        if (_me is null)
+        {
+            _notice = $"{_person.Name} has no stored Moon position yet, so Kuta agreement cannot be read. Generate the chart first.";
+            return;
+        }
+        if (_partnerId == 0)
+        {
+            _notice = "Choose a saved person to compare with.";
+            return;
+        }
+
+        _partner = MatchPersonRepo.GetByBirthDetailId(_partnerId);
+        if (_partner is null)
+        {
+            _notice = "The chosen person has no stored Moon position yet, so Kuta agreement cannot be read.";
+            return;
+        }
+
+        // Roles follow Sex when the pair is one man and one woman; otherwise the person opened is the
+        // groom until the roles are swapped.
+        var mine = _person.Sex?.ToLowerInvariant();
+        var theirs = _partner.Sex?.ToLowerInvariant();
+        if (mine is "male" or "female" && theirs is "male" or "female" && mine != theirs)
+            _meIsGroom = mine == "male";
+        else
+            _notice = "The two people are not recorded as one man and one woman, so the roles were assigned by choice; use Swap roles to reverse them.";
+
+        _result = AshtakootaCalculator.Score(Groom!.Person, Bride!.Person);
+    }
+
+    private void Swap()
+    {
+        _meIsGroom = !_meIsGroom;
+        if (_me is not null && _partner is not null)
+            _result = AshtakootaCalculator.Score(Groom!.Person, Bride!.Person);
+    }
+
+    private string TotalText => _result is null ? "" :
+        _result.IsComplete ? _result.TotalMin.ToString() : $"{_result.TotalMin}–{_result.TotalMax}";
+
+    private string VerdictClass => _result?.Passes switch { true => "pass", false => "fail", _ => "open" };
+
+    private string VerdictText => _result?.Passes switch
+    {
+        true => $"Reaches the book's pass mark of {AshtakootaResult.PassMark}",
+        false => $"Below the book's pass mark of {AshtakootaResult.PassMark}",
+        _ => $"Cannot be settled against the pass mark of {AshtakootaResult.PassMark}",
+    };
+
+    private static string StatusClass(KutaResult k) => k.Status switch
+    {
+        KutaStatus.Present => "present",
+        KutaStatus.Absent => "absent",
+        _ => "unscored",
+    };
+
+    private RenderFragment PersonCard(string role, MatchPersonSnapshot s) => @<div class="cmp-person">
+        <span class="cmp-role">@role</span>
+        <strong>@s.Name</strong>
+        <span>Moon in @SignLabels.For(s.Person.MoonSign), @s.NakshatraName pada @s.Pada</span>
+        <span>@s.Person.Gana gana · @s.Person.YoniAnimal (@s.Person.YoniGender.ToLowerInvariant()) · @s.Person.Nadi nadi</span>
+    </div>;
+}

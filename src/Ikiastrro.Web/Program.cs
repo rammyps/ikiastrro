@@ -42,6 +42,7 @@ builder.Services.AddScoped<Ikiastrro.Data.Statistics.HouseStrengthStatisticsRepo
 builder.Services.AddScoped<Ikiastrro.Data.Statistics.HouseStrengthStatisticsService>();
 builder.Services.AddScoped<GrahaDrishtiStrengthRepository>();
 builder.Services.AddScoped<PanchangaRepository>();
+builder.Services.AddScoped<MatchPersonRepository>();
 builder.Services.AddScoped<YogaInputRepository>();
 builder.Services.AddScoped<AmsabalaRepository>();
 builder.Services.AddScoped<AmsabalaSchemeRepository>();

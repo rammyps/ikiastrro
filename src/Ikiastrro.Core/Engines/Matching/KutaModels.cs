@@ -41,3 +41,9 @@ public sealed record AshtakootaResult(
     /// range straddles it.</summary>
     public bool? Passes => TotalMin >= PassMark ? true : TotalMax < PassMark ? false : null;
 }
+
+/// <summary>Display name for a sign: the app's enum calls Capricorn "Capricornus".</summary>
+public static class SignLabels
+{
+    public static string For(ZodiacName sign) => sign == ZodiacName.Capricornus ? "Capricorn" : sign.ToString();
+}

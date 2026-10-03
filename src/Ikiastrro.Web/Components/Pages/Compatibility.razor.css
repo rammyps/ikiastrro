@@ -1,0 +1,129 @@
+/* Compatibility tab. Tokens only; the one card look (--card-*); status colours from --status-*. */
+
+.cmp-heading {
+    margin: 4px 0 16px;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.cmp-unavailable p { color: var(--brand-muted); }
+.cmp-unavailable a { color: var(--brand-midnight); }
+
+.cmp-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.cmp-field { display: grid; gap: 4px; color: var(--brand-midnight); }
+.cmp-field > span { font-size: var(--font-size-support); font-weight: 700; }
+.cmp-field select {
+    min-width: 260px;
+    padding: 7px 10px;
+    border: 1px solid var(--card-line);
+    border-radius: 8px;
+    background: var(--card-bg-raised);
+    color: var(--card-fg);
+    font: inherit;
+}
+
+.cmp-roles { color: var(--brand-midnight); font-size: var(--font-size-support); }
+.cmp-swap {
+    margin-left: 10px;
+    padding: 4px 12px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
+    cursor: pointer;
+    font: 700 0.72rem / 1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.cmp-note { margin: 0 0 14px; color: var(--brand-muted); font-size: var(--font-size-support); }
+
+.cmp-card {
+    margin-bottom: 14px;
+    border: 1px solid var(--card-line);
+    border-radius: var(--card-radius);
+    background: var(--card-bg);
+    color: var(--card-fg);
+    overflow: hidden;
+}
+
+.cmp-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--card-line);
+    background: var(--card-head-bg);
+    color: var(--card-head-fg);
+}
+
+.cmp-card-head h2 {
+    margin: 0;
+    font: 700 1rem / 1.25 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.cmp-sub { margin: 0; font-size: var(--font-size-support); }
+
+.cmp-total { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.cmp-total strong { font: 800 1.6rem / 1 'Manrope', 'Segoe UI', sans-serif; }
+.cmp-verdict {
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: var(--font-size-support);
+    font-style: normal;
+    font-weight: 700;
+}
+.cmp-verdict-pass { background: var(--status-strong-bg); color: var(--status-strong); }
+.cmp-verdict-fail { background: var(--status-weak-bg); color: var(--status-weak); }
+.cmp-verdict-open { background: var(--status-moderate-bg); color: var(--brand-midnight); }
+
+.cmp-people {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    padding: 14px 16px;
+}
+
+.cmp-person {
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 1px solid var(--card-line);
+    border-radius: 10px;
+    background: var(--card-bg-raised);
+    font-size: var(--font-size-support);
+}
+.cmp-role { color: var(--brand-muted); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.cmp-scroll { overflow-x: auto; }
+.cmp-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-support); }
+.cmp-table th, .cmp-table td { padding: 8px 14px; border-top: 1px solid var(--card-line); text-align: left; vertical-align: top; }
+.cmp-table thead th {
+    border-top: 0;
+    color: var(--brand-muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+.cmp-table tbody th { white-space: nowrap; font-weight: 700; }
+.cmp-score { white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cmp-present { color: var(--status-strong); }
+.cmp-absent { color: var(--status-weak); }
+.cmp-unscored { color: var(--brand-muted); }
+.cmp-src { color: var(--brand-muted); white-space: nowrap; }
+
+.cmp-notes { margin: 0 0 24px; padding-left: 18px; color: var(--brand-muted); font-size: var(--font-size-support); }
+.cmp-notes li { margin-bottom: 4px; }

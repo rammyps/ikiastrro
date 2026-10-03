@@ -100,8 +100,8 @@ public static class AshtakootaCalculator
         if (boy.MoonSign == girl.MoonSign)
             return new("VASHYA", "Vashya", 0, 2, KutaStatus.Absent, "Same sign: Vashya does not obtain.", loc);
         return VashyaOf[girl.MoonSign].Contains(boy.MoonSign)
-            ? new("VASHYA", "Vashya", 2, 2, KutaStatus.Present, $"{boy.MoonSign} is in the Vashya list of {girl.MoonSign}.", loc)
-            : new("VASHYA", "Vashya", 0, 2, KutaStatus.Absent, $"{boy.MoonSign} is not in the Vashya list of {girl.MoonSign}.", loc);
+            ? new("VASHYA", "Vashya", 2, 2, KutaStatus.Present, $"{SignLabels.For(boy.MoonSign)} is in the Vashya list of {SignLabels.For(girl.MoonSign)}.", loc)
+            : new("VASHYA", "Vashya", 0, 2, KutaStatus.Absent, $"{SignLabels.For(boy.MoonSign)} is not in the Vashya list of {SignLabels.For(girl.MoonSign)}.", loc);
     }
 
     // ---- Dina / Tara (p.68) ------------------------------------------------------------------
