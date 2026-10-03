@@ -1,0 +1,8 @@
+.pmt { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.pmt-tab {
+    padding: 8px 16px; border: 1px solid var(--card-line); border-radius: 999px; cursor: pointer;
+    background: var(--card-bg-raised); color: var(--card-fg);
+    font: 700 var(--font-size-support) / 1 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.pmt-tab[aria-selected="true"] { background: var(--card-fg); border-color: var(--card-fg); color: var(--card-bg); }
+.pmt-tab:focus-visible { outline: 2px solid var(--card-fg); outline-offset: 2px; }

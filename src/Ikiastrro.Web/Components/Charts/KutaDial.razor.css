@@ -1,0 +1,9 @@
+.kd { margin: 0 auto; max-width: 240px; }
+.kd svg { width: 100%; height: auto; display: block; }
+.kd-track, .kd-range, .kd-fill { fill: none; stroke-width: 14; stroke-linecap: butt; }
+.kd-track { stroke: var(--card-line); }
+.kd-range { stroke: var(--status-partial, var(--card-fg-muted)); opacity: 0.45; }
+.kd-fill { stroke: var(--brand-midnight); }
+.kd-pass { stroke: var(--card-fg); stroke-width: 2.5; }
+.kd-num { text-anchor: middle; font: 800 30px var(--font-interface, sans-serif); fill: var(--card-fg); }
+.kd-of { text-anchor: middle; font: 600 11px var(--font-interface, sans-serif); fill: var(--card-fg-muted); }

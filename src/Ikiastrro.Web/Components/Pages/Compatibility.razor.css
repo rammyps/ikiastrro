@@ -333,3 +333,36 @@
 .cmp-notedate { color: var(--card-fg-muted); font-size: var(--font-size-support); white-space: nowrap; }
 .cmp-notetext { white-space: pre-wrap; overflow-wrap: anywhere; }
 .cmp-pre { margin: 6px 0 0; white-space: pre-wrap; font: inherit; font-size: var(--font-size-support); }
+
+/* Left / right board and per-person columns */
+.cmp-board { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; align-items: start; margin-bottom: 14px; }
+.cmp-board-centre .cmp-glance { margin-bottom: 0; }
+.cmp-panel {
+    display: grid; gap: 6px; padding: 12px 14px;
+    border: 1px solid var(--card-line); border-radius: var(--card-radius);
+    background: var(--card-bg); color: var(--card-fg);
+}
+.cmp-panel-left { border-top: 4px solid var(--brand-midnight); }
+.cmp-panel-right { border-top: 4px solid var(--brand-sunrise); }
+.cmp-panel-name { font: 800 1.1rem / 1.2 var(--font-interface); }
+.cmp-panel-born { color: var(--card-fg-muted); font-size: var(--font-size-support); }
+.cmp-facts { margin: 4px 0 0; display: grid; gap: 2px; font-size: var(--font-size-support); }
+.cmp-facts > div { display: grid; grid-template-columns: 90px 1fr; gap: 8px; padding: 3px 0; border-top: 1px solid var(--card-line); }
+.cmp-facts dt { color: var(--card-fg-muted); font-weight: 700; }
+.cmp-facts dd { margin: 0; }
+.cmp-duo-title { margin: 18px 0 6px; font: 800 1.15rem / 1.2 var(--font-interface); color: var(--brand-midnight); scroll-margin-top: 112px; }
+.cmp-duo-sub { margin: 0 0 10px; }
+.cmp-duo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.cmp-side .cmp-card { margin-bottom: 0; }
+.cmp-side-title { margin: 0; font-size: var(--font-size-control); }
+.cmp-side-left .cmp-card { border-top: 4px solid var(--brand-midnight); }
+.cmp-side-right .cmp-card { border-top: 4px solid var(--brand-sunrise); }
+.cmp-together-title { margin-top: 22px; }
+
+@media (max-width: 960px) {
+    .cmp-board { grid-template-columns: 1fr; }
+    .cmp-board-centre { order: -1; }
+}
+@media (max-width: 720px) {
+    .cmp-duo-grid { grid-template-columns: 1fr; }
+}

@@ -48,8 +48,7 @@ else
         @if (_partner is not null)
         {
             <span class="cmp-roles">
-                <b>@Groom!.Name</b> is the @GroomLabel.ToLowerInvariant() · <b>@Bride!.Name</b> is the @BrideLabel.ToLowerInvariant()
-                <button type="button" class="cmp-swap" @onclick="Swap">Swap roles</button>
+                <b>@Groom!.Name</b> (left) is the @GroomLabel.ToLowerInvariant() · <b>@Bride!.Name</b> (right) is the @BrideLabel.ToLowerInvariant()
             </span>
         }
     </section>
@@ -76,9 +75,16 @@ else
             </p>
         }
 
+        <section class="cmp-board" aria-label="The two charts">
+            @PersonPanel(Groom!, GroomLabel, _chartGroom, true)
+            <div class="cmp-board-centre">
         <section class="cmp-glance" aria-label="Pair at a glance">
             <p class="cmp-kicker">Pair at a glance</p>
             <h2 class="cmp-glance-title" id="cmp-overview" tabindex="-1">@Groom!.Name &amp; @Bride!.Name</h2>
+            @if (MarriageApplies)
+            {
+                <KutaDial Low="@_result.TotalMin" High="@_result.TotalMax" Scale="@AshtakootaResult.MaxTotal" Pass="@AshtakootaResult.PassMark" ValueText="@TotalText" />
+            }
             <dl class="cmp-tiles">
                 @if (MarriageApplies)
                 {
@@ -118,13 +124,11 @@ else
             </dl>
             @if (MarriageApplies)
             {
-            <div class="cmp-meter" role="meter" aria-label="Kuta agreement out of @AshtakootaResult.MaxTotal" aria-valuemin="0" aria-valuemax="@AshtakootaResult.MaxTotal" aria-valuenow="@_result.TotalMin">
-                <span class="cmp-meter-min" style="width:@MeterPercent(_result.TotalMin)%"></span>
-                <span class="cmp-meter-range" style="left:@MeterPercent(_result.TotalMin)%;width:@MeterPercent(_result.TotalMax - _result.TotalMin)%"></span>
-                <i class="cmp-meter-pass" style="left:@MeterPercent(AshtakootaResult.PassMark)%" title="Pass mark @AshtakootaResult.PassMark"></i>
-            </div>
-            <small>Bar shows the score out of @AshtakootaResult.MaxTotal; the line marks the book's pass mark of @AshtakootaResult.PassMark@(_result.IsComplete ? "" : "; the lighter part is the range left open by the unscored Yoni").</small>
+            <small>The dial shows the score out of @AshtakootaResult.MaxTotal; the tick marks the book's pass mark of @AshtakootaResult.PassMark@(_result.IsComplete ? "" : "; the lighter arc is the range left open by the unscored Yoni").</small>
             }
+        </section>
+            </div>
+            @PersonPanel(Bride!, BrideLabel, _chartBride, false)
         </section>
 
         <nav class="cmp-nav" id="cmp-nav" aria-label="Sections on this page">
@@ -176,6 +180,18 @@ else
             </div>
             <p class="cmp-caution">No single score decides compatibility. @(MarriageApplies ? "The Kuta total, the dosha balance, Saturn and the dashas are read separately and never combined. The book itself ranks Kuta agreement after the dosha checks (p.79)." : "Saturn, the dashas, the cross-chart contacts and the shared facts are read separately and never combined.")</p>
         </section>
+
+        <section class="cmp-duo" id="cmp-individual" tabindex="-1" aria-label="Each person's own facts">
+            <span id="cmp-d9"></span>
+            <h2 class="cmp-duo-title">Each person on their own</h2>
+            <p class="cmp-sub cmp-duo-sub">Left is @Groom!.Name, right is @Bride!.Name. Only what the two charts have in common is combined, further down.</p>
+            <div class="cmp-duo-grid">
+                @SideFacts(true)
+                @SideFacts(false)
+            </div>
+        </section>
+
+        <h2 class="cmp-duo-title cmp-together-title" id="cmp-together" tabindex="-1">The two together</h2>
 
         @if (MarriageApplies)
         {
@@ -250,36 +266,7 @@ else
                     <h2 id="cmp-dosha" tabindex="-1">Mars and the malefics (Dosha Samya)</h2>
                     <p class="cmp-total"><em class="cmp-verdict cmp-verdict-@BalanceClass">@BalanceText</em></p>
                 </header>
-                <div class="cmp-people">
-                    @MarsCard("Groom", Groom!.Name, _doshaGroom)
-                    @MarsCard("Bride", Bride!.Name, _doshaBride)
-                </div>
                 <p class="cmp-pad">@_balance.Reason <span class="cmp-src">@_balance.SourceLocator</span></p>
-                <details class="cmp-detail">
-                    <summary>Each affliction: malefic, reference point, house and weight</summary>
-                <div class="cmp-scroll">
-                    <table class="cmp-table">
-                        <thead><tr><th>Person</th><th>Malefic</th><th>From</th><th>House</th><th>Weight</th><th>Reading</th></tr></thead>
-                        <tbody>
-                            @foreach (var row in AfflictionRows())
-                            {
-                                <tr>
-                                    <th scope="row">@row.Person</th>
-                                    <td data-label="Malefic">@row.A.Malefic</td>
-                                    <td data-label="From">@row.A.From</td>
-                                    <td data-label="House" class="cmp-score">@Ordinal(row.A.House)</td>
-                                    <td data-label="Weight" class="cmp-score cmp-w-@row.A.Weight.ToString().ToLowerInvariant()">@row.A.Weight</td>
-                                    <td data-label="Reading">@row.A.Note</td>
-                                </tr>
-                            }
-                            @if (!AfflictionRows().Any())
-                            {
-                                <tr><td colspan="6">Neither chart has Sun, Mars, Saturn, Rahu or Ketu in the 2nd, 4th, 7th, 8th or 12th (or Mars or Saturn in the 1st) from the Lagna, Moon or Venus.</td></tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                </details>
                 <details class="cmp-detail" open>
                     <summary>Does each chart carry the same affliction?</summary>
                     <div class="cmp-scroll">
@@ -315,35 +302,6 @@ else
             </article>
         }
 
-        }
-
-        @if (MarriageApplies && _d9Groom is not null && _d9Bride is not null)
-        {
-            <article class="cmp-card">
-                <header class="cmp-card-head">
-                    <h2 id="cmp-d9" tabindex="-1">Navamsa (D9)</h2>
-                    <p class="cmp-sub">Facts only: no source is cited yet for what these placements mean for a marriage.</p>
-                </header>
-                <details class="cmp-detail" open>
-                    <summary>D9 Lagna, 7th house, Venus, Jupiter and the Darakaraka</summary>
-                    <div class="cmp-scroll">
-                        <table class="cmp-table">
-                            <thead><tr><th>Fact</th><th>@Groom!.Name</th><th>@Bride!.Name</th></tr></thead>
-                            <tbody>
-                                @foreach (var row in D9Rows())
-                                {
-                                    <tr>
-                                        <th scope="row">@row.Fact</th>
-                                        <td data-label="@Groom!.Name">@row.Groom</td>
-                                        <td data-label="@Bride!.Name">@row.Bride</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </details>
-                <p class="cmp-pad cmp-sub">Houses are counted from each chart's own D9 Lagna; signs, houses and dignity are the stored D9 values, and the Darakaraka is the chara karaka stored for D1.</p>
-            </article>
         }
 
         @if (_synastry is not null)
@@ -456,22 +414,20 @@ else
         {
             <article class="cmp-card">
                 <header class="cmp-card-head">
-                    <h2 id="cmp-saturn" tabindex="-1">Saturn from the Moon (Sade Sati)</h2>
+                    <h2 id="cmp-saturn" tabindex="-1">Saturn from the Moon: periods that coincide</h2>
                     <p class="cmp-total"><em class="cmp-verdict cmp-verdict-@(_saturn.SadeSatiOverlaps ? "open" : "pass")">@(_saturn.SadeSatiOverlaps ? "Sade Sati overlaps in the next 30 years" : "Sade Sati does not overlap in the next 30 years")</em></p>
                 </header>
                 <details class="cmp-detail" open>
-                    <summary>Saturn periods by category</summary>
+                    <summary>When both are in the same Saturn period (each person's own periods are in their panel above)</summary>
                 <div class="cmp-scroll">
                     <table class="cmp-table">
-                        <thead><tr><th>Period</th><th>@Groom!.Name (Moon in @SignLabels.For(Groom.Person.MoonSign))</th><th>@Bride!.Name (Moon in @SignLabels.For(Bride.Person.MoonSign))</th><th>Both at once</th></tr></thead>
+                        <thead><tr><th>Period</th><th>Both at once</th></tr></thead>
                         <tbody>
                             @for (var i = 0; i < _saturn.First.Count; i++)
                             {
                                 var category = _saturn.First[i].Category;
                                 <tr>
                                     <th scope="row">@category</th>
-                                    <td data-label="@Groom!.Name">@Standing(_saturn.First[i])</td>
-                                    <td data-label="@Bride!.Name">@Standing(_saturn.Second[i])</td>
                                     <td data-label="Both at once" class="cmp-score">@Overlaps(category)</td>
                                 </tr>
                             }
@@ -537,36 +493,6 @@ else
                         }
                     </ul>
                 }
-            </article>
-
-            <article class="cmp-card">
-                <header class="cmp-card-head">
-                    <h2>Running lords in their own charts</h2>
-                    <p class="cmp-sub">Houses counted from each person's own Lagna.</p>
-                </header>
-                <details class="cmp-detail">
-                    <summary>Running lords: lordships, placement and end dates</summary>
-                <div class="cmp-scroll">
-                    <table class="cmp-table">
-                        <thead><tr><th>Person</th><th>Period</th><th>Lord</th><th>Rules</th><th>Sits in</th><th>Also</th><th>Ends</th></tr></thead>
-                        <tbody>
-                            @foreach (var row in LordFactRows())
-                            {
-                                <tr>
-                                    <th scope="row">@row.Person</th>
-                                    <td data-label="Period">@LevelName(row.F.Level)</td>
-                                    <td data-label="Lord" class="cmp-score">@row.F.Lord</td>
-                                    <td data-label="Rules">@(row.F.Rules.Count == 0 ? "no sign" : string.Join(", ", row.F.Rules.Select(Ordinal)))</td>
-                                    <td data-label="Sits in">@(row.F.PlacedIn is int h ? Ordinal(h) : "—")</td>
-                                    <td data-label="Also">@AlsoText(row.F)</td>
-                                    <td data-label="Ends" class="cmp-src">@row.F.End.ToString("d MMM yyyy")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                </details>
-                <p class="cmp-pad cmp-sub">These are facts only. Which lordships help or hinder a marriage is not classified here until a source is cited. The Upapada lord is not yet included.</p>
             </article>
 
             <article class="cmp-card">
@@ -841,27 +767,20 @@ else
             return;
         }
 
-        // Roles follow Sex when the pair is one man and one woman; otherwise the person opened is the
-        // groom until the roles are swapped.
+        // Left is the man and right the woman when the pair is one of each; otherwise the elder is on the left.
         var mine = _person.Sex?.ToLowerInvariant();
         var theirs = _partner.Sex?.ToLowerInvariant();
         if (mine is "male" or "female" && theirs is "male" or "female" && mine != theirs)
             _meIsGroom = mine == "male";
         else
-            _notice = "The two people are not recorded as one man and one woman, so the roles were assigned by choice; use Swap roles to reverse them.";
+        {
+            var other = _others.FirstOrDefault(o => o.Id == _partnerId);
+            _meIsGroom = other is null || _person.DateOfBirth <= other.DateOfBirth;
+            _notice = $"The two are not recorded as one man and one woman, so the elder ({(_meIsGroom ? _person.Name : other!.Name)}) is placed on the left.";
+        }
 
         _result = AshtakootaCalculator.Score(Groom!.Person, Bride!.Person);
         ComputeDetails();
-    }
-
-    private void Swap()
-    {
-        _meIsGroom = !_meIsGroom;
-        if (_me is not null && _partner is not null)
-        {
-            _result = AshtakootaCalculator.Score(Groom!.Person, Bride!.Person);
-            ComputeDetails();
-        }
     }
 
     private const int DashaYears = 25;
@@ -1260,7 +1179,7 @@ else
         yield return ("cmp-summary", "Summary");
         if (MarriageApplies) yield return ("cmp-kuta", "Kuta");
         if (MarriageApplies && _balance is not null) yield return ("cmp-dosha", "Doshas");
-        if (MarriageApplies && _d9Groom is not null) yield return ("cmp-d9", "Navamsa");
+        yield return ("cmp-individual", "Each person");
         if (_synastry is not null) yield return ("cmp-synastry", "Synastry");
         if (_shared is not null) yield return ("cmp-similarity", "Similarity");
         if (_saturn is not null) yield return ("cmp-saturn", "Saturn");
@@ -1397,6 +1316,127 @@ else
             ? "Never together"
             : string.Join("; ", rows.Select(o => $"{o.StartUtc:MMM yyyy}–{o.EndUtc:MMM yyyy}"));
     }
+
+    private BirthDetails? BirthOf(int id) => id == Id ? _person : _others.FirstOrDefault(o => o.Id == id);
+
+    private RenderFragment PersonPanel(MatchPersonSnapshot m, string role, DoshaChart? chart, bool left) => @<aside class="cmp-panel cmp-panel-@(left ? "left" : "right")" aria-label="@m.Name">
+        <span class="cmp-role">@role</span>
+        <strong class="cmp-panel-name">@m.Name</strong>
+        @{ var b = BirthOf(m.BirthDetailId); }
+        @if (b is not null)
+        {
+            <span class="cmp-panel-born">@b.DateOfBirth.ToString("d MMM yyyy") · @b.TimeOfBirth.ToString("HH\\:mm") · @b.PlaceCity</span>
+        }
+        @if (chart is not null)
+        {
+            <PairChart Chart="@chart" Title="Rasi (D1)" />
+        }
+        <dl class="cmp-facts">
+            @if (chart is not null) { <div><dt>Lagna</dt><dd>@SignLabels.For(chart.Lagna)</dd></div> }
+            <div><dt>Moon</dt><dd>@SignLabels.For(m.Person.MoonSign), @m.NakshatraName pada @m.Pada</dd></div>
+            <div><dt>Gana</dt><dd>@m.Person.Gana</dd></div>
+            <div><dt>Yoni</dt><dd>@m.Person.YoniAnimal (@m.Person.YoniGender.ToLowerInvariant())</dd></div>
+            <div><dt>Nadi</dt><dd>@m.Person.Nadi</dd></div>
+            @if (m.NameNumberRoot is int root) { <div><dt>Name number</dt><dd>@root (compound @m.NameNumberCompound)</dd></div> }
+        </dl>
+    </aside>;
+
+    // Everything that is about one person alone, so the left column is the groom and the right the bride.
+    private RenderFragment SideFacts(bool left) => @<div class="cmp-side cmp-side-@(left ? "left" : "right")">
+        @{
+            var m = left ? Groom! : Bride!;
+            var dosha = left ? _doshaGroom : _doshaBride;
+            var d9 = left ? _d9Groom : _d9Bride;
+            var saturn = left ? _saturn?.First : _saturn?.Second;
+            var dashaP = left ? _dashaGroom : _dashaBride;
+            var lords = LordFactRows().Where(r => r.Person == m.Name).ToList();
+        }
+        <article class="cmp-card">
+            <header class="cmp-card-head"><h3 class="cmp-side-title">@m.Name</h3></header>
+
+            @if (dosha is not null)
+            {
+                <details class="cmp-detail" open>
+                    <summary>Mars and the malefics</summary>
+                    <p class="cmp-pad">Mars from Lagna @Ordinal(dosha.MarsHouses[DoshaReference.Lagna]) · Moon @Ordinal(dosha.MarsHouses[DoshaReference.Moon]) · Venus @Ordinal(dosha.MarsHouses[DoshaReference.Venus]). @(dosha.ClassicalKuja ? "Mars is in the 1st, 2nd, 4th, 7th, 8th or 12th from at least one reference (classical Kuja dosha)." : "Mars is in none of the 1st, 2nd, 4th, 7th, 8th, 12th from Lagna, Moon or Venus.")</p>
+                    @if (dosha.Afflictions.Count == 0)
+                    {
+                        <p class="cmp-pad cmp-sub">No Sun, Mars, Saturn, Rahu or Ketu in the 2nd, 4th, 7th, 8th or 12th (or Mars or Saturn in the 1st) from the Lagna, Moon or Venus.</p>
+                    }
+                    else
+                    {
+                        <div class="cmp-scroll"><table class="cmp-table">
+                            <thead><tr><th>Malefic</th><th>From</th><th>House</th><th>Weight</th></tr></thead>
+                            <tbody>
+                                @foreach (var a in dosha.Afflictions.OrderBy(a => a.Weight))
+                                {
+                                    <tr title="@a.Note">
+                                        <td data-label="Malefic">@a.Malefic</td>
+                                        <td data-label="From">@a.From</td>
+                                        <td data-label="House" class="cmp-score">@Ordinal(a.House)</td>
+                                        <td data-label="Weight" class="cmp-score cmp-w-@a.Weight.ToString().ToLowerInvariant()">@a.Weight</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table></div>
+                    }
+                </details>
+            }
+
+            @if (MarriageApplies && d9 is not null)
+            {
+                <details class="cmp-detail">
+                    <summary>Navamsa (D9): 7th house, Venus, Jupiter, Darakaraka</summary>
+                    <div class="cmp-scroll"><table class="cmp-table">
+                        <tbody>
+                            @foreach (var row in D9Rows())
+                            {
+                                <tr><th scope="row">@row.Fact</th><td data-label="@m.Name">@(left ? row.Groom : row.Bride)</td></tr>
+                            }
+                        </tbody>
+                    </table></div>
+                </details>
+            }
+
+            @if (saturn is not null)
+            {
+                <details class="cmp-detail">
+                    <summary>Saturn from the Moon (Moon in @SignLabels.For(m.Person.MoonSign))</summary>
+                    <div class="cmp-scroll"><table class="cmp-table">
+                        <tbody>
+                            @foreach (var st in saturn)
+                            {
+                                <tr><th scope="row">@st.Category</th><td data-label="@m.Name">@Standing(st)</td></tr>
+                            }
+                        </tbody>
+                    </table></div>
+                </details>
+            }
+
+            @if (lords.Count > 0)
+            {
+                <details class="cmp-detail">
+                    <summary>Running dasha lords: lordships, placement, end date</summary>
+                    <div class="cmp-scroll"><table class="cmp-table">
+                        <thead><tr><th>Period</th><th>Lord</th><th>Rules</th><th>Sits in</th><th>Ends</th></tr></thead>
+                        <tbody>
+                            @foreach (var row in lords)
+                            {
+                                <tr>
+                                    <td data-label="Period">@LevelName(row.F.Level)</td>
+                                    <td data-label="Lord" class="cmp-score">@row.F.Lord</td>
+                                    <td data-label="Rules">@(row.F.Rules.Count == 0 ? "no sign" : string.Join(", ", row.F.Rules.Select(Ordinal)))</td>
+                                    <td data-label="Sits in">@(row.F.PlacedIn is int h ? Ordinal(h) : "—")</td>
+                                    <td data-label="Ends" class="cmp-src">@row.F.End.ToString("d MMM yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table></div>
+                    <p class="cmp-pad cmp-sub">Houses from this person's own Lagna. Facts only: which lordships help or hinder a marriage is not classified until a source is cited.</p>
+                </details>
+            }
+        </article>
+    </div>;
 
     private RenderFragment MarsCard(string role, string name, DoshaReading r) => @<div class="cmp-person">
         <span class="cmp-role">@role</span>

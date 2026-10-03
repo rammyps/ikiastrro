@@ -1,0 +1,31 @@
+.pc { margin: 0; }
+.pc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, minmax(56px, 1fr));
+    gap: 0;
+    border: 1px solid var(--card-line);
+    background: var(--card-bg);
+    max-width: 320px;
+    margin-inline: auto;
+}
+.pc-cell {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 2px 5px;
+    padding: 14px 4px 4px;
+    border: 1px solid var(--card-line);
+    font-size: var(--font-size-support);
+    color: var(--card-fg);
+}
+.pc-sign { position: absolute; top: 1px; left: 4px; color: var(--card-fg-muted); font-size: var(--font-size-meta); }
+.pc-lagna { background: var(--card-bg-raised); box-shadow: inset 0 0 0 2px var(--brand-midnight); }
+.pc-asc { font-size: var(--font-size-meta); font-weight: 800; }
+.pc-g { font-weight: 700; }
+.pc-centre {
+    grid-row: 2 / 4; grid-column: 2 / 4;
+    display: grid; place-items: center; text-align: center; padding: 6px;
+    color: var(--card-fg-muted); font-size: var(--font-size-support); font-weight: 700;
+}

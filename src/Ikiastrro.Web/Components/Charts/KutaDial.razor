@@ -1,0 +1,32 @@
+@* A half-circle dial for the Kuta total: the filled arc runs to the lowest the total can be, the lighter arc to
+   the highest (they differ only while a factor is unscored), and the tick marks the book's pass mark.
+   The number is also written out, so the dial never carries the meaning on its own. *@
+
+<figure class="kd" aria-label="@Label">
+    <svg viewBox="0 0 200 118" role="img" aria-label="@Label">
+        <path d="@Arc(0, Scale)" class="kd-track" />
+        @if (High > Low) { <path d="@Arc(0, High)" class="kd-range" /> }
+        @if (Low > 0) { <path d="@Arc(0, Low)" class="kd-fill" /> }
+        <line x1="@X(Pass, 68)" y1="@Y(Pass, 68)" x2="@X(Pass, 94)" y2="@Y(Pass, 94)" class="kd-pass"><title>Pass mark @Pass</title></line>
+        <text x="100" y="92" class="kd-num">@ValueText</text>
+        <text x="100" y="110" class="kd-of">of @Scale</text>
+    </svg>
+</figure>
+
+@code {
+    [Parameter, EditorRequired] public int Low { get; set; }
+    [Parameter, EditorRequired] public int High { get; set; }
+    [Parameter] public int Scale { get; set; } = 36;
+    [Parameter] public int Pass { get; set; } = 18;
+    [Parameter] public string ValueText { get; set; } = "";
+    [Parameter] public string Label { get; set; } = "Kuta agreement";
+
+    private const double Cx = 100, Cy = 100, R = 80;
+
+    private double Angle(double v) => Math.PI * (1 - Math.Min(v, Scale - 0.01) / Scale);
+    private double X(double v, double r) => Math.Round(Cx + r * Math.Cos(Angle(v)), 2);
+    private double Y(double v, double r) => Math.Round(Cy - r * Math.Sin(Angle(v)), 2);
+
+    private string Arc(double from, double to) =>
+        FormattableString.Invariant($"M {X(from, R)} {Y(from, R)} A {R} {R} 0 0 1 {X(to, R)} {Y(to, R)}");
+}

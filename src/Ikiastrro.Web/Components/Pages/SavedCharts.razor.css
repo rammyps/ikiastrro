@@ -514,3 +514,11 @@ h1 {
 }
 
 .edit-actions button:disabled { opacity: .6; cursor: default; }
+
+.sp-namefilter { display: grid; gap: 4px; max-width: 360px; margin: 0 0 10px; color: var(--brand-midnight); }
+.sp-namefilter > span { font-size: var(--font-size-support); font-weight: 700; }
+.sp-namefilter input {
+    padding: 8px 10px; border: 1px solid var(--card-line); border-radius: 8px;
+    background: var(--card-bg); color: var(--card-fg); font: inherit; font-size: var(--font-size-control);
+}
+.sp-namefilter input:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 1px; }

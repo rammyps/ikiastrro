@@ -312,3 +312,10 @@ Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 
 - **Dosha matchup**: the afflictions sorted by kind with a "same in both or neither" column, and Mars and Rahu stored D1 dignity shown beside it. The book's one balancing rule (pp.56-58) remains the only cancellation applied; cancellation by dignity, benefic aspect or dispositor is listed as not applied (no cited source).
 - **Copy summary and Print**: the summary as plain text with the date and rule set, and a print of the whole comparison (details opened, default-light, app chrome hidden). `CompatibilityRuleSet.Version` is bumped whenever a matching rule changes; nothing is stored per pair.
 - Not built: saved comparisons (L5, phase 6) and any sourced supportive/difficult classification of dasha periods.
+
+### 10.7 Phase 6 results (2026-10-04)
+
+- Migration 171: `tbl_Person_LifeEvent` (marriage now; divorce, child birth, death allowed), `tbl_Pair_Note`, `tbl_Pair_SavedReport`. Reports are saved only for pairs with a recorded relationship; arbitrary pairs are never stored. `PairHistoryRepository` holds marriage date, notes, snapshots and the dasha running on a date.
+- Pair page layout: left is the man, right the woman (recorded sex, else the elder on the left); no Swap. A board shows each person's panel with a small South Indian D1 chart (`PairChart`) beside a Kuta dial (`KutaDial`). Per-person facts (Mars and malefics, D9, Saturn, running lords) sit in a left and right column under "Each person on their own"; only connected facts (Kuta, dosha matchup, synastry, shared dasha windows, coinciding Saturn periods) are combined under "The two together".
+- Saved charts: a "Family pairs" table of recorded couples (Left, Right, Kuta, Married, Mahadasha now, Children) opens the pair page. Children are the third group, ready for a family view.
+

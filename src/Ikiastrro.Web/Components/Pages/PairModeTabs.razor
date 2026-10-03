@@ -1,0 +1,23 @@
+@* The four tabs shared by Saved charts and Home: Individual, Marriage, Family Core, Family Extended. *@
+<nav class="pmt" role="tablist" aria-label="Kind of comparison">
+    @foreach (var (mode, label) in Tabs)
+    {
+        var m = mode;
+        <button type="button" role="tab" class="pmt-tab" aria-selected="@(Mode == m ? "true" : "false")" @onclick="() => Pick(m)">@label</button>
+    }
+</nav>
+
+@code {
+    [Parameter] public PairMode Mode { get; set; }
+    [Parameter] public EventCallback<PairMode> ModeChanged { get; set; }
+
+    private static readonly (PairMode Mode, string Label)[] Tabs =
+    [
+        (PairMode.Individual, "Individual"),
+        (PairMode.Marriage, "Marriage"),
+        (PairMode.FamilyCore, "Family Core"),
+        (PairMode.FamilyExtended, "Family Extended"),
+    ];
+
+    private Task Pick(PairMode m) => ModeChanged.InvokeAsync(m);
+}

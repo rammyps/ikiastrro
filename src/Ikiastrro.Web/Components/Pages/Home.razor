@@ -48,6 +48,14 @@
                 {
                     @* Two saved people -> the Compatibility page (docs/architecture/compatibility_similarity.md).
                        Groom and bride are not asked for: the page assigns them from each person's recorded sex. *@
+                    <PairModeTabs @bind-Mode="_pairMode" />
+                    @if (_pairMode != PairMode.Individual)
+                    {
+                        <p class="home-pair-hint">The Name box above filters these pairs.</p>
+                        <FamilyPairsTable Mode="_pairMode" Filter="@_query" />
+                    }
+                    else
+                    {
                     <div class="home-pair" role="group" aria-label="Check compatibility">
                         <label class="home-pair-field">
                             <span>First person</span>
@@ -72,6 +80,7 @@
                         <p class="home-pair-hint">Groom and bride follow each person's recorded sex.</p>
                         <button type="button" class="home-pair-go" disabled="@(!CanPair)" @onclick="OpenPair">Check Kuta agreement →</button>
                     </div>
+                    }
                 }
             }
         </div>
@@ -150,6 +159,7 @@
     private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/astro-facts/{p.Id}");
 
     private bool _pairing;
+    private PairMode _pairMode = PairMode.Individual;
     private int _pairA;
     private int _pairB;
     private bool CanPair => _pairA > 0 && _pairB > 0 && _pairA != _pairB;

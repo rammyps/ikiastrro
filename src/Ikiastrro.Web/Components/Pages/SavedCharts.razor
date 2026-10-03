@@ -111,6 +111,12 @@
             <p class="sp-import-status">@_importStatus</p>
         }
 
+        <PairModeTabs @bind-Mode="_mode" />
+        <label class="sp-namefilter">
+            <span>Name</span>
+            <input type="search" placeholder="Search saved people…" @bind="_nameFilter" @bind:event="oninput" />
+        </label>
+
         <div class="sp-subrow">
             <p class="sp-count">@_rows.Count saved chart@(_rows.Count == 1 ? "" : "s")</p>
             @if (MissingCount > 0)
@@ -127,7 +133,14 @@
         }
         else
         {
-            <div class="saved-charts-table"><DataTable TRow="Row" Rows="_rows" InitialSortHeader="Name" Columns="Cols" /></div>
+            @if (_mode == PairMode.Individual)
+            {
+                <div class="saved-charts-table"><DataTable TRow="Row" Rows="FilteredRows" InitialSortHeader="Name" Columns="Cols" /></div>
+            }
+            else
+            {
+                <FamilyPairsTable Mode="_mode" Filter="@_nameFilter" />
+            }
         }
 
         <ConfirmDialog IsOpen="@(_pendingDelete is not null)"
@@ -278,6 +291,11 @@
         Ikiastrro.Data.Statistics.AnalyticsSubjectRecord? AnalyticsSubject);
 
     private readonly List<Row> _rows = new();
+    private PairMode _mode = PairMode.Individual;
+    private string _nameFilter = string.Empty;
+    private IReadOnlyList<Row> FilteredRows => string.IsNullOrWhiteSpace(_nameFilter)
+        ? _rows
+        : _rows.Where(r => PersonName.Matches(r.Person.Name, _nameFilter)).ToList();
     private Row? _pendingDelete;
     private bool _isDeleting;
     private string? _error;
