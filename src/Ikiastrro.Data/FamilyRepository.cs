@@ -101,5 +101,21 @@ public sealed class FamilyRepository
         }
         return result.OrderBy(x => x.Relation == "Siblings").ThenBy(x => x.LeftName).ThenBy(x => x.RightName).ToList();
     }
+
+    /// <summary>Removes a recorded marriage (the edge only; no person is deleted).</summary>
+    public void RemoveSpouses(int personId, int otherId)
+    {
+        var (a, b) = personId < otherId ? (personId, otherId) : (otherId, personId);
+        using var connection = _connectionFactory.CreateOpenConnection();
+        connection.Execute("DELETE dbo.tbl_Person_Relationship WHERE PersonAId = @A AND PersonBId = @B AND RelationTypeCode = 'SPOUSE'", new { A = a, B = b });
+    }
+
+    /// <summary>Removes the parent link between a parent and a child (the edge only).</summary>
+    public void RemoveParent(int parentId, int childId)
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        connection.Execute("DELETE dbo.tbl_Person_Relationship WHERE PersonAId = @Parent AND PersonBId = @Child AND RelationTypeCode = 'PARENT_OF'",
+            new { Parent = parentId, Child = childId });
+    }
 }
 
