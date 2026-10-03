@@ -232,3 +232,40 @@
         display: none;
     }
 }
+
+/* Check compatibility — two saved people to the Compatibility page. Same quiet-link entry as
+   Add New; the panel reuses the one card look. */
+.home-pair {
+    display: grid;
+    gap: 10px;
+    max-width: 520px;
+    margin-top: 0.5rem;
+    padding: 14px 16px;
+    border: 1px solid var(--card-line);
+    border-radius: var(--card-radius);
+    background: var(--card-bg);
+    color: var(--card-fg);
+}
+.home-pair-field { display: grid; gap: 4px; font-size: var(--font-size-support); font-weight: 700; }
+.home-pair-field select {
+    padding: 8px 10px;
+    border: 1px solid var(--card-line);
+    border-radius: 8px;
+    background: var(--card-bg-raised);
+    color: var(--card-fg);
+    text-transform: none;
+    font: 500 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+}
+.home-pair-hint { margin: 0; color: var(--brand-muted); font-size: var(--font-size-support); }
+.home-pair-go {
+    justify-self: start;
+    padding: 9px 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--brand-midnight);
+    color: var(--brand-canvas);
+    cursor: pointer;
+    font: 700 var(--font-size-support) / 1 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.02em;
+}
+.home-pair-go:disabled { opacity: 0.4; cursor: not-allowed; }

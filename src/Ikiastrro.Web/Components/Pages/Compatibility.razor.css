@@ -28,6 +28,7 @@
     border-radius: 8px;
     background: var(--card-bg-raised);
     color: var(--card-fg);
+    text-transform: none;
     font: inherit;
 }
 

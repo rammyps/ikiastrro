@@ -25,7 +25,7 @@
        not the page's --pad-x, so the two ends sit at the bar's edges. */
     padding-inline: 16px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr);
     gap: 14px;
 }
 

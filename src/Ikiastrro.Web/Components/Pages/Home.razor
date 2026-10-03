@@ -37,7 +37,41 @@
                         </button>
                     }
                     <button type="button" class="home-add-new" @onclick="StartAdd">＋ Add New</button>
+                    @if (_people.Count >= 2)
+                    {
+                        <button type="button" class="home-add-new" aria-expanded="@_pairing" @onclick="() => _pairing = !_pairing">♡ Check compatibility</button>
+                    }
                 </div>
+
+                @if (_pairing)
+                {
+                    @* Two saved people -> the Compatibility page (docs/architecture/compatibility_similarity.md).
+                       Groom and bride are not asked for: the page assigns them from each person's recorded sex. *@
+                    <div class="home-pair" role="group" aria-label="Check compatibility">
+                        <label class="home-pair-field">
+                            <span>First person</span>
+                            <select @bind="_pairA">
+                                <option value="0">Choose a saved person…</option>
+                                @foreach (var p in _people.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                {
+                                    <option value="@p.Id">@p.Name</option>
+                                }
+                            </select>
+                        </label>
+                        <label class="home-pair-field">
+                            <span>Second person</span>
+                            <select @bind="_pairB">
+                                <option value="0">Choose a saved person…</option>
+                                @foreach (var p in _people.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                {
+                                    <option value="@p.Id">@p.Name</option>
+                                }
+                            </select>
+                        </label>
+                        <p class="home-pair-hint">Groom and bride follow each person's recorded sex.</p>
+                        <button type="button" class="home-pair-go" disabled="@(!CanPair)" @onclick="OpenPair">Check Kuta agreement →</button>
+                    </div>
+                }
             }
         </div>
 
@@ -112,6 +146,12 @@
     private static string BirthLine(BirthDetails p) => $"{p.DateOfBirth:dd/MM/yyyy} · {p.PlaceCity}";
 
     private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/astro-facts/{p.Id}");
+
+    private bool _pairing;
+    private int _pairA;
+    private int _pairB;
+    private bool CanPair => _pairA > 0 && _pairB > 0 && _pairA != _pairB;
+    private void OpenPair() { if (CanPair) Nav.NavigateTo($"/compatibility/{_pairA}?with={_pairB}"); }
 
     // A search that matches no saved person IS the intent to add that person: reveal the
     // Add-New form, pre-filled from the search text (docs/ui/components/home.md). Retract it
