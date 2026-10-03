@@ -381,22 +381,14 @@
 .cmp-tab:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 2px; }
 .cmp-row-key > * { font-weight: 800; }
 
-/* Bridge chart of the findings. */
+/* Bridge chart of the Ashtakoota total. */
 .cmp-bridge { margin: 0 0 14px; }
 .cmp-bridge ::deep svg { display: block; width: 100%; max-width: 640px; height: auto; }
-.cmp-bridge ::deep .cmp-bk-0 { fill: var(--el-water); background: var(--el-water); }
-.cmp-bridge ::deep .cmp-bk-1 { fill: var(--el-fire); background: var(--el-fire); }
-.cmp-bridge ::deep .cmp-bk-2 { fill: var(--el-earth); background: var(--el-earth); }
-.cmp-bridge ::deep .cmp-bk-3 { fill: var(--el-air); background: var(--el-air); }
-.cmp-bridge ::deep rect.cmp-br-down { fill-opacity: .5; stroke: currentColor; stroke-width: 1.5; stroke-dasharray: 4 3; }
-.cmp-bridge ::deep .cmp-bk-0 { color: var(--el-water); } .cmp-bridge ::deep .cmp-bk-1 { color: var(--el-fire); } .cmp-bridge ::deep .cmp-bk-2 { color: var(--el-earth); } .cmp-bridge ::deep .cmp-bk-3 { color: var(--el-air); }
-.cmp-bridge ::deep .cmp-br-total-good { fill: var(--status-strong); }
+.cmp-bridge ::deep .cmp-br-step { fill: var(--el-water); }
 .cmp-bridge ::deep .cmp-br-net { fill: var(--brand-midnight); }
-.cmp-bridge ::deep .cmp-br-key { display: inline-flex; align-items: center; gap: 5px; margin: 0 14px 4px 0; font-size: var(--font-size-support); }
-.cmp-bridge ::deep .cmp-br-key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-.cmp-bridge ::deep .cmp-br-key i.cmp-br-down { opacity: .5; border: 1.5px dashed currentColor; }
 .cmp-bridge ::deep small { display: block; }
 .cmp-bridge ::deep .cmp-br-zero { stroke: var(--brand-midnight); stroke-width: 1; }
+.cmp-bridge ::deep .cmp-br-pass { stroke: var(--brand-muted); stroke-width: 1; stroke-dasharray: 5 4; }
 .cmp-bridge ::deep .cmp-br-link { stroke: var(--brand-muted); stroke-width: 1; stroke-dasharray: 3 3; }
 .cmp-bridge ::deep .cmp-br-val { fill: var(--brand-midnight); font: 800 12px 'Manrope', 'Segoe UI', sans-serif; }
 .cmp-bridge ::deep .cmp-br-lab { fill: var(--brand-muted); font: 700 11px 'Manrope', 'Segoe UI', sans-serif; }

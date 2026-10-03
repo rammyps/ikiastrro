@@ -144,46 +144,13 @@ else
         <section class="cmp-summary" aria-labelledby="cmp-summary">
             <h2 class="cmp-summary-head" id="cmp-summary" tabindex="-1">Summary of findings</h2>
             <p class="cmp-legend cmp-stamp">Made @DateTime.Today.ToString("d MMM yyyy") under rule set @CompatibilityRuleSet.Version. The same two people and rule set always give the same result; a snapshot is kept only if you save one under History.</p>
-            <p class="cmp-legend">
-                <span class="cmp-flag cmp-flag-good">&#10003; Favourable</span>
-                <span class="cmp-flag cmp-flag-concern">! Concern</span>
-                <span class="cmp-flag cmp-flag-open">? Unresolved</span>
-                Each line comes from the calculation it links to.@(MarriageApplies ? " The pass-mark line on the bar is the book's traditional threshold, not a verdict of this application." : "")
-            </p>
             @if (BuildBridge() is { } bridge)
             {
                 <figure class="cmp-bridge">
                     <div role="img" aria-label="@bridge.Aria">@((MarkupString)bridge.Svg)</div>
-                    <figcaption>
-                        @((MarkupString)bridge.Legend)
-                        <small>Favourable findings add up bucket on bucket; the concerns then come off the total. A count of findings, not a score of the match.</small>
-                    </figcaption>
+                    <figcaption>@((MarkupString)bridge.Legend)</figcaption>
                 </figure>
-            }
-            <div class="cmp-findings">
-                @foreach (var group in new[] { FindingKind.Good, FindingKind.Concern, FindingKind.Open })
-                {
-                    var items = _findings.Where(f => f.Kind == group).ToList();
-                    <div class="cmp-finding-col">
-                        <h3><span class="cmp-flag cmp-flag-@FlagClass(group)">@FlagText(group)</span> <span class="cmp-count">@items.Count</span></h3>
-                        @if (items.Count == 0)
-                        {
-                            <p class="cmp-none">None found.</p>
-                        }
-                        else
-                        {
-                            <ul>
-                                @foreach (var f in items)
-                                {
-                                    <li><button type="button" class="cmp-findlink" @onclick="() => Jump(f.Target)">@f.Text</button></li>
-                                }
-                            </ul>
-                        }
-                    </div>
-                }
-            </div>
-            <p class="cmp-caution">No single score decides compatibility. @(MarriageApplies ? "The Kuta total, the dosha balance, Saturn and the dashas are read separately and never combined. The book itself ranks Kuta agreement after the dosha checks (p.79)." : "Saturn, the dashas, the cross-chart contacts and the shared facts are read separately and never combined.")</p>
-        </section>
+            }        </section>
 
         <section class="cmp-duo" id="cmp-individual" tabindex="-1" aria-label="Each person's own facts">
             <span id="cmp-d9"></span>
@@ -1668,73 +1635,51 @@ else
 
     private static string PctText(int? p) => p is null ? "—" : $"{p}%";
 
-    // Bridge (waterfall) of the findings. Favourable findings stack up bucket on bucket to a favourable
-    // total; the concerns then step down from that total, bucket by bucket, to the net. One colour per
-    // bucket; solid is favourable, faded is concern. Counts of findings, never a score; unresolved
-    // findings are not plotted.
-    private static readonly (string Target, string Label)[] BridgeTopics =
-    [
-        ("cmp-kuta", "Kuta"), ("cmp-dosha", "Doshas"), ("cmp-individual", "7th house"), ("cmp-saturn", "Saturn"),
-    ];
-
+    // Bridge (waterfall) of the Ashtakoota total: each scored Kuta steps up by its points, then the total
+    // bar stands against the 36-point scale, with a dashed line at the book's pass mark. An unscored Kuta
+    // (Yoni, until both Moon nakshatras are known) is left out and the total is then a minimum.
     private (string Svg, string Legend, string Aria)? BuildBridge()
     {
-        // Kind: 0 bucket step up, 1 bucket step down, 2 total bar (from zero).
-        var steps = new List<(string Label, int Start, int End, int Bucket, int Kind)>();
-        var running = 0;
-        for (var i = 0; i < BridgeTopics.Length; i++)
-        {
-            var good = _findings.Count(f => f.Kind == FindingKind.Good && f.Target == BridgeTopics[i].Target);
-            if (good == 0) continue;
-            steps.Add((BridgeTopics[i].Label, running, running + good, i, 0));
-            running += good;
-        }
-        if (steps.Count == 0 && !_findings.Any(f => f.Kind == FindingKind.Concern)) return null;
-        var favourable = running;
-        steps.Add(("Favourable", 0, favourable, -1, 2));
-        for (var i = 0; i < BridgeTopics.Length; i++)
-        {
-            var concern = _findings.Count(f => f.Kind == FindingKind.Concern && f.Target == BridgeTopics[i].Target);
-            if (concern == 0) continue;
-            steps.Add((BridgeTopics[i].Label, running, running - concern, i, 1));
-            running -= concern;
-        }
-        steps.Add(("Net", 0, running, -2, 2));
-
-        var lo = Math.Min(0, steps.Min(x => Math.Min(x.Start, x.End)));
-        var hi = Math.Max(0, steps.Max(x => Math.Max(x.Start, x.End)));
-        const int colW = 78, barW = 54, pad = 20, top = 22, plotH = 170, labelH = 34;
-        var width = pad * 2 + steps.Count * colW;
-        double Y(int v) => top + (hi - v) * (double)plotH / Math.Max(1, hi - lo);
+        if (!MarriageApplies || _result is null) return null;
+        var kutas = _result.Scored.Where(k => k.Score is not null).ToList();
+        if (kutas.Count == 0) return null;
+        var max = AshtakootaResult.MaxTotal;
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         string N(double d) => d.ToString("0.#", inv);
-        string Sgn(int d) => d > 0 ? "+" + d : d < 0 ? "\u2212" + Math.Abs(d) : "0";
 
+        const int colW = 66, barW = 44, pad = 20, top = 22, plotH = 190, labelH = 34;
+        var cols = kutas.Count + 1;
+        var width = pad * 2 + cols * colW;
+        double Y(double v) => top + (max - v) * plotH / max;
         var markup = new System.Text.StringBuilder();
         markup.Append($"<line class=\"cmp-br-zero\" x1=\"{pad / 2}\" x2=\"{width - pad / 2}\" y1=\"{N(Y(0))}\" y2=\"{N(Y(0))}\"/>");
-        for (var i = 0; i < steps.Count; i++)
-        {
-            var (label, start, end, bucket, kind) = steps[i];
-            var x = pad + i * colW + (colW - barW) / 2;
-            var yTop = Y(Math.Max(start, end));
-            var h = Math.Max(2, Math.Abs(Y(start) - Y(end)));
-            var cls = kind == 2 ? (bucket == -1 ? "cmp-br-total-good" : "cmp-br-net") : $"cmp-bk-{bucket}" + (kind == 1 ? " cmp-br-down" : "");
-            var delta = kind == 2 ? end : end - start;
-            markup.Append($"<rect class=\"{cls}\" x=\"{x}\" y=\"{N(yTop)}\" width=\"{barW}\" height=\"{N(h)}\" rx=\"3\"><title>{System.Net.WebUtility.HtmlEncode(label)}{(kind == 1 ? " concerns" : kind == 0 ? " favourable" : "")}: {Sgn(delta)}</title></rect>");
-            markup.Append($"<text class=\"cmp-br-val\" x=\"{x + barW / 2}\" y=\"{N(yTop - 5)}\" text-anchor=\"middle\">{(kind == 2 ? end.ToString() : Sgn(delta))}</text>");
-            // The bar's far edge carries on to the next bar so the steps read as one bridge.
-            if (i < steps.Count - 1)
-                markup.Append($"<line class=\"cmp-br-link\" x1=\"{x + barW}\" x2=\"{x + colW}\" y1=\"{N(Y(end))}\" y2=\"{N(Y(end))}\"/>");
-            markup.Append($"<text class=\"cmp-br-lab\" x=\"{x + barW / 2}\" y=\"{top + plotH + 16}\" text-anchor=\"middle\">{System.Net.WebUtility.HtmlEncode(label)}</text>");
-        }
+        markup.Append($"<line class=\"cmp-br-pass\" x1=\"{pad / 2}\" x2=\"{width - pad / 2}\" y1=\"{N(Y(AshtakootaResult.PassMark))}\" y2=\"{N(Y(AshtakootaResult.PassMark))}\"/>");
+        markup.Append($"<text class=\"cmp-br-lab\" x=\"{width - pad / 2}\" y=\"{N(Y(AshtakootaResult.PassMark) - 4)}\" text-anchor=\"end\">pass mark {AshtakootaResult.PassMark}</text>");
+        markup.Append($"<text class=\"cmp-br-lab\" x=\"{pad / 2}\" y=\"{N(Y(max) - 6)}\">{max}</text>");
 
-        var legend = new System.Text.StringBuilder();
-        for (var i = 0; i < BridgeTopics.Length; i++)
-            legend.Append($"<span class=\"cmp-br-key\"><i class=\"cmp-bk-{i}\"></i>{BridgeTopics[i].Label}</span>");
-        legend.Append("<span class=\"cmp-br-key\"><i class=\"cmp-bk-0 cmp-br-down\"></i>faded = concerns</span>");
+        var running = 0;
+        for (var i = 0; i < kutas.Count; i++)
+        {
+            var k = kutas[i];
+            var pts = k.Score!.Value;
+            var x = pad + i * colW + (colW - barW) / 2;
+            var yTop = Y(running + pts);
+            var h = Math.Max(2, Y(running) - Y(running + pts));
+            markup.Append($"<rect class=\"cmp-br-step\" x=\"{x}\" y=\"{N(yTop)}\" width=\"{barW}\" height=\"{N(h)}\" rx=\"3\"><title>{System.Net.WebUtility.HtmlEncode(k.Name)}: {pts} of {k.MaxScore}</title></rect>");
+            markup.Append($"<text class=\"cmp-br-val\" x=\"{x + barW / 2}\" y=\"{N(yTop - 5)}\" text-anchor=\"middle\">+{pts}</text>");
+            markup.Append($"<line class=\"cmp-br-link\" x1=\"{x + barW}\" x2=\"{x + colW}\" y1=\"{N(Y(running + pts))}\" y2=\"{N(Y(running + pts))}\"/>");
+            markup.Append($"<text class=\"cmp-br-lab\" x=\"{x + barW / 2}\" y=\"{top + plotH + 16}\" text-anchor=\"middle\">{System.Net.WebUtility.HtmlEncode(k.Name)}</text>");
+            running += pts;
+        }
+        var tx = pad + kutas.Count * colW + (colW - barW) / 2;
+        var tTop = Y(running);
+        markup.Append($"<rect class=\"cmp-br-net\" x=\"{tx}\" y=\"{N(tTop)}\" width=\"{barW}\" height=\"{N(Math.Max(2, Y(0) - tTop))}\" rx=\"3\"><title>Total: {TotalText} of {max}</title></rect>");
+        markup.Append($"<text class=\"cmp-br-val\" x=\"{tx + barW / 2}\" y=\"{N(tTop - 5)}\" text-anchor=\"middle\">{running} / {max}</text>");
+        markup.Append($"<text class=\"cmp-br-lab\" x=\"{tx + barW / 2}\" y=\"{top + plotH + 16}\" text-anchor=\"middle\">Total</text>");
+
+        var legend = _result.IsComplete ? "" : "<small>Yoni is not scored yet, so the total is a minimum.</small>";
         var svg = $"<svg viewBox=\"0 0 {width} {top + plotH + labelH}\" aria-hidden=\"true\">{markup}</svg>";
-        return (svg, legend.ToString(),
-            $"Bridge chart of the findings: {favourable} favourable findings stack up, the concerns step down, and the net is {running}.");
+        return (svg, legend, $"Bridge chart of the Ashtakoota: the Kuta points stack up to {TotalText} of {max}.");
     }
 
     private RenderFragment MarsCard(string role, string name, DoshaReading r) => @<div class="cmp-person">
