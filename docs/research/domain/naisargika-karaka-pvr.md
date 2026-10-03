@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-16
+last_updated: 2026-10-03
 ---
 
 # Naisargika karaka — PVR ch. 8 (pg 79)
@@ -82,6 +82,19 @@ conventionally cited as *the* karaka, drawn from (and consistent with) the fulle
 
 Cross-check: every `(house, planet)` pair in the primary table also appears in the full
 grid — the migration's summary `PRINT` asserts this (`orphanHouse` must be 0).
+
+## Preserved statements
+
+Migration 167 adds `tbl_Rule_LifeMatterClaim` and `tbl_Rule_LifeMatterClaimScope` so PVR's
+statements are not lost when normalized into planet↔matter rows. The 34 grid rows above are
+seeded as verified structured paraphrases with the chapter/page locator. Direct quotations are
+stored separately from paraphrases and retain their own verification status.
+
+The project owner supplied the PVR-attributed statement “Saturn is the significator of livelihood
+and karma” on 2026-10-03. It is captured as `PVR_SATURN_LIVELIHOOD_KARMA`, scoped to overall
+career, employment/service, career/actions, and the D60 karmic-roots subject. Its status remains
+`LOCATOR_PENDING`; the exact PVR publication, edition and page must be checked before it can be
+marked `VERIFIED`. Recording the attributed statement does not invent a source locator.
 
 ## Downstream
 
