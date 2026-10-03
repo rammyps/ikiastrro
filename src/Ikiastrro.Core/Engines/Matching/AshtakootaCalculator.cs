@@ -8,7 +8,8 @@ namespace Ikiastrro.Core.Engines.Matching;
 /// Kuta agreement exactly as Gayatri Devi Vasudev, "The Art of Matching Charts", Ch. VI "Kuta
 /// Agreement" (pp.65-83; <c>SRC_VASUDEV_MATCHING_CHARTS</c>) states it: Varna 1, Vashya 2, Dina (Tara)
 /// 3, Yoni 4, Grahamaitra 5, Gana 6, Rasi (Bhakoota) 7, Nadi 8 = 36, pass at 18. Rajju, Stree Deergha
-/// and Mahendra are tested but carry no numeric value in the source (p.66, p.77).
+/// and Mahendra carry no numeric value in the source (p.66, p.77); they score 1 per pass per PyJHora's
+/// South Indian scheme, reported beside the 36 and never added to it.
 ///
 /// Where the source gives no rule the result says so instead of guessing:
 ///  - Yoni (p.69-70): the book scores 4 for the same animal, 0 for hostile animals and "between 2 and 3"
@@ -228,11 +229,15 @@ public static class AshtakootaCalculator
             : new("NADI", "Nadi", 8, 8, KutaStatus.Present, $"Boy {boy.Nadi}, girl {girl.Nadi}: different Nadis.", loc);
     }
 
-    // ---- Rajju (p.76-77), Stree Deergha, Mahendra (p.77): tested, not scored -------------------
+    // ---- Rajju, Stree Deergha, Mahendra: pass/fail in Vasudev (p.76-77), 1 point each here ------
+    // Vasudev gives no numeric value. The 1-point-per-pass weight is PyJHora's South Indian Dasakoota
+    // scheme (SRC_PYJHORA, horoscope/match/compatibility.py), kept outside the 36 Ashtakoota points.
+
+    private const string Weight = "Weight 1 per pass: PyJHora's South Indian Dasakoota scheme, not in the source book.";
 
     private enum RajjuGroup { Pada, Ooru, Nabhi, Kanta, Sira }
 
-    // Nakshatra number -> Rajju group (book table p.76).
+    // Nakshatra number -> Rajju group (book table p.76; same body-part groups as PyJHora).
     private static readonly IReadOnlyDictionary<int, RajjuGroup> RajjuOf = BuildRajju();
 
     private static Dictionary<int, RajjuGroup> BuildRajju()
@@ -249,31 +254,34 @@ public static class AshtakootaCalculator
 
     private static KutaResult Rajju(MatchPerson boy, MatchPerson girl)
     {
-        const string loc = "p.76-77";
+        const string loc = "p.76-77; PyJHora rajju_porutham";
         var b = RajjuOf[boy.NakshatraNumber];
         var g = RajjuOf[girl.NakshatraNumber];
         return b != g
-            ? new("RAJJU", "Rajju", null, 0, KutaStatus.Present, $"Different Rajju groups ({b} / {g}): favourable.", loc)
-            : new("RAJJU", "Rajju", null, 0, KutaStatus.Absent, $"Same Rajju group ({b}).", loc);
+            ? new("RAJJU", "Rajju", 1, 1, KutaStatus.Present, $"Different Rajju groups ({b} / {g}): favourable. {Weight}", loc)
+            : new("RAJJU", "Rajju", 0, 1, KutaStatus.Absent, $"Same Rajju group ({b}). {Weight}", loc);
     }
+
+    // PyJHora's South threshold (const.sthree_dheerga_threshold_south = 7); its North threshold is 13.
+    private const int StreeDeerghaMin = 7;
 
     private static KutaResult StreeDeergha(MatchPerson boy, MatchPerson girl)
     {
-        const string loc = "p.77";
+        const string loc = "PyJHora sthree_dheerga_porutham_south (Vasudev p.77 differs: 9)";
         var count = CountFromGirl(boy, girl);
-        return count > 9
-            ? new("STREE_DEERGHA", "Stree Deergha", null, 0, KutaStatus.Present, $"Boy's star is {count} from the girl's: beyond the 9th.", loc)
-            : new("STREE_DEERGHA", "Stree Deergha", null, 0, KutaStatus.Absent, $"Boy's star is {count} from the girl's: within the 9th.", loc);
+        return count > StreeDeerghaMin
+            ? new("STREE_DEERGHA", "Stree Deergha", 1, 1, KutaStatus.Present, $"Boy's star is {count} from the girl's: beyond the {StreeDeerghaMin}th. {Weight}", loc)
+            : new("STREE_DEERGHA", "Stree Deergha", 0, 1, KutaStatus.Absent, $"Boy's star is {count} from the girl's: within the {StreeDeerghaMin}th. {Weight}", loc);
     }
 
-    private static readonly int[] MahendraCounts = [4, 7, 10, 12, 16, 19, 22, 25];
+    private static readonly int[] MahendraCounts = [4, 7, 10, 13, 16, 19, 22, 25];
 
     private static KutaResult Mahendra(MatchPerson boy, MatchPerson girl)
     {
-        const string loc = "p.77";
+        const string loc = "PyJHora mahendra_porutham (Vasudev p.77 read 12)";
         var count = CountFromGirl(boy, girl);
         return MahendraCounts.Contains(count)
-            ? new("MAHENDRA", "Mahendra", null, 0, KutaStatus.Present, $"Boy's star is the {count}th from the girl's.", loc)
-            : new("MAHENDRA", "Mahendra", null, 0, KutaStatus.Absent, $"Boy's star is {count} from the girl's: not one of 4, 7, 10, 12, 16, 19, 22, 25.", loc);
+            ? new("MAHENDRA", "Mahendra", 1, 1, KutaStatus.Present, $"Boy's star is the {count}th from the girl's. {Weight}", loc)
+            : new("MAHENDRA", "Mahendra", 0, 1, KutaStatus.Absent, $"Boy's star is {count} from the girl's: not one of 4, 7, 10, 13, 16, 19, 22, 25. {Weight}", loc);
     }
 }

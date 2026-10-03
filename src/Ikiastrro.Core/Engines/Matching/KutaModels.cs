@@ -17,7 +17,7 @@ public sealed record MatchPerson(
 public enum KutaStatus { Present, Absent, Unscored }
 
 /// <summary>One Kuta factor's reading. <see cref="Score"/> is null when <see cref="Status"/> is
-/// Unscored, or for factors the source gives no numeric value (Rajju, Stree Deergha, Mahendra).</summary>
+/// Unscored, (Rajju, Stree Deergha and Mahendra score 1 per pass by PyJHora's weight, outside the 36).</summary>
 public sealed record KutaResult(
     string Code, string Name, int? Score, int MaxScore, KutaStatus Status, string Reason, string SourceLocator);
 
@@ -34,6 +34,10 @@ public sealed record AshtakootaResult(
     public const int MaxTotal = 36;
     /// <summary>The source's pass mark: 18 or more of 36.</summary>
     public const int PassMark = 18;
+
+    /// <summary>Rajju + Stree Deergha + Mahendra points (0-3), outside the 36.</summary>
+    public int AdditionalScore => Additional.Sum(k => k.Score ?? 0);
+    public int AdditionalMax => Additional.Sum(k => k.MaxScore);
 
     public bool IsComplete => TotalMin == TotalMax;
 

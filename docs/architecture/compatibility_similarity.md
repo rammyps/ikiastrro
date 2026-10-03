@@ -249,3 +249,39 @@ Spot-check on 2026-10-03 for the two saved charts used in the audit:
 
 - Items 3 to 5 depend on classification rules that are not yet sourced. Until they are, show the facts (lord, lordship, placement, dates) without a good-or-bad verdict.
 - The Kuta total, the dosha comparison and the dasha picture stay separate on the page, as the book itself keeps Kuta agreement subordinate to the other checks.
+
+## 10. Compatibility page next steps (plan, 2026-10-04)
+
+Reviewed against an external audit of the rendered page (`UI_SVG_Templates/v5-Build/Compatibility-page.png`). The audit's diagnosis is right: the page is a research report with no synthesis or navigation. Two rules limit how far its advice can go: no verdict without a cited source (section 9.3), and the Kuta total, doshas, Saturn and dasha are never merged into one score (section 4.4).
+
+### 10.1 Verdict on each recommendation
+
+| # | Recommendation | Verdict |
+|---|---|---|
+| 1, 4 | Summary and strength/concern cards | Adopt, derived mechanically from results already computed (Kuta present/absent, dosha balance, Sade Sati overlap, unscored factors). "What this means" is limited to templated factual sentences, since there is no sourced interpretation text. |
+| 2 | Sticky section anchors | Adopt. UI only. |
+| 3 | Three disclosure levels | Adopt two (summary, detail) now. A middle "interpretation" level needs sourced text, so it waits. |
+| 5 | Data-quality panel | Adopt. The inputs are already loaded; birth-time confidence is shown only if it is stored (to check). |
+| 6 | D9 comparison | Adopt, facts first (D9 lagna, 7th, 7th lord, Venus/Jupiter, DK). `VargaChartComputer` and the DK exist. Verdicts wait for a source. |
+| 7 | Cross-chart synastry | Adopt as its own section, directional ("A's Mars in B's 7th"). Overlays and aspects are pure computation; no verdict. |
+| 8 | Interpreted timing | Partly blocked: supportive/strain windows need the sourced classification in 9.2 item 3. Ship the facts and the aligned shared view; mark the rest unresolved. |
+| 9 | Dosha cancellation | Source-gated: a second source for the Kuja cancellation table (section 3). Surface what is already computed first. |
+| 10 | Pair history and notes | Small part now (promote the existing "recorded as married" note); the rest needs the L4 relationship and life-event tables. |
+| 11 | Export and save | "Reverse roles" already exists (Swap). Add print and copy-summary. Do not persist comparisons yet (L5 design, section 4.2). |
+| UX | Quieter headers, labels not colour alone, larger small text, legend, mobile cards, focus styles | Adopt all. The page already labels 18/36 as the book's pass mark; keep that wording. |
+
+Not raised by the audit but the cause of the 22-26 score range: Yoni (different animals) is Unscored and Vedha is not computed. PyJHora (`SRC_PYJHORA`) and Maitreya8 both carry a Yoni matrix and PyJHora a Vedha rule, which would close that range. Check them against Vasudev's animal table before adopting.
+
+### 10.2 Build order
+
+| Phase | Work | Needs |
+|---|---|---|
+| 0 | Close the score range: Yoni matrix and Vedha from PyJHora (cross-checked), decision on Vashya direction and Rasi 7/0 | Check against Vasudev p.69-70; record in sources and a decision |
+| 1 | Summary, statement cards, sticky nav, completeness panel, legend, header and colour-meaning cleanup | UI only, no new data |
+| 2 | Disclosure (summary and detail), mobile card tables, focus styles, larger source text | UI only |
+| 3 | D9 comparison, facts only | A `MatchPerson` D9 extension and tests |
+| 4 | Synastry section (overlays, aspects, Moon-Moon, Venus-Mars), directional | New pure calculator and tests |
+| 5 | Timing facts and shared view; cancellation surfacing; print and copy-summary | Sources for verdicts, or stay facts-only |
+| 6 | Pair history and notes; saved reports | L4 tables, L5 design |
+
+Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 3 to 4 core on `workstream/cli` and UI on `workstream/ui`. The current Rajju, Stree Deergha and Mahendra change (2026-10-04) is uncommitted on `master` and must move to `workstream/cli` first.

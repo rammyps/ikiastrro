@@ -42,7 +42,8 @@ public class AshtakootaCalculatorTests
         var r = AshtakootaCalculator.Score(Jyeshta, Anuradha);
         // Anuradha is Ooru, Jyeshta is Pada: "different Rajjus is favourable".
         Assert.Equal(KutaStatus.Present, r.Additional.Single(k => k.Code == "RAJJU").Status);
-        Assert.All(r.Additional, k => Assert.Null(k.Score));
+        Assert.All(r.Additional, k => Assert.Equal(k.Status == KutaStatus.Present ? 1 : 0, k.Score));
+        Assert.Equal(r.Additional.Count(k => k.Status == KutaStatus.Present), r.AdditionalScore);
     }
 
     [Theory]
@@ -141,9 +142,10 @@ public class AshtakootaCalculatorTests
     }
 
     [Theory]
-    [InlineData(16, 4, true)]    // Visakha boy, Rohini girl: 13th, beyond the 9th (p.77)
-    [InlineData(5, 4, false)]    // within the 9th
-    public void Stree_deergha_wants_the_boys_star_beyond_the_9th(int boyStar, int girlStar, bool present)
+    [InlineData(16, 4, true)]    // Visakha boy, Rohini girl: 13th, beyond the 7th (PyJHora South)
+    [InlineData(5, 4, false)]    // within the 7th
+    [InlineData(11, 4, true)]    // count 8, past the PyJHora South threshold (book's 9 would fail it)
+    public void Stree_deergha_wants_the_boys_star_beyond_the_7th(int boyStar, int girlStar, bool present)
     {
         var r = AshtakootaCalculator.Score(P(ZodiacName.Aries, boyStar), P(ZodiacName.Aries, girlStar));
         Assert.Equal(present, r.Additional.Single(k => k.Code == "STREE_DEERGHA").Status == KutaStatus.Present);
@@ -155,6 +157,15 @@ public class AshtakootaCalculatorTests
         // Boy Ardra (6), girl Krittika (3): the 4th (p.77).
         var r = AshtakootaCalculator.Score(P(ZodiacName.Aries, 6), P(ZodiacName.Aries, 3));
         Assert.Equal(KutaStatus.Present, r.Additional.Single(k => k.Code == "MAHENDRA").Status);
+    }
+
+    [Theory]
+    [InlineData(15, 3, true)]   // count 13
+    [InlineData(14, 3, false)]  // count 12
+    public void Mahendra_includes_the_13th_not_the_12th(int boyStar, int girlStar, bool present)
+    {
+        var r = AshtakootaCalculator.Score(P(ZodiacName.Aries, boyStar), P(ZodiacName.Aries, girlStar));
+        Assert.Equal(present, r.Additional.Single(k => k.Code == "MAHENDRA").Status == KutaStatus.Present);
     }
 
     [Fact]
