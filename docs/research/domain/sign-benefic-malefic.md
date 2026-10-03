@@ -18,8 +18,8 @@ enumerable rule. **Decided (rammyps): proceed, cited to that passage** — `FEAT
 
 1. **Dignity** (`DignityStatus` — Exalted/Moolatrikona/Own/…/Debilitated, axis A in
    [[dignity-pvr]]) — positional *strength*, driven by planet + sign + degree. This is what the
-   South Indian grid's color coding renders (`SouthIndianGrid_Detailed`, spec at
-   `docs/ui/components/spec_SouthIndianGrid_Detailed.md`), and it's chart-style-agnostic — the
+   South Indian grid's color coding renders (`SindUniDtlGrid`, spec at
+   `docs/ui/components/spec_SIND-UNI-DTL.md`), and it's chart-style-agnostic — the
    same `DignityStatus` value would color North/East Indian layouts too. It says nothing about
    good/bad.
 2. **Naisargika karaka** ([[naisargika-karaka-pvr]]) — what a planet *signifies* (Sun=soul,

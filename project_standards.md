@@ -93,7 +93,7 @@ the **rendering technique or scope, accurately**:
 | Qualifier | Means | Example |
 |---|---|---|
 | `_DetailedSVG` | a full inline-`<svg>` chart template | *(reserved — e.g. a future SVG south-indian renderer)* |
-| `_Detailed` | an enriched **CSS-grid** chart (badges, dignity dots, aspect strip) | `SouthIndianGrid_Detailed` |
+| `_Detailed` | an enriched **CSS-grid** chart (badges, dignity dots, aspect strip) | `SindUniDtlGrid` |
 | `_Mini` / none | a stripped thumbnail | `MiniGrid` |
 | `…Chart` suffix | the **template component**, when a page shares the base name | `Natal_Transit_Comp_WheelChart` (component) vs `Natal_Transit_Comp_Wheel` (page) |
 
@@ -210,8 +210,8 @@ recomputes (`docs/architecture/domain-contracts.md`).
 - **2026-09-14** — added §5 after the app-wide font and shared-header audit; standardized
   Manrope inheritance/available weights and recorded the viewport-wide three-zone header.
 - **2026-09-10** — created. Adopted §3 (chart-module naming / file set / versioning) and §4
-  (UI table ⇄ view catalogue). First application: `SouthIndianGrid` → `SouthIndianGrid_Detailed`,
+  (UI table ⇄ view catalogue). First application: `SouthIndianGrid` → `SindUniDtlGrid`,
   `NatalTransitWheel` → `Natal_Transit_Comp_WheelChart` (+ page/repo/math/tests), `transit.md`
   → `spec_Natal_Transit_Comp_Wheel.md`, `south-indian-grid.md` →
-  `spec_SouthIndianGrid_Detailed.md`; `docs/ui/chart_modules.md` folded into
+  `spec_SIND-UNI-DTL.md`; `docs/ui/chart_modules.md` folded into
   `docs/ui/components/chart-catalog.md`.

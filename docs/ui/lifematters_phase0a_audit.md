@@ -65,7 +65,7 @@ normalization, not a replacement of an existing table.
   `LifeMatterReference` is read only incidentally, via `NaisargikaKarakaRepository.LoadActive()`
   (doesn't select `Id`/`LifeMatterId`). `DivisionalSubject`, `KarakaMatter`, and
   `tbl_Dim_LifeMatter` have zero repository layer — only raw SQL in migrations/CLI.
-- `SouthIndianGrid_Detailed`, `SouthIndianGrid_Micro`, and `PolarGridLagnaSelect` have no
+- `SindUniDtlGrid`, `SouthIndianGrid_Micro`, and `PolarGridLagnaSelect` have no
   highlight/focus parameter today. SIND-HOV-GRID's house/sign highlighting is new component
   surface, not an extension of unused existing props.
 - `AstroFacts.razor` only reads a `step` query param via an if-chain; `about-houses` is not a

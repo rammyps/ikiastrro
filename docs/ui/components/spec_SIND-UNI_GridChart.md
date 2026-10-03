@@ -9,7 +9,7 @@ benefic / malefic, Ashtakavarga, houses-from dropdown, lenses, special-lagna col
 chips) is to be carried to the polar wheel charts later; see "Extension to the polar wheel".
 
 One chart component family replaces the separate South Indian grids on the main pages. The
-existing components (`SouthIndianGrid_Detailed`, `SouthIndianGrid_Micro`, `SindHovGrid`,
+existing components (`SindUniDtlGrid`, `SouthIndianGrid_Micro`, `SindHovGrid`,
 `D1TemplateGrid`) stay untouched until every page has moved over (project_standards.md §3.3).
 
 | View | Component | Used on | Typical width |
@@ -18,10 +18,10 @@ existing components (`SouthIndianGrid_Detailed`, `SouthIndianGrid_Micro`, `SindH
 | SIND-UNI-2 · Reading | `SindUni2Grid` | not placed yet (built, tested) | 640px+ |
 | SIND-UNI-3 · Micro | `SindUni3Grid` | Key Inference chart and Astro Facts → Spl Lagnas grid view, both with the special lagnas (one shared view) | 260–600px |
 
-The Compatibility page shows D1 and D9 with `SouthIndianGrid_Detailed`, not SIND-UNI-2
+The Compatibility page shows D1 and D9 with `SindUniDtlGrid`, not SIND-UNI-2
 (rammyps, 2026-10-04: the SIND-UNI-2 design was not liked).
 
-Astro Facts keeps the master chart, `SouthIndianGrid_Detailed`, on the natal step and the All
+Astro Facts keeps the master chart, `SindUniDtlGrid`, on the natal step and the All
 Charts cards (rammyps, 2026-10-01); it follows all three themes through the page tokens.
 
 All three share one cell renderer, one data model and one stylesheet; the view only decides
@@ -291,7 +291,7 @@ Built: `SindUniGlyphs`, `SindUniModel` (`SindUniChart` + `SindUniBuilder`), `Sin
 tokens, tests `tests/Ikiastrro.Web.Tests/SindUniTests.cs`. In use: Key Inference chart (UNI-3
 with special lagnas, replacing `SindHovGrid` there) and Astro Facts → Spl Lagnas grid view (the
 same UNI-3, rendered by `KarakaPolarWheel` in place of `PolarGridLagnaSelect`'s grid; the wheel
-view is unchanged). Astro Facts natal and All Charts keep `SouthIndianGrid_Detailed`.
+view is unchanged). Astro Facts natal and All Charts keep `SindUniDtlGrid`.
 Not yet: the bundled glyph font, arrow-key movement between cells.
 
 ## Page links

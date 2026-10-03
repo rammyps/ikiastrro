@@ -25,7 +25,7 @@ recomputes.
 | [`dataviz.md`](dataviz.md) | Charting approach — hand-rolled SVG now, Syncfusion as a deferred option |
 | [`components/spec_Natal_Transit_Comp_Wheel.md`](components/spec_Natal_Transit_Comp_Wheel.md) | Living specification — natal ↔ transit comparison wheel and two-tab D1 Birth / Current Transit table |
 | [`components/spec_SIND-UNI_GridChart.md`](components/spec_SIND-UNI_GridChart.md) | **SIND-UNI** unified South Indian grid chart: SIND-UNI-3 micro with special lagnas on Key Inference and the Spl Lagnas grid; compact and reading views built for later; Astro Facts keeps the master chart; successor to the grids below; to be extended to the polar wheels |
-| [`components/spec_SouthIndianGrid_Detailed.md`](components/spec_SouthIndianGrid_Detailed.md) | The enriched South-Indian chart grid + template page (being replaced by SIND-UNI) |
+| [`components/spec_SIND-UNI-DTL.md`](components/spec_SIND-UNI-DTL.md) | The enriched South-Indian chart grid + template page (being replaced by SIND-UNI) |
 | [`components/evidence-tables.md`](components/evidence-tables.md) | The astrologer evidence page |
 | [`components/home.md`](components/home.md) | Home / entry screen |
 | [`components/saved-people.md`](components/saved-people.md) | `/charts` — the people-management surface: list, Edit / Delete, planned Import / Export + bulk generation ([`decision 002`](../../decisions/002-import-export-and-bulk-chart-generation.md)) |
@@ -33,7 +33,7 @@ recomputes.
 | [`components/astro-facts.md`](components/astro-facts.md) | `/astro-facts/{id}` — as-built 6-step flow (D1/Transit · About · Strength incl. Astavarga+Amsabala · Spl Lagnas · Yogas · Vargas), plus step 7 All Charts on its own route |
 | [`components/yoga.md`](components/yoga.md) | Astro Facts step 5 · Yogas — single deduplicated Type/Yoga/Rule/Interpretation/Source table, editable interpretation |
 | [`components/dasha-sade-sati.md`](components/dasha-sade-sati.md) | v2 Astro Facts → TIME PERIOD (DASHA) + SATURN TIME PERIOD headers (unchanged by the round-2 flow) |
-| [`components/chart-catalog.md`](components/chart-catalog.md) | **Chart-module catalogue** — every visual chart component (incl. `SouthIndianGrid_Detailed`, `Natal_Transit_Comp_WheelChart`), dasha module, UI table + helper, as `chart name / spec doc / linked files`; golden-snapshot flow + revert. Naming & versioning: [`../../project_standards.md`](../../project_standards.md) |
+| [`components/chart-catalog.md`](components/chart-catalog.md) | **Chart-module catalogue** — every visual chart component (incl. `SindUniDtlGrid`, `Natal_Transit_Comp_WheelChart`), dasha module, UI table + helper, as `chart name / spec doc / linked files`; golden-snapshot flow + revert. Naming & versioning: [`../../project_standards.md`](../../project_standards.md) |
 | [`components/numerology.md`](components/numerology.md) | `/numerology/{id}` — Cheiro's name-number method, ported from the `ikinumero` prototype into ikiastrro's own stack (no EF Core/SQLite); computed live from the person's saved Name, nothing persisted |
 | [`lifematters_plan.md`](lifematters_plan.md) | LifeMatters evidence-assembly page + SIND-HOV-GRID — domain flow, data contract, phases, and decisions (Phase 0A: [`lifematters_phase0a_audit.md`](lifematters_phase0a_audit.md); Claude's Phase 0B research: [`lifematters_claude_research.md`](lifematters_claude_research.md); component specs: [`specs_sind_hov_grid.md`](components/specs_sind_hov_grid.md), [`specs_key_inference_page.md`](components/specs_key_inference_page.md)) |
 

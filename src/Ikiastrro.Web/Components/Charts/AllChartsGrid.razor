@@ -26,13 +26,13 @@
             @if (has)
             {
                 <div class="ac-card-grid">
-                    <SouthIndianGrid_Detailed AscendantSign="@lc!.AscendantSign"
+                    <SindUniDtlGrid AscendantSign="@lc!.AscendantSign"
                                      MoonSign="@lc.MoonSign"
                                      PlanetsBySign="PlanetsBySign(lc)"
                                      CenterTitle="@t.Code"
                                      Compact="true">
                         <CenterMeta>@(t.ChartShortDescription ?? t.DisplayName)</CenterMeta>
-                    </SouthIndianGrid_Detailed>
+                    </SindUniDtlGrid>
                 </div>
             }
             else

@@ -21,7 +21,7 @@ flowchart LR
     Fact["tbl_Fact_* / tbl_Chart_*\n(one row set per ChartResultId)"]
     View["vw_* / tvf_*\n(Fact+Dim+Rule join, per UI shape)"]
     UITable["UI table components\n(MudBlazor)"]
-    UIGrid["UI chart/grid components\n(SouthIndianGrid_Detailed, MiniGrid, PolarWheel, ...)"]
+    UIGrid["UI chart/grid components\n(SindUniDtlGrid, MiniGrid, PolarWheel, ...)"]
 
     Dim --> Engine
     Rule --> Engine
@@ -92,7 +92,7 @@ Examples: `vw_ChartPlanetEvidence`, `vw_ChartShadbala`, `vw_ChartBhavaBala`,
 ## Finding — chart/grid modules do not read through a view today
 
 `db_view_catalog.md`'s own "Chart (non-table) modules" table already says this, it just hadn't
-been traced end-to-end before: **`SouthIndianGrid_Detailed`, `MiniGrid`, `D1TemplateGrid`,
+been traced end-to-end before: **`SindUniDtlGrid`, `MiniGrid`, `D1TemplateGrid`,
 `PolarWheel`, `ChartFrame`, `VargottamaStrip`** all load via `WorkspaceData.Load`, which calls
 `ChartKeyDetailsRepository` / `ChartHouseLordsRepository` / `ChartAspectsRepository` /
 `ChartConjunctionsRepository` — **straight `SELECT` against `tbl_Chart_*`, no `vw_*` in
@@ -113,7 +113,7 @@ ways to resolve this asymmetry:
   contract instead of Razor-side filtering buried in a `@code` block.
 
 **Recommendation: B, but only for the two modules that don't exist yet.** `Grid_Normal_*`
-(the rename of today's `SouthIndianGrid_Detailed`) keeps its current direct-Fact-read path —
+(the rename of today's `SindUniDtlGrid`) keeps its current direct-Fact-read path —
 it's a rename, not a rewrite, and changing its data path at the same time as its name defeats
 the golden-snapshot revert story (project_standards.md §3.3). `Grid_Micro_*` and `Grid_Macro_*`
 are greenfield either way, so this is the cheapest point to start them on

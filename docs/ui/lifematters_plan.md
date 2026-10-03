@@ -325,7 +325,7 @@ combinations; resolver precedence; house-to-sign translation across two or more 
 canonicalization; Contribution defaulting; auto/manual selection behavior; hover/focus preview
 and pinned selection; ARIA and keyboard operation; invalid routes; query counts; drill-through
 URL construction; empty/loading/error/race states; and regressions to
-`SouthIndianGrid_Detailed`, `SouthIndianGrid_Micro`, `PolarGridLagnaSelect`, and SPL LAGNAS.
+`SindUniDtlGrid`, `SouthIndianGrid_Micro`, `PolarGridLagnaSelect`, and SPL LAGNAS.
 
 Run `dotnet build` and `dotnet test`. Add and visually review a golden SVG, recognizing that a
 golden validates rendering, not behavior. Manually verify at roughly 1366x768, 1920x1080, and at
@@ -394,7 +394,7 @@ Inference read paths to dossier ingredients — all in `lifematters_claude_resea
 14. **(2026-09-29) Yoga × LifeMatter 7×7 matrix removed from the page.** The user judged the
     mapping (`vw_YogaLifeMatter7x7`, migration 149) not meaningful; the page shows no yogas until
     it is reworked. The table and view stay in the database.
-15. **(2026-09-29) Chart look.** `SindHovGrid` adopts `SouthIndianGrid_Detailed`'s visuals (dignity
+15. **(2026-09-29) Chart look.** `SindHovGrid` adopts `SindUniDtlGrid`'s visuals (dignity
     dots, `(R)`/`(D)`, combust, aspects, Sanskrit names) plus a gold house-from-track badge for
     the question's lagna and a SAV chip. Statistics follow the shown chart (decision 16).
 16. **(2026-09-29) Drill-down in the matter's own varga; D1 as promise.** The user found "too many

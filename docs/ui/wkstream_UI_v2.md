@@ -34,7 +34,7 @@ Every read surface in v2 is the `AstrologerEvidence` shape, restyled to MudBlazo
   `vw_ChartYogaEvaluations`, the reference dimension tables. No page recomputes
   ([`../architecture/domain-contracts.md`](../architecture/domain-contracts.md)).
 - **A chart selector** switches the position-dependent sections between D1 and any stored varga.
-- **Hand-rolled SVG diagrams** (`SouthIndianGrid_Detailed`, `PolarWheel`, `Natal_Transit_Comp_WheelChart`;
+- **Hand-rolled SVG diagrams** (`SindUniDtlGrid`, `PolarWheel`, `Natal_Transit_Comp_WheelChart`;
   full catalogue [`components/chart-catalog.md`](components/chart-catalog.md)) are *secondary* — embedded beside the
   table where a picture aids reading, never the primary view. They stay in Codex's scope (see
   Workstream mechanics) and outside the MudBlazor restyle.
@@ -201,7 +201,7 @@ cells start `☐` and are checked per slice.
 |---|---|---|---|---|---|---|---|
 | Home | mockup `#home` | `/` · `Home.razor` | `BirthDetailsRepository` (search only) | ☐ narrow-column · ☐ no-match · ☐ resolver fail | ☐ keyboard search + focus ring | ☐ | ☐ `verify-home-ui.mjs` |
 | Transit landing | mockup `#transit` | `/transit-wheel/{id}` · `Natal_Transit_Comp_Wheel.razor` + `Natal_Transit_Comp_WheelChart` ([`components/chart-catalog.md`](components/chart-catalog.md)) | `vw_ChartPlanetEvidence` via `Natal_Transit_Comp_WheelRepository` (D1 Birth) · `tbl_TransitPositionReference` via `GocharaRepository` (Current Transit) | ☑ wide-table scroll-in-container · ☑ no transit rows → CLI hint · ☐ no D1 chart | ☐ tab keyboard nav | ☐ both tabs (`Natal_Transit_Comp_WheelMath` unit-tested; render harness pending) · ☐ golden snapshot not yet minted | ☑ MCP browser smoke 2026-09-10 · ☐ `verify-transit-ui.mjs` headless run |
-| All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SouthIndianGrid_Detailed` (re-skinned via token overrides) | `WorkspaceData.Load` — `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas, divisor order | ☑ 3→2→1-per-row reflow · ☑ varga not generated → `EmptyState` card | ☐ grid landmark labels | ☐ per varga (page-DI harness pending) | ☑ MCP browser smoke 2026-09-10 |
+| All Charts | mockup `#all-charts` | `/charts/{id}` · `AllCharts.razor` + `SindUniDtlGrid` (re-skinned via token overrides) | `WorkspaceData.Load` — `tbl_ChartResults` + `tbl_Chart_KeyDetails`, all 21 vargas, divisor order | ☑ 3→2→1-per-row reflow · ☑ varga not generated → `EmptyState` card | ☐ grid landmark labels | ☐ per varga (page-DI harness pending) | ☑ MCP browser smoke 2026-09-10 |
 | Astro Facts | [`astro-facts-v2.html`](../artifacts/ui/v2-mockup/astro-facts-v2.html) (round 2, under review) | `/astro-facts/{id}` · `AstroFacts.razor` (steps 1, 2.1, 2.2, 3 built — see [`components/astro-facts.md`](components/astro-facts.md) for current status) | per step — [`components/astro-facts.md`](components/astro-facts.md) | ☐ auto table widths, no page scroll · ☐ empty step | ☐ step-rail keyboard nav | ☐ per step | ☐ smoke |
 | Preferences | mockup `#home` (disclosure) | inline on Home · `Home.razor` | `AyanamsaDefinition.Catalog` · `localStorage` | ☐ collapse on select · ☐ `localStorage` unavailable → DB default | ☐ disclosure ARIA; disabled "Planned" options not focusable-as-selectable | ☐ | ☐ smoke |
 

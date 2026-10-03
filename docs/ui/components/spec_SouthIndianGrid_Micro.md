@@ -11,11 +11,11 @@ catalogued_in: chart-catalog.md
 
 # Specification — SouthIndianGrid_Micro
 
-> Sibling of [`SouthIndianGrid_Detailed`](spec_SouthIndianGrid_Detailed.md) — same fixed 4×4
+> Sibling of [`SindUniDtlGrid`](spec_SIND-UNI-DTL.md) — same fixed 4×4
 > sign-position geometry, denser per-cell content. New module per
 > [`../../../project_standards.md`](../../../project_standards.md) §3.3 ("a new visual treatment
 > of an existing chart module is a new module with its own suffixed name, never a rewrite in
-> place"): `SouthIndianGrid_Detailed` is untouched and keeps every other consumer (`AllCharts`,
+> place"): `SindUniDtlGrid` is untouched and keeps every other consumer (`AllCharts`,
 > `VargaView`, the D1/D9 `SouthIndianTemplate`). This component has exactly **one** consumer: the
 > Grid view of `PolarGridLagnaSelect`, embedded in Astro Facts step "4. Spl Lagnas" — tab-level
 > contract in [`specs_KI_spllagna.md`](specs_KI_spllagna.md); component-level contract for
@@ -41,7 +41,7 @@ Same fixed 4×4 sign grid, same `AscendantSign`-driven house-from-Lagna numberin
 (`AstroMath.CountFromSignToSign`). No Sanskrit sign name (Micro drops it — already dense enough
 without it). Only per-cell *content* rules differ, below.
 
-## Per-cell content — differences from `SouthIndianGrid_Detailed`
+## Per-cell content — differences from `SindUniDtlGrid`
 
 - **No "one planet per row" constraint.** Detailed's cells were only ever occupied by 0–2 planets
   in practice; a Micro cell routinely holds many more entries (planets, Gulika/Maandi, Graha
@@ -139,7 +139,7 @@ different concept from this display toggle).
 ## Rendering rules
 
 Inline CSS grid, CSS-isolated (`SouthIndianGrid_Micro.razor.css`), same `tokens.css` custom
-properties as `SouthIndianGrid_Detailed` (`--paper`/`--ink`/`--dignity-*`/etc.) plus the two new
+properties as `SindUniDtlGrid` (`--paper`/`--ink`/`--dignity-*`/etc.) plus the two new
 `--house-sun`/`--house-sun-fg` tokens. Golden snapshot:
 `docs/artifacts/ui/SouthIndianGrid_Micro-sample.svg`, `[Fact] SouthIndianGrid_Micro()` in
 `ChartSnapshotTests`, fixture data in `ChartFixture.cs` (`MicroGridGlyphs`/`MicroUpagrahaLabels`/

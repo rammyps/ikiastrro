@@ -17,9 +17,9 @@ this spec — `lifematters_plan.md`'s Phase 0B calls for the spec before impleme
 built Phase 1A/1B/part-of-2 in one pass. This spec documents what was actually built, flags where
 it diverges from or leaves gaps against `lifematters_plan.md`, and is the contract going forward.
 
-> A separate module from `SouthIndianGrid_Detailed`/`_Micro` because of its behaviour:
+> A separate module from `SindUniDtlGrid`/`_Micro` because of its behaviour:
 > **hover/keyboard preview, click/Enter pin, and house/special-point relevance highlighting**,
-> state neither sibling has. Since 2026-09-29 it borrows `SouthIndianGrid_Detailed`'s visual
+> state neither sibling has. Since 2026-09-29 it borrows `SindUniDtlGrid`'s visual
 > language (sign + Sanskrit name, house badges, dignity dots, `(R)`/`(D)`, combust, aspect strip)
 > so Key Inference reads like the rest of the app's charts. Upagrahas and karaka-scheme tags stay
 > out; they remain Detailed/Micro's job.
@@ -88,7 +88,7 @@ chart itself.
   rendering one itself.
 - "Clicking the selected Step keeps it selected; meaningful fallback is D1/Rasi" — Step/Varga
   lifecycle, not grid state.
-- Upagrahas and karaka-scheme tags — out of scope; `SouthIndianGrid_Detailed`/`_Micro` show them.
+- Upagrahas and karaka-scheme tags — out of scope; `SindUniDtlGrid`/`_Micro` show them.
 - Deciding which reference sign is the track, or which houses are the focus — the page resolves
   both and passes signs in.
 

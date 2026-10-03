@@ -41,7 +41,7 @@ All components: **static SSR, no JS** unless noted. Every `.razor` has a
 | **A11y** | `role="img"`, `aria-label="Sidereal longitude wheel"` |
 | **Used by** | `ChartFrame` (wheel view) on `Workspace`, `VargaView` |
 
-### SouthIndianGrid_Detailed.razor
+### SindUniDtlGrid.razor
 Fixed 4×4 South-Indian sign grid — the primary per-varga chart. Dignity-dot
 glyphs, gold house-from-Lagna + silver house-from-Moon badges, Lagna highlight,
 2×2 centre info cell, optional "aspected by" strip and special-point labels.
@@ -57,7 +57,7 @@ glyphs, gold house-from-Lagna + silver house-from-Moon badges, Lagna highlight,
 
 ### MiniGrid.razor
 Glyphs-only thumbnail grid; whole grid optionally a link. **Not**
-`SouthIndianGrid_Detailed(Compact)` — no badges, dots, or centre cell at this size.
+`SindUniDtlGrid(Compact)` — no badges, dots, or centre cell at this size.
 
 | | |
 |---|---|
@@ -98,5 +98,5 @@ Interactive or tabular; specced in `docs/ui/` (`design-language.md`, `components
 
 ## Helpers
 
-- `GridPlanetGlyph.cs` — record: planet name + dignity token + retrograde + combust flags, consumed by `SouthIndianGrid_Detailed`.
+- `GridPlanetGlyph.cs` — record: planet name + dignity token + retrograde + combust flags, consumed by `SindUniDtlGrid`.
 - `ChartViewModel.PlanetGlyph(string)` — `Ikiastrro.Core.Presentation`; canonical glyph for a planet name. Shared by every glyphs-only component.

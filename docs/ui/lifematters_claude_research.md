@@ -511,7 +511,7 @@ single-font-scale CSS and drop the three other master-only fixes. **Rebase `work
 `master` before any further LifeMatters work lands**, per the recurring drift this project has
 already hit before (branch last rebased 2026-09-16).
 
-No regression risk found in `SindHovGrid` itself against `SouthIndianGrid_Detailed`/`_Micro` —
+No regression risk found in `SindHovGrid` itself against `SindUniDtlGrid`/`_Micro` —
 it's CSS-isolated, shares no component file, and reuses only the existing `PlanetChip` component
 unmodified.
 

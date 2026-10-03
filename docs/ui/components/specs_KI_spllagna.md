@@ -42,7 +42,7 @@ four computed Special Lagnas.
 - **Wheel** — unchanged; documented by reference to
   [`spec_KarakaPolarWheelChart.md`](spec_KarakaPolarWheelChart.md#visual-contract).
 - **Grid** — composes [`SouthIndianGrid_Micro`](spec_SouthIndianGrid_Micro.md), replacing the
-  `SouthIndianGrid_Detailed` this view used before 2026-09-17. All per-cell content rules (no
+  `SindUniDtlGrid` this view used before 2026-09-17. All per-cell content rules (no
   one-planet-per-row limit, no chip background, `Ju`/`(Ju)` direction convention, Gulika/Maandi,
   Graha Arudha, Arudha Lagna, both karaka schemes gated to D1/D9, house-from-Sun badge, inline
   `Ma(4)`-style aspect tags, the no-overlap/row-grouping layout rules) live in that spec, not

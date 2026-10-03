@@ -1390,7 +1390,7 @@ else
         ("GK", "Gnatikaraka (relatives)"), ("DK", "Darakaraka (spouse)"),
     ];
 
-    // One stored chart as SouthIndianGrid_Detailed draws it: Lagna, Moon and each graha's sign, dignity,
+    // One stored chart as SindUniDtlGrid draws it: Lagna, Moon and each graha's sign, dignity,
     // retrograde and combust flags, exactly as the chart pipeline stored them.
     private sealed record GridChart(string Type, string Title, string Ascendant, string? Moon,
         IReadOnlyDictionary<string, IReadOnlyList<GridPlanetGlyph>> Planets);
@@ -1468,9 +1468,9 @@ else
                 @foreach (var gc in grids)
                 {
                     <div class="cmp-grid">
-                        <SouthIndianGrid_Detailed Square="true" AscendantSign="@gc.Ascendant" MoonSign="@gc.Moon" PlanetsBySign="gc.Planets" CenterTitle="@gc.Title">
+                        <SindUniDtlGrid AscendantSign="@gc.Ascendant" MoonSign="@gc.Moon" PlanetsBySign="gc.Planets" CenterTitle="@gc.Title">
                             <CenterMeta><b>Lagna</b> @(gc.Ascendant == "Capricornus" ? "Capricorn" : gc.Ascendant)</CenterMeta>
-                        </SouthIndianGrid_Detailed>
+                        </SindUniDtlGrid>
                     </div>
                 }
                 <p class="cmp-pad cmp-sub">Placements as stored. The gold number in each cell is the house from Lagna, the silver one the house from the Moon; the dot shows dignity, and a planet in brackets, such as (Ju), is retrograde.</p>

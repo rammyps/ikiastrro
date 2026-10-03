@@ -206,7 +206,7 @@ sign.
 
 ## Chart
 
-`SindHovGrid` ([`specs_sind_hov_grid.md`](specs_sind_hov_grid.md)), `SouthIndianGrid_Detailed`
+`SindHovGrid` ([`specs_sind_hov_grid.md`](specs_sind_hov_grid.md)), `SindUniDtlGrid`
 look. The chosen lagna is the grid's track (gold house-from-track badges, a tag on its sign; not
 drawn for Lagna itself). SAV chips show the shown chart's own SAV. Focus signs fill sunrise with
 a ◆; cells can be hovered, pinned (click/Enter) and cleared (Escape). Cell labels: Arudha padas,

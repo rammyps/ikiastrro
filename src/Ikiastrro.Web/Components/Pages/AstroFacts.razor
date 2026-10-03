@@ -44,7 +44,7 @@
    the shared `AllChartsGrid` component (Components/Charts/**), which also backs the standalone
    /charts/{id} page (AllCharts.razor) — both render off the same already-loaded WorkspaceData,
    so this tab needs no extra query. Same South-Indian grid component
-   as /charts (Codex `SouthIndianGrid_Detailed`, re-skinned via token overrides only, not
+   as /charts (Codex `SindUniDtlGrid`, re-skinned via token overrides only, not
    modified) for the "1.1 D1 - BIRTH CHART" tab, chart left / table right (`.ki-d1layout`,
    2026-09-23). D1's table is back to `PlanetPositionsTable` (`Variant="d1"`, `ShowAnalysis=
    false` — position only here, 2.2/"1.2 About Planets" owns role/condition) as of 2026-09-23
@@ -161,9 +161,9 @@ else
                             </div>
                             @if (!_natalChartCollapsed)
                             {
-                                <SouthIndianGrid_Detailed AscendantSign="@natalChart.AscendantSign" MoonSign="@natalChart.MoonSign" PlanetsBySign="PlanetsBySign(natalChart)" CenterTitle="@natalChart.ChartType">
+                                <SindUniDtlGrid AscendantSign="@natalChart.AscendantSign" MoonSign="@natalChart.MoonSign" PlanetsBySign="PlanetsBySign(natalChart)" CenterTitle="@natalChart.ChartType">
                                     <CenterMeta><b>Lagna</b> @Disp(natalChart.AscendantSign)</CenterMeta>
-                                </SouthIndianGrid_Detailed>
+                                </SindUniDtlGrid>
                             }
                         </div>
                         <div class="ki-natal-detail ki-subnav-wrap">
@@ -752,9 +752,9 @@ else
         </div>
         @if (!_natalChartCollapsed && NatalChart is { } chartForGrid)
         {
-            <SouthIndianGrid_Detailed AscendantSign="@chartForGrid.AscendantSign" MoonSign="@chartForGrid.MoonSign" PlanetsBySign="PlanetsBySign(chartForGrid)" CenterTitle="@chartForGrid.ChartType">
+            <SindUniDtlGrid AscendantSign="@chartForGrid.AscendantSign" MoonSign="@chartForGrid.MoonSign" PlanetsBySign="PlanetsBySign(chartForGrid)" CenterTitle="@chartForGrid.ChartType">
                 <CenterMeta><b>Lagna</b> @Disp(chartForGrid.AscendantSign)</CenterMeta>
-            </SouthIndianGrid_Detailed>
+            </SindUniDtlGrid>
         }
     </div>;
 

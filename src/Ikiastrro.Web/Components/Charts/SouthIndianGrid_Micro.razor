@@ -1,11 +1,11 @@
 @*
-    Denser sibling of SouthIndianGrid_Detailed — same fixed 4x4 sign-position grid, but built for
+    Denser sibling of SindUniDtlGrid — same fixed 4x4 sign-position grid, but built for
     one specific consumer (PolarGridLagnaSelect's Grid view, Astro Facts step "4. Spl Lagnas")
     that needs far more per-cell content than Detailed was ever designed to hold: regular planets
     plus Gulika/Maandi, Graha Arudha, Arudha Lagna, two karaka tags per planet (D1/D9 only), and
     inline aspect tags. New module per project_standards.md §3.3 ("a new visual treatment of an
     existing chart module is a new module with its own suffixed name, never a rewrite in place")
-    — SouthIndianGrid_Detailed and its other consumers are untouched.
+    — SindUniDtlGrid and its other consumers are untouched.
 
     Spec: docs/ui/components/spec_SouthIndianGrid_Micro.md. Tab-level spec:
     docs/ui/components/specs_KI_spllagna.md.
@@ -137,7 +137,7 @@
     [Parameter] public string? HoraLagnaSign { get; set; }
 
     /// <summary>This chart's own natal Moon sign. Null → the house-from-Moon badge doesn't
-    /// render (same null-gating convention as SouthIndianGrid_Detailed's MoonSign).</summary>
+    /// render (same null-gating convention as SindUniDtlGrid's MoonSign).</summary>
     [Parameter] public string? MoonSign { get; set; }
 
     /// <summary>This chart's own natal Sun sign. Null → the house-from-Sun badge doesn't render.

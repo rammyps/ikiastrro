@@ -8,7 +8,7 @@ togaf: C — component spec
 
 # Component — Astro Facts
 
-> **Chart (2026-10-01):** the natal chart beside the step tabs and the All Charts cards stay on `SouthIndianGrid_Detailed` (the master chart, themed through the page tokens). The Spl Lagnas **grid** view is **SIND-UNI-3** with the special-lagna bars, the same view as Key Inference's chart; see [`spec_SIND-UNI_GridChart.md`](spec_SIND-UNI_GridChart.md). The chart toolbar's **KEY INFERENCE →** and each All Charts card open that chart in Key Inference.
+> **Chart (2026-10-01):** the natal chart beside the step tabs and the All Charts cards stay on `SindUniDtlGrid` (the master chart, themed through the page tokens). The Spl Lagnas **grid** view is **SIND-UNI-3** with the special-lagna bars, the same view as Key Inference's chart; see [`spec_SIND-UNI_GridChart.md`](spec_SIND-UNI_GridChart.md). The chart toolbar's **KEY INFERENCE →** and each All Charts card open that chart in Key Inference.
 
 `AstroFacts.razor` — **all 6 in-page steps built**, plus step 7 (All Charts) as the separate
 `/charts/{id}` route (its heading literally reads "7. ALL CHARTS" so the numbering stays
@@ -402,7 +402,7 @@ live against a running instance before moving to the next):
 - **Built (2026-09-25) — natal chart kept visible on Strength/Yogas/Vargas; tab active-state
   color bug fixed; header nav palette flipped; rank/score badge convention introduced:**
   - **Chart column extended past NATAL CHARTS**: the toolbar (collapse/expand + chart picker) +
-    `SouthIndianGrid_Detailed` that NATAL CHARTS already showed on the left is now also shown on
+    `SindUniDtlGrid` that NATAL CHARTS already showed on the left is now also shown on
     STRENGTH, YOGAS and VARGAS (rammyps's call — those three read the chart while it's on
     screen too). Extracted into a shared `ChartColumn` `RenderFragment` in `AstroFacts.razor`
     (same `_natalChartCollapsed`/`_natalChart` state as NATAL CHARTS, so the collapse toggle and

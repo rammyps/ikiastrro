@@ -70,12 +70,12 @@ houses counted from the selected Lagna, and available special-Lagna abbreviation
 view uses the same selected Lagna as its ascendant reference and shows the same chart
 placements, via **`SouthIndianGrid_Micro`** (2026-09-17 —
 [`spec_SouthIndianGrid_Micro.md`](spec_SouthIndianGrid_Micro.md)), replacing the
-`SouthIndianGrid_Detailed` this view used before. The former right-side interpretation/detail
+`SindUniDtlGrid` this view used before. The former right-side interpretation/detail
 table is removed.
 
 **2026-09-17 fix — planets were missing from the polar view.** `PlanetPlacements` was always
 passed into this component and even converted to `PlanetsBySign` for the Grid view's
-`SouthIndianGrid_Detailed`, but the polar `<svg>` branch never referenced it at all — only sign
+`SindUniDtlGrid`, but the polar `<svg>` branch never referenced it at all — only sign
 labels, house-count lines and special-Lagna markers were drawn. Fixed by rendering each
 sector's planet glyphs (`ChartViewModel.PlanetGlyph`, dignity-coloured via
 `ChartViewModel.DignityToken`/`--dignity-*`) at radius 260, between the sign ring (292) and the

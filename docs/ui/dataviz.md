@@ -14,7 +14,7 @@ Every chart surface in the app is hand-drawn — no charting library is referenc
 
 | Surface | Component |
 |---|---|
-| South-Indian chart grid (D1…D60) | `SouthIndianGrid_Detailed` (shared, enriched) |
+| South-Indian chart grid (D1…D60) | `SindUniDtlGrid` (shared, enriched) |
 | 360° sidereal longitude wheel | `PolarWheel` (inline `<svg>` ring; optional `?aspects=1` chords) |
 | Natal ↔ current-transit wheel | `Natal_Transit_Comp_WheelChart` (four-ring data-driven `<svg>`; `/transit-wheel/{id}`) |
 | Compact chart thumbnail | `MiniGrid` |

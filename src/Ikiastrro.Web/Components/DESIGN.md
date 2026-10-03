@@ -17,7 +17,7 @@ One design language, everywhere. Full guide:
   design-language.md's token table before adding a new per-planet color anywhere.
 - **CSS isolation per component** (`ComponentName.razor.css`). Isolation is what makes bare
   `table` / `th` / `td` / `.cell` selectors safe inside a chart component.
-- **Chart diagrams stay hand-rolled** inline SVG / CSS grid (`SouthIndianGrid_Detailed`, `PolarWheel`,
+- **Chart diagrams stay hand-rolled** inline SVG / CSS grid (`SindUniDtlGrid`, `PolarWheel`,
   `Natal_Transit_Comp_WheelChart`, `MiniGrid`, `ChartFrame`, `LifeWeeks`). No charting library is referenced
   by `Ikiastrro.Web`; Syncfusion is a deferred option only. Approach:
   [`../../../docs/ui/dataviz.md`](../../../docs/ui/dataviz.md); full module catalogue +

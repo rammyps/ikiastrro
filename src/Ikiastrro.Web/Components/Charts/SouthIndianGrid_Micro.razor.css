@@ -1,5 +1,5 @@
 /* Scoped to this component by Blazor's CSS isolation. Reads --paper/--ink/--dignity-* etc. from the
-   caller's .page-scoped tokens, same as SouthIndianGrid_Detailed.razor.css — see that file's own
+   caller's .page-scoped tokens, same as SindUniDtlGrid.razor.css — see that file's own
    header comment for why cross-scope custom-property inheritance works here. */
 
 * { box-sizing: border-box; }
@@ -31,7 +31,7 @@
    actual Ascendant sign), so each active one stacks as its own bar rather than fighting over one
    background. Colours match the Wheel view's own ring accents (--ref-lagna/--ref-arudha/
    --ref-hora, set on the shared ancestor .pgls in PolarGridLagnaSelect.razor.css and inherited
-   here via custom-property cascade — same cross-scope pattern SouthIndianGrid_Detailed documents
+   here via custom-property cascade — same cross-scope pattern SindUniDtlGrid documents
    for --paper/--ink/etc.) so a reader can connect a Grid-view strip to its Wheel-view ring. */
 .lagna-strips { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column; gap: 1px; }
 .lagna-strip { height: 4px; }
