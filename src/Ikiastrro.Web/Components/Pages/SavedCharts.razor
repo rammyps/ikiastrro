@@ -256,6 +256,9 @@
     private IReadOnlyList<DataTable<Row>.Column> Cols => new[]
     {
         new DataTable<Row>.Column("Name", r => r.Person.Name, r => @<a href="@($"/astro-facts/{r.Person.Id}")">@r.Person.Name</a>),
+        new DataTable<Row>.Column("Name No.", r => r.Person.NameNumberRoot ?? 0, r => r.Person.NameNumberRoot is null
+            ? @<text>—</text>
+            : @<text>@r.Person.NameNumberCompound/@r.Person.NameNumberRoot</text>),
         new DataTable<Row>.Column("Date of Birth", r => r.Person.DateOfBirth, r => @<text>@r.Person.DateOfBirth.ToString("d MMM yyyy")</text>),
         new DataTable<Row>.Column("Time of Birth", r => r.Person.TimeOfBirth, r => @<text>@r.Person.TimeOfBirth.ToString("HH:mm")</text>),
         new DataTable<Row>.Column("Place", r => r.Person.PlaceCity, r => @<text>@r.Person.PlaceCity, @r.Person.PlaceCountry</text>),
