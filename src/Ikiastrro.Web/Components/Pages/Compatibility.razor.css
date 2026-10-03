@@ -128,3 +128,8 @@
 
 .cmp-notes { margin: 0 0 24px; padding-left: 18px; color: var(--brand-muted); font-size: var(--font-size-support); }
 .cmp-notes li { margin-bottom: 4px; }
+
+.cmp-pad { margin: 0; padding: 12px 16px; font-size: var(--font-size-support); }
+.cmp-w-severe { color: var(--status-weak); }
+.cmp-w-notable, .cmp-w-lesser, .cmp-w-conditional { color: var(--brand-midnight); }
+.cmp-w-untiered { color: var(--brand-muted); }

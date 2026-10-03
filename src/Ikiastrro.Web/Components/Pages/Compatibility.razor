@@ -3,6 +3,8 @@
 @using Ikiastrro.Core.Models
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject MatchPersonRepository MatchPersonRepo
+@inject DoshaChartRepository DoshaRepo
+@inject SadeSatiRepository SadeSatiRepo
 @inject ActivePerson Active
 
 @* Compatibility tab — Kuta agreement for the opened person and one chosen partner, computed live by
@@ -108,6 +110,71 @@ else
             </div>
         </article>
 
+        @if (_doshaGroom is not null && _doshaBride is not null && _balance is not null)
+        {
+            <article class="cmp-card">
+                <header class="cmp-card-head">
+                    <h2>Mars and the malefics (Dosha Samya)</h2>
+                    <p class="cmp-total"><em class="cmp-verdict cmp-verdict-@BalanceClass">@BalanceText</em></p>
+                </header>
+                <div class="cmp-people">
+                    @MarsCard("Groom", Groom!.Name, _doshaGroom)
+                    @MarsCard("Bride", Bride!.Name, _doshaBride)
+                </div>
+                <p class="cmp-pad">@_balance.Reason <span class="cmp-src">@_balance.SourceLocator</span></p>
+                <div class="cmp-scroll">
+                    <table class="cmp-table">
+                        <thead><tr><th>Person</th><th>Malefic</th><th>From</th><th>House</th><th>Weight</th><th>Reading</th></tr></thead>
+                        <tbody>
+                            @foreach (var row in AfflictionRows())
+                            {
+                                <tr>
+                                    <th scope="row">@row.Person</th>
+                                    <td>@row.A.Malefic</td>
+                                    <td>@row.A.From</td>
+                                    <td class="cmp-score">@Ordinal(row.A.House)</td>
+                                    <td class="cmp-score cmp-w-@row.A.Weight.ToString().ToLowerInvariant()">@row.A.Weight</td>
+                                    <td>@row.A.Note</td>
+                                </tr>
+                            }
+                            @if (!AfflictionRows().Any())
+                            {
+                                <tr><td colspan="6">Neither chart has Sun, Mars, Saturn, Rahu or Ketu in the 2nd, 4th, 7th, 8th or 12th (or Mars or Saturn in the 1st) from the Lagna, Moon or Venus.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        }
+
+        @if (_saturn is not null)
+        {
+            <article class="cmp-card">
+                <header class="cmp-card-head">
+                    <h2>Saturn from the Moon (Sade Sati)</h2>
+                    <p class="cmp-total"><em class="cmp-verdict cmp-verdict-@(_saturn.SadeSatiOverlaps ? "open" : "pass")">@(_saturn.SadeSatiOverlaps ? "Sade Sati overlaps in the next 30 years" : "Sade Sati does not overlap in the next 30 years")</em></p>
+                </header>
+                <div class="cmp-scroll">
+                    <table class="cmp-table">
+                        <thead><tr><th>Period</th><th>@Groom!.Name (Moon in @SignLabels.For(Groom.Person.MoonSign))</th><th>@Bride!.Name (Moon in @SignLabels.For(Bride.Person.MoonSign))</th><th>Both at once</th></tr></thead>
+                        <tbody>
+                            @for (var i = 0; i < _saturn.First.Count; i++)
+                            {
+                                var category = _saturn.First[i].Category;
+                                <tr>
+                                    <th scope="row">@category</th>
+                                    <td>@Standing(_saturn.First[i])</td>
+                                    <td>@Standing(_saturn.Second[i])</td>
+                                    <td class="cmp-score">@Overlaps(category)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p class="cmp-pad cmp-sub">Saturn over the 12th, 1st and 2nd signs from the Moon is Sade Sati (Rising, Peak, Setting); over the 4th and 8th it is Kantaka and Ashtama Shani. The periods come from the stored Saturn transit table; neither the book nor the stored rules give a verdict on two people's periods coinciding, so only the dates are shown.</p>
+            </article>
+        }
+
         <ul class="cmp-notes">
             @if (_result.SameSignLord)
             {
@@ -117,7 +184,7 @@ else
             {
                 <li>Yoni is not scored: the book scores hostile animals 0 and passable pairs 2–3 but gives no table of hostile pairs, so the total is shown as a range. Vedha, the tenth factor of the ten-factor scheme, is not tabulated in the book and is not computed.</li>
             }
-            <li>Kuta agreement is not decisive. The book places it after longevity, health, balance of doshas and Kuja dosha have been cleared (p.79). Doshas are not part of this page yet.</li>
+            <li>Kuta agreement is not decisive. The book places it after longevity, health, balance of doshas and Kuja dosha have been cleared (p.79). The dosha reading above is the book's Chapter V; it states its results are not absolute (p.54).</li>
         </ul>
     }
 }
@@ -202,14 +269,91 @@ else
             _notice = "The two people are not recorded as one man and one woman, so the roles were assigned by choice; use Swap roles to reverse them.";
 
         _result = AshtakootaCalculator.Score(Groom!.Person, Bride!.Person);
+        ComputeDetails();
     }
 
     private void Swap()
     {
         _meIsGroom = !_meIsGroom;
         if (_me is not null && _partner is not null)
+        {
             _result = AshtakootaCalculator.Score(Groom!.Person, Bride!.Person);
+            ComputeDetails();
+        }
     }
+
+    private DoshaReading? _doshaGroom;
+    private DoshaReading? _doshaBride;
+    private DoshaBalance? _balance;
+    private SaturnComparison? _saturn;
+
+    // Dosha Samya and the Saturn periods read stored D1 positions and the stored Saturn transit table;
+    // either is skipped (its card does not render) when a person lacks the stored data.
+    private void ComputeDetails()
+    {
+        _doshaGroom = _doshaBride = null;
+        _balance = null;
+        _saturn = null;
+        if (Groom is null || Bride is null) return;
+
+        var groomChart = DoshaRepo.GetByBirthDetailId(Groom.BirthDetailId);
+        var brideChart = DoshaRepo.GetByBirthDetailId(Bride.BirthDetailId);
+        if (groomChart is not null && brideChart is not null)
+        {
+            _doshaGroom = DoshaSamyaCalculator.Read(groomChart);
+            _doshaBride = DoshaSamyaCalculator.Read(brideChart);
+            _balance = DoshaSamyaCalculator.Balance(_doshaGroom, _doshaBride);
+        }
+
+        var groomSaturn = SadeSatiRepo.GetByBirthDetailId(Groom.BirthDetailId);
+        var brideSaturn = SadeSatiRepo.GetByBirthDetailId(Bride.BirthDetailId);
+        if (groomSaturn.Count > 0 && brideSaturn.Count > 0)
+            _saturn = SadeSatiCompatibility.Compare(groomSaturn, brideSaturn, DateTime.UtcNow);
+    }
+
+    private string BalanceClass => _balance?.Status switch
+    {
+        DoshaBalanceStatus.NoSevereDosha or DoshaBalanceStatus.Balanced => "pass",
+        DoshaBalanceStatus.PartlyBalanced => "open",
+        _ => "fail",
+    };
+
+    private string BalanceText => _balance?.Status switch
+    {
+        DoshaBalanceStatus.NoSevereDosha => "No severe Mars or Rahu dosha in either chart",
+        DoshaBalanceStatus.Balanced => "Balanced",
+        DoshaBalanceStatus.PartlyBalanced => "Partly balanced",
+        _ => "Not balanced",
+    };
+
+    private IEnumerable<(string Person, DoshaAffliction A)> AfflictionRows() =>
+        (_doshaGroom!.Afflictions.Select(a => (Groom!.Name, a)).Concat(_doshaBride!.Afflictions.Select(a => (Bride!.Name, a))))
+        .OrderBy(r => r.Item2.Weight).ThenBy(r => r.Item1);
+
+    private static string Ordinal(int n) => n switch { 1 => "1st", 2 => "2nd", 3 => "3rd", _ => $"{n}th" };
+
+    private static string Standing(SaturnStanding s)
+    {
+        if (s.Current is { } c)
+            return $"{(s.Phase is null ? "In it" : $"In it ({s.Phase})")} until {c.EndUtc:MMM yyyy}"
+                   + (s.Next is { } n ? $"; next {n.StartUtc:MMM yyyy}–{n.EndUtc:MMM yyyy}" : "");
+        return s.Next is { } next ? $"Next {next.StartUtc:MMM yyyy}–{next.EndUtc:MMM yyyy}" : "None in the stored range";
+    }
+
+    private string Overlaps(string category)
+    {
+        var rows = _saturn!.Overlaps.Where(o => o.Category == category).ToList();
+        return rows.Count == 0
+            ? "Never together"
+            : string.Join("; ", rows.Select(o => $"{o.StartUtc:MMM yyyy}–{o.EndUtc:MMM yyyy}"));
+    }
+
+    private RenderFragment MarsCard(string role, string name, DoshaReading r) => @<div class="cmp-person">
+        <span class="cmp-role">@role</span>
+        <strong>@name</strong>
+        <span>Mars from Lagna @Ordinal(r.MarsHouses[DoshaReference.Lagna]) · Moon @Ordinal(r.MarsHouses[DoshaReference.Moon]) · Venus @Ordinal(r.MarsHouses[DoshaReference.Venus])</span>
+        <span>@(r.ClassicalKuja ? "Mars is in the 1st, 2nd, 4th, 7th, 8th or 12th from at least one reference (classical Kuja dosha)" : "Mars is in none of the 1st, 2nd, 4th, 7th, 8th, 12th from Lagna, Moon or Venus")</span>
+    </div>;
 
     private string TotalText => _result is null ? "" :
         _result.IsComplete ? _result.TotalMin.ToString() : $"{_result.TotalMin}–{_result.TotalMax}";
