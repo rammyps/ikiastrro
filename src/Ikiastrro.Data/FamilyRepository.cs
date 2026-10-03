@@ -6,6 +6,9 @@ namespace Ikiastrro.Data;
 public sealed record FamilyMember(
     int RelativeId, string RelativeName, string? RelativeSex, string Role, string Tier, bool IsAdopted, bool IsStep, string Status);
 
+/// <summary>A recorded married couple: the man (left) and the woman (right), by recorded sex, else the lower id first.</summary>
+public sealed record FamilyCouple(int GroomId, string GroomName, int BrideId, string BrideName, string Status);
+
 /// <summary>
 /// Reads vw_PersonFamily (migration 168): the core family from the stored SPOUSE and PARENT_OF edges
 /// and siblings derived from a shared parent. Writes only direct edges; nothing else is stored, so a
@@ -48,5 +51,21 @@ public sealed class FamilyRepository
                 INSERT dbo.tbl_Person_Relationship (PersonAId, PersonBId, RelationTypeCode, IsAdopted, IsStep)
                 VALUES (@Parent, @Child, 'PARENT_OF', @IsAdopted, @IsStep);
             """, new { Parent = parentId, Child = childId, IsAdopted = isAdopted, IsStep = isStep });
+    }
+
+    /// <summary>Every recorded SPOUSE edge, with the man on the left and the woman on the right.</summary>
+    public IReadOnlyList<FamilyCouple> GetCouples()
+    {
+        using var connection = _connectionFactory.CreateOpenConnection();
+        return connection.Query<(int AId, string AName, string? ASex, int BId, string BName, string Status)>("""
+            SELECT r.PersonAId AS AId, a.Name AS AName, a.Sex AS ASex, r.PersonBId AS BId, b.Name AS BName, r.Status
+            FROM dbo.tbl_Person_Relationship r
+            JOIN dbo.tbl_BirthDetails a ON a.Id = r.PersonAId
+            JOIN dbo.tbl_BirthDetails b ON b.Id = r.PersonBId
+            WHERE r.RelationTypeCode = 'SPOUSE'
+            ORDER BY a.Name, b.Name
+            """).Select(r => string.Equals(r.ASex, "Female", StringComparison.OrdinalIgnoreCase)
+                ? new FamilyCouple(r.BId, r.BName, r.AId, r.AName, r.Status)
+                : new FamilyCouple(r.AId, r.AName, r.BId, r.BName, r.Status)).ToList();
     }
 }
