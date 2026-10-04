@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-23
+last_updated: 2026-10-04
 ---
 
 # ikiastrro — Roadmap
@@ -35,6 +35,23 @@ gh pr list --state merged --search "merged:>=$(date -d '-28 days' +%F)" --json n
 Close the gap between verified engine logic and what the web app actually shows — the
 "Missing Web" column in the `masterproduct.md` rollup.
 
+- **Key Inference promise judgement** — D1 promise engine (phases 1–2 done: model + D1 promise,
+  `read-promise` CLI, adapter, Astro Facts D1-PROMISE tab with Argala read pair by pair).
+  Remaining phases per `docs/architecture/key_inference_promise.md` · new 2026-10-04
+- **Transit inference** — slices 1–2 built (Gochara reading: net tier, slow planets, next
+  crossing; natal-promise and dasha qualifiers). Slice 3, event triggers (marriage, career,
+  health), designed in `docs/architecture/transit_event_triggers.md`, not built. Kakshya and
+  transit-to-natal aspects still hooks only
+- **Compatibility / family build-out** — Ashtakoota Kuta, Dosha Samya, Sade Sati overlap, D9
+  comparison, synastry, pair similarity, dasha timing, family layers (migrations 170–171),
+  pair history card and print group all shipped 2026-10-03/04 on the Compatibility page.
+  Open: reconcile `docs/architecture/compatibility_similarity.md` with what was built, and
+  the v10 statistical build (`v10-statisticalbuild.md`, family similarity + linked-dasha
+  extension planned 2026-10-04)
+- **Strength engine finish** — Ṣaḍbala components (Cheshta, Paksha, Ayana, Nathonnata, Abda,
+  Masa fixed), Iṣṭa/Kaṣṭa, Vimśopaka Bala (BPHS weights, bands, bars) and Planet/House
+  Strength stacked bars all shipped 2026-10-01/02. Open: confirm Bhāva Bala completeness and
+  that `masterproduct.md` `FEAT-STRENGTH-01/02` (still 70% / 15%) is brought up to date
 - **Divisional charts in the UI** — render D2–D60 (21 varga types), not just D1/D9, plus a
   per-scheme dignity-tier stacked-bar summary · `FEAT-VARGA-01`/`FEAT-VARGA-02` (new
   2026-09-22). Depends on `FEAT-HOUSE-05`'s bridge for interpretation content. **Open, needs
@@ -43,8 +60,10 @@ Close the gap between verified engine logic and what the web app actually shows 
 - **Jaimini chara karakas panel** — surface the 8-fold Aṣṭa already computed, the "Life
   Matters" panel from `res_charakarakas.md` §2 · `FEAT-KARAKA-01`/`FEAT-KARAKA-06` (new
   2026-09-22). Depends on `FEAT-HOUSE-05`.
-- **Planetary-state (avastha) display** — `AgeState`, `WakefulnessState` · `FEAT-AVASTHA-01/02`
+- **Planetary-state (avastha) display** — `AgeState`, `WakefulnessState` · `FEAT-AVASTHA-01/02`.
+  `PlanetaryStateTable` exists on Astro Facts and Key Inference; verify it covers both states
 - **Slow-planet transit history view** — 1930–2060 sign-transit timeline · `FEAT-TRANSIT-01`
+  (the Transit tab and wheel now exist; the multi-decade timeline itself is unconfirmed)
 - ~~**Ashtakavarga cross-varga extension + comparison chart**~~ **Extension half done, closed
   2026-09-23** · `FEAT-ASHTAKAVARGA-02` (new 2026-09-22) — this bullet's premise was stale in
   the opposite direction from what it assumed: `ChartGenerationService.PersistAnalytics`
@@ -137,10 +156,13 @@ Scoped, not started. Ordering set at the next ICE pass.
 
 Acknowledged, deliberately deferred.
 
-- **Strength engine** — Ṣaḍbala (6 components), Vimśopaka Bala, Bhāva Bala. Blocked on sourcing a
-  cited reference edition · `FEAT-STRENGTH-01/02`
-- **Yoga detection** — Pañcha Mahāpuruṣa + Rāja/Dhana first slice. Needs its own design pass to turn
-  case-study prose into enumerable rule rows · `FEAT-YOGA-01`
+- ~~**Strength engine**~~ **Largely built 2026-10-01/02**, moved to Now ("Strength engine
+  finish") · `FEAT-STRENGTH-01/02`
+- ~~**Yoga detection**~~ **First slice shipped** — source-attributed Raman/PVR yogas with
+  outcome nature, one-line inference and a Life Matters matrix (migration 159). Remaining
+  catalogue growth tracked in `masterproduct.md` · `FEAT-YOGA-01`
+- **Saham calculator** — general A−B+C engine with Vivaha and Kali built 2026-10-04 (PVR
+  Table 74); remaining sahams not started
 - **Remaining avasthas** — `RadianceState`, `ShameState`; each needs a cited edition and
   janma-ghaṭi inputs · `FEAT-AVASTHA-03/04`. `PostureState` (`FEAT-AVASTHA-05`) shipped
   2026-09-22 correction — migration 083, `PostureStateCalculator.cs`, cited
@@ -176,11 +198,21 @@ Acknowledged, deliberately deferred.
   query. Parking lot only — see `vedic_reading_layers.md`'s "Suggested additions" section.
   **Open, needs rammyps** before any of these become real `FEAT-*` candidates.
 
+## Decisions since 2026-09-23
+
+Locked in `decisions/`: 004 Traditional Lahiri ayanāṁśa (no picker); 005 / 007 D2, D3, D7 and
+D10, D16, D24, D60 on JHora's schemes; 006 Śaṣṭiāṁśa names per BPHS as JHora shows them;
+008 true node for Rahu/Ketu; 009 planets on the solar-system plane, true positions.
+
 ## Cadence
 
 One dated line per ship event (a `git tag` + GitHub Release). Capped at the last ~6 —
 `git log --first-parent origin/master` and the Releases page hold the rest. This is the
 only time-phased block in the repo's prose (`STANDARDS.md` §E.1 WORKSTREAM-05).
 
+- 2026-10-04 — Compatibility page (Kuta, synastry, family, pair history) and Gochara
+  inference slices 1–2 landed; Key Inference promise engine started
+- 2026-10-02 — JHora-matching vargas, true node, Ṣaḍbala/Vimśopaka fixes, print report
+- 2026-10-01 — Life Matters customer flow, cosmic themes, Ashtottari and Vedha engines
 - 2026-09-06 — Roadmap set to pure-flow Now/Next/Later; "Now" = UI-surfacing of verified
   engine features.
