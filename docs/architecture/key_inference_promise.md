@@ -156,3 +156,27 @@ Triggers (`transit_event_triggers.md`) then group all 138 matters by this D1 pro
 2. **Verdict rules in section 6:** are the thresholds (three supportive families for Strong positive, and so on) the right shape? They are the heuristic part and are labelled so.
 3. **Birth-time reliability:** is there a field for it today? If not, D60 stays out until one exists.
 4. **Lens seeds from your table**, tagged synthesis: acceptable?
+
+## 10. As built: phases 1 and 2 (2026-10-04)
+
+Code is in `src/Ikiastrro.Core/LifeMatters/Promise/`: `PromiseModel.cs` (the vocabulary, phase 1), `D1PromiseEngine.cs` and `PromiseFamilies.cs` (phase 2). Tests are `D1PromiseEngineTests` (38 cases on synthetic charts: Aries Lagna, career at the 10th). No page, repository or database change; nothing reads the engine yet.
+
+The caller supplies a `MatterPromiseInput`: the target, each planet's sign, dignity, combustion, Ṣaḍbala band and nakshatra lord, the matter's karakas, the target's house-capacity, SAV and lord-BAV bands, the Argala and Virodhargala planets, and any yogas. The engine touches no database. `LifeMatterPromise` carries the verdict, confidence, positive and negative testimonies, contradictions, missing evidence, refinements, the dominant support and obstruction, and the old percent as `TechnicalSupportIndex`.
+
+Where the build is more specific than sections 4 to 6, or differs:
+
+- **Planets that are the lord or a karaka are read once.** Their placement from the target, dignity and conjunctions are their testimonies; an aspect they cast on the target is appended to the placement text, not counted as a separate influence (the same cause). `Influence:{planet}` rows exist only for other planets.
+- **The Target row is neutral.** It carries the house's own capacity and no direction; the house's strength never creates a promise.
+- **Verdict rules as implemented**, over families (principal = lord, karaka, target; PS and PO count principal supportive and obstructive families, S and O all families):
+  1. Indeterminate: the lord is not placed, or no family has a direction.
+  2. Strong positive: PS is at least 3, PO is 0, no obstructive lord family, and no principal supportive family is weak in capacity.
+  3. Adverse: no principal support, at least one principal obstruction and more obstructive than supportive families; or at least two obstructive families outnumbering supportive ones with the lord obstructive.
+  4. Weak or limited: no principal support but some indication elsewhere; or principal support exists and every supportive principal family is weak in capacity.
+  5. Mixed: principal support and obstruction within one family of each other.
+  6. Positive but conditional: principal support outnumbers principal obstruction.
+- **Confidence on D1 alone is capped at Medium.** `D1Foundation.Confidence` can be High (lord, karakas and the other influences all agree), but `LifeMatterPromise.Confidence` shows Medium until a varga confirms. Low when the lord is missing, evidence is missing, or fewer than two role groups have a direction.
+- **Nakshatra lord and dispositor are refinements only**, listed in `Refinements`, never a direction.
+- **Combustion lowers capacity one step** and never flips direction; a weak planet with a good placement reads as a damaged promise (Positive but conditional), not as a negative.
+- **A functional malefic standing in a target that is the 3rd, 6th, 8th or 12th from the Lagna reads supportive** (PVR 13.2: it spoils a house that should be spoiled). Applied only to occupation of the target.
+
+Not yet: conjunction and aspect effects use functional nature only (no Mercury or Moon natural-nature refinement inside the engine); house-from-Lagna placement of the lord is not a second family; avastha families are not separate inputs. Phases 3 to 6 are unchanged.
