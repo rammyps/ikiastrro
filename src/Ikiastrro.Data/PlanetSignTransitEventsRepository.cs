@@ -47,17 +47,21 @@ public class PlanetSignTransitEventsRepository
         if (current is null) return null;
 
         var next = connection.QuerySingleOrDefault<NextRow>(
-            "SELECT TOP (1) EventDateTimeUtc, MotionDirection FROM dbo.tbl_PlanetSignTransitEvents " +
+            "SELECT TOP (1) EventDateTimeUtc, MotionDirection, SignId FROM dbo.tbl_PlanetSignTransitEvents " +
             "WHERE PlanetId = @P AND EventDateTimeUtc > @AsOf ORDER BY EventDateTimeUtc",
             new { P = eventsPlanetId, AsOf = asOfUtc });
 
         return new PlanetTransitSnapshot(planet, current.SignId, current.EventDateTimeUtc,
             current.MotionDirection, next?.EventDateTimeUtc, InSignMotion: current.MotionDirection,
-            NextChangeMotion: next?.MotionDirection);
+            NextChangeMotion: next?.MotionDirection, NextChangeSignId: NextSignId(planetId, next?.SignId));
     }
 
     private sealed record CurrentRow(byte SignId, DateTime EventDateTimeUtc, string MotionDirection);
-    private sealed record NextRow(DateTime EventDateTimeUtc, string MotionDirection);
+    private sealed record NextRow(DateTime EventDateTimeUtc, string MotionDirection, int SignId);
+
+    /// <summary>The sign entered at the next crossing; Ketu's is Rahu's, six signs on.</summary>
+    private static byte? NextSignId(int planetId, int? eventSignId) =>
+        eventSignId is not { } id ? null : (byte)(planetId == 9 ? (id + 5) % 12 + 1 : id);
 
     public void InsertAll(IEnumerable<(PlanetTransitEvent Event, bool IsReentry)> events)
     {

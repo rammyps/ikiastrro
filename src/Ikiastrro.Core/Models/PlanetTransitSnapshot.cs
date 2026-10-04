@@ -8,4 +8,4 @@ public record PlanetTransitSnapshot(
     PlanetName Planet, byte SignId, DateTime InSignSinceUtc, string MotionDirection, DateTime? NextChangeUtc,
     double LongitudeDegrees = 0, double DegreeInSign = 0, byte NakshatraId = 0, byte Pada = 0,
     double SpeedDegreesPerDay = 0, string AyanamsaCode = "", string? InSignMotion = null,
-    string? NextChangeMotion = null);
+    string? NextChangeMotion = null, byte? NextChangeSignId = null);

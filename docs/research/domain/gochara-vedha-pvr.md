@@ -36,16 +36,15 @@ Source: `SRC_PVR_INTEGRATED`, direct read of
 
 | Transiting planet | Auspicious houses from natal Moon (each one's Vedha/obstruction house in parentheses) |
 |---|---|
-| Moon | 3 (9), 6 (12), 10 (4), 11 (5) |
-| Mars | 1 (5), 3 (9), 6 (12), 7 (2), 10 (4), 11 (8) |
-| Mercury | 3 (12), 6 (9), 11 (5) |
-| Jupiter | 2 (5), 4 (3), 6 (9), 8 (1), 10 (8), 11 (12) |
-| Venus | 2 (12), 5 (4), 7 (3), 9 (10), 11 (8) |
-| Saturn | 1 (8), 2 (7), 3 (1), 4 (10), 5 (9), 8 (5), 9 (11), 11 (6), 12 (3) |
+| Sun | 3 (9), 6 (12), 10 (4), 11 (5) |
+| Moon | 1 (5), 3 (9), 6 (12), 7 (2), 10 (4), 11 (8) |
+| Mars | 3 (12), 6 (9), 11 (5) |
+| Mercury | 2 (5), 4 (3), 6 (9), 8 (1), 10 (8), 11 (12) |
+| Jupiter | 2 (12), 5 (4), 7 (3), 9 (10), 11 (8) |
+| Venus | 1 (8), 2 (7), 3 (1), 4 (10), 5 (9), 8 (5), 9 (11), 11 (6), 12 (3) |
+| Saturn | 3 (12), 6 (9), 11 (5) |
 
-**Gap, not guessed**: the extract's Table 63 gives no Sun row and no Rahu/Ketu rows — only
-the six planets above. Don't fabricate a Sun/node row; if one exists elsewhere in the book it
-hasn't been located yet.
+**Row labels realigned (2026-10-04)**: the extract's OCR puts the "Sun" label on the header line, so every label sat one row too high and the last row (Saturn: 3 (12), 6 (9), 11 (5)) had none. Realigned above and in migration 158; PVR's Mercury-in-4th example (Mercury 4 (3)) only fits the realigned table. The table has no Rahu or Ketu row (read as Saturn and Mars, ch.25).
 
 **Two stated exceptions** (ch. 26.3): Sun and Saturn never cause Vedha on each other; Moon
 and Mercury never cause Vedha on each other.

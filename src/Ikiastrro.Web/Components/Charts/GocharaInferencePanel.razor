@@ -1,0 +1,92 @@
+@using System.Globalization
+@using Ikiastrro.Core.Engines.Transits
+
+@* Astro Facts step 2 (Transit) — what the Gochara rows add up to, slice 1
+   (docs/architecture/transit_gochara_inference.md): the net tier of each slow planet (PVR verdict
+   × its own BAV bindus band — a project heuristic), Saturn's phase, and each slow planet's next
+   crossing. The five fast planets sit behind an expand control. Moon-reference only. *@
+<section class="gi" aria-labelledby="gi-title">
+    <h3 id="gi-title" class="gi-head">Gochara reading <span>from the natal Moon@(string.IsNullOrEmpty(MoonSign) ? "" : $" — Moon in {Disp(MoonSign)}")</span></h3>
+    <p class="gi-caveat">@Inference.Caveat</p>
+    @if (Inference.Saturn != SaturnPhase.None)
+    {
+        <p class="gi-flag"><b>Saturn</b> @PhaseText(Inference.Saturn)</p>
+    }
+    <ul class="gi-list">
+        @foreach (var r in Inference.Slow)
+        {
+            <li>
+                <div class="gi-line">
+                    <b class="gi-planet">@r.Row.Planet</b>
+                    <span class="gi-where">@Disp(r.Row.Sign.ToString()), @Ordinal(r.Row.HouseFromMoon)</span>
+                    <span class="gi-tier is-@r.Tier.ToString().ToLowerInvariant()">@r.Tier</span>
+                </div>
+                <p class="gi-text">@r.Line</p>
+                @if (Inference.Changes.FirstOrDefault(c => c.Planet == r.Row.Planet) is { } c)
+                {
+                    <p class="gi-next">Next: @(c.IsRetrograde ? "re-enters" : "enters") @Disp(c.Sign.ToString()) on @c.AtUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)
+                        (@Ordinal(c.HouseFromMoon) from the Moon — @NextText(c))</p>
+                }
+            </li>
+        }
+    </ul>
+    @if (Inference.Fast.Count > 0)
+    {
+        <details class="gi-fast">
+            <summary>Fast planets (days to weeks) · @Inference.Fast.Count</summary>
+            <ul class="gi-list">
+                @foreach (var r in Inference.Fast)
+                {
+                    <li>
+                        <div class="gi-line">
+                            <b class="gi-planet">@r.Row.Planet</b>
+                            <span class="gi-where">@Disp(r.Row.Sign.ToString()), @Ordinal(r.Row.HouseFromMoon)</span>
+                            <span class="gi-tier is-@r.Tier.ToString().ToLowerInvariant()">@r.Tier</span>
+                        </div>
+                        <p class="gi-text">@r.Line</p>
+                    </li>
+                }
+            </ul>
+        </details>
+    }
+    <p class="gi-note">
+        The tier combines PVR's verdict with the planet's own Bhinnāṣṭakavarga bindus in the sign (5 or more strong, 4 moderate,
+        3 or fewer weak). An obstructed transit stays obstructed whatever the bindus; a strong count lifts an unlisted house only to Mixed.
+        Rāhu and Ketu have no bindus, so their verdict decides. The tier is a project heuristic.
+    </p>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public GocharaInference Inference { get; set; } = default!;
+    [Parameter] public string? MoonSign { get; set; }
+
+    private static string NextText(GocharaSlowChange c) =>
+        c.SaturnPhaseThen != SaturnPhase.None ? PhaseTitle(c.SaturnPhaseThen)
+        : c.VerdictBeforeVedha == GocharaVerdict.NotFavourable ? "not an auspicious house, before Vedha"
+        : "an auspicious house, before Vedha";
+
+    private static string PhaseTitle(SaturnPhase p) => p switch
+    {
+        SaturnPhase.SadeSatiRising => "Sāḍe Sātī, rising",
+        SaturnPhase.SadeSatiPeak => "Sāḍe Sātī, peak",
+        SaturnPhase.SadeSatiSetting => "Sāḍe Sātī, setting",
+        SaturnPhase.Kantaka => "Kaṇṭaka Śani",
+        SaturnPhase.Ashtama => "Aṣṭama Śani",
+        _ => "",
+    };
+
+    private static string PhaseText(SaturnPhase p) => p switch
+    {
+        SaturnPhase.SadeSatiRising => "is 12th from the natal Moon — Sāḍe Sātī, rising phase (first Dhaiya).",
+        SaturnPhase.SadeSatiPeak => "is over the natal Moon — Sāḍe Sātī, peak phase (second Dhaiya).",
+        SaturnPhase.SadeSatiSetting => "is 2nd from the natal Moon — Sāḍe Sātī, setting phase (third Dhaiya).",
+        SaturnPhase.Kantaka => "is 4th from the natal Moon — Kaṇṭaka Śani.",
+        SaturnPhase.Ashtama => "is 8th from the natal Moon — Aṣṭama Śani.",
+        _ => "",
+    };
+
+    private static string Ordinal(int n) =>
+        n + (n % 100 is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
+
+    private static string Disp(string s) => s == "Capricornus" ? "Capricorn" : s;
+}

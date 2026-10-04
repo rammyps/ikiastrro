@@ -36,7 +36,7 @@ public sealed class GocharaRepository
                 speed < 0 ? "Retrograde" : "Direct",
                 stored?.NextChangeUtc,
                 longitude, degree, nakshatra, pada, speed, positions.AyanamsaCode,
-                stored?.InSignMotion, stored?.NextChangeMotion));
+                stored?.InSignMotion, stored?.NextChangeMotion, stored?.NextChangeSignId));
         }
         SaveSnapshots(utc, result.Where(s =>
             s.Planet is PlanetName.Saturn or PlanetName.Jupiter or PlanetName.Rahu or PlanetName.Ketu));

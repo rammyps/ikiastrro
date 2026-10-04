@@ -1,0 +1,23 @@
+/* Same frame as GocharaTable (.go-*); tiers use the status tokens, Obstructed hatched like Aṣṭama so colour is not the only cue. */
+.gi { margin-top: 18px; color: var(--brand-midnight); }
+.gi-head { margin: 0 0 6px; font: 800 .82rem/1.3 'Manrope', 'Segoe UI', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.gi-head span { margin-left: 6px; color: var(--brand-muted); font-weight: 600; text-transform: none; letter-spacing: 0; }
+.gi-caveat { margin: 0 0 8px; color: var(--brand-muted); font-size: var(--font-size-support); max-width: 90ch; }
+.gi-flag { margin: 0 0 8px; padding: 6px 10px; border-left: 3px solid var(--status-weak); background: var(--status-weak-bg); font-size: var(--font-size-support); }
+.gi-list { margin: 0; padding: 0; list-style: none; border: 1px solid var(--brand-line); border-radius: 10px; }
+.gi-list > li { padding: 8px 10px; border-bottom: 1px solid var(--brand-line); }
+.gi-list > li:last-child { border-bottom: 0; }
+.gi-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font: 600 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; }
+.gi-where { color: var(--brand-muted); }
+.gi-text, .gi-next { margin: 2px 0 0; font-size: var(--font-size-support); }
+.gi-next { color: var(--brand-muted); }
+.gi-tier { display: inline-block; padding: 0 6px; border-radius: 3px; font-size: .78em; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.gi-tier.is-supportive { background: var(--status-strong); color: var(--brand-surface); }
+.gi-tier.is-mild { border: 1px solid var(--status-strong); color: var(--status-strong); }
+.gi-tier.is-mixed { background: var(--status-moderate); color: var(--brand-midnight); }
+.gi-tier.is-obstructed { border: 1px solid var(--status-moderate); color: var(--brand-midnight); background: repeating-linear-gradient(45deg, var(--status-moderate-bg) 0 3px, var(--status-moderate) 3px 5px); }
+.gi-tier.is-unfavourable { background: var(--status-weak-bg); color: var(--status-weak); }
+.gi-fast { margin-top: 8px; }
+.gi-fast > summary { cursor: pointer; font: 700 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; padding: 4px 0; }
+.gi-fast .gi-list { margin-top: 6px; }
+.gi-note { margin: 8px 0 0; color: var(--brand-muted); font-size: var(--font-size-support); max-width: 90ch; }

@@ -414,6 +414,7 @@ else
                         </div>
                         @if (GocharaJudgement is { } gochara)
                         {
+                            <GocharaInferencePanel Inference="GocharaInferenceOf(gochara)" MoonSign="@_natalSignByPlanet.GetValueOrDefault("Moon")" />
                             <GocharaTable Reading="gochara" />
                         }
                     }
@@ -1107,6 +1108,18 @@ else
             return Ikiastrro.Core.Engines.Transits.GocharaReading.Read(moon, signs, _vedhaRules,
                 (planet, sign) => bav.TryGetValue((planet.ToString().ToUpperInvariant(), (int)sign + 1), out var b) ? b : null);
         }
+    }
+
+    /// <summary>The Gochara rows read as a whole (docs/architecture/transit_gochara_inference.md): net tiers, slow vs fast, and each slow planet's next crossing from the transit table.</summary>
+    private Ikiastrro.Core.Engines.Transits.GocharaInference GocharaInferenceOf(Ikiastrro.Core.Engines.Transits.GocharaReadingResult reading)
+    {
+        var ingress = _transits
+            .Where(t => Ikiastrro.Core.Engines.Transits.GocharaInferenceBuilder.SlowPlanets.Contains(t.Planet)
+                        && t.NextChangeUtc is not null && t.NextChangeSignId is >= 1 and <= 12)
+            .ToDictionary(t => t.Planet, t => new Ikiastrro.Core.Engines.Transits.GocharaIngress(
+                DateTime.SpecifyKind(t.NextChangeUtc!.Value, DateTimeKind.Utc), (ZodiacName)(t.NextChangeSignId!.Value - 1),
+                t.NextChangeMotion == "Retrograde"));
+        return Ikiastrro.Core.Engines.Transits.GocharaInferenceBuilder.Build(reading, ingress, _vedhaRules);
     }
 
     private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
