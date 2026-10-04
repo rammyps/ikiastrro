@@ -23,6 +23,7 @@ public static class PrintModules
         new("yogas", "Yogas"),
         new("vargas", "Vargas"),
         new("allcharts", "All Charts"),
+        new("d1promise", "D1-Promise"),
     ];
 
     /// <summary>Foundation, then one module per life area, labelled as Key Inference's area pills.</summary>

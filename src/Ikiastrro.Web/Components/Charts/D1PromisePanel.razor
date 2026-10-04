@@ -1,0 +1,152 @@
+@using Ikiastrro.Core.LifeMatters.Promise
+@using Ikiastrro.Data.Statistics
+
+@* Astro Facts "D1-PROMISE" tab: every life matter's natal promise read from the Lagna in D1
+   (docs/architecture/key_inference_promise.md §10). Direction and capacity are kept apart — strength
+   says how hard a finding acts, never which way — and one testimony counts per independence family.
+   The verdict is a categorical, heuristic reading, not a probability; the old strength % stays as a
+   technical index. To be folded into Key Inference later. *@
+<section class="dp" aria-labelledby="dp-title">
+    <h2 id="dp-title" class="dp-head">D1 promise <span>from the Lagna, every life matter</span></h2>
+    <p class="dp-note">
+        What the natal chart promises about each matter, what supports or damages it, and how firmly the evidence agrees.
+        Strength is capacity, not direction: a strong malefic is strongly obstructive. A verdict is a project heuristic.
+        Open a row for its testimonies. Matters read from a special point or another lagna are not read here yet.
+    </p>
+
+    @if (Readings is null)
+    {
+        <p class="dp-empty">@(Error is null ? "No stored D1 chart for this person." : $"The D1 promise could not be read: {Error}")</p>
+    }
+    else
+    {
+        <div class="dp-filter" role="group" aria-label="Filter by verdict">
+            <button type="button" class="dp-chip @(_verdict is null ? "is-on" : null)" @onclick="() => _verdict = null">All <b>@Rows.Count</b></button>
+            @foreach (var v in Order)
+            {
+                var n = Counts.GetValueOrDefault(v);
+                if (n == 0) continue;
+                var verdict = v;
+                <button type="button" class="dp-chip is-@Css(v) @(_verdict == v ? "is-on" : null)" @onclick="() => _verdict = verdict">@Label(v) <b>@n</b></button>
+            }
+        </div>
+
+        @foreach (var group in Groups)
+        {
+            <section class="dp-group">
+                <h3 class="dp-cat">@group.Key</h3>
+                @foreach (var row in group)
+                {
+                    var p = row.Target.Promise;
+                    <details class="dp-row">
+                        <summary>
+                            <span class="dp-matter">@row.Matter.MatterText</span>
+                            <span class="dp-house">@row.Target.Label</span>
+                            <span class="dp-verdict is-@Css(p.Verdict)">@Label(p.Verdict)</span>
+                            <span class="dp-conf">@p.Confidence confidence</span>
+                            <span class="dp-roles" title="Lord · karakas · other influences">
+                                @foreach (var role in Roles)
+                                {
+                                    <span class="dp-dir is-@p.D1.RoleDirections[role.Role].ToString().ToLowerInvariant()" title="@role.Title: @p.D1.RoleDirections[role.Role]">@role.Letter@Symbol(p.D1.RoleDirections[role.Role])</span>
+                                }
+                            </span>
+                            @if (p.TechnicalSupportIndex is { } idx)
+                            {
+                                <span class="dp-idx" title="Key Inference strength index (technical)">@idx%</span>
+                            }
+                        </summary>
+                        <div class="dp-body">
+                            @if (p.DominantSupport.Length > 0)
+                            {
+                                <p><b>Leading support</b> — @p.DominantSupport</p>
+                            }
+                            @if (p.DominantObstruction.Length > 0)
+                            {
+                                <p><b>Leading obstruction</b> — @p.DominantObstruction</p>
+                            }
+                            @foreach (var c in p.Contradictions)
+                            {
+                                <p class="dp-contra"><b>Contradiction</b> — @c.Description</p>
+                            }
+                            @foreach (var role in Enum.GetValues<TestimonyRole>())
+                            {
+                                var items = p.D1.Testimonies.Where(t => t.Role == role && (t.Direction != Ikiastrro.Core.LifeMatters.Promise.Direction.Neutral || role == TestimonyRole.Target)).ToList();
+                                if (items.Count == 0) continue;
+                                <h4 class="dp-role">@role</h4>
+                                <ul class="dp-tests">
+                                    @foreach (var t in items)
+                                    {
+                                        <li>
+                                            <span class="dp-dir is-@t.Direction.ToString().ToLowerInvariant()">@t.Direction</span>
+                                            <span class="dp-cap">@t.Capacity capacity</span>
+                                            @t.Explanation
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            @foreach (var m in p.MissingEvidence)
+                            {
+                                <p class="dp-missing"><b>Missing</b> — @m</p>
+                            }
+                            @foreach (var r in p.Refinements)
+                            {
+                                <p class="dp-refine"><b>Refinement</b> — @r</p>
+                            }
+                        </div>
+                    </details>
+                }
+            </section>
+        }
+        @if (Unread.Count > 0)
+        {
+            <p class="dp-unread">Not read here (no Lagna house focus): @string.Join("; ", Unread.Select(u => u.MatterText)).</p>
+        }
+    }
+</section>
+
+@code {
+    [Parameter] public IReadOnlyList<MatterPromiseReading>? Readings { get; set; }
+    [Parameter] public string? Error { get; set; }
+
+    private PromiseVerdict? _verdict;
+
+    private sealed record Row(MatterPromiseReading Matter, MatterTargetPromise Target);
+
+    private static readonly PromiseVerdict[] Order =
+        [PromiseVerdict.StrongPositive, PromiseVerdict.PositiveConditional, PromiseVerdict.Mixed,
+         PromiseVerdict.WeakLimited, PromiseVerdict.Adverse, PromiseVerdict.Indeterminate];
+
+    private static readonly (TestimonyRole Role, string Letter, string Title)[] Roles =
+        [(TestimonyRole.Lord, "L", "The lord"), (TestimonyRole.Karaka, "K", "The karakas"), (TestimonyRole.Influence, "I", "Other influences")];
+
+    private List<Row> Rows => (Readings ?? [])
+        .SelectMany(m => m.Targets.Select(t => new Row(m, t))).ToList();
+
+    private Dictionary<PromiseVerdict, int> Counts => Rows.GroupBy(r => r.Target.Promise.Verdict).ToDictionary(g => g.Key, g => g.Count());
+
+    private IEnumerable<IGrouping<string, Row>> Groups => Rows
+        .Where(r => _verdict is null || r.Target.Promise.Verdict == _verdict)
+        .GroupBy(r => r.Matter.CategoryName);
+
+    private List<MatterPromiseReading> Unread => (Readings ?? []).Where(m => m.Targets.Count == 0).ToList();
+
+    private static string Label(PromiseVerdict v) => v switch
+    {
+        PromiseVerdict.StrongPositive => "Strong positive",
+        PromiseVerdict.PositiveConditional => "Positive, conditional",
+        PromiseVerdict.Mixed => "Mixed",
+        PromiseVerdict.WeakLimited => "Weak / limited",
+        PromiseVerdict.Adverse => "Adverse",
+        _ => "Indeterminate",
+    };
+
+    private static string Css(PromiseVerdict v) => v.ToString().ToLowerInvariant();
+
+    private static string Symbol(Ikiastrro.Core.LifeMatters.Promise.Direction d) => d switch
+    {
+        Ikiastrro.Core.LifeMatters.Promise.Direction.Supportive => "+",
+        Ikiastrro.Core.LifeMatters.Promise.Direction.Obstructive => "−",
+        Ikiastrro.Core.LifeMatters.Promise.Direction.Mixed => "±",
+        _ => "·",
+    };
+}

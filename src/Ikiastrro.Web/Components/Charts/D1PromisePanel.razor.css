@@ -1,0 +1,38 @@
+/* Same frame as the Gochara panels (.go-*, .gi-*); verdicts use the status tokens, and the weak/limited and
+   adverse chips differ in fill as well as colour so colour is never the only cue. */
+.dp { color: var(--brand-midnight); }
+.dp-head { margin: 0 0 6px; font: 800 .82rem/1.3 'Manrope', 'Segoe UI', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.dp-head span { margin-left: 6px; color: var(--brand-muted); font-weight: 600; text-transform: none; letter-spacing: 0; }
+.dp-note, .dp-unread, .dp-empty { margin: 0 0 10px; color: var(--brand-muted); font-size: var(--font-size-support); max-width: 90ch; }
+.dp-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.dp-chip { padding: 2px 10px; border-radius: 999px; border: 1px solid var(--brand-line); background: transparent; color: var(--brand-midnight); font: 700 var(--font-size-support) / 1.4 'Manrope', 'Segoe UI', sans-serif; cursor: pointer; }
+.dp-chip b { margin-left: 4px; font-variant-numeric: tabular-nums; }
+.dp-chip.is-on { background: var(--brand-midnight); color: var(--brand-surface); border-color: var(--brand-midnight); }
+.dp-group { margin: 0 0 14px; }
+.dp-cat { margin: 0 0 4px; font: 800 .78rem/1.3 'Manrope', 'Segoe UI', sans-serif; text-transform: uppercase; letter-spacing: .06em; color: var(--brand-muted); }
+.dp-row { border: 1px solid var(--brand-line); border-radius: 8px; margin: 0 0 4px; }
+.dp-row > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 6px 10px; cursor: pointer; font: 600 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; }
+.dp-matter { min-width: 14em; flex: 1 1 14em; font-weight: 700; }
+.dp-house, .dp-conf, .dp-idx { color: var(--brand-muted); font-size: var(--font-size-support); }
+.dp-verdict { display: inline-block; padding: 0 7px; border-radius: 3px; font-size: .78em; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.dp-verdict.is-strongpositive, .dp-chip.is-strongpositive { background: var(--status-strong); color: var(--brand-surface); }
+.dp-verdict.is-positiveconditional, .dp-chip.is-positiveconditional { border: 1px solid var(--status-strong); color: var(--status-strong); }
+.dp-verdict.is-mixed, .dp-chip.is-mixed { background: var(--status-moderate); color: var(--brand-midnight); }
+.dp-verdict.is-weaklimited, .dp-chip.is-weaklimited { border: 1px solid var(--status-moderate); color: var(--brand-midnight); background: repeating-linear-gradient(45deg, var(--status-moderate-bg) 0 3px, var(--status-moderate) 3px 5px); }
+.dp-verdict.is-adverse, .dp-chip.is-adverse { background: var(--status-weak-bg); color: var(--status-weak); border: 1px solid var(--status-weak); }
+.dp-verdict.is-indeterminate, .dp-chip.is-indeterminate { border: 1px dashed var(--brand-muted); color: var(--brand-muted); }
+.dp-chip.is-on.is-strongpositive, .dp-chip.is-on.is-positiveconditional, .dp-chip.is-on.is-mixed, .dp-chip.is-on.is-weaklimited, .dp-chip.is-on.is-adverse, .dp-chip.is-on.is-indeterminate { outline: 2px solid var(--brand-midnight); }
+.dp-roles { display: inline-flex; gap: 3px; }
+.dp-dir { display: inline-block; min-width: 1.5em; padding: 0 5px; border-radius: 3px; text-align: center; font-size: .78em; font-weight: 800; border: 1px solid var(--brand-line); }
+.dp-dir.is-supportive { color: var(--status-strong); border-color: var(--status-strong); }
+.dp-dir.is-obstructive { color: var(--status-weak); border-color: var(--status-weak); }
+.dp-dir.is-mixed { color: var(--brand-midnight); background: var(--status-moderate-bg); border-color: var(--status-moderate); }
+.dp-dir.is-neutral { color: var(--brand-muted); }
+.dp-body { padding: 4px 12px 10px; font-size: var(--font-size-support); }
+.dp-body p { margin: 4px 0; }
+.dp-contra { color: var(--status-weak); }
+.dp-role { margin: 8px 0 2px; font: 800 .75rem/1.3 'Manrope', 'Segoe UI', sans-serif; text-transform: uppercase; letter-spacing: .06em; color: var(--brand-muted); }
+.dp-tests { margin: 0; padding-left: 0; list-style: none; }
+.dp-tests li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 2px 0; }
+.dp-cap { color: var(--brand-muted); font-size: .85em; }
+.dp-missing, .dp-refine { color: var(--brand-muted); }

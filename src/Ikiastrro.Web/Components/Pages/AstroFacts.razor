@@ -3,6 +3,7 @@
 @using Ikiastrro.Web.Components.Workspace
 @using Ikiastrro.Web.Components.LifeMatters
 @inject BirthDetailsRepository BirthDetailsRepo
+@inject Ikiastrro.Data.Statistics.LifeMatterPromiseService PromiseService
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
 @inject ChartHouseLordsRepository ChartHouseLordsRepo
@@ -566,6 +567,14 @@ else
             <AllChartsGrid Data="_data" />
         </div>
     }
+
+    @if (Shows(7))
+    {
+        <div class="ki-panelbody" id="ki-panel-7" role="tabpanel" aria-labelledby="ki-tab-7">
+            @PrintHead(7)
+            <D1PromisePanel Readings="PromiseReadings" Error="_promiseError" />
+        </div>
+    }
 }
 
 @code {
@@ -705,7 +714,26 @@ else
         "YOGAS",
         "VARGAS",
         "ALL CHARTS",
+        "D1-PROMISE",
     };
+
+    private IReadOnlyList<Ikiastrro.Data.Statistics.MatterPromiseReading>? _promiseReadings;
+    private bool _promiseLoaded;
+    private string? _promiseError;
+
+    /// <summary>Every life matter's D1 promise (docs/architecture/key_inference_promise.md), read on
+    /// first use so the other tabs do not pay for it. Null when the person has no stored D1.</summary>
+    private IReadOnlyList<Ikiastrro.Data.Statistics.MatterPromiseReading>? PromiseReadings
+    {
+        get
+        {
+            if (_promiseLoaded) return _promiseReadings;
+            _promiseLoaded = true;
+            try { _promiseReadings = PromiseService.ReadAll(Id); }
+            catch (Exception ex) { _promiseReadings = null; _promiseError = ex.Message; }
+            return _promiseReadings;
+        }
+    }
 
     private void SelectMaster(int index)
     {
@@ -843,6 +871,7 @@ else
         if (Step is "5" or "yogas") _masterTab = 4;
         if (Step is "6" or "vargas") _masterTab = 5;
         if (Step is "7" or "allcharts") _masterTab = 6;
+        if (Step is "8" or "promise" or "d1promise") _masterTab = 7;
         if (Step is "3" or "strength") _masterTab = 2;
         if (Step is "3.3" or "astavarga" or "ashtakavarga")
         {

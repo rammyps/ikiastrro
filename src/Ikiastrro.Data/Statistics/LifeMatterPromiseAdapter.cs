@@ -13,7 +13,7 @@ public sealed record MatterTargetPromise(string Label, int House, ZodiacName Sig
 /// houses keeps them apart; no overall verdict is derived across them (that is a later decision).</summary>
 /// <param name="Note">Why there is no target, when there is none.</param>
 public sealed record MatterPromiseReading(
-    string LifeMatterCode, string MatterText, string CategoryCode,
+    string LifeMatterCode, string MatterText, string CategoryCode, string CategoryName,
     IReadOnlyList<MatterTargetPromise> Targets, string? Note)
 {
     /// <summary>The matter's first house by focus priority.</summary>
@@ -52,7 +52,7 @@ public static class LifeMatterPromiseAdapter
             .Distinct()
             .ToList();
         if (houses.Count == 0)
-            return new MatterPromiseReading(step.LifeMatterCode, step.MatterText, step.CategoryCode, [],
+            return new MatterPromiseReading(step.LifeMatterCode, step.MatterText, step.CategoryCode, step.CategoryName, [],
                 "No Lagna house focus: this matter is read from a special point or another lagna.");
 
         var targets = new List<MatterTargetPromise>();
@@ -68,7 +68,7 @@ public static class LifeMatterPromiseAdapter
                 Yogas: null, TechnicalSupportIndex: stats.StrengthPercent);
             targets.Add(new MatterTargetPromise(label, house, sign, D1PromiseEngine.Read(input)));
         }
-        return new MatterPromiseReading(step.LifeMatterCode, step.MatterText, step.CategoryCode, targets, null);
+        return new MatterPromiseReading(step.LifeMatterCode, step.MatterText, step.CategoryCode, step.CategoryName, targets, null);
     }
 
     /// <summary>Every graha in D1 as the engine needs it. Ṣaḍbala is banded with
