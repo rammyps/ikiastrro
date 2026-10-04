@@ -1,5 +1,7 @@
+@using Direction = Ikiastrro.Core.LifeMatters.Promise.Direction
 @using Ikiastrro.Core.Engines.Astronomy
 @using Ikiastrro.Core.Engines.Houses
+@using Ikiastrro.Core.LifeMatters.Promise
 @using Ikiastrro.Core.Presentation
 @using static Ikiastrro.Core.Engines.Houses.ArgalaCalculator
 @* Argala / Virodhargala — PVR sec.10.5-10.6 (SRC_PVR_INTEGRATED), pp.104-107. One row per house
@@ -27,6 +29,7 @@ else
                     <th rowspan="2">House</th>
                     <th rowspan="2">Sign</th>
                     <th rowspan="2">Net</th>
+                    <th rowspan="2" title="Benefic or malefic for this lagna (functional nature; Rahu/Ketu malefic) — the same reading D1-Promise uses for subhaargala / paapaargala">Nature</th>
                     <th colspan="4">Argala</th>
                     <th colspan="4">Virodhargala</th>
                 </tr>
@@ -50,6 +53,9 @@ else
                         <td>
                             <span class="at-net @NetCss(row.Compare)">@NetLabel(row.Compare) @row.Compare.ArgalaCount&ndash;@row.Compare.VirodhargalaCount</span>
                         </td>
+                        <td>
+                            <span class="at-nat @NatureCss(row.Nature)">@NatureLabel(row.Nature)</span>
+                        </td>
                         @foreach (var offset in ArgalaOffsetOrder)
                         {
                             var occupants = row.Occupants(offset);
@@ -60,7 +66,11 @@ else
                                 }
                                 else
                                 {
-                                    @string.Join(", ", occupants)
+                                    @for (var i = 0; i < occupants.Count; i++)
+                                    {
+                                        var d = D1PromiseEngine.NatureDirection(ascendant, occupants[i]);
+                                        <span class="at-p @PlanetCss(d)" title="@PlanetTitle(d)">@occupants[i]</span>@(i < occupants.Count - 1 ? ", " : "")
+                                    }
                                 }
                             </td>
                         }
@@ -105,7 +115,7 @@ else
     private static readonly int[] VirodhargalaOffsetOrder = { 12, 10, 3, 9 };
 
     private sealed record HouseRow(int HouseNumber, ZodiacName Sign, IReadOnlyList<ArgalaFactRow> Facts,
-        ComparisonResult Compare, bool ThirdHouseExceptionApplied, bool CountedAntiZodiacally)
+        ComparisonResult Compare, bool ThirdHouseExceptionApplied, bool CountedAntiZodiacally, Direction Nature)
     {
         /// <summary>Occupants at an offset regardless of side — the sec.10.6 exception stores the
         /// 3rd-from position as ARGALA, so a fixed "3rd" column has to check both.</summary>
@@ -113,10 +123,40 @@ else
     }
 
     private IReadOnlyList<HouseRow> Rows => BuildRows();
+    private ZodiacName ascendant => Enum.Parse<ZodiacName>(AscendantSign);
+
+    /// <summary>Subhaargala vs paapaargala, as D1-Promise counts it: benefic planets against malefic
+    /// planets among those causing argala on the house.</summary>
+    private static Direction ArgalaNature(ZodiacName lagna, IReadOnlyList<PlanetName> planets)
+    {
+        var good = planets.Count(p => D1PromiseEngine.NatureDirection(lagna, p) == Direction.Supportive);
+        var bad = planets.Count(p => D1PromiseEngine.NatureDirection(lagna, p) == Direction.Obstructive);
+        return planets.Count == 0 ? Direction.Neutral : good > bad ? Direction.Supportive
+            : bad > good ? Direction.Obstructive : good > 0 ? Direction.Mixed : Direction.Neutral;
+    }
+
+    private static string NatureLabel(Direction d) => d switch
+    {
+        Direction.Supportive => "Subha (benefic)",
+        Direction.Obstructive => "Paapa (malefic)",
+        Direction.Mixed => "Mixed",
+        _ => "—"
+    };
+    private static string NatureCss(Direction d) => d switch
+    {
+        Direction.Supportive => "at-nat-good", Direction.Obstructive => "at-nat-bad", Direction.Mixed => "at-nat-mixed", _ => "at-nat-none"
+    };
+    private static string PlanetCss(Direction d) => d switch
+    {
+        Direction.Supportive => "at-p-good", Direction.Obstructive => "at-p-bad", _ => ""
+    };
+    private static string PlanetTitle(Direction d) => d switch
+    {
+        Direction.Supportive => "Benefic for this lagna", Direction.Obstructive => "Malefic for this lagna", _ => "Neutral for this lagna"
+    };
 
     private List<HouseRow> BuildRows()
     {
-        var ascendant = Enum.Parse<ZodiacName>(AscendantSign);
         var factsByHouse = Facts.Where(f => f.TargetKind == "House").ToLookup(f => (int)f.TargetHouseNumber);
         var dignityByPlanet = Grahas
             .Where(k => k.Planet != "Ascendant" && Enum.TryParse<PlanetName>(k.Planet, out _))
@@ -131,7 +171,8 @@ else
                 Planets(facts.Where(f => f.RelationTypeCode == "VIRODHARGALA")),
                 p => ChartViewModel.DignityScore(dignityByPlanet.GetValueOrDefault(p)));
             rows.Add(new HouseRow(house, HouseEngine.GetHouseSign(ascendant, house), facts, compare,
-                facts.Any(f => f.ExceptionApplied), facts.Any(f => f.CountedAntiZodiacally)));
+                facts.Any(f => f.ExceptionApplied), facts.Any(f => f.CountedAntiZodiacally),
+                ArgalaNature(ascendant, Planets(facts.Where(f => f.RelationTypeCode == "ARGALA")))));
         }
         return rows;
     }

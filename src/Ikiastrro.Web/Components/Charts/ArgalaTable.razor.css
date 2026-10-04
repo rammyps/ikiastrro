@@ -38,3 +38,18 @@
 .at-net-tie { background: color-mix(in srgb, var(--brand-muted) 18%, transparent); }
 
 .at-footnote { margin: 6px 2px 0; font-size: .82em; color: var(--brand-muted); }
+
+.at-nat {
+    display: inline-block;
+    padding: .1rem .5rem;
+    border-radius: 999px;
+    font-size: .88em;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.at-nat-good { background: color-mix(in srgb, var(--dignity-good) 25%, transparent); }
+.at-nat-bad { background: color-mix(in srgb, var(--dignity-enemy) 22%, transparent); }
+.at-nat-mixed { background: color-mix(in srgb, var(--brand-muted) 18%, transparent); }
+.at-nat-none { color: var(--brand-muted); }
+.at-p-good { font-weight: 700; text-decoration: underline; text-decoration-color: var(--dignity-good); text-underline-offset: 3px; }
+.at-p-bad { font-weight: 700; text-decoration: underline; text-decoration-color: var(--dignity-enemy); text-underline-offset: 3px; }
