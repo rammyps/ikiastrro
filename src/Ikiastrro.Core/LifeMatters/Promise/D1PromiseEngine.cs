@@ -129,9 +129,14 @@ public static class D1PromiseEngine
             const InfluenceLink acts = InfluenceLink.Occupies | InfluenceLink.GrahaDrishti | InfluenceLink.RasiDrishti;
             if ((p.Links & acts) == 0 || p.Planet == lord || karakaSet.Contains(p.Planet)) continue;
 
+            // PVR step 5 and 13.2 together: what the planet is (functional nature) and where it stands from
+            // the target (quadrant, trine and upachaya sustain; dusthana obstructs). They agree, or one is
+            // silent, or the result is Mixed. A planet in the target itself has no position from it, so
+            // only its nature counts; the bādhaka always obstructs.
             var direction = p.IsBaadhaka || p.InBaadhakaSthaana
                 ? Direction.Obstructive
-                : NatureDirection(input.Lagna, p.Planet);
+                : Combine(NatureDirection(input.Lagna, p.Planet),
+                    p.Links.HasFlag(InfluenceLink.Occupies) ? Direction.Neutral : LeanDirection(p.Lean));
             // PVR 13.2: a functional malefic in the 3rd or a dusthana is good, it spoils a house that
             // should be spoiled. Applied only to a planet standing in the target itself.
             if (direction == Direction.Obstructive && p.Links.HasFlag(InfluenceLink.Occupies)
@@ -318,6 +323,20 @@ public static class D1PromiseEngine
         var hinders = (position & TargetPosition.Dusthana) != 0;
         return helps && hinders ? Direction.Mixed : helps ? Direction.Supportive : hinders ? Direction.Obstructive : Direction.Neutral;
     }
+
+    private static Direction LeanDirection(InfluenceLean lean) => lean switch
+    {
+        InfluenceLean.Supports => Direction.Supportive,
+        InfluenceLean.Obstructs => Direction.Obstructive,
+        InfluenceLean.Mixed => Direction.Mixed,
+        _ => Direction.Neutral,
+    };
+
+    private static Direction Combine(Direction nature, Direction position) =>
+        position == Direction.Neutral ? nature
+        : nature == Direction.Neutral ? position
+        : nature == position ? nature
+        : Direction.Mixed;
 
     public static Direction DignityDirection(string? dignity) => dignity switch
     {

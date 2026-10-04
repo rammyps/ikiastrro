@@ -2989,6 +2989,59 @@ if (args.Length > 0 && args[0] == "backfill-planet-transits")
     return;
 }
 
+// --- Verification mode: `dotnet run -- read-promise <name|id> [--matter CODE] [--category CAT] [--detail]` ---
+// Reads every life matter's D1 promise for one saved person (docs/architecture/key_inference_promise.md
+// §10): the matter's Lagna house(s), the categorical verdict and confidence, the principal roles'
+// directions, and with --detail every testimony. Read-only; for checking the engine against a hand reading.
+if (args.Length > 0 && args[0] == "read-promise")
+{
+    var who = args.Length > 1 ? args[1] : throw new ArgumentException("Usage: read-promise <name|id> [--matter CODE] [--category CAT] [--detail]");
+    string? Opt(string name) => Array.IndexOf(args, name) is var i and >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+    var person = int.TryParse(who, out var personId) ? birthDetailsRepo.GetById(personId) : birthDetailsRepo.GetAll().FirstOrDefault(p => p.Name == who);
+    if (person is null) { Console.WriteLine($"No saved person '{who}'."); return; }
+
+    var service = new Ikiastrro.Data.Statistics.LifeMatterPromiseService(
+        new ChartResultsRepository(connectionFactory), new ChartKeyDetailsRepository(connectionFactory),
+        new LifeMatterReferenceRepository(connectionFactory), new LifeMatterFocusRepository(connectionFactory),
+        new KarakaMatterRepository(connectionFactory), new PlanetaryStrengthRepository(connectionFactory),
+        new AshtakavargaRepository(connectionFactory), new BhavaStrengthRepository(connectionFactory),
+        new AmsabalaRepository(connectionFactory), new ArgalaFactRepository(connectionFactory));
+    var readings = service.ReadAll(person.Id);
+    if (readings is null) { Console.WriteLine($"{person.Name} has no stored D1."); return; }
+
+    var matter = Opt("--matter");
+    var category = Opt("--category");
+    var detail = args.Contains("--detail");
+    var shown = readings
+        .Where(r => matter is null || r.LifeMatterCode.Equals(matter, StringComparison.OrdinalIgnoreCase))
+        .Where(r => category is null || r.CategoryCode.Equals(category, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    Console.WriteLine($"D1 promise for {person.Name} (id {person.Id}) — {shown.Count} matters");
+    var tally = new Dictionary<string, int>();
+    foreach (var r in shown)
+    {
+        if (r.Targets.Count == 0) { Console.WriteLine($"{r.LifeMatterCode,-16} {r.MatterText,-44} — {r.Note}"); tally["(no Lagna house)"] = tally.GetValueOrDefault("(no Lagna house)") + 1; continue; }
+        foreach (var t in r.Targets)
+        {
+            var p = t.Promise;
+            tally[p.Verdict.ToString()] = tally.GetValueOrDefault(p.Verdict.ToString()) + 1;
+            var roles = string.Join(" ", p.D1.RoleDirections.Select(d => $"{d.Key.ToString()[0]}={d.Value.ToString()[0]}"));
+            Console.WriteLine($"{r.LifeMatterCode,-16} {Trunc(r.MatterText, 44),-44} {t.Label,-10} {p.Verdict,-20} {p.Confidence,-7} [{roles}] idx={p.TechnicalSupportIndex?.ToString() ?? "-"}");
+            if (!detail) continue;
+            foreach (var x in p.D1.Testimonies.Where(x => x.Direction != Ikiastrro.Core.LifeMatters.Promise.Direction.Neutral || x.Role == Ikiastrro.Core.LifeMatters.Promise.TestimonyRole.Target))
+                Console.WriteLine($"    {x.Role,-12} {x.Direction,-11} {x.Capacity,-8} {x.Explanation}");
+            foreach (var m in p.MissingEvidence) Console.WriteLine($"    missing: {m}");
+            foreach (var f in p.Refinements) Console.WriteLine($"    refinement: {f}");
+            foreach (var c in p.Contradictions) Console.WriteLine($"    contradiction: {c.Description}");
+        }
+    }
+    Console.WriteLine("Verdicts: " + string.Join(", ", tally.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key} {kv.Value}")));
+    return;
+
+    static string Trunc(string s, int n) => s.Length <= n ? s : s[..(n - 1)] + "…";
+}
+
 // --- One-off backfill mode: `dotnet run -- backfill-dasha` ---
 // Computes and stores Vimshottari Dasha for every saved person who doesn't have it yet (e.g.
 // everyone saved before this feature existed, 2026-08-27). Safe to re-run — skips anyone who
