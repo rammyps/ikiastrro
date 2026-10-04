@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-10-03
-reflects: v10 guarded statistical foundation with shared pre-publication cohort validation
+last_updated: 2026-10-04
+reflects: v10 statistical foundation plus planned family similarity and linked-dasha analysis using the existing family model
 ---
 
 # IkiAstrro v10 — Statistical Build Plan
@@ -53,6 +53,47 @@ Before building models, define what “statistical” means:
 3. **Prediction** — estimating an unseen person’s outcome. This is the hardest stage and should come only after out-of-sample validation.
 
 Birth charts alone support the first category. They cannot establish outcome accuracy or causation.
+
+## Family view extension
+
+The completed v10 statistical model must reuse the family model already introduced by migration
+168; it must not create parallel `FamilyCore` or `FamilyExtended` tables. The authoritative source
+is `tbl_Person_Relationship` plus `tbl_Dim_RelationType`, exposed through `vw_PersonFamily` with
+its `Core` and `Extended` tiers.
+
+The first Core-family acceptance fixture is RamakrishnanP (father), RameshwariS (mother) and
+AnanyaR (child). These saved-chart names are test fixtures only. Analytics datasets and persisted
+results must use anonymous person and derived family keys, never names.
+
+The statistical family view must provide:
+
+- each member's individual comparison with the eligible reference population;
+- symmetric pairwise and whole-family **similarity** over versioned canonical Astro Facts;
+- role-aware **compatibility** as a separate measure—similarity must not be presented as
+  relationship quality or outcome prediction;
+- one shared calendar axis connecting each member's versioned Mahadasha and Antardasha periods,
+  including active lords and their linked Astro Facts or compatibility evidence;
+- Core/Extended filtering directly from `vw_PersonFamily.Tier`, while preserving the relationship
+  role, adoption/step flags and status already represented by the existing model.
+
+Family analytics views may derive a stable anonymous `FamilyKey` and pair/overlap rows from those
+existing objects, but must not duplicate relationship truth in another operational table. Every
+result must retain the feature schema, similarity method and weights, dasha method/version,
+astrology `RuleSetId`, dataset/run version and computation timestamp.
+
+Statistical safeguards:
+
+- every included member independently passes consent, eligibility and provenance gates;
+- suppress a required-member family aggregate rather than silently changing its membership;
+- keep all members of one derived family in the same train, validation or holdout partition;
+- account for within-family dependence and never count pairwise rows as independent people;
+- treat overlapping dasha periods as temporal co-occurrence, not causal evidence;
+- make no hereditary or outcome claim from the three-person acceptance fixture.
+
+Acceptance criterion: the Core fixture resolves the three people and their roles from the existing
+relationship model, renders all three pairwise similarity and compatibility comparisons with
+separate labels, and aligns their linked dasha periods on one time axis with full provenance and
+no name-bearing analytics export.
 
 ## Phase 0 — Define the statistical contract
 
@@ -237,6 +278,7 @@ Validation requirements:
 - Use untouched holdout data.
 - Use time-based validation when outcomes have dates.
 - Prevent D1/D9/etc. rows from the same person leaking across train and test sets.
+- Keep every member of a family in the same train, validation or test partition.
 - Compare every model against a simple baseline.
 - Report calibration, not just accuracy.
 - Report subgroup performance.
@@ -285,6 +327,7 @@ A failed or underperforming model must not replace the currently published model
 | 6. Outcome pilot | One carefully defined labelled outcome and baseline model |
 | 7. Validation gate | Independent holdout, calibration and subgroup checks |
 | 8. Controlled publication | Versioned model results available to the web application |
+| 9. Family view | Reused Core/Extended relationships, similarity, compatibility and linked dasha periods |
 
 ## Recommended first milestone
 
