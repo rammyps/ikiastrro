@@ -40,7 +40,8 @@ public static class LifeMatterPromiseAdapter
         string ascendantSign,
         LifeMatterStatistics d1Stats,
         IReadOnlyList<ShadbalaSummaryRow> shadbala,
-        IReadOnlyDictionary<PlanetName, IReadOnlyList<PlanetSignification>>? significations = null)
+        IReadOnlyDictionary<PlanetName, IReadOnlyList<PlanetSignification>>? significations = null,
+        IReadOnlyDictionary<int, string>? houseMatters = null)
     {
         var grahas = d1KeyDetails.Where(k => k.PointKind == "Graha").ToList();
         var planets = PlanetFacts(grahas, shadbala);
@@ -67,7 +68,7 @@ public static class LifeMatterPromiseAdapter
                 karakas, ToCapacity(stats.BhavaBand), ToCapacity(stats.SavBand), ToCapacity(stats.LordBavBand),
                 ArgalaPlanets(stats.Argala, held: true), ArgalaPlanets(stats.Argala, held: false),
                 Yogas: null, TechnicalSupportIndex: stats.StrengthPercent,
-                ArgalaLinks: Links(stats.Argala), Significations: significations);
+                ArgalaLinks: Links(stats.Argala), Significations: significations, HouseMatters: houseMatters);
             targets.Add(new MatterTargetPromise(label, house, sign, D1PromiseEngine.Read(input)));
         }
         return new MatterPromiseReading(step.LifeMatterCode, step.MatterText, step.CategoryCode, step.CategoryName, targets, null);
@@ -121,6 +122,11 @@ public static class LifeMatterPromiseAdapter
             .GroupBy(r => Enum.Parse<PlanetName>(r.Graha))
             .ToDictionary(g => g.Key, g => (IReadOnlyList<PlanetSignification>)g.OrderBy(r => r.DisplayOrder)
                 .Select(r => new PlanetSignification(r.HouseNumber, r.Matter)).ToList());
+
+    /// <summary>House number → its leading matters (PVR ch. 7), trimmed to the first few so a line stays readable.</summary>
+    public static Dictionary<int, string> HouseMatters(IEnumerable<HouseReadingRow> houses, int take = 5) =>
+        houses.ToDictionary(h => h.HouseNumber,
+            h => string.Join(", ", h.HouseSummary.Split(", ", StringSplitOptions.RemoveEmptyEntries).Take(take)));
 
     /// <summary>Planets whose Argala holds or is contested (<paramref name="held"/>), or every planet
     /// obstructing an Argala, as Key Inference's influence step reads them.</summary>
@@ -181,10 +187,12 @@ public sealed class LifeMatterPromiseService(
             ArgalaFacts.ForChart(argala.GetByBirthDetailId(birthDetailId), "D1", asc, details),
             bhava.GetComponentsByBirthDetailId(birthDetailId), amsabala.GetByBirthDetailId(birthDetailId));
 
-        var significations = LifeMatterPromiseAdapter.Significations(naisargika.LoadActive().Details);
+        var rules = naisargika.LoadActive();
+        var significations = LifeMatterPromiseAdapter.Significations(rules.Details);
+        var houseMatters = LifeMatterPromiseAdapter.HouseMatters(rules.Houses);
         return steps
             .Select(s => LifeMatterPromiseAdapter.Read(
-                s, Resolver.Resolve(RuleSetId, s.LifeMatterId, subjects, karakas, focusRules), details, asc, stats, shadbala, significations))
+                s, Resolver.Resolve(RuleSetId, s.LifeMatterId, subjects, karakas, focusRules), details, asc, stats, shadbala, significations, houseMatters))
             .ToList();
     }
 }

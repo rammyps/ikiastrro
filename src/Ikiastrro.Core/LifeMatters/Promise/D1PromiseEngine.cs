@@ -222,6 +222,10 @@ public static class D1PromiseEngine
             if (obstructing.Count > 0 && !link.ExceptionApplied) anyObstruction = true;
 
             var brings = planets.Select(p => Brings(input, p, karakas, targetHouse, good >= bad)).ToList();
+            // The house the argala planets stand in, from lagna, and what that house signifies (PVR ch. 7).
+            var argalaHouse = (targetHouse + link.ArgalaOffset - 2) % 12 + 1;
+            if (input.HouseMatters is not null && input.HouseMatters.TryGetValue(argalaHouse, out var houseMatters))
+                brings.Add($"They stand in the {Ordinal(argalaHouse)} house, which signifies {houseMatters}.");
             var role = ArgalaPositionRole.Meaning(link.ArgalaOffset);
             var roleText = role is null ? "" : $" ({role})";
             lines.Add($"{kind} from the {Ordinal(link.ArgalaOffset)}{roleText} by {string.Join(", ", planets)} — {virodha}. {string.Join(" ", brings)}");

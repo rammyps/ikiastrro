@@ -113,7 +113,8 @@ public sealed record MatterPromiseInput(
     string Chart = "D1",
     string RuleSetVersion = "PVR-1",
     IReadOnlyList<ArgalaLink>? ArgalaLinks = null,
-    IReadOnlyDictionary<PlanetName, IReadOnlyList<PlanetSignification>>? Significations = null);
+    IReadOnlyDictionary<PlanetName, IReadOnlyList<PlanetSignification>>? Significations = null,
+    IReadOnlyDictionary<int, string>? HouseMatters = null);
 
 public static class CapacityExtensions
 {

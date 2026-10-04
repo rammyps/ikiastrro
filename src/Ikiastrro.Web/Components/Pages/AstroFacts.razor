@@ -27,6 +27,7 @@
 @inject Ikiastrro.Data.YogaEvaluationRepository YogaEvaluationRepo
 @inject Ikiastrro.Data.InterpretationRepository InterpretationRepo
 @inject Ikiastrro.Data.ArgalaRuleRepository ArgalaRuleRepo
+@inject Ikiastrro.Data.NaisargikaKarakaRepository NaisargikaRepo
 @inject Ikiastrro.Data.ArgalaFactRepository ArgalaFactRepo
 @inject Ikiastrro.Data.RasiNakshatraCombinationRepository RasiNakshatraCombinationRepo
 @inject Ikiastrro.Data.GrahaDrishtiStrengthRepository GrahaDrishtiStrengthRepo
@@ -259,7 +260,7 @@ else
                     <HouseVerdictTable Rows="ArgalaFacts.HouseVerdicts(natalChart.AscendantSign, natalChart.Grahas, ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas))" />
 
                     @Head(NatalSection.Argala)
-                    <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" />
+                    <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" HouseMatters="_argalaHouseMatters" />
                                 </div>
                             }
                             @if (SubShows(_activeTab, 3))
@@ -811,6 +812,7 @@ else
     private IReadOnlyList<Ikiastrro.Data.YogaEvaluationRow> _yogaEvaluations = Array.Empty<Ikiastrro.Data.YogaEvaluationRow>();
     private IReadOnlyList<Ikiastrro.Data.InterpretationRow> _interpretations = Array.Empty<Ikiastrro.Data.InterpretationRow>();
     private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
+    private IReadOnlyDictionary<int, string> _argalaHouseMatters = new Dictionary<int, string>();
     private IReadOnlyList<Ikiastrro.Data.ArgalaFactRow> _argalaFacts = Array.Empty<Ikiastrro.Data.ArgalaFactRow>();
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
     private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
@@ -927,6 +929,7 @@ else
         _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
         _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
         _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);
+        _argalaHouseMatters = Ikiastrro.Data.Statistics.LifeMatterPromiseAdapter.HouseMatters(NaisargikaRepo.LoadActive().Houses);
         _argalaFacts = ArgalaFactRepo.GetByBirthDetailId(Id);
         _rasiNakshatraCombinations = RasiNakshatraCombinationRepo.GetAll(1);
         _grahaDrishtiStrengths = GrahaDrishtiStrengthRepo.GetByBirthDetailId(Id);
