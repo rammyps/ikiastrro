@@ -880,6 +880,7 @@ else
         }
         if (Step is "3.4" or "amsabala") _masterTab = 5; // Amsabala/Vargottama moved into step 6 (Vargas)
 
+        _promiseLoaded = false; _promiseReadings = null; _promiseError = null; // per-person: re-read on next use
         _data = WorkspaceData.Load(Id, BirthDetailsRepo, ChartResultsRepo, ChartKeyDetailsRepo,
             ChartHouseLordsRepo, ChartHouseLordInterpretationRepo, ChartAspectsRepo, ChartConjunctionsRepo,
             ChartMultiGrahaConjunctionRepo, ChartTypeRepo.GetAll());
