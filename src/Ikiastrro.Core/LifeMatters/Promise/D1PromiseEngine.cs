@@ -222,7 +222,9 @@ public static class D1PromiseEngine
             if (obstructing.Count > 0 && !link.ExceptionApplied) anyObstruction = true;
 
             var brings = planets.Select(p => Brings(input, p, karakas, targetHouse, good >= bad)).ToList();
-            lines.Add($"{kind} from the {Ordinal(link.ArgalaOffset)} by {string.Join(", ", planets)} — {virodha}. {string.Join(" ", brings)}");
+            var role = ArgalaPositionRole.Meaning(link.ArgalaOffset);
+            var roleText = role is null ? "" : $" ({role})";
+            lines.Add($"{kind} from the {Ordinal(link.ArgalaOffset)}{roleText} by {string.Join(", ", planets)} — {virodha}. {string.Join(" ", brings)}");
 
             if (!blocked || link.ExceptionApplied) active.AddRange(planets);
         }

@@ -36,7 +36,7 @@ else
                 <tr>
                     @foreach (var offset in ArgalaOffsetOrder)
                     {
-                        <th class="at-offset" title="@SignificanceNotes.GetValueOrDefault(offset)">@Ordinal(offset)</th>
+                        <th class="at-offset" title="@SignificanceNotes.GetValueOrDefault(offset)">@Ordinal(offset)<span class="at-role">@ArgalaPositionRole.Label(offset)</span></th>
                     }
                     @foreach (var offset in VirodhargalaOffsetOrder)
                     {

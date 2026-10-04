@@ -53,3 +53,5 @@
 .at-nat-none { color: var(--brand-muted); }
 .at-p-good { font-weight: 700; text-decoration: underline; text-decoration-color: var(--dignity-good); text-underline-offset: 3px; }
 .at-p-bad { font-weight: 700; text-decoration: underline; text-decoration-color: var(--dignity-enemy); text-underline-offset: 3px; }
+
+.at-role { display: block; font-size: .8em; font-weight: 500; color: var(--brand-muted); }
