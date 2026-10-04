@@ -157,6 +157,8 @@ public static class D1PromiseEngine
     private static void ReadIntervention(Ctx c)
     {
         var input = c.Input;
+        if (input.ArgalaLinks is { Count: > 0 } links) { ReadInterventionLinks(c, links); return; }
+
         var argala = (input.ArgalaPlanets ?? []).Distinct().ToList();
         var virodha = (input.VirodhargalaPlanets ?? []).Distinct().ToList();
         if (argala.Count == 0) return;
@@ -182,6 +184,79 @@ public static class D1PromiseEngine
         c.Testimonies.Add(new Testimony(Pvr, input.RuleSetVersion, input.Chart, "Target", TestimonyRole.Intervention,
             input.TargetLabel, direction, virodha.Count > 0 ? Capacity.Weak : Capacity.Moderate,
             PromiseFamilies.Intervention, text));
+    }
+
+    /// <summary>PVR 10.5-10.6 pair by pair: is each argala good (subhaargala) or bad (paapaargala), does
+    /// the virodhargala from its paired house hold it back, and what the argala planet brings to the
+    /// target from its significations (PVR ch. 8) — as the matter's own karaka, or by the matters it
+    /// naturally signifies, above all one read from the target house itself.</summary>
+    private static void ReadInterventionLinks(Ctx c, IReadOnlyList<ArgalaLink> links)
+    {
+        var input = c.Input;
+        var karakas = (input.Karakas ?? []).ToHashSet();
+        var targetHouse = AstroMath.CountFromSignToSign(input.Lagna, input.Target);
+        var active = new List<PlanetName>();
+        var anyObstruction = false;
+        var lines = new List<string>();
+
+        foreach (var link in links.Where(l => l.ArgalaPlanets.Count > 0))
+        {
+            var planets = link.ArgalaPlanets.Distinct().ToList();
+            var obstructing = link.ObstructingPlanets.Distinct().ToList();
+            var guard = Ordinal(link.ObstructionOffset);
+
+            var good = planets.Count(p => NatureDirection(input.Lagna, p) == Direction.Supportive);
+            var bad = planets.Count(p => NatureDirection(input.Lagna, p) == Direction.Obstructive);
+            var kind = good > bad ? "subhaargala (good)" : bad > good ? "paapaargala (bad)" : good > 0 ? "mixed argala" : "neutral argala";
+
+            string virodha;
+            var blocked = obstructing.Count >= planets.Count;
+            if (link.ExceptionApplied)
+                virodha = $"the {guard} holds {string.Join(", ", obstructing)}: 2+ malefics there cause argala instead of obstructing (PVR 10.6)";
+            else if (obstructing.Count == 0)
+                virodha = $"no virodhargala from the {guard}, so it stands";
+            else if (blocked)
+                virodha = $"virodhargala from the {guard} ({string.Join(", ", obstructing)}) is as strong or stronger, so the argala is blocked";
+            else
+                virodha = $"virodhargala from the {guard} ({string.Join(", ", obstructing)}) answers it only in part";
+            if (obstructing.Count > 0 && !link.ExceptionApplied) anyObstruction = true;
+
+            var brings = planets.Select(p => Brings(input, p, karakas, targetHouse, good >= bad)).ToList();
+            lines.Add($"{kind} from the {Ordinal(link.ArgalaOffset)} by {string.Join(", ", planets)} — {virodha}. {string.Join(" ", brings)}");
+
+            if (!blocked || link.ExceptionApplied) active.AddRange(planets);
+        }
+        if (lines.Count == 0) return;
+
+        var benefic = active.Count(p => NatureDirection(input.Lagna, p) == Direction.Supportive);
+        var malefic = active.Count(p => NatureDirection(input.Lagna, p) == Direction.Obstructive);
+        var direction = active.Count == 0 ? Direction.Neutral
+            : benefic > malefic ? Direction.Supportive
+            : malefic > benefic ? Direction.Obstructive
+            : benefic > 0 ? Direction.Mixed : Direction.Neutral;
+
+        c.Testimonies.Add(new Testimony(Pvr, input.RuleSetVersion, input.Chart, "Target", TestimonyRole.Intervention,
+            input.TargetLabel, direction, anyObstruction ? Capacity.Weak : Capacity.Moderate,
+            PromiseFamilies.Intervention, string.Join(" | ", lines)));
+    }
+
+    private static string Brings(MatterPromiseInput input, PlanetName planet, HashSet<PlanetName> karakas, int targetHouse, bool good)
+    {
+        var effect = good ? "supports" : "strains";
+        var signifies = input.Significations is not null && input.Significations.TryGetValue(planet, out var list) ? list : [];
+        var onTarget = signifies.Where(s => s.House == targetHouse).Select(s => s.Matter).ToList();
+        var others = signifies.Where(s => s.House != targetHouse).Select(s => $"{s.Matter} ({Ordinal(s.House)})").Take(3).ToList();
+
+        var parts = new List<string>();
+        if (karakas.Contains(planet))
+            parts.Add($"{planet} is the matter's own karaka, so its argala {effect} {input.TargetLabel} directly");
+        if (onTarget.Count > 0)
+            parts.Add($"{planet} naturally signifies {string.Join(", ", onTarget)}, read from this very house, so it {effect} what the house stands for");
+        if (parts.Count == 0 && others.Count > 0)
+            parts.Add($"{planet} brings its own significations ({string.Join(", ", others)}) to bear on {input.TargetLabel}");
+        if (parts.Count == 0)
+            parts.Add($"{planet} has no natural signification tied to {input.TargetLabel}");
+        return string.Join("; ", parts) + ".";
     }
 
     private static void ReadAshtakavarga(Ctx c)

@@ -3005,7 +3005,8 @@ if (args.Length > 0 && args[0] == "read-promise")
         new LifeMatterReferenceRepository(connectionFactory), new LifeMatterFocusRepository(connectionFactory),
         new KarakaMatterRepository(connectionFactory), new PlanetaryStrengthRepository(connectionFactory),
         new AshtakavargaRepository(connectionFactory), new BhavaStrengthRepository(connectionFactory),
-        new AmsabalaRepository(connectionFactory), new ArgalaFactRepository(connectionFactory));
+        new AmsabalaRepository(connectionFactory), new ArgalaFactRepository(connectionFactory),
+        new NaisargikaKarakaRepository(connectionFactory));
     var readings = service.ReadAll(person.Id);
     if (readings is null) { Console.WriteLine($"{person.Name} has no stored D1."); return; }
 

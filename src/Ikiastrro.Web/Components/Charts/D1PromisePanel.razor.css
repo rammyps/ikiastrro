@@ -36,3 +36,6 @@
 .dp-tests li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 2px 0; }
 .dp-cap { color: var(--brand-muted); font-size: .85em; }
 .dp-missing, .dp-refine { color: var(--brand-muted); }
+
+.dp-argala { margin: .25rem 0 0 1rem; padding: 0; }
+.dp-argala li { margin: .2rem 0; }

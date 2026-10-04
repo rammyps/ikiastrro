@@ -79,7 +79,19 @@
                                         <li>
                                             <span class="dp-dir is-@t.Direction.ToString().ToLowerInvariant()">@t.Direction</span>
                                             <span class="dp-cap">@t.Capacity capacity</span>
-                                            @t.Explanation
+                                            @if (t.Role == TestimonyRole.Intervention && t.Explanation.Contains(" | "))
+                                            {
+                                                <ul class="dp-argala">
+                                                    @foreach (var part in t.Explanation.Split(" | "))
+                                                    {
+                                                        <li>@part</li>
+                                                    }
+                                                </ul>
+                                            }
+                                            else
+                                            {
+                                                @t.Explanation
+                                            }
                                         </li>
                                     }
                                 </ul>

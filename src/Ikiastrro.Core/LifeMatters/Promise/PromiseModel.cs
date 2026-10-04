@@ -78,6 +78,17 @@ public sealed record PlanetFact(
     ZodiacName Sign, string? Dignity = null, bool IsCombust = false,
     Capacity Capacity = Capacity.Unknown, PlanetName? NakshatraLord = null);
 
+/// <summary>One Argala pair on the target (PVR 10.5-10.6): the planets intervening from
+/// <see cref="ArgalaOffset"/> and the planets obstructing them from <see cref="ObstructionOffset"/>.
+/// <see cref="ExceptionApplied"/> marks the 2+ malefics in the 3rd, which cause argala instead.</summary>
+public sealed record ArgalaLink(
+    int ArgalaOffset, int ObstructionOffset,
+    IReadOnlyList<PlanetName> ArgalaPlanets, IReadOnlyList<PlanetName> ObstructingPlanets,
+    bool ExceptionApplied = false);
+
+/// <summary>A matter a graha naturally signifies and the house it is read from (PVR ch. 8 Table 12).</summary>
+public sealed record PlanetSignification(int House, string Matter);
+
 public sealed record YogaFact(string Name, Direction Direction, IReadOnlyList<PlanetName> Planets);
 
 /// <summary>Everything the D1 engine reads for one matter. The caller resolves the target, karakas
@@ -100,7 +111,9 @@ public sealed record MatterPromiseInput(
     IReadOnlyList<YogaFact>? Yogas = null,
     int? TechnicalSupportIndex = null,
     string Chart = "D1",
-    string RuleSetVersion = "PVR-1");
+    string RuleSetVersion = "PVR-1",
+    IReadOnlyList<ArgalaLink>? ArgalaLinks = null,
+    IReadOnlyDictionary<PlanetName, IReadOnlyList<PlanetSignification>>? Significations = null);
 
 public static class CapacityExtensions
 {

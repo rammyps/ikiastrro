@@ -39,7 +39,8 @@ public static class LifeMatterPromiseAdapter
         IReadOnlyList<ChartKeyDetail> d1KeyDetails,
         string ascendantSign,
         LifeMatterStatistics d1Stats,
-        IReadOnlyList<ShadbalaSummaryRow> shadbala)
+        IReadOnlyList<ShadbalaSummaryRow> shadbala,
+        IReadOnlyDictionary<PlanetName, IReadOnlyList<PlanetSignification>>? significations = null)
     {
         var grahas = d1KeyDetails.Where(k => k.PointKind == "Graha").ToList();
         var planets = PlanetFacts(grahas, shadbala);
@@ -65,7 +66,8 @@ public static class LifeMatterPromiseAdapter
                 step.LifeMatterCode, Enum.Parse<ZodiacName>(ascendantSign), label, sign, planets,
                 karakas, ToCapacity(stats.BhavaBand), ToCapacity(stats.SavBand), ToCapacity(stats.LordBavBand),
                 ArgalaPlanets(stats.Argala, held: true), ArgalaPlanets(stats.Argala, held: false),
-                Yogas: null, TechnicalSupportIndex: stats.StrengthPercent);
+                Yogas: null, TechnicalSupportIndex: stats.StrengthPercent,
+                ArgalaLinks: Links(stats.Argala), Significations: significations);
             targets.Add(new MatterTargetPromise(label, house, sign, D1PromiseEngine.Read(input)));
         }
         return new MatterPromiseReading(step.LifeMatterCode, step.MatterText, step.CategoryCode, step.CategoryName, targets, null);
@@ -104,6 +106,22 @@ public static class LifeMatterPromiseAdapter
             .Where(p => p is not null).Select(p => p!.Value).Distinct().ToList();
     }
 
+    /// <summary>Each Argala pair with its planets, for the engine's pair-by-pair reading.</summary>
+    public static List<ArgalaLink> Links(ArgalaSummary argala) =>
+        argala.Pairs.Select(p => new ArgalaLink(p.ArgalaOffset, p.ObstructionOffset,
+            ToPlanets(p.ArgalaPlanets), ToPlanets(p.ObstructingPlanets), p.ExceptionApplied)).ToList();
+
+    private static List<PlanetName> ToPlanets(IEnumerable<string> names) =>
+        names.Select(n => Enum.TryParse<PlanetName>(n, out var planet) ? planet : (PlanetName?)null)
+            .Where(p => p is not null).Select(p => p!.Value).ToList();
+
+    /// <summary>Planet to the matters it naturally signifies and their houses (PVR ch. 8 Table 12).</summary>
+    public static Dictionary<PlanetName, IReadOnlyList<PlanetSignification>> Significations(IEnumerable<NaisargikaKarakatwaRow> rows) =>
+        rows.Where(r => Enum.TryParse<PlanetName>(r.Graha, out _))
+            .GroupBy(r => Enum.Parse<PlanetName>(r.Graha))
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<PlanetSignification>)g.OrderBy(r => r.DisplayOrder)
+                .Select(r => new PlanetSignification(r.HouseNumber, r.Matter)).ToList());
+
     /// <summary>Planets whose Argala holds or is contested (<paramref name="held"/>), or every planet
     /// obstructing an Argala, as Key Inference's influence step reads them.</summary>
     public static List<PlanetName> ArgalaPlanets(ArgalaSummary argala, bool held) =>
@@ -137,7 +155,8 @@ public sealed class LifeMatterPromiseService(
     AshtakavargaRepository ashtakavarga,
     BhavaStrengthRepository bhava,
     AmsabalaRepository amsabala,
-    ArgalaFactRepository argala)
+    ArgalaFactRepository argala,
+    NaisargikaKarakaRepository naisargika)
 {
     private const byte RuleSetId = 1;
     private static readonly LifeMatterFocusResolver Resolver = new();
@@ -162,9 +181,10 @@ public sealed class LifeMatterPromiseService(
             ArgalaFacts.ForChart(argala.GetByBirthDetailId(birthDetailId), "D1", asc, details),
             bhava.GetComponentsByBirthDetailId(birthDetailId), amsabala.GetByBirthDetailId(birthDetailId));
 
+        var significations = LifeMatterPromiseAdapter.Significations(naisargika.LoadActive().Details);
         return steps
             .Select(s => LifeMatterPromiseAdapter.Read(
-                s, Resolver.Resolve(RuleSetId, s.LifeMatterId, subjects, karakas, focusRules), details, asc, stats, shadbala))
+                s, Resolver.Resolve(RuleSetId, s.LifeMatterId, subjects, karakas, focusRules), details, asc, stats, shadbala, significations))
             .ToList();
     }
 }

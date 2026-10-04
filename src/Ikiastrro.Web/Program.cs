@@ -70,6 +70,7 @@ builder.Services.AddScoped<LifeMatterReferenceRepository>();
 builder.Services.AddScoped<DivisionalSubjectRepository>();
 builder.Services.AddScoped<LifeMatterFocusRepository>();
 builder.Services.AddScoped<Ikiastrro.Web.Components.LifeMatters.MarriageMattersReader>();
+builder.Services.AddScoped<NaisargikaKarakaRepository>();
 builder.Services.AddScoped<Ikiastrro.Data.Statistics.LifeMatterPromiseService>();
 builder.Services.AddScoped<KarakaMatterRepository>();
 builder.Services.AddScoped<VargaSchemeRepository>();
