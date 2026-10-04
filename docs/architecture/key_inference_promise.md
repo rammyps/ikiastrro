@@ -1,0 +1,158 @@
+---
+last_updated: 2026-10-04
+workstream: architecture
+togaf: C — application (Core inference layer, then Key Inference page)
+reflects: proposal on master ad510eb. Nothing in this doc is built yet.
+---
+
+# Key Inference: from strength statistics to a promise judgement
+
+Status: proposal, from rammyps's brief of 2026-10-04. Decisions needed are in section 9.
+
+The brief: Life Matters should answer "what does the natal chart promise about this matter, what supports or damages that promise, and does the relevant divisional chart confirm it?" Strength averages must not decide the promise. D1 states the promise, the matter's varga confirms and describes delivery, special lagnas show particular manifestations, and strength says how powerfully each testimony operates.
+
+## 1. What Key Inference does today
+
+| Layer | Where | What it gives |
+|---|---|---|
+| Matter, focus, karaka, subject→chart | `LifeMatterFocusResolver`, `tbl_Rule_LifeMatterFocus`, `LifeMatterSubjectRule.ChartTypeCode` | The target house or special point per matter, its karakas, and the chart it is read in |
+| Strength statistics | `LifeMatterStatistics` / `HouseStatistics` | Capacity (Ṣaḍbala), Consistency (Amsabala), Context (SAV, lord's BAV, independent Bhava Bala, Argala) as three 0–100 axes. `StrengthPercent` is their mean |
+| Step 5 influences | `TargetInfluences.Read` | Graha and rāśi dṛṣṭi, Argala and Virodhargala, house-from-target position, bādhaka, functional nature; a per-planet lean (Supports, Obstructs, Mixed, Neutral) |
+| Wording | `LifeMatterReading` | Bands, strongest and limiting factors, headline text |
+| Page | `KeyInference.razor` (1518 lines) | Percent-led answer, factor lists, population comparison, "every perspective in every chart" |
+
+The evidence is largely there. The gap is the hierarchy: a percentage leads, strength is read as if it were direction, and several signals that share one cause are counted separately.
+
+## 2. Gaps against the brief
+
+1. **No promise verdict or confidence.** The page shows a percent and a band, not Strong positive / Positive but conditional / Mixed / Weak / Adverse / Indeterminate.
+2. **Direction and capacity are fused.** A strong malefic reads as strong, not as strongly obstructive. `HouseStatistics.Bands` counts Strong minus Weak.
+3. **Correlated signals are counted separately.** Dignity and dīptādi avastha share a placement; the lord's Ṣaḍbala feeds both Capacity and the lord's band; SAV and BAV are both Ashtakavarga; a conjunction and the yoga it forms.
+4. **D1 is not a gate.** The varga is read with the same rubric but the two are not reconciled.
+5. **Special lagnas are perspectives of equal rank**, selectable but with no per-matter policy of essential, optional or irrelevant.
+6. **Nakshatra and sub-lord chain, bādhaka, yogas, conjunction effects on the lord** are shown in places but are not testimonies in a verdict.
+
+## 3. The model
+
+New namespace `Ikiastrro.Core.LifeMatters.Promise`. Pure; the page and the statistics service only feed it.
+
+```csharp
+enum Direction { Supportive, Obstructive, Mixed, Neutral }
+enum Capacity  { Strong, Moderate, Weak, Unknown }          // reuses StrengthBands, never converted to Direction
+enum PromiseVerdict { StrongPositive, PositiveConditional, Mixed, WeakLimited, Adverse, Indeterminate }
+enum Confidence { High, Medium, Low }                        // independent of the verdict: Mixed is not Low
+
+record Testimony(
+    string SourceCode, string RuleSetVersion,                // SRC_* and rule set, for the audit trail
+    string Chart, string Reference,                          // D1/D10, Lagna/AL/...
+    TestimonyRole Role,                                      // Target, Lord, Karaka, Influence, Yoga, Varga
+    string Subject,                                          // house, pada, planet or yoga involved
+    Direction Direction, Capacity Capacity,
+    string Family,                                           // independence group, section 5
+    string Explanation);
+
+record LifeMatterPromise(
+    D1Foundation D1, DomainConfirmation? Domain,
+    IReadOnlyList<ManifestationLens> Lenses,
+    IReadOnlyList<Testimony> Positive, IReadOnlyList<Testimony> Negative,
+    IReadOnlyList<Contradiction> Contradictions,
+    PromiseVerdict Verdict, Confidence Confidence,
+    IReadOnlyList<string> MissingEvidence,
+    int? TechnicalSupportIndex);                             // today's percent, kept but not leading
+```
+
+## 4. D1 foundation: an analytical order, not equal votes
+
+Per matter, for the resolved target (house or pada) in D1, in this order, each step producing zero or more `Testimony`:
+
+1. Target house or pada, and its sign.
+2. House lord and its placement (house from target and from Lagna, dignity, dispositor).
+3. Natural and matter-specific karakas, same questions.
+4. Occupants.
+5. Graha dṛṣṭi and rāśi dṛṣṭi onto the target (`TargetInfluences` already).
+6. Conjunctions touching the lord, karakas or target.
+7. Sign dignity and dispositors.
+8. Nakshatra lord and sub-lord chain of lord and karakas, as a refinement only.
+9. Strength and avasthas: they set `Capacity` on a testimony already created. They never create a direction.
+10. Argala and Virodhargala: intervention and whether it is blocked. A separate testimony role, not a strength point.
+11. Functional nature, bādhaka, yogas.
+12. Synthesis into positive, negative and mixed propositions.
+
+Rules the engine enforces:
+- **Strength is capacity.** An exalted 10th lord is a positive promise; if it is combust, poorly placed and under Virodhargala, the promise stays but is damaged (positive direction, weak capacity, with a negative family). High Ṣaḍbala on a functional malefic is strongly obstructive.
+- **Nakshatra and avastha refine, they do not outweigh** house lordship and placement. They adjust capacity or add a refinement note, never flip a direction.
+
+## 5. Independence groups
+
+Evidence stays visible, but the verdict counts one testimony per family:
+
+| Family | Members counted once |
+|---|---|
+| Placement condition | sign dignity, dīptādi avastha, combustion, retrograde of the same planet |
+| Planet capacity | Ṣaḍbala, Amsabala, the capacity score derived from them |
+| Ashtakavarga | SAV of the sign, the lord's BAV there |
+| Conjunction | a conjunction and a yoga formed by that same conjunction |
+| Intervention | Argala and its Virodhargala on the same pair |
+| Lordship placement | lord in house X from target and from Lagna |
+
+The family list is one static table covered by tests, so it can be audited and changed in one place.
+
+## 6. Classifying the promise and the confidence
+
+The verdict comes from the families, not the percent:
+
+| Verdict | Rule (heuristic, labelled) |
+|---|---|
+| Strong positive | at least three supportive families across target, lord and karaka roles, and no obstructive family on the lord or target |
+| Positive but conditional | supportive on the lord or target, with one obstructive family or a weak capacity on a principal role |
+| Mixed | supportive and obstructive families both on principal roles |
+| Weak / limited | principal lord, target and karaka cannot sustain what indications exist |
+| Adverse | obstructive families dominate, on the lord or target |
+| Indeterminate | required evidence missing, or an exact tie |
+
+Confidence: **High** when house, lord and karaka agree and the varga agrees; **Medium** when two principal roles agree; **Low** when data is sparse or contradiction is serious. Mixed and Low are separate fields.
+
+The family counts above are the part I most want checked (section 9).
+
+## 7. Varga reconciliation
+
+The matter's varga comes from `LifeMatterSubjectRule.ChartTypeCode`. The brief's mapping (D2 wealth, D3 siblings, D4 property, D7 children, D9 marriage, D10 career, D12 parents, D16 vehicles, D20 spiritual practice, D24 education, D27 strength, D30 misfortune, D60 only when birth-time reliability suffices) is the cross-check against what the seeds already say. Any difference is listed in a diff, not silently overwritten.
+
+The varga is judged with the same D1 rubric (target, lord, karakas, influences, dignity, strength, Argala), giving its own verdict, then reconciled:
+
+| D1 | Varga | Inference |
+|---|---|---|
+| Positive | Positive | Confirmed promise |
+| Positive | Weak or adverse | Promise exists, delivery reduced, delayed or conflicted |
+| Weak or adverse | Positive | Capacity or desire exists, D1 foundation limits realisation |
+| Adverse | Adverse | Strong obstruction or denial |
+| Mixed | Positive | Conditional improvement |
+| Mixed | Adverse | Conflict tends toward difficulty |
+
+The varga never creates a promise D1 lacks. D9 is a confirmation of planetary integrity only where it is the matter's own varga, not an equal-weight input. D60 is excluded unless birth-time reliability is on file (decision 3).
+
+## 8. Special lagnas as lenses
+
+A per-matter lens policy: **essential**, **optional** or **hidden**. Lagna (actual experience), Chandra (mental experience), Sūrya (purpose, authority), Ārūḍha (public image), Hora (wealth), Ghati (power), Indu (fortune, where the method supports it), Karakāṁśa (calling), Pāka (circumstances through the Lagna lord), graha lagna (matter seen from its karaka). Precedence: D1 Lagna, matter varga, relevant ārūḍha, relevant special lagna, Moon and Sun perspectives, then the rest under "Explore perspectives". Career, for example, shows actual career (D1 and D10), public standing (AL/A10), authority (GL), inner vocation (Karakāṁśa) and mental satisfaction (Moon) separately, never averaged.
+
+This needs a small rule table `tbl_Rule_LifeMatterLens` (matter, lens, policy, source). The seeds are the brief's table, tagged `SRC_IKIASTRRO_SYNTHESIS`, not a classical citation.
+
+## 9. Page, delivery and decisions
+
+Page order, replacing the percent-led answer: headline verdict card (promise, confidence, D1 foundation, varga confirmation, dominant support and obstruction, "Why this conclusion?") → promise chain (D1 → varga → lens → final) → principal testimony grouped by role → influences and delivery condition → cross-chart confirmation limited to D1, the matter varga, one sourced universal and the relevant lenses, with every other chart under "Explore other charts". The percentage stays as a labelled technical index.
+
+Delivery phases:
+1. Vocabulary and model (section 3), no behaviour change.
+2. D1 promise engine (sections 4–6) with synthetic-chart tests: confirmed promise, damaged promise, denial, mixed, missing data.
+3. Varga reconciliation (section 7).
+4. Lens policy and its table (section 8).
+5. Key Inference page rewire, one panel at a time behind the existing page.
+6. Verification on real charts, including GowriShankarC, against hand readings.
+
+Triggers (`transit_event_triggers.md`) then group all 138 matters by this D1 promise, as decided.
+
+**Decisions needed**
+1. **Start with phases 1 and 2 in Core, tested, with no UI change?** My recommendation. The page stays as it is until the engine is trustworthy.
+2. **Verdict rules in section 6:** are the thresholds (three supportive families for Strong positive, and so on) the right shape? They are the heuristic part and are labelled so.
+3. **Birth-time reliability:** is there a field for it today? If not, D60 stays out until one exists.
+4. **Lens seeds from your table**, tagged synthesis: acceptable?
