@@ -32,17 +32,17 @@
 
 /* Saturn from the natal Moon — shaded transit-ring signs, active sign outlined, centre badge. */
 .ntw-zone { stroke: none; opacity: .9; }
-.ntw-zone-sadesati { fill: color-mix(in srgb, var(--status-weak) 38%, var(--transit-band)); }
-.ntw-zone-kantaka { fill: color-mix(in srgb, var(--status-moderate) 38%, var(--transit-band)); }
+.ntw-zone-sadesati { fill: color-mix(in srgb, var(--status-weak) 78%, var(--transit-band)); }
+.ntw-zone-kantaka { fill: color-mix(in srgb, var(--status-moderate) 72%, var(--transit-band)); }
 .ntw-zone-ashtama { fill: url(#ntw-ashtama-hatch); }
-.ntw-hatch-bg { fill: color-mix(in srgb, var(--status-moderate) 38%, var(--transit-band)); }
+.ntw-hatch-bg { fill: color-mix(in srgb, var(--status-moderate) 72%, var(--transit-band)); }
 .ntw-hatch-line { stroke: var(--status-moderate); stroke-width: 3; opacity: .8; }
 .ntw-zone.is-active { stroke: var(--status-weak); stroke-width: 4; }
 .ntw-phase { text-anchor: middle; fill: var(--status-weak); font-size: 12px; font-weight: 800; }
 .ntw-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 6px 0 0; padding: 0; list-style: none; color: var(--brand-midnight); font: 600 var(--font-size-support) / 1.3 'Manrope', 'Segoe UI', sans-serif; }
 .ntw-legend li { display: inline-flex; align-items: center; gap: 6px; }
 .ntw-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--brand-line); }
-.ntw-swatch.ntw-zone-sadesati { background: color-mix(in srgb, var(--status-weak) 38%, var(--transit-band)); }
-.ntw-swatch.ntw-zone-kantaka { background: color-mix(in srgb, var(--status-moderate) 38%, var(--transit-band)); }
-.ntw-swatch.ntw-zone-ashtama { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--status-moderate) 38%, var(--transit-band)) 0 3px, color-mix(in srgb, var(--status-moderate) 80%, var(--transit-band)) 3px 5px); }
+.ntw-swatch.ntw-zone-sadesati { background: color-mix(in srgb, var(--status-weak) 78%, var(--transit-band)); }
+.ntw-swatch.ntw-zone-kantaka { background: color-mix(in srgb, var(--status-moderate) 72%, var(--transit-band)); }
+.ntw-swatch.ntw-zone-ashtama { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--status-moderate) 72%, var(--transit-band)) 0 3px, color-mix(in srgb, var(--status-moderate) 95%, var(--transit-band)) 3px 5px); }
 .ntw-swatch.ntw-zone-active { background: transparent; border: 3px solid var(--status-weak); }
