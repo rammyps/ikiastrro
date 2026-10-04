@@ -94,15 +94,15 @@ Tests:
 
 ## 7. Not in this slice
 
-- **Sahams (Vivaha, Kali, others):** PVR names them as sensitive points. Only Punya Saham is computed, so a Saham table and calculator are a separate step, then added as `SpecialPoint` targets. Marriage is the main loser until then.
+- **Sahams:** `SahamCalculator` (built 2026-10-04) computes Vivaha (Venus − Saturn + Lagna) and Kali (Jupiter − Mars + Lagna), day/night reversed, on demand from the D1 longitudes; not persisted and not projected into vargas, so the Spl Lagnas grids are unchanged. Formulas are read out of PVR Table 74, whose two-column OCR is interleaved; they agree with the classical Tajaka formulas and the engine reproduces PVR's vanik and samartha worked examples. Other Table 74 sahams (Putra, Karma, Paradesa, Labha ...) are one-line additions when a matter needs them.
 - **Arudhas (A10, A9):** targets exist natally, but the transit contact needs the arudha signs in the context.
 - **Divisional charts (transit Rasi on natal D9, D10):** PVR §25.4, a different layer.
 - **Degree-aware contact (orb, exact conjunction), Kakshya, Sodhya Pinda:** need the full per-graha transit position row.
 - **Fast planets (Sun, Moon, Mars, Mercury, Venus) as triggers:** see decision 1.
 
-## 8. Decisions needed
+## 8. Decisions (rammyps, 2026-10-04)
 
-1. **Which planets trigger?** Slow four only (Saturn, Jupiter, Rahu, Ketu), or also Mars? PVR's marriage example uses Mercury and Venus transits near Saham, but those need degrees. Recommended: slow four now, Mars later with degrees.
-2. **Which matters?** All 138 with contacts, grouped, or a curated shortlist (marriage, career, children, health and accidents, wealth, property, foreign travel, education) shown first with the rest behind an expand control? Recommended: all, with the shortlist pinned first.
-3. **Strength ladder in section 3:** acceptable as a labelled heuristic?
-4. **Should I add the Vivaha and Kali Saham calculator next**, so marriage and accident triggers are complete?
+1. Slow four only (Saturn, Jupiter, Rahu, Ketu); Mars later with degrees.
+2. All 138 matters, grouped by D1 promise (the Key Inference promise categories, see key_inference_promise.md) instead of by life-matter category.
+3. The Strong / Supported / Background ladder is accepted as a labelled heuristic.
+4. Vivaha and Kali Saham calculator first: done. The Key Inference rework comes before the trigger panel.

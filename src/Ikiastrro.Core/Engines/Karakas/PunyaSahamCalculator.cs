@@ -26,11 +26,6 @@ public static class PunyaSahamCalculator
             ? (sunLongitude, moonLongitude, natalLagnaLongitude)   // night: Sun - Moon + Lagna
             : (moonLongitude, sunLongitude, natalLagnaLongitude);  // day:   Moon - Sun + Lagna
 
-        var arc = AstroMath.Normalize(a - b);
-        var distanceToC = AstroMath.Normalize(c - b);
-        var onArc = distanceToC <= arc;
-
-        var longitude = AstroMath.Normalize(a - b + c + (onArc ? 0.0 : 30.0));
-        return new SpecialPointSeed("PS", "SpecialLagna", longitude);
+        return new SpecialPointSeed("PS", "SpecialLagna", SahamCalculator.Evaluate(a, b, c));
     }
 }
