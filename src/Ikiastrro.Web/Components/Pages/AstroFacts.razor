@@ -1119,8 +1119,48 @@ else
             .ToDictionary(t => t.Planet, t => new Ikiastrro.Core.Engines.Transits.GocharaIngress(
                 DateTime.SpecifyKind(t.NextChangeUtc!.Value, DateTimeKind.Utc), (ZodiacName)(t.NextChangeSignId!.Value - 1),
                 t.NextChangeMotion == "Retrograde"));
-        return Ikiastrro.Core.Engines.Transits.GocharaInferenceBuilder.Build(reading, ingress, _vedhaRules);
+        return Ikiastrro.Core.Engines.Transits.GocharaInferenceBuilder.Build(reading, ingress, _vedhaRules, GocharaNatalFacts(), GocharaDashaOnDate());
     }
+
+    /// <summary>The D1 facts a transit is qualified against: lagna, house lords, natal signs, and the
+    /// Ṣaḍbala (planets) and independent Bhava Bala z-score (houses) bands Astro Facts step 3 shows.</summary>
+    private Ikiastrro.Core.Engines.Transits.GocharaNatalContext? GocharaNatalFacts()
+    {
+        var d1 = _data?.Charts.GetValueOrDefault("D1");
+        if (d1 is null || !TryZodiac(d1.AscendantSign, out var asc)) return null;
+        var lords = d1.HouseLords
+            .Where(h => Enum.TryParse<PlanetName>(h.LordPlanet, true, out _))
+            .ToDictionary(h => h.HouseNumber, h => Enum.Parse<PlanetName>(h.LordPlanet, true));
+        if (lords.Count != 12) return null;
+        var signs = new Dictionary<PlanetName, ZodiacName>();
+        foreach (var g in d1.Grahas)
+            if (Enum.TryParse<PlanetName>(g.Planet, true, out var planet) && TryZodiac(g.Sign, out var sign)) signs[planet] = sign;
+        var planetBands = new Dictionary<PlanetName, Ikiastrro.Core.Engines.Strength.StrengthTier>();
+        foreach (var s in _shadbala)
+            if (Enum.TryParse<PlanetName>(s.Planet, true, out var planet))
+                planetBands[planet] = Ikiastrro.Core.Engines.Strength.StrengthBands.ShadbalaPercentOfMinimum.Classify(s.PercentOfMinimum);
+        var rupas = Ikiastrro.Data.IndependentBhavaBala.RupasByHouse(_bhavaBalaComponents);
+        var houseBands = new Dictionary<int, Ikiastrro.Core.Engines.Strength.StrengthTier>();
+        if (rupas.Count >= 2)
+        {
+            var values = rupas.Values.Select(v => (double)v).ToList();
+            var mean = values.Average();
+            var sd = Math.Sqrt(values.Sum(v => (v - mean) * (v - mean)) / values.Count);
+            foreach (var (house, value) in rupas)
+                houseBands[house] = Ikiastrro.Core.Engines.Strength.StrengthBands.IndependentBhavaBalaZ.Classify(
+                    sd == 0 ? 0m : (decimal)(((double)value - mean) / sd));
+        }
+        return new Ikiastrro.Core.Engines.Transits.GocharaNatalContext(asc, lords, signs, planetBands, houseBands);
+    }
+
+    private Ikiastrro.Core.Engines.Transits.GocharaDashaLords GocharaDashaOnDate() => new(
+        DashaLord(_selection?.Maha), DashaLord(_selection?.Antar), DashaLord(_selection?.Pratyantar));
+
+    private static PlanetName? DashaLord(Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord? period) =>
+        period is not null && Enum.TryParse<PlanetName>(period.Lord, true, out var lord) ? lord : null;
+
+    private static bool TryZodiac(string? name, out ZodiacName sign) =>
+        Enum.TryParse(string.Equals(name, "Capricorn", StringComparison.OrdinalIgnoreCase) ? "Capricornus" : name, true, out sign);
 
     private static string SignName(byte id) => id >= 1 && id <= 12 ? SignById[id] : "—";
 }

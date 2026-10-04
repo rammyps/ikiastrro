@@ -21,14 +21,16 @@ public sealed record GocharaIngress(DateTime AtUtc, ZodiacName Sign, bool IsRetr
 
 /// <param name="Slow">Saturn, Jupiter, Rahu, Ketu — the long-running influences, Saturn first.</param>
 /// <param name="Fast">Moon, Venus, Mars, Mercury, Sun — days to weeks; shown behind an expand control.</param>
-/// <param name="Qualifiers">Natal-promise and dasha lines; empty until those slices are built.</param>
+/// <param name="Qualifiers">Headline lines about the running dasha and which slow planets touch it; empty without a dasha.</param>
+/// <param name="PlanetQualifiers">Per slow planet: the natal house crossed, its promise and its dasha links; empty without natal facts.</param>
 public sealed record GocharaInference(
     SaturnPhase Saturn,
     IReadOnlyList<GocharaPlanetReading> Slow,
     IReadOnlyList<GocharaPlanetReading> Fast,
     IReadOnlyList<GocharaSlowChange> Changes,
     IReadOnlyList<string> Qualifiers,
-    string Caveat);
+    string Caveat,
+    IReadOnlyList<GocharaPlanetQualifier> PlanetQualifiers);
 
 /// <summary>
 /// Reads a <see cref="GocharaReadingResult"/> as a whole: the net tier per planet, the slow planets
@@ -64,7 +66,9 @@ public static class GocharaInferenceBuilder
     public static GocharaInference Build(
         GocharaReadingResult reading,
         IReadOnlyDictionary<PlanetName, GocharaIngress> ingress,
-        IReadOnlyList<GocharaVedhaRule> rules)
+        IReadOnlyList<GocharaVedhaRule> rules,
+        GocharaNatalContext? natal = null,
+        GocharaDashaLords? dasha = null)
     {
         var readings = reading.Rows.Select(r => new GocharaPlanetReading(r, TierOf(r.Verdict, r.Bindus), Describe(r))).ToList();
         var slow = readings.Where(r => SlowPlanets.Contains(r.Row.Planet)).ToList();
@@ -83,7 +87,24 @@ public static class GocharaInferenceBuilder
                 next.IsRetrograde, saturnPhase));
         }
 
-        return new GocharaInference(reading.Saturn, slow, fast, changes, Array.Empty<string>(), Caveat);
+        var qualifiers = natal is null
+            ? (IReadOnlyList<GocharaPlanetQualifier>)Array.Empty<GocharaPlanetQualifier>()
+            : slow.Select(r => GocharaQualifierBuilder.Qualify(r.Row.Planet, r.Row.Sign, natal, dasha ?? new GocharaDashaLords(null, null, null))).ToList();
+        return new GocharaInference(reading.Saturn, slow, fast, changes, Headline(qualifiers, dasha), Caveat, qualifiers);
+    }
+
+    private static IReadOnlyList<string> Headline(IReadOnlyList<GocharaPlanetQualifier> qualifiers, GocharaDashaLords? dasha)
+    {
+        var running = dasha?.Running().ToList() ?? [];
+        if (qualifiers.Count == 0 || running.Count == 0) return Array.Empty<string>();
+        var lines = new List<string> { "Running dasha: " + string.Join(" / ", running.Select(r => r.Lord)) + "." };
+        var linked = qualifiers.Where(q => q.Foreground).Select(q => q.Planet).ToList();
+        lines.Add(linked.Count == 0
+            ? "No slow planet touches the running dasha lords; the transits are background to the dasha."
+            : linked.Count == qualifiers.Count
+                ? "Every slow planet touches the running dasha lords, so weigh them by tier and house promise."
+                : "Linked to the dasha: " + string.Join(", ", linked) + " — read these first.");
+        return lines;
     }
 
     /// <summary>One line from the row's own facts — no prose from the books.</summary>

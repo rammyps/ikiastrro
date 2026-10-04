@@ -47,7 +47,7 @@ public class PlanetSignTransitEventsRepository
         if (current is null) return null;
 
         var next = connection.QuerySingleOrDefault<NextRow>(
-            "SELECT TOP (1) EventDateTimeUtc, MotionDirection, SignId FROM dbo.tbl_PlanetSignTransitEvents " +
+            "SELECT TOP (1) EventDateTimeUtc, MotionDirection, CAST(SignId AS int) AS SignId FROM dbo.tbl_PlanetSignTransitEvents " +
             "WHERE PlanetId = @P AND EventDateTimeUtc > @AsOf ORDER BY EventDateTimeUtc",
             new { P = eventsPlanetId, AsOf = asOfUtc });
 

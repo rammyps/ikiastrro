@@ -21,3 +21,11 @@
 .gi-fast > summary { cursor: pointer; font: 700 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; padding: 4px 0; }
 .gi-fast .gi-list { margin-top: 6px; }
 .gi-note { margin: 8px 0 0; color: var(--brand-muted); font-size: var(--font-size-support); max-width: 90ch; }
+.gi-dasha { margin: 0 0 6px; font-size: var(--font-size-support); font-weight: 600; }
+.gi-promise { font-size: .78em; font-weight: 700; color: var(--brand-muted); }
+.gi-promise.is-promised { color: var(--status-strong); }
+.gi-promise.is-weak { color: var(--status-weak); }
+.gi-linked { display: inline-block; padding: 0 6px; border-radius: 3px; border: 1px solid var(--brand-midnight); font-size: .78em; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.gi-qual { margin-top: 4px; font-size: var(--font-size-support); }
+.gi-qual > summary { cursor: pointer; color: var(--brand-muted); font-weight: 600; }
+.gi-qual ul { margin: 4px 0 0; padding-left: 18px; }

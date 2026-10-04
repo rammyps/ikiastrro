@@ -12,6 +12,10 @@
     {
         <p class="gi-flag"><b>Saturn</b> @PhaseText(Inference.Saturn)</p>
     }
+    @foreach (var line in Inference.Qualifiers)
+    {
+        <p class="gi-dasha">@line</p>
+    }
     <ul class="gi-list">
         @foreach (var r in Inference.Slow)
         {
@@ -20,8 +24,28 @@
                     <b class="gi-planet">@r.Row.Planet</b>
                     <span class="gi-where">@Disp(r.Row.Sign.ToString()), @Ordinal(r.Row.HouseFromMoon)</span>
                     <span class="gi-tier is-@r.Tier.ToString().ToLowerInvariant()">@r.Tier</span>
+                    @if (Inference.PlanetQualifiers.FirstOrDefault(x => x.Planet == r.Row.Planet) is { } q)
+                    {
+                        <span class="gi-promise is-@q.Promise.ToString().ToLowerInvariant()" title="Natal promise of the house being crossed">@PromiseText(q.Promise)</span>
+                        @if (q.Foreground)
+                        {
+                            <span class="gi-linked" title="Linked to a running dasha lord">Dasha-linked</span>
+                        }
+                    }
                 </div>
                 <p class="gi-text">@r.Line</p>
+                @if (Inference.PlanetQualifiers.FirstOrDefault(x => x.Planet == r.Row.Planet) is { } qual)
+                {
+                    <details class="gi-qual">
+                        <summary>Natal house and dasha</summary>
+                        <ul>
+                            @foreach (var l in qual.Lines)
+                            {
+                                <li>@l</li>
+                            }
+                        </ul>
+                    </details>
+                }
                 @if (Inference.Changes.FirstOrDefault(c => c.Planet == r.Row.Planet) is { } c)
                 {
                     <p class="gi-next">Next: @(c.IsRetrograde ? "re-enters" : "enters") @Disp(c.Sign.ToString()) on @c.AtUtc.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)
@@ -59,6 +83,14 @@
 @code {
     [Parameter, EditorRequired] public GocharaInference Inference { get; set; } = default!;
     [Parameter] public string? MoonSign { get; set; }
+
+    private static string PromiseText(GocharaPromise p) => p switch
+    {
+        GocharaPromise.Promised => "House promised",
+        GocharaPromise.Weak => "House weakly promised",
+        GocharaPromise.Mixed => "House promise mixed",
+        _ => "Promise not on file",
+    };
 
     private static string NextText(GocharaSlowChange c) =>
         c.SaturnPhaseThen != SaturnPhase.None ? PhaseTitle(c.SaturnPhaseThen)

@@ -128,7 +128,7 @@ Extend `GocharaReadingTests` with a new `GocharaInferenceTests`:
 
 ## 9. Later slices
 
-1. **Qualifiers:** link each slow planet to the natal chart and the running dasha, e.g. Saturn's transit house against the natal house it activates, its lordship, and whether the dasha lord is the transit planet. This fills `Qualifiers`.
+1. **Qualifiers (built 2026-10-04):** `GocharaQualifierBuilder` (Core) qualifies each slow planet against the natal D1 and the running dasha. For the natal house its sign is (whole-sign from the Lagna) it reads the house lord, natal occupants, and a *promise* label from the lord's Ṣaḍbala band and the house's independent Bhava Bala z-band (Promised: neither weak; Weak: both weak; Mixed otherwise — a project heuristic); for the planet itself its lordships, natal house and Ṣaḍbala band; and for each running Mahā/Antar/Pratyantar lord whether it is the transit planet, rules the house crossed, or sits natally in the sign crossed. Linked planets are flagged Dasha-linked; unlinked ones are background, not unimportant. The panel shows a Promise chip, a Dasha-linked chip and a "Natal house and dasha" expander per slow planet, plus a headline naming the running dasha. Fast planets are not qualified.
 2. **Event triggers:** Jupiter over or aspecting the 7th house, 7th lord or Venus for marriage, with the rule table in `workstream/database`.
 3. **Degree-aware transits:** Kakshya, nakshatra of transit planets, Sodhya Pinda. This needs the full per-graha transit observation row noted as a gap in `transit-events.md`.
 4. **Forward timeline:** dates over the next N years when slow-planet tiers change.
