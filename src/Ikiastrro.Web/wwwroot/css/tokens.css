@@ -347,6 +347,13 @@ html thead th :is(button, a, small) {
     --brand-surface-soft: rgb(255 250 242 / 0.48);
     --cosmos-accent: var(--brand-midnight);
     --cosmos-accent-fg: var(--brand-sunrise);
+    /* Sudarsana chakra rings (Transit tab): Sun = soul, Moon = mind, Lagna = body — fill + edge per theme. */
+    --tripod-sun: #fcd7bd;
+    --tripod-moon: #d4e2f5;
+    --tripod-lagna: #d8ebd5;
+    --tripod-sun-edge: #c9741b;
+    --tripod-moon-edge: #3f6fb5;
+    --tripod-lagna-edge: #3f8a5a;
     --cosmos-architecture: var(--brand-midnight);
     --control-bg: var(--brand-midnight);
     --control-fg: var(--brand-canvas);
@@ -440,6 +447,13 @@ html thead th :is(button, a, small) {
     --cosmos-structure: #cbd5e1;
     --cosmos-accent: #087e9a;
     --cosmos-accent-fg: #ffffff;
+    /* Sudarsana chakra rings (Transit tab): Sun = soul, Moon = mind, Lagna = body — fill + edge per theme. */
+    --tripod-sun: #fdebbd;
+    --tripod-moon: #cdeaf3;
+    --tripod-lagna: #dcd8f4;
+    --tripod-sun-edge: #b7791f;
+    --tripod-moon-edge: #087e9a;
+    --tripod-lagna-edge: #5b4bb5;
 
     --brand-canvas: var(--cosmos-canvas);
     --brand-surface: var(--cosmos-surface);
@@ -502,6 +516,13 @@ html thead th :is(button, a, small) {
     --cosmos-structure: #e4cce9;
     --cosmos-accent: #ff9f3d;
     --cosmos-accent-fg: #4b0082;
+    /* Sudarsana chakra rings (Transit tab): Sun = soul, Moon = mind, Lagna = body — fill + edge per theme. */
+    --tripod-sun: #ffdca3;
+    --tripod-moon: #ecd3f4;
+    --tripod-lagna: #cdeadb;
+    --tripod-sun-edge: #d97706;
+    --tripod-moon-edge: #9333a8;
+    --tripod-lagna-edge: #1f8a62;
 
     --brand-canvas: var(--cosmos-canvas);
     --brand-surface: var(--cosmos-surface);
@@ -561,6 +582,13 @@ html thead th :is(button, a, small) {
     --cosmos-structure: rgb(148 163 184 / 0.22);
     --cosmos-accent: #22d3ee;
     --cosmos-accent-fg: #0b0f19;
+    /* Sudarsana chakra rings (Transit tab): Sun = soul, Moon = mind, Lagna = body — fill + edge per theme. */
+    --tripod-sun: #4a3a12;
+    --tripod-moon: #12404f;
+    --tripod-lagna: #312863;
+    --tripod-sun-edge: #fbbf24;
+    --tripod-moon-edge: #22d3ee;
+    --tripod-lagna-edge: #a78bfa;
 
     --brand-canvas: var(--cosmos-canvas);
     --brand-surface: var(--cosmos-surface);
