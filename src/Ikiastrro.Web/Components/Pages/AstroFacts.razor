@@ -186,7 +186,7 @@ else
 
                     @Head(NatalSection.Positions)
                     <PlanetPositionsTable Rows="Rows(natalChart)" LagnaSign="@natalChart.AscendantSign" Variant="d1" ShowAnalysis="false"
-                                           ShowAvastha="@(natalChart.ChartType == "D1")" States="_planetaryStates" StateNames="_stateNames" PostureInterpretations="_postureInterpretations" />
+                                           States="_planetaryStates" StateNames="_stateNames" PostureInterpretations="_postureInterpretations" />
 
                     @Head(NatalSection.SignNakshatra)
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />

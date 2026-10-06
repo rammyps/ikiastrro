@@ -2,8 +2,9 @@
 @using Ikiastrro.Core.Engines.Dasha
 @using Ikiastrro.Web.Components.Workspace
 @* Astro Facts Dasha matters — PVR sec.16.5.1: a planet gives in its dasas the results promised by its positions in the
-   divisional charts. One row per PVR example; the planets that meet it, why, and their Vimshottari mahadasas.
-   Computed live from the stored charts (Core DashaMatters); facts only, no good/bad verdict. *@
+   divisional charts. One table: PVR's nine examples first, then the extended matters (each divisional chart's Table 11 sphere, then house lords, occupants and natural
+   karakas; Core DashaMatters.EvaluateExtended). Each row names its source and lists the planets that
+   meet it, why, and their Vimshottari mahadasas. Computed live from the stored charts; facts only, no good/bad verdict. *@
 @if (_rules.Count == 0)
 {
     <p class="kit-muted">Needs the rasi chart.</p>
@@ -11,47 +12,39 @@
 else
 {
     <p class="dm-lead">
-        PVR §16.5.1 (p.214): "A planet gives the results promised by its positions in various divisional charts." These are the book's nine
-        examples; the dasas and antardasas of the planets below can bring the result named. The book calls them "just a few examples".
+        PVR §16.5.1 (p.214): "A planet gives the results promised by its positions in various divisional charts." Rows 1–9 are the book's own
+        examples (which it calls "just a few"). The rest apply the same principle to every divisional chart's sphere of life (PVR Table 11)
+        and to the houses and karakas that govern each theme. The dasas and antardasas of the planets listed can bring the result named.
     </p>
-    <div class="kit-scroll">
-        <table class="kit">
-            <thead><tr><th>#</th><th>In this chart</th><th>Planet and why</th><th>Its Vimshottari mahadasas</th></tr></thead>
-            <tbody>
-            @foreach (var r in _rules)
-            {
-                <tr>
-                    <td class="mono">@r.Number</td>
-                    <td>
-                        <b>@r.Statement</b> <span class="kit-muted">(@r.Varga)</span><br />
-                        <span>@r.Result</span>
-                        @if (r.Note is not null) { <br /><span class="kit-muted dm-note">@r.Note</span> }
-                    </td>
-                    <td>
-                        @if (r.NotEvaluated is not null) { <span class="kit-muted">@r.NotEvaluated</span> }
-                        else if (r.Planets.Count == 0) { <span class="kit-muted">No planet meets this.</span> }
-                        else
-                        {
-                            @foreach (var p in r.Planets)
-                            {
-                                <div><b>@p.Planet</b> <span class="kit-muted">— @p.Why</span></div>
-                            }
-                        }
-                    </td>
-                    <td class="mono">
-                        @foreach (var p in r.Planets)
-                        {
-                            @foreach (var d in Periods.Where(x => x.Lord == p.Planet.ToString()))
-                            {
-                                <div>@p.Planet @d.StartDate.ToString("MM/yyyy", Inv) – @d.EndDate.ToString("MM/yyyy", Inv)</div>
-                            }
-                        }
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
+    var rows = Visible();
+    <div class="dm-filters" role="group" aria-label="Dasha matters filters">
+        <label>Dasha period
+            <select @bind="_window">
+                <option value="all">All periods</option>
+                <option value="now">Running now</option>
+                <option value="ahead">Running now and upcoming</option>
+                <option value="past">Past</option>
+            </select>
+        </label>
+        <label>Planet
+            <select @bind="_planet">
+                <option value="">Any planet</option>
+                @foreach (var pl in _planets) { <option value="@pl">@pl</option> }
+            </select>
+        </label>
+        <label>Rows from
+            <select @bind="_group">
+                <option value="all">All sources</option>
+                <option value="pvr">PVR's nine examples</option>
+                <option value="t11">PVR Table 11 (chart themes)</option>
+                <option value="conv">Houses and karakas</option>
+            </select>
+        </label>
+        <label class="dm-check"><input type="checkbox" @bind="_onlyMatches" /> Only rows with a planet</label>
+        <button type="button" class="dm-reset" @onclick="Reset" disabled="@(!Filtered)">Reset</button>
+        <span class="kit-muted dm-count">@rows.Count of @_all.Count rows</span>
     </div>
+    @RuleTable(rows)
 }
 
 @code {
@@ -60,15 +53,115 @@ else
 
     private static readonly System.Globalization.CultureInfo Inv = System.Globalization.CultureInfo.InvariantCulture;
     private IReadOnlyList<DashaMatterRule> _rules = Array.Empty<DashaMatterRule>();
+    private IReadOnlyList<DashaMatterRule> _all = Array.Empty<DashaMatterRule>();
+    private IReadOnlyList<string> _planets = Array.Empty<string>();
+
+    private string _window = "all";
+    private string _planet = "";
+    private string _group = "all";
+    private bool _onlyMatches;
+
+    private bool Filtered => _window != "all" || _planet != "" || _group != "all" || _onlyMatches;
+    private void Reset() { _window = "all"; _planet = ""; _group = "all"; _onlyMatches = false; }
+
+    private bool InWindow(DashaPeriodRecord d)
+    {
+        var today = DateTime.Today;
+        return _window switch
+        {
+            "now" => d.StartDate <= today && today < d.EndDate,
+            "ahead" => d.EndDate > today,
+            "past" => d.EndDate <= today,
+            _ => true,
+        };
+    }
+
+    private IEnumerable<DashaPeriodRecord> PeriodsOf(PlanetName planet) =>
+        Periods.Where(x => x.Lord == planet.ToString() && InWindow(x));
+
+    private bool InGroup(DashaMatterRule r) => _group switch
+    {
+        "pvr" => r.Number < 10,
+        "t11" => r.Source.StartsWith("PVR Table 11", StringComparison.Ordinal),
+        "conv" => r.Number >= 10 && !r.Source.StartsWith("PVR Table 11", StringComparison.Ordinal),
+        _ => true,
+    };
+
+    /// <summary>The rows to show: the group, then only the planets that match the planet and period filters.
+    /// With a planet or period filter on, a row with no planet left goes; otherwise a row with no planet stays unless "only rows with a planet".</summary>
+    private IReadOnlyList<(DashaMatterRule Rule, IReadOnlyList<DashaMatterPlanet> Planets)> Visible()
+    {
+        var rows = new List<(DashaMatterRule, IReadOnlyList<DashaMatterPlanet>)>();
+        foreach (var r in _all.Where(InGroup))
+        {
+            var planets = r.Planets
+                .Where(p => (_planet == "" || p.Planet.ToString() == _planet) && (_window == "all" || PeriodsOf(p.Planet).Any()))
+                .ToList();
+            var narrowed = _planet != "" || _window != "all";
+            if (planets.Count == 0 && (narrowed || _onlyMatches)) continue;
+            rows.Add((r, planets));
+        }
+        return rows;
+    }
+
+
+    private RenderFragment RuleTable(IReadOnlyList<(DashaMatterRule Rule, IReadOnlyList<DashaMatterPlanet> Planets)> rows) => __builder =>
+    {
+        <div class="kit-scroll">
+            <table class="kit">
+                <thead><tr><th>#</th><th>Source</th><th>In this chart</th><th>Planet and why</th><th>Its Vimshottari mahadasas</th></tr></thead>
+                <tbody>
+                @foreach (var (r, planets) in rows)
+                {
+                    <tr>
+                        <td class="mono">@r.Number</td>
+                        <td class="kit-muted dm-src">@r.Source</td>
+                        <td>
+                            <b>@r.Statement</b> <span class="kit-muted">(@r.Varga)</span><br />
+                            <span>@r.Result</span>
+                            @if (r.Note is not null) { <br /><span class="kit-muted dm-note">@r.Note</span> }
+                        </td>
+                        <td>
+                            @if (r.NotEvaluated is not null) { <span class="kit-muted">@r.NotEvaluated</span> }
+                            else if (planets.Count == 0) { <span class="kit-muted">No planet meets this.</span> }
+                            else
+                            {
+                                @foreach (var p in planets)
+                                {
+                                    <div><b>@p.Planet</b> <span class="kit-muted">— @p.Why</span></div>
+                                }
+                            }
+                        </td>
+                        <td class="mono">
+                            @foreach (var p in planets)
+                            {
+                                @foreach (var d in PeriodsOf(p.Planet))
+                                {
+                                    <div>@p.Planet @d.StartDate.ToString("MM/yyyy", Inv) – @d.EndDate.ToString("MM/yyyy", Inv)</div>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (rows.Count == 0)
+                {
+                    <tr><td colspan="5" class="kit-muted">No rows match these filters.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    };
 
     protected override void OnParametersSet()
     {
-        _rules = Array.Empty<DashaMatterRule>();
+        _rules = _all = Array.Empty<DashaMatterRule>();
         if (Charts is null || !Charts.TryGetValue("D1", out var d1)) return;
         var ak = d1.Grahas.FirstOrDefault(k => k.CharaKaraka == "AK")?.Planet;
         var charts = Charts.ToDictionary(c => c.Key, c => new DashaMatterChart(c.Value.ToAnalysisInput(),
             c.Value.SpecialPoints.Where(k => Enum.TryParse<ZodiacName>(k.Sign, out _))
                 .GroupBy(k => k.Planet).ToDictionary(g => g.Key, g => Enum.Parse<ZodiacName>(g.First().Sign))));
         _rules = DashaMatters.Evaluate(charts, ak is not null && Enum.TryParse<PlanetName>(ak, out var p) ? p : null);
+        _all = [.. _rules, .. DashaMatters.EvaluateExtended(charts)];
+        _planets = _all.SelectMany(r => r.Planets).Select(x => x.Planet).Distinct().OrderBy(x => (int)x).Select(x => x.ToString()).ToList();
     }
 }

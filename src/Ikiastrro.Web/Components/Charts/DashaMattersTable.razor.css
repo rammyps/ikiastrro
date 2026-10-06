@@ -10,3 +10,13 @@
 .kit-muted { color: var(--brand-muted); }
 .dm-lead { margin: 0 0 8px; line-height: 1.5; }
 .dm-note { font-size: .9em; }
+.dm-src { min-width: 9em; }
+
+
+.dm-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 16px; margin: 0 0 10px; }
+.dm-filters label { display: flex; flex-direction: column; gap: 2px; font-size: .85em; font-weight: 700; color: var(--brand-muted); text-transform: uppercase; letter-spacing: .04em; }
+.dm-filters select { font: inherit; font-weight: 500; text-transform: none; letter-spacing: 0; padding: 4px 8px; border: 1px solid var(--brand-line); border-radius: 8px; background: var(--brand-surface); color: var(--card-fg); }
+.dm-filters .dm-check { flex-direction: row; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--card-fg); padding-bottom: 5px; }
+.dm-reset { font: inherit; padding: 4px 12px; border: 1px solid var(--brand-line); border-radius: 999px; background: var(--brand-surface); color: var(--card-fg); cursor: pointer; }
+.dm-reset:disabled { opacity: .45; cursor: default; }
+.dm-count { margin-left: auto; padding-bottom: 5px; }

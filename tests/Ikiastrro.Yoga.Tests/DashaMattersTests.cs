@@ -107,4 +107,18 @@ public sealed class DashaMattersTests
         Assert.Empty(rule.Planets);
         Assert.Equal(9, DashaMatters.Evaluate(Charts(), null).Count);
     }
+
+    [Fact]
+    public void Extended_matters_follow_each_charts_theme_and_never_reuse_PVR_numbers()
+    {
+        var d9 = Chart("D9", ZodiacName.Aries, [(PlanetName.Moon, ZodiacName.Sagittarius)]);
+        var d7 = Chart("D7", ZodiacName.Aries, []);
+        var rules = DashaMatters.EvaluateExtended(Charts(d9, d7));
+        Assert.All(rules, r => Assert.True(r.Number >= 10));
+        var ninth = rules.Single(r => r.Varga == "D9" && r.Statement.StartsWith("The 9th lord"));
+        Assert.Equal(PlanetName.Jupiter, ninth.Planets[0].Planet);                  // 9th from Aries is Sagittarius
+        Assert.Contains(PlanetName.Moon, ninth.Planets.Select(p => p.Planet));      // occupant of the 9th
+        Assert.Equal([PlanetName.Jupiter], rules.Single(r => r.Varga == "D7" && r.Statement.Contains("karaka")).Planets.Select(p => p.Planet));
+        Assert.Equal("Needs the D10 chart.", rules.First(r => r.Varga == "D10").NotEvaluated);
+    }
 }

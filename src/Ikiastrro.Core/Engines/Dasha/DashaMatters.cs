@@ -18,7 +18,7 @@ public sealed record DashaMatterPlanet(PlanetName Planet, string Why);
 /// </summary>
 public sealed record DashaMatterRule(
     int Number, string Varga, string Statement, string Result,
-    IReadOnlyList<DashaMatterPlanet> Planets, string? NotEvaluated, string? Note);
+    IReadOnlyList<DashaMatterPlanet> Planets, string? NotEvaluated, string? Note, string Source = "");
 
 /// <summary>
 /// P.V.R. Narasimha Rao, <i>Vedic Astrology: An Integrated Approach</i> sec.16.5.1, printed p.214
@@ -56,13 +56,89 @@ public static class DashaMatters
         return rules;
     }
 
-    private static DashaMatterRule Rule(IReadOnlyDictionary<string, DashaMatterChart> charts, int number, string varga, string statement,
-        string result, Func<DashaMatterChart, IEnumerable<DashaMatterPlanet>> find, string? blocked = null, string? note = null)
+    /// <summary>One extended matter: the lord of <paramref name="House"/> in <paramref name="Varga"/>, plus any planets
+    /// sitting in that house, or a fixed natural karaka when <paramref name="Karaka"/> is set (House is then 0).</summary>
+    private sealed record Spec(string Varga, int House, string Matter, PlanetName? Karaka = null);
+
+    /// <summary>The varga each house or karaka is read in follows the usual Parashari divisional-chart themes
+    /// (D2 wealth, D3 siblings, D4 property, D7 children, D9 marriage and dharma, D10 career, D12 parents, D16 vehicles,
+    /// D20 spiritual practice, D24 learning). Extension of the section 16.5.1 principle, not PVR's own examples.</summary>
+    private static readonly Spec[] Extended =
+    [
+        new("D1", 2, "wealth and family"), new("D1", 5, "children and intelligence"), new("D1", 7, "marriage and partnership"),
+        new("D1", 9, "fortune and dharma"), new("D1", 10, "career and status"), new("D1", 11, "gains"), new("D1", 12, "losses and foreign matters"),
+        new("D2", 2, "stored wealth"), new("D2", 11, "income and gains"),
+        new("D3", 3, "siblings and courage"), new("D3", 0, "siblings", PlanetName.Mars),
+        new("D4", 4, "property and home"), new("D4", 0, "property", PlanetName.Mars),
+        new("D7", 0, "children", PlanetName.Jupiter), new("D7", 9, "fortune through children"),
+        new("D9", 9, "fortune and dharma"),
+        new("D10", 10, "career and status"), new("D10", 6, "service and daily work"), new("D10", 0, "authority", PlanetName.Sun),
+        new("D12", 4, "the mother"), new("D12", 9, "the father"), new("D12", 0, "the father", PlanetName.Sun), new("D12", 0, "the mother", PlanetName.Moon),
+        new("D16", 4, "vehicles and comforts"), new("D16", 0, "vehicles", PlanetName.Venus),
+        new("D20", 5, "spiritual practice"), new("D20", 9, "spiritual practice and guidance"),
+        new("D24", 4, "formal education"), new("D24", 5, "learning and intellect"), new("D24", 0, "learning", PlanetName.Mercury),
+    ];
+
+    /// <summary>PVR Table 11: the sphere of life each divisional chart shows. Each chart's own lagna lord and the planets
+    /// in its lagna stand for that sphere, so their dasas can bring it.</summary>
+    private static readonly (string Varga, string Theme)[] Table11 =
+    [
+        ("D1", "physical existence"), ("D2", "wealth"), ("D3", "siblings"), ("D4", "property and fortune"), ("D5", "fame and power"),
+        ("D6", "health and troubles"), ("D7", "children"), ("D8", "sudden troubles"), ("D9", "marriage and dharma"), ("D10", "career"),
+        ("D11", "death and destruction"), ("D12", "parents"), ("D16", "vehicles and comforts"), ("D20", "religion and spirituality"),
+        ("D24", "education"), ("D27", "innate nature"), ("D30", "evils and punishment"), ("D40", "auspicious events"),
+        ("D45", "all matters"), ("D60", "past-life karma"),
+    ];
+
+    private const string ConventionSource = "Parashari house and karaka significations, applied per PVR 16.5.1";
+    private static string PvrSource(int number) => number < 10 ? $"PVR §16.5.1 example {number} (p.214)" : "";
+
+    /// <summary>Further dasa-matters beyond PVR's nine: first every divisional chart's Table 11 sphere (its lagna lord and
+    /// occupants), then the lords and occupants of the houses that govern each theme and the natural karakas. Numbered
+    /// from 10 so they never collide with PVR's examples. Facts only, no verdict on good or bad.</summary>
+    public static IReadOnlyList<DashaMatterRule> EvaluateExtended(IReadOnlyDictionary<string, DashaMatterChart> charts)
     {
-        if (blocked is not null) return new(number, varga, statement, result, [], blocked, note);
-        if (!charts.TryGetValue(varga, out var chart)) return new(number, varga, statement, result, [], $"Needs the {varga} chart.", note);
-        if (Signs(chart.Chart).Count < 9) return new(number, varga, statement, result, [], $"The {varga} chart is incomplete.", note);
-        return new(number, varga, statement, result, find(chart).ToList(), null, note);
+        const string? note = null;   // the Source column already says where each row comes from
+        var rules = new List<DashaMatterRule>();
+        var n = 10;
+        foreach (var (varga, theme) in Table11)
+            rules.Add(Rule(charts, n++, varga, "The lagna lord, and planets in the lagna", $"can bring matters of {theme}",
+                c => LordAndOccupants(c, 1), null, note, $"PVR Table 11 ({varga}: {theme})"));
+        foreach (var spec in Extended)
+        {
+            var statement = spec.Karaka is { } k
+                ? $"{k}, natural karaka of {spec.Matter}"
+                : $"The {Ordinal(spec.House)} lord, and planets in the {Ordinal(spec.House)}";
+            var result = $"can bring matters of {spec.Matter}";
+            rules.Add(Rule(charts, n++, spec.Varga, statement, result,
+                c => spec.Karaka is { } kk ? KarakaIn(c, kk, spec.Varga) : LordAndOccupants(c, spec.House), null, note, ConventionSource));
+        }
+        return rules;
+    }
+
+    private static IEnumerable<DashaMatterPlanet> KarakaIn(DashaMatterChart c, PlanetName karaka, string varga)
+    {
+        var signs = Signs(c.Chart);
+        yield return new(karaka, $"Natural karaka, in {Label(signs[karaka])} in {varga}");
+    }
+
+    private static IEnumerable<DashaMatterPlanet> LordAndOccupants(DashaMatterChart c, int house)
+    {
+        var sign = HouseEngine.GetHouseSign(c.Chart.AscendantSign, house);
+        var lord = StrongerCoLord.For(sign, c.Chart);
+        var signs = Signs(c.Chart);
+        yield return new(lord, $"Lord of the {Ordinal(house)} ({Label(sign)}), in {Label(signs[lord])}");
+        foreach (var kv in signs.Where(kv => kv.Value == sign && kv.Key != lord))
+            yield return new(kv.Key, $"In the {Ordinal(house)} ({Label(sign)})");
+    }
+
+    private static DashaMatterRule Rule(IReadOnlyDictionary<string, DashaMatterChart> charts, int number, string varga, string statement,
+        string result, Func<DashaMatterChart, IEnumerable<DashaMatterPlanet>> find, string? blocked = null, string? note = null, string? source = null)
+    {
+        if (blocked is not null) return new(number, varga, statement, result, [], blocked, note, source ?? PvrSource(number));
+        if (!charts.TryGetValue(varga, out var chart)) return new(number, varga, statement, result, [], $"Needs the {varga} chart.", note, source ?? PvrSource(number));
+        if (Signs(chart.Chart).Count < 9) return new(number, varga, statement, result, [], $"The {varga} chart is incomplete.", note, source ?? PvrSource(number));
+        return new(number, varga, statement, result, find(chart).ToList(), null, note, source ?? PvrSource(number));
     }
 
     private static Dictionary<PlanetName, ZodiacName> Signs(ChartAnalysisInput chart) =>
