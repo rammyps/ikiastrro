@@ -1,0 +1,143 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Houses
+@using Ikiastrro.Core.Engines.KeyInfo
+@using Ikiastrro.Core.Engines.Karakas
+@using Ikiastrro.Core.Models
+@using Ikiastrro.Core.Pipeline
+@* Astro Facts 1.2 — Rudra, the Trishoola rasis and Maheswara (PVR sec.14.3, pp.182-183), computed live from D1
+   (Core RudraMaheswara). Reference points for timing, shown as facts; the book itself says they are not infallible. *@
+@if (_rudra is null)
+{
+    <p class="kit-muted">Needs a complete D1 chart.</p>
+}
+else
+{
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Point</th><th>Planet or sign</th><th>How it was found</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><b>Rudra</b></td>
+                    <td><b>@_rudra.Rudra.Planet</b> in @Sign(_rudra.Rudra.Sign)</td>
+                    <td>@_rudra.Rudra.Why<br />
+                        <span class="kit-muted">8th from Lagna (Table 32): @Sign(_rudra.EighthFromLagna), lord @_rudra.LordFromLagna.
+                        7th house @Sign(_rudra.SeventhSign), its 8th: @Sign(_rudra.EighthFromSeventh), lord @_rudra.LordFromSeventh.</span></td>
+                </tr>
+                <tr>
+                    <td><b>Trishoola rasis</b></td>
+                    <td>@string.Join(" · ", _rudra.Trishoola.Select(Sign))</td>
+                    <td>The three trines from @Sign(_rudra.Rudra.Sign), where Rudra sits.</td>
+                </tr>
+                @if (_rudra.AlsoRudra is { } also)
+                {
+                    <tr>
+                        <td><b>Also Rudra</b></td>
+                        <td><b>@also.Planet</b> in @Sign(also.Sign)</td>
+                        <td>@also.Why Trishoola from it: @string.Join(" · ", _rudra.AlsoTrishoola.Select(Sign)).</td>
+                    </tr>
+                }
+                @if (_maheswara is { } m)
+                {
+                    <tr>
+                        <td><b>Maheswara</b></td>
+                        <td><b>@m.Maheswara.Planet</b> in @Sign(m.Maheswara.Sign)</td>
+                        <td>@m.Maheswara.Why Atma Karaka @m.AtmaKaraka is in @Sign(m.AtmaKarakaSign).
+                            @if (m.Exception is not null) { <br /><span class="kit-muted">@m.Exception</span> }</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (_pairs is not null || _eighth is not null)
+    {
+        <div class="kit-scroll rm-gap">
+            <table class="kit">
+                <thead><tr><th>Longevity method</th><th>Category</th><th>How it was found</th></tr></thead>
+                <tbody>
+                    @if (_pairs is { } tp)
+                    {
+                        @foreach (var pair in tp.Pairs)
+                        {
+                            <tr>
+                                <td>Pair: @pair.Name</td>
+                                <td>@Category(pair.Category)</td>
+                                <td>@pair.FirstLabel in @Sign(pair.FirstSign) (@Modality(pair.FirstSign)) and @pair.SecondLabel in @Sign(pair.SecondSign) (@Modality(pair.SecondSign)).</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td><b>Method of three pairs</b></td>
+                            <td><b>@Category(tp.Category)</b>@(tp.Paramaayush is { } y ? $" · paramaayush {y} years" : "")</td>
+                            <td>@tp.Why</td>
+                        </tr>
+                    }
+                    @if (_eighth is { } e)
+                    {
+                        <tr>
+                            <td><b>Eighth lord method</b></td>
+                            <td><b>@Category(e.Category)</b></td>
+                            <td>@e.ReferenceWhy 8th from @Sign(e.Reference) is @Sign(e.EighthSign), lord @e.EighthLord, in @Sign(e.LordSign),
+                                the @Ordinal(e.HouseFromReference) from @Sign(e.Reference).</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    <p class="rm-note">Rudra and the Trishoola rasis are the book's reference points for timing death in a dasha; Maheswara
+        shows the channels of the soul's liberation. The two longevity methods give a category only: short is 0-36 years,
+        middle 36-72, long 72-108. P.V.R. Narasimha Rao adds that these definitions are not infallible and should never be
+        used to frighten.</p>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private RudraReading? _rudra;
+    private MaheswaraReading? _maheswara;
+    private ThreePairsReading? _pairs;
+    private EighthLordReading? _eighth;
+
+    private static string Category(LongevityCategory c) => c switch
+    {
+        LongevityCategory.Short => "Short life (0-36)",
+        LongevityCategory.Middle => "Middle life (36-72)",
+        _ => "Long life (72-108)",
+    };
+    private static string Modality(ZodiacName s) => Ikiastrro.Core.Engines.Houses.BaadhakaCalculator.GetModality(s).ToString().ToLowerInvariant();
+    private static string Ordinal(int n) => n switch { 1 => "1st", 2 => "2nd", 3 => "3rd", _ => $"{n}th" };
+
+    private static string Sign(ZodiacName s) => s == ZodiacName.Capricornus ? "Capricorn" : s.ToString();
+
+    protected override void OnParametersSet()
+    {
+        _rudra = null;
+        _maheswara = null;
+        _pairs = null;
+        _eighth = null;
+        var grahas = KeyDetails.Where(k => k.PointKind == "Graha").ToList();
+        var asc = grahas.FirstOrDefault(k => k.Planet == "Ascendant");
+        if (asc is null) return;
+
+        ZodiacName SignOf(double lon) => (ZodiacName)((int)(((lon % 360) + 360) % 360 / 30));
+        var chart = new ChartAnalysisInput("D1", SignOf(asc.NirayanaLongitudeDegrees),
+            grahas.Select(k => new PlanetPosition
+            {
+                Planet = k.Planet,
+                Sign = SignOf(k.NirayanaLongitudeDegrees).ToString(),
+                NirayanaLongitudeDegrees = k.NirayanaLongitudeDegrees,
+            }).ToList());
+
+        _rudra = RudraMaheswara.ReadRudra(chart);
+        if (_rudra is null) return;
+
+        var ranked = new[] { PlanetName.Sun, PlanetName.Moon, PlanetName.Mars, PlanetName.Mercury,
+                             PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn, PlanetName.Rahu };
+        var degIn = ranked.ToDictionary(p => p, p => grahas.Single(k => k.Planet == p.ToString()).NirayanaLongitudeDegrees % 30.0);
+        var ak = CharaKarakaCalculator.Assign(degIn).Single(kv => kv.Value == CharaKaraka.AK).Key;
+        _maheswara = RudraMaheswara.ReadMaheswara(chart, ak);
+
+        _eighth = LongevityMethods.ReadEighthLord(chart);
+        var hl = KeyDetails.FirstOrDefault(k => k.PointKind == "SpecialLagna" && k.Planet == "HL");
+        if (hl is not null) _pairs = LongevityMethods.ReadThreePairs(chart, SignOf(hl.NirayanaLongitudeDegrees));
+    }
+}

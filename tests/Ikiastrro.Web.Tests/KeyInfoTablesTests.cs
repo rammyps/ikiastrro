@@ -56,4 +56,21 @@ public sealed class KeyInfoTablesTests : BunitContext
         Assert.Contains("Lagna", rows[10].TextContent);
         Assert.Contains("In", rows[10].QuerySelectorAll("td")[1].TextContent);   // Lagna in Mrityu bhāga
     }
+
+    [Fact]
+    public void RudraMaheswaraShowsRudraTrishoolaAndMaheswara()
+    {
+        var cut = Render<RudraMaheswaraTable>(p => p.Add(x => x.KeyDetails, D1));
+
+        var rows = cut.FindAll("tbody tr");
+        Assert.True(rows.Count >= 3);
+        Assert.Contains("Rudra", rows[0].TextContent);
+        Assert.Contains("Trishoola rasis", rows[1].TextContent);
+        Assert.Equal(3, rows[1].QuerySelectorAll("td")[1].TextContent.Split('·').Length);   // three trine signs
+        Assert.Contains(rows, r => r.TextContent.StartsWith("Maheswara"));
+        Assert.Contains("Method of three pairs", cut.Markup);   // D1 fixture carries HL
+        Assert.Contains("Eighth lord method", cut.Markup);
+        Assert.Equal(3, cut.FindAll("tbody tr").Count(r => r.TextContent.StartsWith("Pair:")));
+        Assert.Contains("life", cut.Markup);
+    }
 }
