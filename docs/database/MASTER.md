@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-10-01
+last_updated: 2026-10-06
 workstream: database
 togaf: C — Data Architecture
 safe: Solution Intent (fixed) — data model
@@ -87,6 +87,13 @@ Publishes to the CLI and UI streams under
     `verify-*` modes green.
 
 ## In flight
+
+- **v10 Life Matter + Varga analytics (first slice)** — migration 172 adds
+  `vw_AnalyticsLifeMatterFeaturesV1`, a privacy-gated long-form contract at anonymous subject ×
+  mapped life-matter focus × evidence lens. `D1_PROMISE` and `VARGA_CONFIRMATION` remain separate;
+  the view reuses persisted `tbl_Fact_HouseStrengthStatistics`, exposes full calculation/rule
+  provenance, and emits controlled missing reasons for special-lagna references or unavailable
+  charts/statistics. It makes no outcome claim and performs no D1/Varga averaging.
 
 - **`FEAT-AVASTHA-05` — Sayanaadi (PostureState, DB slice)** — migration 083: 12-state
   `tbl_Dim_PlanetaryState` seed (`AvasthaSystem = 'Sayanadi'`), `tbl_Rule_PostureStateFormula`
