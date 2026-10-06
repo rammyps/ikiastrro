@@ -185,7 +185,8 @@ else
                     <PanchangaCard Row="_panchanga" UtcOffset="_utcOffset" />
 
                     @Head(NatalSection.Positions)
-                    <PlanetPositionsTable Rows="Rows(natalChart)" LagnaSign="@natalChart.AscendantSign" Variant="d1" ShowAnalysis="false" />
+                    <PlanetPositionsTable Rows="Rows(natalChart)" LagnaSign="@natalChart.AscendantSign" Variant="d1" ShowAnalysis="false"
+                                           ShowAvastha="@(natalChart.ChartType == "D1")" States="_planetaryStates" StateNames="_stateNames" PostureInterpretations="_postureInterpretations" />
 
                     @Head(NatalSection.SignNakshatra)
                     <RasiNakshatraTable Grahas="natalChart.Grahas" Combinations="_rasiNakshatraCombinations" />
@@ -257,7 +258,8 @@ else
                     @JumpNav(NatalSection.AboutHousesTab)
                     @Head(NatalSection.HouseLords)
                     <HouseLordshipTable Rows="natalChart.HouseLords" Occupants="Occupants(natalChart)"
-                                        LifeMatters="_houseMatters" PersonId="Id" ChartType="@natalChart.ChartType" />
+                                        LifeMatters="_houseMatters" PersonId="Id" ChartType="@natalChart.ChartType"
+                                        CoLords="CoLordsOf(natalChart)" />
 
                     @Head(NatalSection.HouseFindings)
                     <HouseLordFindingsTable Rows="natalChart.HouseLordInterpretations" />
@@ -267,6 +269,9 @@ else
 
                     @Head(NatalSection.Argala)
                     <ArgalaTable Facts="ArgalaFacts.ForChart(_argalaFacts, natalChart.ChartType, natalChart.AscendantSign, natalChart.Grahas)" Grahas="natalChart.Grahas" AscendantSign="@natalChart.AscendantSign" SignificanceNotes="_argalaSignificanceNotes" HouseMatters="_argalaHouseMatters" />
+
+                    @Head(NatalSection.StrongerRasi)
+                    <StrongerRasiTable Chart="natalChart" />
                                 </div>
                             }
                             @if (SubShows(_activeTab, 3))
@@ -582,6 +587,15 @@ else
             <D1PromisePanel Readings="PromiseReadings" Error="_promiseError" />
         </div>
     }
+
+    @if (Shows(8))
+    {
+        <div class="ki-panelbody" id="ki-panel-8" role="tabpanel" aria-labelledby="ki-tab-8">
+            @PrintHead(8)
+            <h1 class="ki-heading">9. PHALITA DASAS</h1>
+            <PhalitaDasaPanel Chart="@(_data?.Charts.GetValueOrDefault("D1"))" Person="_data?.Person" Panchanga="_panchanga" />
+        </div>
+    }
 }
 
 @code {
@@ -655,7 +669,8 @@ else
         public static readonly Section HouseFindings = new("af-house-findings", "House lord key findings");
         public static readonly Section HouseVerdicts = new("af-house-verdicts", "What acts on each house");
         public static readonly Section Argala = new("af-argala", "Argala & Virodhargala");
-        public static readonly Section[] AboutHousesTab = [HouseLords, HouseFindings, HouseVerdicts, Argala];
+        public static readonly Section StrongerRasi = new("af-stronger-rasi", "Stronger rasi & Narayana dasa seed");
+        public static readonly Section[] AboutHousesTab = [HouseLords, HouseFindings, HouseVerdicts, Argala, StrongerRasi];
 
         public static readonly Section GrahaDrishti = new("af-graha-drishti", "Graha Dṛṣṭi strength");
         public static readonly Section RasiDrishti = new("af-rasi-drishti", "Rāśi Dṛṣṭi");
@@ -724,6 +739,7 @@ else
         "VARGAS",
         "ALL CHARTS",
         "D1-PROMISE",
+        "PHALITA DASAS",
     };
 
     private IReadOnlyList<Ikiastrro.Data.Statistics.MatterPromiseReading>? _promiseReadings;
@@ -836,6 +852,18 @@ else
 
     /// <summary>D1's key details whatever chart the picker shows — Yogi, nava tārā, Mrityu bhāga,
     /// Puṣkara, Bhṛgu Bindu and Varṇada are read from the rāśi chart.</summary>
+    /// <summary>Scorpio's and Aquarius's stronger co-lord in this chart (PVR sec.15.5.1), for the House lord placement
+    /// table. Empty when the chart lacks any of the nine grahas.</summary>
+    private static IReadOnlyDictionary<ZodiacName, Ikiastrro.Core.Engines.Karakas.CoLordReading> CoLordsOf(LoadedChart chart)
+    {
+        var result = new Dictionary<ZodiacName, Ikiastrro.Core.Engines.Karakas.CoLordReading>();
+        if (chart.Grahas.Count(k => k.Planet != "Ascendant") < 9) return result;
+        var input = chart.ToAnalysisInput();
+        foreach (var sign in new[] { ZodiacName.Scorpio, ZodiacName.Aquarius })
+            if (Ikiastrro.Core.Engines.Karakas.StrongerCoLord.Explain(sign, input) is { } reading) result[sign] = reading;
+        return result;
+    }
+
     private IReadOnlyList<ChartKeyDetail> D1KeyDetails =>
         _data?.Charts.GetValueOrDefault("D1")?.KeyDetails ?? Array.Empty<ChartKeyDetail>();
     /// <summary>D1, D2, D2-US, D3, D4 … D60 — numeric divisional order, not the plain string
@@ -882,6 +910,7 @@ else
         if (Step is "6" or "vargas") _masterTab = 5;
         if (Step is "7" or "allcharts") _masterTab = 6;
         if (Step is "8" or "promise" or "d1promise") _masterTab = 7;
+        if (Step is "9" or "dasas" or "phalita" or "phalitadasas") _masterTab = 8;
         if (Step is "3" or "strength") _masterTab = 2;
         if (Step is "3.3" or "astavarga" or "ashtakavarga")
         {

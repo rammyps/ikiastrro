@@ -1,4 +1,6 @@
-@* Planetary positions for one chart. Variant "d1" includes nakshatra detail; "varga" omits it. Astro Facts 1.1 sets ShowAnalysis=false so this component owns position only there; the canonical planetary role and condition presentation is 2.2 About Planets. Other consumers retain analytical context by default. Special-point rows are excluded. *@
+@using Ikiastrro.Core.Engines.PlanetaryStates
+@using Ikiastrro.Data
+@* Planetary positions for one chart. Variant "d1" includes nakshatra detail; "varga" omits it. Astro Facts 1.1 sets ShowAnalysis=false so the role and condition columns stay in 2.2 About Planets; the one condition column it does carry is ShowAvastha (D1), each graha's five avasthas with PVR 15.4's meaning, at the request of rammyps 2026-10-06. Other consumers retain analytical context by default. Special-point rows are excluded. *@
 <div class="ppt-scroll">
     <table class="ppt">
         <thead>
@@ -16,6 +18,10 @@
                 @if (ShowAnalysis)
                 {
                     <th>Rules</th><th>Karaka</th><th>Aspected&nbsp;by</th>
+                }
+                @if (ShowAvastha)
+                {
+                    <th>Avasthas&nbsp;(PVR&nbsp;§15.4)</th>
                 }
                 @if (ShowTechnical)
                 {
@@ -53,7 +59,12 @@
                         <td>@(row.RulesHouseNumbers ?? "—")</td>
                         <td>@(row.CharaKaraka ?? "—")</td>
                         <td class="mono asp">@(row.AspectedBy ?? "—")</td>
-                    }                    @if (ShowTechnical)
+                    }
+                    @if (ShowAvastha)
+                    {
+                        <td class="ppt-avastha">@AvasthaCell(row)</td>
+                    }
+                    @if (ShowTechnical)
                     {
                         <td class="mono">@(row.SpeedLongitudeDegPerDay?.ToString("0.0000") ?? "—")</td>
                         <td class="mono">@(row.EclipticLatitudeDegrees?.ToString("0.0000") ?? "—")</td>
@@ -72,7 +83,54 @@
     [Parameter] public bool ShowTechnical { get; set; }
     [Parameter] public bool ShowDignity { get; set; } = true;
     [Parameter] public bool ShowAnalysis { get; set; } = true;
+    /// <summary>Adds one column with each graha's five avasthas and what PVR §15.4 says each means. D1 only: the
+    /// states come from the D1 chart, so the parent turns this on for D1 alone.</summary>
+    [Parameter] public bool ShowAvastha { get; set; }
+    [Parameter] public IReadOnlyList<PlanetaryStateFact> States { get; set; } = Array.Empty<PlanetaryStateFact>();
+    [Parameter] public IReadOnlyDictionary<byte, PlanetaryStateRow> StateNames { get; set; } = new Dictionary<byte, PlanetaryStateRow>();
+    [Parameter] public IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow> PostureInterpretations { get; set; } =
+        new Dictionary<(byte PlanetaryStateId, byte PlanetId), PostureStateInterpretationRow>();
 
     private static string DisplaySign(string sign) => sign == "Capricornus" ? "Capricorn" : sign;
+
+    private PlanetaryStateRow? State(byte? id) => id is { } v ? StateNames.GetValueOrDefault(v) : null;
+
+    private RenderFragment AvasthaCell(PlanetRow row) => __builder =>
+    {
+        var fact = States.FirstOrDefault(f => f.Planet.Equals(row.Planet, StringComparison.OrdinalIgnoreCase));
+        if (fact is null)
+        {
+            <span class="muted">—</span>
+            return;
+        }
+
+        void Line(string label, PlanetaryStateRow? state, string? extra = null)
+        {
+            if (state is null) return;
+            var meaning = AvasthaPvrNotes.Meaning(state.AvasthaSystem, state.StateName);
+            <span class="ppt-av-line"><b>@label</b> @state.StateName@extra@if (meaning is not null) { <span class="ppt-av-meaning"> — @meaning</span> }</span>
+        }
+
+        Line("Bālādi", State(fact.AgeStateId), fact.AgeEffectFraction is { } f ? $" · {f:0.#%}" : null);
+        Line("Jāgradādi", State(fact.WakefulnessStateId));
+        foreach (var id in fact.DeeptadiStateIds) Line("Dīptādi", State(id));
+        foreach (var id in fact.LajjitadiStateIds) Line("Lajjitādi", State(id));
+
+        var posture = State(fact.PostureStateId);
+        if (posture is not null)
+        {
+            var result = fact.PostureStateId is { } sid && fact.PlanetId is { } pid ? PostureInterpretations.GetValueOrDefault((sid, pid)) : null;
+            <span class="ppt-av-line"><b>Śayanādi</b> @posture.StateName · @posture.SequenceOrder/12@if (!string.IsNullOrWhiteSpace(posture.Meaning)) { <span class="ppt-av-meaning"> — @posture.Meaning</span> }</span>
+            @if (result is not null)
+            {
+                <span class="ppt-av-result">@result.InterpretationText <i>(@result.SourceRefCode @result.SourceLocator)</i></span>
+            }
+        }
+
+        foreach (var text in AvasthaPvrNotes.HouseResults(fact.LajjitadiStateIds.Select(i => State(i)?.StateName ?? ""), row.HouseFromLagna))
+        {
+            <span class="ppt-av-result">@text</span>
+        }
+    };
 
 }

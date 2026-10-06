@@ -16,3 +16,6 @@
 .hlt-matters a:hover { text-decoration-color: var(--brand-midnight); }
 .hlt-matters a:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: 1px; }
 .hlt-matters summary { cursor: pointer; color: var(--brand-muted); font-size: var(--font-size-meta); }
+
+.hlt-colord { display: block; margin-top: 3px; color: var(--brand-muted); font-size: .84em; line-height: 1.35; }
+.hlt-colord b { color: var(--brand-midnight); }

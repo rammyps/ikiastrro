@@ -91,4 +91,31 @@ public sealed class StrongerCoLordTests
         var al = ArudhaCalculator.Compute(chart).Single(s => s.Code == "AL");
         Assert.Equal(ZodiacName.Pisces, (ZodiacName)(int)(al.NirayanaLongitudeDegrees / 30));
     }
+
+    [Fact]
+    public void Explain_names_the_stronger_co_lord_and_the_rule_that_decided_it()
+    {
+        // Rule 1 example: Saturn in Pi with Mars and Sun, Rahu in Ar with Jupiter.
+        var chart = Chart(ZodiacName.Aries,
+            (PlanetName.Saturn, ZodiacName.Pisces, 10), (PlanetName.Mars, ZodiacName.Pisces, 10), (PlanetName.Sun, ZodiacName.Pisces, 10),
+            (PlanetName.Rahu, ZodiacName.Aries, 10), (PlanetName.Jupiter, ZodiacName.Aries, 10));
+        var r = StrongerCoLord.Explain(ZodiacName.Aquarius, chart)!;
+        Assert.Equal(PlanetName.Saturn, r.Primary);
+        Assert.Equal(PlanetName.Rahu, r.CoLord);
+        Assert.Equal(PlanetName.Saturn, r.Stronger);
+        Assert.Equal(StrongerCoLord.For(ZodiacName.Aquarius, chart), r.Stronger);   // same decision as For
+        Assert.Contains("joined by more planets (2 against 1)", r.Rule);
+    }
+
+    [Fact]
+    public void Explain_basic_rule_and_single_lord_signs()
+    {
+        var chart = Chart(ZodiacName.Aries,
+            (PlanetName.Mars, ZodiacName.Scorpio, 10), (PlanetName.Ketu, ZodiacName.Aries, 10),
+            (PlanetName.Saturn, ZodiacName.Aquarius, 10), (PlanetName.Rahu, ZodiacName.Libra, 10));
+        var scorpio = StrongerCoLord.Explain(ZodiacName.Scorpio, chart)!;
+        Assert.Equal(PlanetName.Ketu, scorpio.Stronger);
+        Assert.Contains("Mars is in Scorpio, so Ketu rules it", scorpio.Rule);
+        Assert.Null(StrongerCoLord.Explain(ZodiacName.Aries, chart));   // one lord: nothing to explain
+    }
 }

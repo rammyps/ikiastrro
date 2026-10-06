@@ -1,0 +1,100 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Dasha
+@using Ikiastrro.Core.Engines.Houses
+@using Ikiastrro.Core.Engines.Karakas
+@using Ikiastrro.Web.Components.Workspace
+@* Astro Facts About Houses — the stronger rasi (PVR sec.15.5.2) and where Narayana dasa uses it (sec.18.2.1).
+   Computed live from the chart being shown (Core StrongerRasiComparator, NarayanaProgression). *@
+@if (_narayana is null)
+{
+    <p class="kit-muted">Needs a complete chart.</p>
+}
+else
+{
+    <p class="sr-lead">
+        <b>Narayana dasa seed:</b> the stronger of the Lagna (@Sign(_narayana.Comparison.A)) and the 7th (@Sign(_narayana.Comparison.B)) is
+        <b>@Sign(_narayana.Seed)</b>, because @_narayana.Comparison.Rule.
+    </p>
+    <p class="sr-lead">
+        Dasa order (@(_narayana.Forward ? "forward" : "backward"), @_narayana.Pattern):
+        @for (var i = 0; i < _narayana.Sequence.Count; i++)
+        {
+            <span class="sr-chip @(i == 0 ? "sr-seed" : null)">@(i + 1). @Sign(_narayana.Sequence[i])</span>
+        }
+    </p>
+
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Rasi and its 7th</th><th>Stronger</th><th>Why (PVR §15.5.2)</th></tr></thead>
+            <tbody>
+            @foreach (var r in _axes)
+            {
+                <tr class="@(r.Includes(_lagna) ? "sr-lagna" : null)">
+                    <td>@Sign(r.A) and @Sign(r.B)@if (r.Includes(_lagna)) { <span class="kit-muted"> · the Lagna axis (dasa seed)</span> }</td>
+                    <td><b>@Sign(r.Stronger)</b></td>
+                    <td>@Capital(r.Rule)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <p class="sr-lead sr-gap"><b>The stronger of each planet's two rasis</b> (the same rules pick the rasi used for its graha ārūḍha):</p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Planet</th><th>Its two rasis</th><th>Stronger</th><th>Why</th></tr></thead>
+            <tbody>
+            @foreach (var r in _planetPairs)
+            {
+                <tr>
+                    <td><b>@r.Planet</b></td>
+                    <td>@Sign(r.Reading.A) and @Sign(r.Reading.B)</td>
+                    <td><b>@Sign(r.Reading.Stronger)</b></td>
+                    <td>@Capital(r.Reading.Rule)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public LoadedChart? Chart { get; set; }
+
+    private sealed record PlanetPair(PlanetName Planet, RasiStrengthReading Reading);
+
+    private NarayanaReading? _narayana;
+    private List<RasiStrengthReading> _axes = new();
+    private List<PlanetPair> _planetPairs = new();
+    private ZodiacName _lagna;
+
+    private static readonly (PlanetName Planet, ZodiacName A, ZodiacName B)[] Owned =
+    [
+        (PlanetName.Mars, ZodiacName.Aries, ZodiacName.Scorpio),
+        (PlanetName.Mercury, ZodiacName.Gemini, ZodiacName.Virgo),
+        (PlanetName.Jupiter, ZodiacName.Sagittarius, ZodiacName.Pisces),
+        (PlanetName.Venus, ZodiacName.Taurus, ZodiacName.Libra),
+        (PlanetName.Saturn, ZodiacName.Capricornus, ZodiacName.Aquarius),
+    ];
+
+    private static string Sign(ZodiacName s) => s == ZodiacName.Capricornus ? "Capricorn" : s.ToString();
+    private static string Capital(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..] + ".";
+
+    protected override void OnParametersSet()
+    {
+        _narayana = null;
+        _axes = new();
+        _planetPairs = new();
+        if (Chart is null || Chart.Grahas.Count(k => k.Planet != "Ascendant") < 9) return;
+
+        var input = Chart.ToAnalysisInput();
+        _lagna = input.AscendantSign;
+        _narayana = NarayanaProgression.Read(input);
+        if (_narayana is null) return;
+
+        _axes = Enumerable.Range(0, 6)
+            .Select(i => StrongerRasiComparator.Explain((ZodiacName)i, HouseEngine.GetHouseSign((ZodiacName)i, 7), input))
+            .ToList();
+        _planetPairs = Owned.Select(o => new PlanetPair(o.Planet, StrongerRasiComparator.Explain(o.A, o.B, input))).ToList();
+    }
+}

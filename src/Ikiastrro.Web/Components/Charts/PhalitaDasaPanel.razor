@@ -1,0 +1,273 @@
+@using System.Globalization
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Dasha
+@using Ikiastrro.Core.Models
+@using Ikiastrro.Data
+@using Ikiastrro.Web.Components.Workspace
+@* Astro Facts "PHALITA DASAS": the rasi dasas of PVR Part 2 (Narayana, Lagna Kendradi Rasi, Sudasa, Drigdasa) and Ashtottari,
+   each with the running period, the dated table, and what PVR reads in it, from his own interpretation rules (Core RasiDasa,
+   PhalitaDasaReader, AshtottariApplicability). Computed live from D1; nothing stored. Facts only: each rule is the book's,
+   shown as holding or not in this chart. *@
+@if (_input is null)
+{
+    <p class="kit-muted">Needs the D1 chart with all nine grahas.</p>
+}
+else
+{
+    <div class="pd-controls">
+        <nav class="pd-tabs" role="tablist" aria-label="Phalita dasas">
+            @for (var i = 0; i < Tabs.Length; i++)
+            {
+                var index = i;
+                <button type="button" role="tab" aria-selected="@(_tab == index)" class="pd-tab" @onclick="() => SelectTab(index)">@Tabs[i]</button>
+            }
+        </nav>
+        <label class="pd-asof">As of
+            <input type="date" value="@_asOf.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" @onchange="OnAsOfChanged" />
+        </label>
+    </div>
+
+    @if (_tab < 4)
+    {
+        var plan = _plans[(RasiDasaSystem)_tab];
+        @if (plan is null)
+        {
+            <p class="kit-muted">@(_tab == 2 ? "Needs Sree Lagna (SL) in this chart's special lagnas." : "Not available for this chart.")</p>
+        }
+        else
+        {
+            var running = plan.Running(_asOf);
+            <p class="pd-lead"><b>@SystemLead(plan.System)</b></p>
+            <p class="pd-lead">@plan.SeedWhy Counted @(plan.Forward ? "forward" : "backward"): @plan.Pattern.</p>
+            <p class="pd-lead">
+                @for (var i = 0; i < plan.Sequence.Count; i++)
+                {
+                    <span class="pd-chip @(running?.Rasi == plan.Sequence[i] ? "pd-now" : null)">@(i + 1). @Sign(plan.Sequence[i])</span>
+                }
+            </p>
+            @if (running is null)
+            {
+                <p class="kit-muted">No dasa covers @Date(_asOf); the two cycles run to @Date(plan.Periods[^1].End).</p>
+            }
+            else
+            {
+                <p class="pd-lead pd-running">
+                    <b>Running on @Date(_asOf): @Sign(running.Rasi) dasa</b>, @Date(running.Start) to @Date(running.End)
+                    (@Years(running.Years); cycle @running.Cycle). <span class="kit-muted">@running.LengthWhy.</span>
+                </p>
+            }
+
+            @if (_antardasa is { } ad && plan.System == RasiDasaSystem.Narayana && running is not null)
+            {
+                <p class="pd-lead"><b>Antardasas of @Sign(running.Rasi)</b> <span class="kit-muted">(PVR §18.3): @ad.SeedWhy Start @ad.Pattern.</span></p>
+                <div class="kit-scroll">
+                    <table class="kit">
+                        <thead><tr><th>#</th><th>Antardasa rasi</th><th>From</th><th>To</th></tr></thead>
+                        <tbody>
+                        @for (var i = 0; i < ad.Periods.Count; i++)
+                        {
+                            var p = ad.Periods[i];
+                            <tr class="@(p.Start <= _asOf && _asOf < p.End ? "pd-row-now" : null)">
+                                <td class="mono">@(i + 1)</td><td>@Sign(p.Rasi)</td><td class="mono">@Date(p.Start)</td><td class="mono">@Date(p.End)</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (_reading is { } reading)
+            {
+                <h4 class="pd-sub">What PVR reads in the running @Sign(running!.Rasi) dasa <span class="kit-muted">(@reading.Source)</span></h4>
+                @foreach (var line in reading.Context) { <p class="pd-lead kit-muted">@line</p> }
+                <ul class="pd-points">
+                    @foreach (var pt in reading.Points.Where(p => p.Holds || _showAll))
+                    {
+                        <li class="@(pt.Holds ? "pd-holds" : "pd-not")">
+                            <b>@(pt.Holds ? "Holds" : "Does not hold"):</b> @pt.Statement &rarr; <i>@pt.Result</i>
+                            <span class="kit-muted"> · @pt.Detail</span>
+                        </li>
+                    }
+                    @if (!reading.Points.Any(p => p.Holds) && !_showAll) { <li class="kit-muted">None of the rules PVR gives for this dasa hold here.</li> }
+                </ul>
+                <label class="pd-toggle"><input type="checkbox" checked="@_showAll" @onchange="e => _showAll = (bool)(e.Value ?? false)" /> Show the rules that do not hold</label>
+                @if (reading.NotEvaluated.Count > 0)
+                {
+                    <p class="pd-lead kit-muted"><b>PVR also gives, not yet tested here:</b> @string.Join(" ", reading.NotEvaluated)</p>
+                }
+            }
+
+            <h4 class="pd-sub">Dasa periods</h4>
+            <div class="kit-scroll">
+                <table class="kit">
+                    <thead><tr><th>Cycle</th><th>Rasi</th><th>Years</th><th>From</th><th>To</th><th>How the length was counted</th></tr></thead>
+                    <tbody>
+                    @foreach (var p in plan.Periods)
+                    {
+                        <tr class="@(running == p ? "pd-row-now" : null)">
+                            <td class="mono">@p.Cycle</td><td><b>@Sign(p.Rasi)</b></td><td class="mono">@Years(p.Years)</td>
+                            <td class="mono">@Date(p.Start)</td><td class="mono">@Date(p.End)</td><td class="kit-muted">@p.LengthWhy</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="pd-lead"><b>Ashtottari dasa</b> (PVR ch.17): eight lords over a 108-year cycle. PVR calls it a conditional dasa whose conditions are
+            highly controversial, and says it may be read as an ayur dasa or as a phalita dasa. Because only the chara karakas (Rahu and the seven planets)
+            have dasas in it, it may show sustenance, achievements, raja yogas and moksha; some prefer to read all matters in it.</p>
+        <div class="kit-scroll">
+            <table class="kit">
+                <thead><tr><th>PVR's views on when it applies (§17.2.3)</th><th>In this chart</th><th>Found</th></tr></thead>
+                <tbody>
+                @foreach (var v in _views)
+                {
+                    <tr><td>@v.Name</td><td><span class="kit-tag @(v.Holds ? "kit-good" : "kit-bad")">@(v.Holds ? "Applies" : "Does not apply")</span></td><td class="kit-muted">@v.Detail</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        @if (_ashtottari.Count == 0)
+        {
+            <p class="kit-muted">Ashtottari periods could not be computed for this chart.</p>
+        }
+        else
+        {
+            var maha = _ashtottari.FirstOrDefault(m => m.StartDate.DateTime <= _asOf && _asOf < m.EndDate.DateTime);
+            var antar = maha?.Children.FirstOrDefault(a => a.StartDate.DateTime <= _asOf && _asOf < a.EndDate.DateTime);
+            <p class="pd-lead pd-running"><b>Running on @Date(_asOf):</b>
+                @if (maha is null) { <span>no Ashtottari period covers this date.</span> }
+                else { <span>@maha.Lord Mahadasha (@Date(maha.StartDate.DateTime) to @Date(maha.EndDate.DateTime))@(antar is null ? "" : $", {antar.Lord} Antardasha ({Date(antar.StartDate.DateTime)} to {Date(antar.EndDate.DateTime)})")</span> }
+            </p>
+            <h4 class="pd-sub">Mahadasas</h4>
+            <div class="kit-scroll">
+                <table class="kit">
+                    <thead><tr><th>Lord</th><th>From</th><th>To</th></tr></thead>
+                    <tbody>
+                    @foreach (var m in _ashtottari)
+                    {
+                        <tr class="@(m == maha ? "pd-row-now" : null)"><td><b>@m.Lord</b></td><td class="mono">@Date(m.StartDate.DateTime)</td><td class="mono">@Date(m.EndDate.DateTime)</td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (maha is not null)
+            {
+                <h4 class="pd-sub">Antardasas of @maha.Lord</h4>
+                <div class="kit-scroll">
+                    <table class="kit">
+                        <thead><tr><th>Lord</th><th>From</th><th>To</th></tr></thead>
+                        <tbody>
+                        @foreach (var a in maha.Children)
+                        {
+                            <tr class="@(a == antar ? "pd-row-now" : null)"><td>@a.Lord</td><td class="mono">@Date(a.StartDate.DateTime)</td><td class="mono">@Date(a.EndDate.DateTime)</td></tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+    }
+    <p class="pd-note">Each rule above is P.V.R. Narasimha Rao's own, shown as holding or not in this chart; the app adds no score or verdict. Dates run from the birth moment in whole years (the book's convention).</p>
+}
+
+@code {
+    [Parameter, EditorRequired] public LoadedChart? Chart { get; set; }
+    [Parameter, EditorRequired] public BirthDetails? Person { get; set; }
+    [Parameter] public ChartPanchangaRow? Panchanga { get; set; }
+
+    private static readonly string[] Tabs = ["NARAYANA", "LAGNA KENDRADI", "SUDASA", "DRIGDASA", "ASHTOTTARI"];
+
+    private Ikiastrro.Core.Pipeline.ChartAnalysisInput? _input;
+    private Dictionary<RasiDasaSystem, RasiDasaPlan?> _plans = new();
+    private DasaReferencePoints _refs = new(null, null, null, null, null, null);
+    private RasiAntardasaPlan? _antardasa;
+    private PhalitaReading? _reading;
+    private List<DashaPeriod> _ashtottari = new();
+    private IReadOnlyList<AshtottariView> _views = Array.Empty<AshtottariView>();
+    private DateTime _asOf = DateTime.Today;
+    private int _tab;
+    private bool _showAll;
+
+    private static string Sign(ZodiacName s) => s == ZodiacName.Capricornus ? "Capricorn" : s.ToString();
+    private static string Date(DateTime d) => d.ToString("d MMM yyyy", CultureInfo.InvariantCulture);
+    private static string Years(double y) => y == Math.Floor(y) ? $"{y:0} yr" : $"{y:0.00} yr";
+
+    private static string SystemLead(RasiDasaSystem s) => s switch
+    {
+        RasiDasaSystem.Narayana => "Narayana dasa (PVR ch.18): a very important phalita dasa that gives general results; each dasa rasi acts as the progressed Lagna.",
+        RasiDasaSystem.LagnaKendradi => "Lagna Kendradi Rasi dasa (PVR ch.19): a phalita dasa that shows material success; Sudasa is the superior dasa for it.",
+        RasiDasaSystem.Sudasa => "Sudasa (PVR ch.20): Kendradi dasa from Sree Lagna, for money, power and status; check it along with Narayana.",
+        _ => "Drigdasa (PVR ch.21): a dasa based on aspects, showing how spiritual vision develops.",
+    };
+
+    private async Task OnAsOfChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)) _asOf = d.Date;
+        Recompute();
+        await Task.CompletedTask;
+    }
+
+    protected override void OnParametersSet()
+    {
+        _input = null;
+        _plans = new();
+        _ashtottari = new();
+        _views = Array.Empty<AshtottariView>();
+        if (Chart is null || Person is null || Chart.Grahas.Count(k => k.Planet != "Ascendant") < 9) return;
+
+        _input = Chart.ToAnalysisInput();
+        var birth = Person.DateOfBirth.ToDateTime(Person.EffectiveTimeOfBirth);
+        _refs = ReferencePoints(Chart);
+        var sl = Chart.KeyDetails.FirstOrDefault(k => k.PointKind == "SpecialLagna" && k.Planet == "SL")?.NirayanaLongitudeDegrees;
+        foreach (var system in Enum.GetValues<RasiDasaSystem>())
+            _plans[system] = RasiDasa.Compute(system, _input, birth, sl);
+
+        var moon = Chart.Grahas.FirstOrDefault(k => k.Planet == "Moon");
+        if (moon is not null)
+            _ashtottari = AshtottariDashaCalculator.ComputeFromMoonLongitude(
+                new DateTimeOffset(birth, TimeSpan.TryParse(Person.UtcOffset, out var offset) ? offset : TimeSpan.Zero),
+                moon.NirayanaLongitudeDegrees, 120);
+        if (Panchanga is not null)
+            _views = AshtottariApplicability.Evaluate(_input, Panchanga.IsNightBirth, string.Equals(Panchanga.Paksha, "Krishna", StringComparison.OrdinalIgnoreCase));
+        else
+            _views = AshtottariApplicability.Evaluate(_input, false, false).Take(2).ToList();
+        Recompute();
+    }
+
+    private void Recompute()
+    {
+        _antardasa = null;
+        _reading = null;
+        if (_input is null || _tab >= 4 || !_plans.TryGetValue((RasiDasaSystem)_tab, out var plan) || plan?.Running(_asOf) is not { } running) return;
+
+        if (plan.System == RasiDasaSystem.Narayana)
+            _antardasa = RasiDasa.Antardasas(_input, running);
+        var antar = _antardasa?.Periods.FirstOrDefault(p => p.Start <= _asOf && _asOf < p.End)?.Rasi;
+        _reading = plan.System switch
+        {
+            RasiDasaSystem.Narayana => PhalitaDasaReader.ReadNarayana(_input, running.Rasi, plan.Seed == _input.AscendantSign, _refs, antar),
+            RasiDasaSystem.LagnaKendradi => PhalitaDasaReader.ReadLagnaKendradi(_input, running.Rasi, _refs),
+            RasiDasaSystem.Sudasa => PhalitaDasaReader.ReadSudasa(_input, running.Rasi, _refs),
+            _ => PhalitaDasaReader.ReadDrig(_input, running.Rasi, _refs),
+        };
+    }
+
+    private void SelectTab(int index)
+    {
+        _tab = index;
+        Recompute();
+    }
+
+    private static DasaReferencePoints ReferencePoints(LoadedChart chart)
+    {
+        ZodiacName? SignOf(string kind, string name) =>
+            chart.KeyDetails.FirstOrDefault(k => k.PointKind == kind && k.Planet == name) is { } k && Enum.TryParse<ZodiacName>(k.Sign, out var s) ? s : null;
+        var ak = chart.Grahas.FirstOrDefault(k => k.CharaKaraka == "AK");
+        return new(SignOf("SpecialLagna", "HL"), SignOf("SpecialLagna", "GL"), SignOf("Arudha", "AL"), SignOf("Arudha", "A12"), SignOf("Arudha", "A10"),
+            ak is not null && Enum.TryParse<PlanetName>(ak.Planet, out var p) ? p : null);
+    }
+}

@@ -36,7 +36,28 @@ public static class StrongerCoLord
 
     /// <summary>The co-lord of <paramref name="sign"/> that rules it: <paramref name="a"/> wins
     /// a full tie (PVR gives no further rule).</summary>
-    public static PlanetName Stronger(PlanetName a, PlanetName b, ZodiacName sign, ChartAnalysisInput chart)
+    public static PlanetName Stronger(PlanetName a, PlanetName b, ZodiacName sign, ChartAnalysisInput chart) =>
+        Decide(a, b, sign, chart).Winner;
+
+    /// <summary>
+    /// Scorpio's or Aquarius's two lords, the one that rules in this chart, and the rule that decided it, for display
+    /// beside the house lord (Astro Facts, About Houses). Null for any other sign, which has one lord. Same decision as
+    /// <see cref="For"/>; this only adds the reason.
+    /// </summary>
+    public static CoLordReading? Explain(ZodiacName sign, ChartAnalysisInput chart)
+    {
+        var (a, b) = sign switch
+        {
+            ZodiacName.Scorpio => (PlanetName.Mars, PlanetName.Ketu),
+            ZodiacName.Aquarius => (PlanetName.Saturn, PlanetName.Rahu),
+            _ => (default(PlanetName), default(PlanetName)),
+        };
+        if (sign is not (ZodiacName.Scorpio or ZodiacName.Aquarius)) return null;
+        var (winner, rule) = Decide(a, b, sign, chart);
+        return new CoLordReading(sign, a, b, winner, rule);
+    }
+
+    private static (PlanetName Winner, string Rule) Decide(PlanetName a, PlanetName b, ZodiacName sign, ChartAnalysisInput chart)
     {
         var planets = chart.Planets
             .Where(p => p.Planet != "Ascendant" && Enum.TryParse<PlanetName>(p.Planet, out _))
@@ -44,13 +65,21 @@ public static class StrongerCoLord
         var signOf = planets.ToDictionary(kv => kv.Key, kv => Enum.Parse<ZodiacName>(kv.Value.Sign));
         double Degree(PlanetName p) => ((planets[p].VargaLongitudeDegrees ?? planets[p].NirayanaLongitudeDegrees ?? 0) % 30 + 30) % 30;
 
+        (PlanetName, string)? Pick<T>(Func<PlanetName, T> score, Func<T, T, string> say) where T : IComparable<T>
+        {
+            var cmp = score(a).CompareTo(score(b));
+            if (cmp == 0) return null;
+            var (w, l) = cmp > 0 ? (a, b) : (b, a);
+            return (w, say(score(w), score(l)));
+        }
+
         // Basic rule.
         var (aIn, bIn) = (signOf[a] == sign, signOf[b] == sign);
-        if (aIn != bIn) return aIn ? b : a;
+        if (aIn != bIn) return aIn ? (b, $"{a} is in {sign}, so {b} rules it") : (a, $"{b} is in {sign}, so {a} rules it");
 
         // (1) joined by more planets.
         int Joined(PlanetName p) => signOf.Count(kv => kv.Key != p && kv.Value == signOf[p]);
-        if (Winner(a, b, Joined) is { } w1) return w1;
+        if (Pick(Joined, (w, l) => $"joined by more planets ({w} against {l})") is { } r1) return r1;
 
         // (2) Jupiter, Mercury, dispositor — conjoining or rāśi-aspecting the planet.
         bool Influences(PlanetName by, PlanetName on) =>
@@ -61,7 +90,7 @@ public static class StrongerCoLord
             var dispositor = Enum.Parse<PlanetName>(HouseEngine.GetSignLord(signOf[p]));
             return new[] { PlanetName.Jupiter, PlanetName.Mercury, dispositor }.Count(by => Influences(by, p));
         }
-        if (Winner(a, b, Influence) is { } w2) return w2;
+        if (Pick(Influence, (w, l) => $"conjoined or aspected by more of Jupiter, Mercury and its dispositor ({w} against {l})") is { } r2) return r2;
 
         // (3) exalted.
         var signNames = signOf.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value);
@@ -69,7 +98,7 @@ public static class StrongerCoLord
             DignityEngine.Evaluate(p.ToString(), signOf[p],
             planets[p].VargaLongitudeDegrees is null ? Degree(p) : null, signNames).DignityStatus == "Exalted";
         var (aEx, bEx) = (Exalted(a), Exalted(b));
-        if (aEx != bEx) return aEx ? a : b;
+        if (aEx != bEx) return aEx ? (a, $"{a} is exalted") : (b, $"{b} is exalted");
 
         // (4) natural strength of the occupied sign.
         int Modality(PlanetName p) => BaadhakaCalculator.GetModality(signOf[p]) switch
@@ -78,16 +107,16 @@ public static class StrongerCoLord
             SignModality.Fixed => 1,
             _ => 0,
         };
-        if (Winner(a, b, Modality) is { } w4) return w4;
+        if (Pick(Modality, (_, _) => "in the naturally stronger sign (dual over fixed over movable)") is { } r4) return r4;
 
         // (5b) advancement in its sign; nodes from the end.
         double Advancement(PlanetName p) => p is PlanetName.Rahu or PlanetName.Ketu ? 30 - Degree(p) : Degree(p);
-        return Winner(a, b, Advancement) ?? a;
-    }
+        if (Pick(Advancement, (_, _) => "further advanced in its sign") is { } r5) return r5;
 
-    private static PlanetName? Winner<T>(PlanetName a, PlanetName b, Func<PlanetName, T> score) where T : IComparable<T>
-    {
-        var cmp = score(a).CompareTo(score(b));
-        return cmp == 0 ? null : cmp > 0 ? a : b;
+        return (a, $"equal on every test, so {a} is kept");
     }
 }
+
+/// <summary>Scorpio's (Mars, Ketu) or Aquarius's (Saturn, Rahu) two lords, the stronger one, and the rule that
+/// decided it (PVR sec.15.5.1).</summary>
+public sealed record CoLordReading(ZodiacName Sign, PlanetName Primary, PlanetName CoLord, PlanetName Stronger, string Rule);

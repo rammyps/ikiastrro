@@ -1,4 +1,6 @@
 @* House lordship for one chart — the classical "lord of the Nth house is placed in…" reading. *@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Karakas
 @using Ikiastrro.Web.Components.LifeMatters
 <div class="hlt-scroll">
     <table class="hlt">
@@ -15,7 +17,13 @@
                 <tr>
                     <td class="mono">@r.HouseNumber</td>
                     <td>@Disp(r.HouseSign)</td>
-                    <td>@r.LordPlanet</td>
+                    <td>
+                        @r.LordPlanet
+                        @if (CoLordOf(r) is { } co)
+                        {
+                            <span class="hlt-colord" title="PVR sec.15.5.1 stronger co-lord">Stronger co-lord: <b>@co.Stronger</b> (@co.Primary or @co.CoLord) — @co.Rule</span>
+                        }
+                    </td>
                     <td>House @r.LordPlacedInHouseFromLagna, @Disp(r.LordPlacedInSign)</td>
                     <td class="mono">House @r.LordPlacedInHouseFromMoon</td>
                     <td>
@@ -67,6 +75,14 @@
     [Parameter] public IReadOnlyDictionary<int, IReadOnlyList<HouseMatterLink>>? LifeMatters { get; set; }
 
     [Parameter] public int PersonId { get; set; }
+
+    /// <summary>Optional: Scorpio's and Aquarius's stronger co-lord by sign (<see cref="StrongerCoLord.Explain"/>). When
+    /// supplied, those houses show which of Mars or Ketu, Saturn or Rahu rules in this chart and why. The Lord column
+    /// itself stays the stored single lord.</summary>
+    [Parameter] public IReadOnlyDictionary<ZodiacName, CoLordReading>? CoLords { get; set; }
+
+    private CoLordReading? CoLordOf(ChartHouseLord r) =>
+        CoLords is not null && Enum.TryParse<ZodiacName>(r.HouseSign, out var sign) ? CoLords.GetValueOrDefault(sign) : null;
 
     /// <summary>The chart this table shows; Key Inference links read the matter in it (left out
     /// for D1, so the matter opens in its own varga).</summary>

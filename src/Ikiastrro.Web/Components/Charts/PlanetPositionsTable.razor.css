@@ -77,3 +77,11 @@ table.ppt .pill .dot {
     border-radius: 50%;
     flex: none;
 }
+
+/* Avasthas column (Astro Facts 1.1, D1): one line per state, PVR's meaning muted beside it. */
+table.ppt td.ppt-avastha { min-width: 18rem; line-height: 1.4; }
+.ppt-av-line { display: block; margin-top: 3px; }
+.ppt-av-line:first-child { margin-top: 0; }
+.ppt-av-meaning { color: var(--brand-muted); font-size: .86em; }
+.ppt-av-result { display: block; margin-top: 4px; font-size: .84em; color: var(--brand-midnight); }
+

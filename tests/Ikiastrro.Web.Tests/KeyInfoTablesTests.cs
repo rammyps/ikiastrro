@@ -68,8 +68,8 @@ public sealed class KeyInfoTablesTests : BunitContext
         Assert.Contains("Trishoola rasis", rows[1].TextContent);
         Assert.Equal(3, rows[1].QuerySelectorAll("td")[1].TextContent.Split('·').Length);   // three trine signs
         Assert.Contains(rows, r => r.TextContent.StartsWith("Maheswara"));
-        Assert.Contains("Method of three pairs", cut.Markup);   // D1 fixture carries HL
-        Assert.Contains("Eighth lord method", cut.Markup);
+        Assert.Contains("Method of three pairs", cut.Markup.Normalized());   // D1 fixture carries HL
+        Assert.Contains("Eighth lord method", cut.Markup.Normalized());
         Assert.Equal(3, cut.FindAll("tbody tr").Count(r => r.TextContent.StartsWith("Pair:")));
         Assert.Contains("life", cut.Markup);
     }
@@ -90,9 +90,9 @@ public sealed class KeyInfoTablesTests : BunitContext
         var cut = Render<SayanadiWorkingTable>(p => p
             .Add(x => x.KeyDetails, kd).Add(x => x.JanmaGhatis, 35.4m).Add(x => x.StateNames, states));
 
-        Assert.Contains("M</b> = 26", cut.Markup);
-        Assert.Contains("G</b> = 36", cut.Markup);
-        Assert.Contains("L</b> = 4", cut.Markup);
+        Assert.Contains("M = 26", cut.Find(".sw-shared").Normalized());
+        Assert.Contains("G = 36", cut.Find(".sw-shared").Normalized());
+        Assert.Contains("L = 4", cut.Find(".sw-shared").Normalized());
         var rows = cut.FindAll("tbody tr");
         Assert.Equal(9, rows.Count);
         // Sun: C=18, P=1, A=9 (28 degrees is the 9th navamsa) -> 162 + 26 + 36 + 4 = 228 -> mod 12 = 0 -> 12.
