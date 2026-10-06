@@ -13,16 +13,16 @@ public sealed class DoshaChartRepository
 
     private sealed record Row(string Planet, string Sign);
 
-    /// <summary>Null when the person lacks a stored D1 Ascendant or any of the nine grahas.</summary>
-    public DoshaChart? GetByBirthDetailId(int birthDetailId)
+    /// <summary>Null when the person lacks a stored Ascendant or any of the nine grahas in the chart type (D1 by default).</summary>
+    public DoshaChart? GetByBirthDetailId(int birthDetailId, string chartType = "D1")
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         var rows = connection.Query<Row>("""
             SELECT k.Planet, k.Sign
             FROM dbo.tbl_ChartResults c
             JOIN dbo.tbl_Chart_KeyDetails k ON k.ChartResultId = c.Id AND k.PointKind = 'Graha'
-            WHERE c.BirthDetailId = @Id AND c.ChartType = 'D1'
-            """, new { Id = birthDetailId }).ToList();
+            WHERE c.BirthDetailId = @Id AND c.ChartType = @ChartType
+            """, new { Id = birthDetailId, ChartType = chartType }).ToList();
 
         var signs = new Dictionary<PlanetName, ZodiacName>();
         ZodiacName? lagna = null;
@@ -33,6 +33,15 @@ public sealed class DoshaChartRepository
             else if (Enum.TryParse<PlanetName>(r.Planet, out var planet)) signs[planet] = sign;
         }
         return lagna is { } l && signs.Count == 9 ? new DoshaChart(l, signs) : null;
+    }
+
+    /// <summary>The stored sign charts for the given varga codes, leaving out any the person lacks.</summary>
+    public IReadOnlyDictionary<string, DoshaChart> GetVargas(int birthDetailId, IEnumerable<string> chartTypes)
+    {
+        var result = new Dictionary<string, DoshaChart>();
+        foreach (var code in chartTypes)
+            if (GetByBirthDetailId(birthDetailId, code) is { } chart) result[code] = chart;
+        return result;
     }
 
     private sealed record DignityRow(string Planet, string? DignityStatus);
