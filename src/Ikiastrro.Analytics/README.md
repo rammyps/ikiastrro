@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-10-04
-reflects: IkiAstrro v10 descriptive analytics package 0.1
+last_updated: 2026-10-06
+reflects: IkiAstrro v10 house and Life Matter/Varga descriptive analytics
 ---
 
 # IkiAstrro Analytics
@@ -31,6 +31,8 @@ After installing the package and its `pyodbc` dependency, run:
 ikiastrro-analytics prepare-personal-cohort
 ikiastrro-analytics validate-dataset
 ikiastrro-analytics describe --git-commit <commit>
+ikiastrro-analytics validate-life-matters
+ikiastrro-analytics describe-life-matters --git-commit <commit>
 ```
 
 Set `IKIASTRRO_SQL_CONNECTION` to override the default trusted local SQL Server connection.
@@ -38,3 +40,7 @@ Set `IKIASTRRO_SQL_CONNECTION` to override the default trusted local SQL Server 
 `describe` creates or reuses the versioned development dataset, computes every eligible
 subject's comparisons with that subject removed from the reference group, and atomically records
 the run. A zero-subject run is valid and proves the guarded pipeline without enrolling anyone.
+
+The Life Matter commands consume `vw_AnalyticsLifeMatterFeaturesV1`. They stratify every
+comparison by Life Matter focus and evidence lens, so D1 promise and mapped Varga confirmation
+are never pooled or averaged. Unsupported special-lagna references remain explicit missing rows.
