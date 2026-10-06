@@ -1,0 +1,24 @@
+/* Sudarsana chakra — same token set as the polar wheel (Natal_Transit_Comp_WheelChart.razor.css). */
+.sdc { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--font-interface); }
+.sdc-cell { fill: var(--brand-surface); stroke: var(--grid-stroke); stroke-width: 1; }
+.sdc-ring-moon .sdc-cell { fill: color-mix(in srgb, var(--brand-sunrise) 22%, var(--brand-surface)); }
+.sdc-ring-sun .sdc-cell { fill: color-mix(in srgb, var(--brand-sunrise) 45%, var(--brand-surface)); }
+.sdc-cell.is-ref { stroke: var(--brand-midnight); stroke-width: 2.2; }
+.sdc-ring .sdc-cell.has-lord { fill: var(--brand-sunrise); }
+.sdc-ring-edge { fill: none; stroke: var(--brand-midnight); stroke-width: 1.6; }
+.sdc-ring.is-active .sdc-ring-edge { stroke-width: 4.5; }
+.sdc-spoke { stroke: var(--brand-midnight); stroke-width: 1; opacity: .35; }
+.sdc-house, .sdc-sign, .sdc-core-title, .sdc-core-line, .sdc-planet text { text-anchor: middle; dominant-baseline: central; }
+.sdc-house { fill: var(--brand-muted); font-size: 11px; font-weight: 700; }
+.sdc-sign { fill: var(--brand-midnight); font-size: 11px; font-weight: 800; }
+.sdc-planet rect { fill: var(--brand-surface); stroke: var(--brand-midnight); stroke-width: 1; }
+.sdc-planet text { fill: var(--brand-midnight); font-size: 11px; font-weight: 800; }
+.sdc-planet.is-lord rect { fill: var(--brand-sunrise); stroke-width: 2.4; }
+.sdc-core { fill: var(--brand-surface); stroke: var(--grid-stroke); stroke-width: 1; }
+.sdc-core-title { fill: var(--brand-midnight); font-size: 15px; font-weight: 800; letter-spacing: .14em; }
+.sdc-core-line { fill: var(--brand-muted); font-size: 12px; font-weight: 700; }
+.sdc-legend { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; font-size: var(--font-size-support, .9em); color: var(--brand-midnight); }
+.sdc-legend li.is-active { font-weight: 700; }
+.sdc-swatch { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border: 1px solid var(--brand-midnight); border-radius: 3px; background: var(--brand-surface); }
+.sdc-swatch.sdc-ring-moon { background: color-mix(in srgb, var(--brand-sunrise) 22%, var(--brand-surface)); }
+.sdc-swatch.sdc-ring-sun { background: color-mix(in srgb, var(--brand-sunrise) 45%, var(--brand-surface)); }

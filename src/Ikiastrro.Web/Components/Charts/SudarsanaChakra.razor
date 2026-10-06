@@ -1,0 +1,137 @@
+@using System.Globalization
+@* Sudarsana chakra — Parasara's tripod of life (PVR: Sun, Moon and lagna): three concentric rings of the same twelve
+   signs, each counting houses from its own reference. Inner = Lagna (body), middle = Moon (mind), outer = Sun (soul).
+   Every graha is written in its sign in each ring, with that ring's house number beside it. Pure SVG, same
+   fixed-zodiac geometry as Natal_Transit_Comp_WheelChart (the lagna sign starts at the top, signs run clockwise) so
+   the two views swap in place on the Transit tab.
+   Dasha link (PVR): the Sun ring is the reference for a mahadasa, the Moon ring for an antardasa, the Lagna ring for a
+   pratyantardasa; the running lord of the chosen period is highlighted in its ring. Facts only. *@
+<svg class="sdc" viewBox="0 0 800 800" role="img" aria-label="Sudarsana chakra: houses from lagna, Moon and Sun">
+    @foreach (var ring in Rings)
+    {
+        <g class="@("sdc-ring sdc-ring-" + ring.Key + (ring.Active ? " is-active" : ""))">
+            @for (var i = 0; i < 12; i++)
+            {
+                var signIndex = (AscendantSignIndex + i) % 12;
+                var house = (signIndex - ring.RefIndex + 12) % 12 + 1;
+                var start = i * 30d;
+                var cell = Occupants(signIndex);
+                var hasLord = ring.Lord is not null && cell.Contains(ring.Lord);
+                <path d="@AnnularSector(start, start + 30, ring.Inner, ring.Outer)"
+                      class="@("sdc-cell" + (signIndex == ring.RefIndex ? " is-ref" : "") + (hasLord ? " has-lord" : ""))">
+                    <title>@DisplaySign(SignNames[signIndex]) · house @house from @ring.Name</title>
+                </path>
+                var (hx, hy) = Xy(start + 15, ring.Inner + 11);
+                <g><text x="@F(hx)" y="@F(hy)" class="sdc-house">@house</text></g>
+                @for (var k = 0; k < cell.Count; k++)
+                {
+                    var row = k / 3;
+                    var col = k % 3;
+                    var inRow = Math.Min(3, cell.Count - row * 3);
+                    var (cx, cy) = Xy(start + 15, ring.Inner + 40 + row * 17);
+                    var along = (col - (inRow - 1) / 2d) * 25;
+                    var theta = (start + 15 - 90) * Math.PI / 180d;
+                    var px = cx - along * Math.Sin(theta);
+                    var py = cy + along * Math.Cos(theta);
+                    <g class="@("sdc-planet" + (cell[k] == ring.Lord ? " is-lord" : ""))" transform="translate(@F(px) @F(py))">
+                        <rect x="-11" y="-8" width="22" height="16" rx="6" />
+                        <text>@PlanetCode(cell[k])</text>
+                    </g>
+                }
+            }
+            <circle cx="400" cy="400" r="@F(ring.Outer)" class="sdc-ring-edge" />
+        </g>
+    }
+    @for (var i = 0; i < 12; i++)
+    {
+        var (lx, ly) = Xy(i * 30 + 15, 389);
+        <g><text x="@F(lx)" y="@F(ly)" class="sdc-sign">@SignAbbr((AscendantSignIndex + i) % 12)</text></g>
+        var (ax, ay) = Xy(i * 30, 120);
+        var (bx, by) = Xy(i * 30, 375);
+        <line x1="@F(ax)" y1="@F(ay)" x2="@F(bx)" y2="@F(by)" class="sdc-spoke" />
+    }
+    <circle cx="400" cy="400" r="112" class="sdc-core" />
+    <text x="400" y="372" class="sdc-core-title">TRIPOD</text>
+    <text x="400" y="392" class="sdc-core-title">OF LIFE</text>
+    <text x="400" y="420" class="sdc-core-line">Lagna @SignAbbr(AscendantSignIndex)</text>
+    <text x="400" y="438" class="sdc-core-line">Moon @SignAbbr(MoonIndex)</text>
+    <text x="400" y="456" class="sdc-core-line">Sun @SignAbbr(SunIndex)</text>
+</svg>
+<ul class="sdc-legend" aria-label="Sudarsana chakra rings">
+    @foreach (var ring in Rings.Reverse())
+    {
+        <li class="@(ring.Active ? "is-active" : "")"><span class="@("sdc-swatch sdc-ring-" + ring.Key)"></span><b>@ring.Name</b> ring — @ring.Meaning; reference for the @ring.Dasha@(ring.Lord is null ? "" : $" ({ring.Lord} running)")</li>
+    }
+</ul>
+
+@code {
+    public sealed record Planet(string Label, double LongitudeDegrees);
+
+    [Parameter, EditorRequired] public IReadOnlyList<Planet> Planets { get; set; } = Array.Empty<Planet>();
+    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "";
+    /// <summary>Lord of the chosen mahadasa / antardasa / pratyantardasa; each lights up in its ring.</summary>
+    [Parameter] public string? MahaLord { get; set; }
+    [Parameter] public string? AntarLord { get; set; }
+    [Parameter] public string? PratyantarLord { get; set; }
+
+    private sealed record Ring(string Key, string Name, string Meaning, string Dasha, int RefIndex, double Inner, double Outer, string? Lord)
+    {
+        public bool Active => Lord is not null;
+    }
+
+    private int AscendantSignIndex
+    {
+        get
+        {
+            var name = AscendantSign.Equals("Capricorn", StringComparison.OrdinalIgnoreCase) ? "Capricornus" : AscendantSign;
+            var index = Array.FindIndex(SignNames, s => s.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return index < 0 ? 0 : index;
+        }
+    }
+
+    private static int SignIndexOf(double longitude) => (int)Math.Floor(((longitude % 360) + 360) % 360 / 30d);
+
+    private int SignOf(string planet) => Planets.FirstOrDefault(p => p.Label == planet) is { } p
+        ? SignIndexOf(p.LongitudeDegrees) : AscendantSignIndex;
+    private int MoonIndex => SignOf("Moon");
+    private int SunIndex => SignOf("Sun");
+
+    private IReadOnlyList<Ring> Rings => new Ring[]
+    {
+        new("lagna", "Lagna", "the body, fastest-changing results", "pratyantardasa", AscendantSignIndex, 120, 205, PratyantarLord),
+        new("moon", "Moon", "the mind, faster-changing results", "antardasa", MoonIndex, 205, 290, AntarLord),
+        new("sun", "Sun", "the soul, slow-changing and long-lasting results", "mahadasa", SunIndex, 290, 375, MahaLord),
+    };
+
+    private IReadOnlyList<string> Occupants(int signIndex) => Planets
+        .Where(p => Array.IndexOf(Order, p.Label) >= 0 && SignIndexOf(p.LongitudeDegrees) == signIndex)
+        .OrderBy(p => Array.IndexOf(Order, p.Label)).Select(p => p.Label).ToList();
+
+    private static readonly string[] Order = { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu" };
+
+    private static string PlanetCode(string planet) => planet switch
+        { "Sun" => "Su", "Moon" => "Mo", "Mars" => "Ma", "Mercury" => "Me", "Jupiter" => "Ju",
+          "Venus" => "Ve", "Saturn" => "Sa", "Rahu" => "Ra", "Ketu" => "Ke", _ => planet[..Math.Min(2, planet.Length)] };
+
+    private static (double X, double Y) Xy(double longitude, double radius)
+    {
+        var radians = (longitude - 90) * Math.PI / 180d;
+        return (400 + radius * Math.Cos(radians), 400 + radius * Math.Sin(radians));
+    }
+
+    private static string DisplaySign(string sign) => sign == "Capricornus" ? "Capricorn" : sign;
+    private static string SignAbbr(int index) => SignNames[index][..3];
+    private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static string AnnularSector(double startLongitude, double endLongitude, double innerRadius, double outerRadius)
+    {
+        var (outerStartX, outerStartY) = Xy(startLongitude, outerRadius);
+        var (outerEndX, outerEndY) = Xy(endLongitude, outerRadius);
+        var (innerEndX, innerEndY) = Xy(endLongitude, innerRadius);
+        var (innerStartX, innerStartY) = Xy(startLongitude, innerRadius);
+        return $"M {F(outerStartX)} {F(outerStartY)} A {F(outerRadius)} {F(outerRadius)} 0 0 1 {F(outerEndX)} {F(outerEndY)} L {F(innerEndX)} {F(innerEndY)} A {F(innerRadius)} {F(innerRadius)} 0 0 0 {F(innerStartX)} {F(innerStartY)} Z";
+    }
+
+    private static readonly string[] SignNames =
+        { "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricornus", "Aquarius", "Pisces" };
+}
