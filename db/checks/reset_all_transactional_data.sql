@@ -63,6 +63,8 @@ IF OBJECT_ID('dbo.tbl_Fact_HouseStrengthStatistics', 'U') IS NOT NULL
 -- Statistical-analytics foundation (db/163): comparisons FK tbl_ChartResults, subjects FK tbl_BirthDetails.
 IF OBJECT_ID('dbo.tbl_Fact_StatisticalComparisons', 'U') IS NOT NULL
     DELETE FROM dbo.tbl_Fact_StatisticalComparisons;
+IF OBJECT_ID('dbo.tbl_Fact_LifeMatterStatisticalComparisons', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Fact_LifeMatterStatisticalComparisons;
 IF OBJECT_ID('dbo.tbl_Dim_AnalyticsSubjects', 'U') IS NOT NULL
     DELETE FROM dbo.tbl_Dim_AnalyticsSubjects;
 
@@ -133,6 +135,8 @@ IF OBJECT_ID('dbo.tbl_Fact_HouseStrengthStatistics', 'U') IS NOT NULL
     DBCC CHECKIDENT ('dbo.tbl_Fact_HouseStrengthStatistics', RESEED, 0);
 IF OBJECT_ID('dbo.tbl_Fact_StatisticalComparisons', 'U') IS NOT NULL
     DBCC CHECKIDENT ('dbo.tbl_Fact_StatisticalComparisons', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Fact_LifeMatterStatisticalComparisons', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Fact_LifeMatterStatisticalComparisons', RESEED, 0);
 IF OBJECT_ID('dbo.tbl_Dim_AnalyticsSubjects', 'U') IS NOT NULL
     DBCC CHECKIDENT ('dbo.tbl_Dim_AnalyticsSubjects', RESEED, 0);
 IF OBJECT_ID('dbo.tbl_Person_Relationship', 'U') IS NOT NULL

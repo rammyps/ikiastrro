@@ -46,6 +46,9 @@ public sealed class AnalyticsSubjectRepository(SqlConnectionFactory connectionFa
         if (subjectKey is { } key)
         {
             connection.Execute("""
+                DELETE FROM dbo.tbl_Fact_LifeMatterStatisticalComparisons WHERE SubjectKey = @key
+                """, new { key }, transaction);
+            connection.Execute("""
                 DELETE FROM dbo.tbl_Fact_StatisticalComparisons WHERE SubjectKey = @key
                 """, new { key }, transaction);
         }
@@ -78,6 +81,12 @@ public sealed class AnalyticsSubjectRepository(SqlConnectionFactory connectionFa
     {
         using var connection = connectionFactory.CreateOpenConnection();
         using var transaction = connection.BeginTransaction();
+        connection.Execute("""
+            DELETE comparison
+            FROM dbo.tbl_Fact_LifeMatterStatisticalComparisons comparison
+            JOIN dbo.tbl_Dim_AnalyticsSubjects subject ON subject.SubjectKey = comparison.SubjectKey
+            WHERE subject.BirthDetailId = @birthDetailId
+            """, new { birthDetailId }, transaction);
         connection.Execute("""
             DELETE comparison
             FROM dbo.tbl_Fact_StatisticalComparisons comparison

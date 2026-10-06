@@ -94,6 +94,9 @@ Publishes to the CLI and UI streams under
   the view reuses persisted `tbl_Fact_HouseStrengthStatistics`, exposes full calculation/rule
   provenance, and emits controlled missing reasons for special-lagna references or unavailable
   charts/statistics. It makes no outcome claim and performs no D1/Varga averaging.
+  Migration 173 adds dedicated comparison persistence keyed by analytics run, anonymous subject,
+  Life Matter focus, evidence lens and feature. Eligibility changes and person deletion remove
+  both house and Life Matter comparisons atomically.
 
 - **`FEAT-AVASTHA-05` — Sayanaadi (PostureState, DB slice)** — migration 083: 12-state
   `tbl_Dim_PlanetaryState` seed (`AvasthaSystem = 'Sayanadi'`), `tbl_Rule_PostureStateFormula`
