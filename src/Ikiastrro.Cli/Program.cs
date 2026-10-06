@@ -6,6 +6,7 @@ using Ikiastrro.Cli;
 using Ikiastrro.Core.Engines.Ashtakavarga;
 using Ikiastrro.Core.Engines.Panchanga;
 using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Engines.Matching;
 using Ikiastrro.Core.Engines.DivisionalCharts;
 using Ikiastrro.Core.Pipeline;
 using Ikiastrro.Core.Engines.PlanetaryStates;
@@ -184,6 +185,37 @@ if (args.Length > 0 && args[0] == "backfill-analytics")
 }
 
 // Read-only: verifies current rule data and in-memory output, never rewrites saved charts.
+// --- Read-only report: `dotnet run -- family-dasha [yyyy-mm-dd]` ---
+// Running Vimshottari lords for every saved person against each life area (PVR Ch. 16.5), plus the Kendradi
+// Graha Dasa caution (Ch. 16.7). Facts only; reads the stored charts and dasha periods, writes nothing.
+if (args.Length > 0 && args[0] == "family-dasha")
+{
+    var on = args.Length > 1 && DateTime.TryParse(args[1], out var parsed) ? parsed.Date : DateTime.Today;
+    var charts = new DoshaChartRepository(connectionFactory);
+    var history = new PairHistoryRepository(connectionFactory);
+    var codes = LifeMatterSimilarity.Areas.Where(a => a.Houses.Count > 0).Select(a => a.Varga).Append("D1").Distinct().ToArray();
+    Console.WriteLine($"Running dasha lords by life area on {on:yyyy-MM-dd} (PVR 16.5: MD from Sun, AD from Moon, PD from Lagna)");
+    foreach (var person in birthDetailsRepo.GetAll())
+    {
+        Console.WriteLine($"\n== {person.Name} ==");
+        var d = history.DashaOn(person.Id, on);
+        var vargas = charts.GetVargas(person.Id, codes);
+        if (d is null || d.Maha is null || d.Antar is null || d.Pratyantar is null || !vargas.TryGetValue("D1", out var d1))
+        {
+            Console.WriteLine("  (no stored dasha periods or D1 chart)");
+            continue;
+        }
+        var (fromLagna, fromMoon) = KendradiGrahaDasaCheck.Evaluate(d1);
+        Console.WriteLine($"  MD {d.Maha} / AD {d.Antar} / PD {d.Pratyantar}.  Kendra planets: from Lagna {fromLagna.PlanetsInQuadrants} " +
+            $"({fromLagna.QuadrantsOccupied}/4 occupied), from Moon {fromMoon.PlanetsInQuadrants} ({fromMoon.QuadrantsOccupied}/4 occupied)");
+        var running = new RunningDasha(Enum.Parse<PlanetName>(d.Maha), Enum.Parse<PlanetName>(d.Antar), Enum.Parse<PlanetName>(d.Pratyantar));
+        foreach (var r in DashaPromiseReader.Read(vargas, running).Where(r => r.IsLinked))
+            Console.WriteLine($"  {r.Area.Name,-18} {r.Level,-10} {r.Lord,-8} {r.Area.Varga,-4} " +
+                $"[{string.Join(", ", r.LinksFromLagna.Concat(r.LinksFromReference))}]  in {DashaPromiseReader.Ordinal(r.HouseFromReference)} from {r.Reference}");
+    }
+    return;
+}
+
 if (args.Length > 0 && args[0] == "verify-upagrahas")
 {
     var rules = new SubPlanetRuleRepository(connectionFactory).GetAll(new RuleSetRepository(connectionFactory).GetActive().Id);
