@@ -360,8 +360,19 @@ else
                         </section>
                     }
 
+                    <div class="ki-viewswitch" role="group" aria-label="Chart style">
+                        <button type="button" aria-pressed="@(!_showSudarsana)" @onclick="() => _showSudarsana = false">Polar wheel</button>
+                        <button type="button" aria-pressed="@_showSudarsana" @onclick="() => _showSudarsana = true">Sudarsana chakra</button>
+                    </div>
+
                     <div class="ki-wheel">
-                        @if (_d1.Count > 0)
+                        @if (_d1.Count > 0 && _showSudarsana)
+                        {
+                            <SudarsanaChakra AscendantSign="@lc.AscendantSign" Planets="@SudarsanaPlanets"
+                                             MahaLord="@_selection?.Maha?.Lord" AntarLord="@_selection?.Antar?.Lord"
+                                             PratyantarLord="@_selection?.Pratyantar?.Lord" />
+                        }
+                        else if (_d1.Count > 0)
                         {
                             <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
                                                NatalPoints="@D1WheelPoints"
@@ -1120,6 +1131,12 @@ else
     private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> D1WheelPoints => _d1
         .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet, r.LongitudeDegrees,
             r.DegreesInSignDisplay, r.Sign, r.DignityStatus, r.DeepExaltationDegree, r.CharaKaraka)).ToList();
+
+    /// <summary>Chart style on the Transit tab: false = polar wheel (default), true = Sudarsana chakra.</summary>
+    private bool _showSudarsana;
+
+    private IReadOnlyList<SudarsanaChakra.Planet> SudarsanaPlanets => _d1
+        .Select(r => new SudarsanaChakra.Planet(r.Planet, r.LongitudeDegrees)).ToList();
 
     private IReadOnlyList<Natal_Transit_Comp_WheelChart.Point> TransitWheelPoints => _transits
         .Select(r => new Natal_Transit_Comp_WheelChart.Point(r.Planet.ToString(), r.LongitudeDegrees)).ToList();
