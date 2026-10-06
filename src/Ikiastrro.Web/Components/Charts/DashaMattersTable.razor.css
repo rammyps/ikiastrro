@@ -1,0 +1,12 @@
+/* Standard table format — same shape as StrongerRasiTable (.kit), docs/ui/design-language.md. */
+.kit-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--brand-line); border-radius: 10px; }
+.kit { width: 100%; border-collapse: collapse; font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif; font-size: 1em; }
+.kit th, .kit td { text-align: left; vertical-align: top; padding: 6px; color: var(--card-fg); }
+.kit th { font-weight: 700; border-bottom: 2px solid var(--brand-line); background: var(--brand-surface); }
+.kit td { border-bottom: 1px solid var(--brand-line); }
+.kit tbody tr:last-child td { border-bottom: 0; }
+.kit tbody tr:hover td { background: var(--brand-sunrise); }
+.kit .mono { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kit-muted { color: var(--brand-muted); }
+.dm-lead { margin: 0 0 8px; line-height: 1.5; }
+.dm-note { font-size: .9em; }

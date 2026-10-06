@@ -596,6 +596,15 @@ else
             <PhalitaDasaPanel Chart="@(_data?.Charts.GetValueOrDefault("D1"))" Person="_data?.Person" Panchanga="_panchanga" />
         </div>
     }
+
+    @if (Shows(9))
+    {
+        <div class="ki-panelbody" id="ki-panel-9" role="tabpanel" aria-labelledby="ki-tab-9">
+            @PrintHead(9)
+            <h1 class="ki-heading">10. DASHA MATTERS</h1>
+            <DashaMattersTable Charts="_data?.Charts" Periods="_dashaTree" />
+        </div>
+    }
 }
 
 @code {
@@ -740,6 +749,7 @@ else
         "ALL CHARTS",
         "D1-PROMISE",
         "PHALITA DASAS",
+        "DASHA MATTERS",
     };
 
     private IReadOnlyList<Ikiastrro.Data.Statistics.MatterPromiseReading>? _promiseReadings;
@@ -840,6 +850,7 @@ else
     private IReadOnlyList<Ikiastrro.Data.ArgalaFactRow> _argalaFacts = Array.Empty<Ikiastrro.Data.ArgalaFactRow>();
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
     private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
+    private IReadOnlyList<Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord> _dashaTree = Array.Empty<Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord>();
     private IReadOnlyList<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact> _planetaryStates = Array.Empty<Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateFact>();
     private IReadOnlyDictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow> _stateNames = new Dictionary<byte, Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow>();
     private IReadOnlyDictionary<(byte PlanetaryStateId, byte PlanetId), Ikiastrro.Data.PostureStateInterpretationRow> _postureInterpretations =
@@ -910,7 +921,8 @@ else
         if (Step is "6" or "vargas") _masterTab = 5;
         if (Step is "7" or "allcharts") _masterTab = 6;
         if (Step is "8" or "promise" or "d1promise") _masterTab = 7;
-        if (Step is "9" or "dasas" or "phalita" or "phalitadasas") _masterTab = 8;
+        if (Step is "9" or "phalita" or "phalitadasas") _masterTab = 8;
+        if (Step is "10" or "dashamatters" or "dasas") _masterTab = 9;
         if (Step is "3" or "strength") _masterTab = 2;
         if (Step is "3.3" or "astavarga" or "ashtakavarga")
         {
@@ -984,7 +996,8 @@ else
             ? parsedOffset
             : TransitSelection.IstOffset;
         _utcOffset = offset;
-        _selection = new TransitSelection(DashaRepo.GetTreeByBirthDetailId(Id), offset, DateTimeOffset.UtcNow);
+        _dashaTree = DashaRepo.GetTreeByBirthDetailId(Id);
+        _selection = new TransitSelection(_dashaTree, offset, DateTimeOffset.UtcNow);
         _asOfUtc = _selection.ActiveUtc.UtcDateTime;
 
         LoadTransits();

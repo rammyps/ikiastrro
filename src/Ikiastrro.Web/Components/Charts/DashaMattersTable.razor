@@ -1,0 +1,74 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Dasha
+@using Ikiastrro.Web.Components.Workspace
+@* Astro Facts Dasha matters — PVR sec.16.5.1: a planet gives in its dasas the results promised by its positions in the
+   divisional charts. One row per PVR example; the planets that meet it, why, and their Vimshottari mahadasas.
+   Computed live from the stored charts (Core DashaMatters); facts only, no good/bad verdict. *@
+@if (_rules.Count == 0)
+{
+    <p class="kit-muted">Needs the rasi chart.</p>
+}
+else
+{
+    <p class="dm-lead">
+        PVR §16.5.1 (p.214): "A planet gives the results promised by its positions in various divisional charts." These are the book's nine
+        examples; the dasas and antardasas of the planets below can bring the result named. The book calls them "just a few examples".
+    </p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>#</th><th>In this chart</th><th>Planet and why</th><th>Its Vimshottari mahadasas</th></tr></thead>
+            <tbody>
+            @foreach (var r in _rules)
+            {
+                <tr>
+                    <td class="mono">@r.Number</td>
+                    <td>
+                        <b>@r.Statement</b> <span class="kit-muted">(@r.Varga)</span><br />
+                        <span>@r.Result</span>
+                        @if (r.Note is not null) { <br /><span class="kit-muted dm-note">@r.Note</span> }
+                    </td>
+                    <td>
+                        @if (r.NotEvaluated is not null) { <span class="kit-muted">@r.NotEvaluated</span> }
+                        else if (r.Planets.Count == 0) { <span class="kit-muted">No planet meets this.</span> }
+                        else
+                        {
+                            @foreach (var p in r.Planets)
+                            {
+                                <div><b>@p.Planet</b> <span class="kit-muted">— @p.Why</span></div>
+                            }
+                        }
+                    </td>
+                    <td class="mono">
+                        @foreach (var p in r.Planets)
+                        {
+                            @foreach (var d in Periods.Where(x => x.Lord == p.Planet.ToString()))
+                            {
+                                <div>@p.Planet @d.StartDate.ToString("MM/yyyy", Inv) – @d.EndDate.ToString("MM/yyyy", Inv)</div>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyDictionary<string, LoadedChart>? Charts { get; set; }
+    [Parameter] public IReadOnlyList<DashaPeriodRecord> Periods { get; set; } = Array.Empty<DashaPeriodRecord>();
+
+    private static readonly System.Globalization.CultureInfo Inv = System.Globalization.CultureInfo.InvariantCulture;
+    private IReadOnlyList<DashaMatterRule> _rules = Array.Empty<DashaMatterRule>();
+
+    protected override void OnParametersSet()
+    {
+        _rules = Array.Empty<DashaMatterRule>();
+        if (Charts is null || !Charts.TryGetValue("D1", out var d1)) return;
+        var ak = d1.Grahas.FirstOrDefault(k => k.CharaKaraka == "AK")?.Planet;
+        var charts = Charts.ToDictionary(c => c.Key, c => new DashaMatterChart(c.Value.ToAnalysisInput(),
+            c.Value.SpecialPoints.Where(k => Enum.TryParse<ZodiacName>(k.Sign, out _))
+                .GroupBy(k => k.Planet).ToDictionary(g => g.Key, g => Enum.Parse<ZodiacName>(g.First().Sign))));
+        _rules = DashaMatters.Evaluate(charts, ak is not null && Enum.TryParse<PlanetName>(ak, out var p) ? p : null);
+    }
+}
