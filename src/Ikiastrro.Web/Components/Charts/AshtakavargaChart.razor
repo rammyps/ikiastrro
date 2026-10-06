@@ -14,6 +14,19 @@
                 <strong>@GrandTotal <span>total</span></strong>
             </div>
         </header>
+        <div class="av-sav-body">
+        <div class="av-south" role="img" aria-label="Sarvashtavarga bindus on a South Indian chart">
+            @foreach (var cell in SouthCells)
+            {
+                var total = SavTotal(cell.SignNumber);
+                <div class="av-south-cell @SavBand(total) @(HouseNumber(cell.SignNumber) == 1 ? "av-south-lagna" : "")" style="grid-column:@cell.Col;grid-row:@cell.Row;">
+                    <span class="av-south-sign">@ShortSign(cell.SignNumber)</span>
+                    <b class="av-south-val">@total</b>
+                    <small class="av-south-house">H@(HouseNumber(cell.SignNumber))</small>
+                </div>
+            }
+            <div class="av-south-center" style="grid-column:2/4;grid-row:2/4;"><strong>@GrandTotal</strong><span>@SelectedChart SAV</span></div>
+        </div>
         <div class="av-bars" role="img" aria-label="Sarvashtavarga bindus by sign and house">
             @foreach (var row in SavRows)
             {
@@ -23,6 +36,7 @@
                     <b class="av-value @SavBand(row.TotalBindus)">@row.TotalBindus</b>
                 </div>
             }
+        </div>
         </div>
     </article>
 
@@ -114,6 +128,17 @@
         _sort == SortMode.HouseOrder
             ? SavRowsBySign.OrderBy(r => HouseNumber(r.SignNumber)).ToList()
             : SavRowsBySign.OrderByDescending(r => r.TotalBindus).ToList();
+
+    /// <summary>South Indian layout is sign-fixed (Pisces top-left, clockwise), the same 4x4 ring
+    /// MiniGrid uses; SignNumber 1 = Aries.</summary>
+    private static readonly (int SignNumber, int Col, int Row)[] SouthCells =
+    {
+        (12,1,1), (1,2,1), (2,3,1), (3,4,1),
+        (11,1,2), (4,4,2),
+        (10,1,3), (5,4,3),
+        (9,1,4), (8,2,4), (7,3,4), (6,4,4)
+    };
+    private int SavTotal(int sign) => SavRowsBySign.First(r => r.SignNumber == sign).TotalBindus;
 
     private int GrandTotal => SavRowsBySign.Sum(r => r.TotalBindus);
 

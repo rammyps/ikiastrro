@@ -63,3 +63,16 @@
 /* Śodhita card: reduced bindus are small, so no strength bands — zeros fade, the SAV row is bold. */
 .av-muted { color: var(--brand-muted); }
 .av-sodhita tfoot th, .av-sodhita tfoot td { border-top: 2px solid var(--card-line); }
+
+/* South Indian SAV layout (sign-fixed ring, lagna cell outlined) beside the sorted bar list. */
+.av-sav-body { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; padding: 18px 16px; }
+.av-sav-body .av-bars { flex: 1 1 280px; padding: 0; }
+.av-south { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 2px; width: min(100%, 320px); aspect-ratio: 1; flex: 0 0 auto; background: var(--grid-stroke); border: 2px solid var(--grid-stroke); }
+.av-south-cell { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; }
+.av-south-sign { position: absolute; top: 3px; left: 5px; font-size: .62rem; opacity: .85; text-transform: uppercase; }
+.av-south-house { position: absolute; bottom: 3px; right: 5px; font-size: .62rem; opacity: .85; }
+.av-south-val { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.av-south-lagna { outline: 3px solid var(--brand-midnight); outline-offset: -3px; }
+.av-south-center { display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--brand-surface); color: var(--brand-midnight); }
+.av-south-center strong { font-size: 1.6rem; }
+.av-south-center span { font-size: .7rem; color: var(--brand-muted); text-transform: uppercase; }
