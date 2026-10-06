@@ -38,6 +38,24 @@ else
         </div>
         <p class="num-method">Cheiro's Chaldean method &middot; 9 unassigned</p>
     </MudPaper>
+
+    <MudPaper Class="num-card num-meaning" Elevation="0">
+        <h2 class="num-subheading">Compound number @_result.CompoundTotal</h2>
+        @if (_meaning is null)
+        {
+            <p class="num-method">Cheiro lists meanings only for the compound numbers 10&ndash;52 &mdash; his 52 weeks of the year &mdash; so there is none for @_result.CompoundTotal.</p>
+        }
+        else
+        {
+            <p class="num-meaning-text">@_meaning.Text</p>
+            @if (_meaning.SameAs is { } target && CheiroCompoundNumbers.Get(target) is { } shared)
+            {
+                <p class="num-meaning-text"><strong>@target:</strong> @shared.Text</p>
+            }
+        }
+        <p class="num-method">Cheiro's Book of Numbers (1926)</p>
+    </MudPaper>
+
 }
 
 @code {
@@ -45,6 +63,7 @@ else
 
     private BirthDetails? _person;
     private NumerologyResult? _result;
+    private CheiroCompoundNumbers.Meaning? _meaning;
 
     protected override void OnParametersSet()
     {
@@ -56,6 +75,7 @@ else
         }
 
         _result = CheiroNumerology.Calculate(_person.Name);
+        _meaning = CheiroCompoundNumbers.Get(_result.CompoundTotal);
         Active.Set(Id, _person.Name,
             $"{_person.DateOfBirth:dd MMM yyyy} \u00b7 {_person.TimeOfBirth:HH\\:mm} \u00b7 {_person.PlaceCity}, {_person.PlaceCountry}");
         Active.SetHeaderExtra(null); // this page has no band-right content \u2014 clear any left by Astro Facts

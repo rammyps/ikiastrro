@@ -45,6 +45,20 @@ saved `Name`, alongside the letter-by-letter breakdown.
   show — the result is fully reproducible from the person's stored `Name` every time, so caching
   or logging past calculations would be redundant state.
 
+## Compound-number meanings
+
+Added 2026-10-06. Below the main card, a second card shows Cheiro's meaning for the person's
+compound total. The table is used for the name-number interpretation only — no full reference
+list on the page.
+
+- Source: Cheiro's Book of Numbers (1926, public domain), pp. 80–84, transcribed into
+  `Ikiastrro.Core.Numerology.CheiroCompoundNumbers` (hardcoded, same reasoning as the letter table).
+- Cheiro defines 10–52 only. A total outside that range shows a "no meaning listed" note.
+- 33–52 mostly say "same meaning as N" in the book; those entries keep that sentence and the page
+  also shows the referenced number's full text.
+- Not built: the book's date-addition rule (add a date to the name's compound total, then read
+  the resulting number).
+
 ## Visual contract
 
 Matches the `AllCharts`/`AstroFacts` canvas-card look: `--brand-canvas` card on the warm

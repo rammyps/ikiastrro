@@ -90,3 +90,21 @@
     color: var(--brand-muted);
     font-size: 0.82em;
 }
+
+/* Compound-number meaning (Cheiro's Book of Numbers, 10–52) */
+.num-meaning { margin-top: 16px; }
+
+.num-subheading {
+    margin: 0 0 12px;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.num-meaning-text {
+    margin: 0 0 12px;
+    color: var(--brand-midnight);
+    font: 400 var(--font-size-control) / 1.5 'Manrope', 'Segoe UI', sans-serif;
+}
+
