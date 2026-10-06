@@ -73,4 +73,32 @@ public sealed class KeyInfoTablesTests : BunitContext
         Assert.Equal(3, cut.FindAll("tbody tr").Count(r => r.TextContent.StartsWith("Pair:")));
         Assert.Contains("life", cut.Markup);
     }
+
+    [Fact]
+    public void SayanadiWorkingShowsEachGrahasInputsAndState()
+    {
+        // Ananya-style inputs: Moon in nakshatra 26 (M), 36th ghati (Janma ghatis 35.x), Lagna sign 4 (L).
+        ChartKeyDetail G(string name, int nak, decimal degree, int signId = 1) => new()
+            { PointKind = "Graha", Planet = name, NakshatraId = (byte)nak, DegreesInSignDecimal = degree, SignId = (byte)signId };
+        ChartKeyDetail[] kd =
+        [
+            G("Ascendant", 1, 6.8m, 4), G("Sun", 18, 28m), G("Moon", 26, 8m), G("Mars", 19, 14m), G("Mercury", 19, 14m),
+            G("Jupiter", 25, 1m), G("Venus", 15, 20m), G("Saturn", 13, 25m), G("Rahu", 19, 7m), G("Ketu", 6, 7m),
+        ];
+        var states = Enumerable.Range(1, 12).ToDictionary(i => (byte)i,
+            i => new Ikiastrro.Core.Engines.PlanetaryStates.PlanetaryStateRow((byte)i, "Sayanadi", $"State{i}", (byte)i, null));
+        var cut = Render<SayanadiWorkingTable>(p => p
+            .Add(x => x.KeyDetails, kd).Add(x => x.JanmaGhatis, 35.4m).Add(x => x.StateNames, states));
+
+        Assert.Contains("M</b> = 26", cut.Markup);
+        Assert.Contains("G</b> = 36", cut.Markup);
+        Assert.Contains("L</b> = 4", cut.Markup);
+        var rows = cut.FindAll("tbody tr");
+        Assert.Equal(9, rows.Count);
+        // Sun: C=18, P=1, A=9 (28 degrees is the 9th navamsa) -> 162 + 26 + 36 + 4 = 228 -> mod 12 = 0 -> 12.
+        var sun = rows[0].QuerySelectorAll("td");
+        Assert.Equal("228", sun[6].TextContent);
+        Assert.Equal("12", sun[7].TextContent);
+        Assert.Contains("State12", sun[8].TextContent);
+    }
 }

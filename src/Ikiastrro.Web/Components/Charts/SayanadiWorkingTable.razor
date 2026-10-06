@@ -1,0 +1,84 @@
+@using Ikiastrro.Core.Engines.PlanetaryStates
+@using Ikiastrro.Core.Models
+@* Astro Facts "ABOUT PLANETS" — how each graha's Śayanādi state is worked (PVR sec 15.4.4, Table 36):
+   index = ((C × P × A) + M + G + L) mod 12, remainder 0 read as 12. Same Core formula the stored state comes from
+   (PostureStateCalculator), recomputed here from the stored D1 key details so every input is visible. D1 only. *@
+@if (_rows.Count == 0)
+{
+    <p class="kit-muted">Needs the D1 chart and its birth pañchāṅga.</p>
+}
+else
+{
+    <p class="sw-formula">
+        <b>Index = ((C × P × A) + M + G + L) mod 12</b>, remainder 0 read as 12.
+        <span class="kit-muted">C the graha's own nakṣatra number (1–27) · P its index (Sun 1 … Saturn 7, Rāhu 8, Ketu 9) ·
+        A its navāṃśa within its own sign (1–9) · M the Moon's nakṣatra number · G the ghaṭī running at birth ·
+        L the Lagna's sign number.</span>
+    </p>
+    <p class="sw-shared">
+        For this chart: <b>M</b> = @_m · <b>G</b> = @_g (Janma ghaṭīs @_janma.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture), whole ghaṭīs + 1) · <b>L</b> = @_l
+    </p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr>
+                <th>Graha</th><th>C</th><th>P</th><th>A</th><th>C × P × A</th><th>+ M + G + L</th><th>Total</th><th>mod 12</th><th>Śayanādi state</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var r in _rows)
+            {
+                <tr>
+                    <td><b>@r.Planet</b></td>
+                    <td class="mono">@r.C</td>
+                    <td class="mono">@r.P</td>
+                    <td class="mono">@r.A</td>
+                    <td class="mono">@(r.C * r.P * r.A)</td>
+                    <td class="mono">@(_m + _g + _l)</td>
+                    <td class="mono">@r.Total</td>
+                    <td class="mono">@r.Index</td>
+                    <td><b>@r.State</b>@if (r.Meaning is not null) { <span class="kit-muted"> · @r.Meaning</span> }</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+    [Parameter] public decimal? JanmaGhatis { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyDictionary<byte, PlanetaryStateRow> StateNames { get; set; } = new Dictionary<byte, PlanetaryStateRow>();
+
+    private sealed record Row(string Planet, int C, int P, int A, int Total, int Index, string State, string? Meaning);
+
+    private static readonly string[] Order = { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu" };
+
+    private List<Row> _rows = new();
+    private int _m, _g, _l;
+    private decimal _janma;
+
+    protected override void OnParametersSet()
+    {
+        _rows = new();
+        var grahas = KeyDetails.Where(k => k.PointKind == "Graha").ToList();
+        var moon = grahas.FirstOrDefault(k => k.Planet == "Moon");
+        var asc = grahas.FirstOrDefault(k => k.Planet == "Ascendant");
+        if (JanmaGhatis is not { } janma || moon?.NakshatraId is not { } moonNak || asc?.SignId is not { } lagnaSign) return;
+
+        _janma = janma;
+        _m = moonNak;
+        _g = PostureStateCalculator.GhatiRunning((double)janma);
+        _l = lagnaSign;
+        var sayanadi = StateNames.Values.Where(s => s.AvasthaSystem == "Sayanadi").ToDictionary(s => (int)s.SequenceOrder);
+
+        for (var i = 0; i < Order.Length; i++)
+        {
+            var k = grahas.FirstOrDefault(x => x.Planet == Order[i]);
+            if (k?.NakshatraId is not { } c || k.DegreesInSignDecimal is not { } degree) continue;
+            var p = i + 1;
+            var a = PostureStateCalculator.NavamsaIndex(degree);
+            var index = PostureStateCalculator.ComputeIndex(c, p, a, _m, _g, _l);
+            sayanadi.TryGetValue(index, out var state);
+            _rows.Add(new Row(k.Planet, c, p, a, c * p * a + _m + _g + _l, index, state?.StateName ?? $"state {index}", state?.Meaning));
+        }
+    }
+}

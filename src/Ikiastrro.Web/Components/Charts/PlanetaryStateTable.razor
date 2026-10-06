@@ -36,7 +36,7 @@
                     @if (StateMeaning(r.WakefulnessStateId) is { } wakeMeaning) { <span class="pst-meaning">@wakeMeaning</span> }
                 </td>
                 <td>
-                    <strong>@StateLabel(r.PostureStateId)</strong>
+                    <strong>@StateLabel(r.PostureStateId)@(StateIndex(r.PostureStateId) is { } idx ? $" · {idx}/12" : null)</strong>
                     @if (StateMeaning(r.PostureStateId) is { } postureMeaning) { <span class="pst-meaning">@postureMeaning</span> }
                 </td>
                 <td><strong>@StateNamesJoined(r.DeeptadiStateIds)</strong></td>
@@ -83,6 +83,7 @@
         { "Duhkhita", "Vikala", "Khala", "Kopita", "Lajjita", "Kshudhita", "Trishita", "Kshobhita" };
 
     private string StateLabel(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.StateName : "—";
+    private int? StateIndex(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.SequenceOrder : null;
     private string? StateMeaning(byte? id) => id is { } v && StateNames.TryGetValue(v, out var s) ? s.Meaning : null;
     private string StateNamesJoined(IReadOnlyList<byte> ids) =>
         ids.Count == 0 ? "—" : string.Join(", ", ids.Select(id => StateLabel(id)));

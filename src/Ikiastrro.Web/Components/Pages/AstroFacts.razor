@@ -245,6 +245,9 @@ else
                     <PlanetaryStateTable Rows="_planetaryStates" StateNames="_stateNames"
                                            PostureInterpretations="_postureInterpretations"
                                            KeyDetails="D1KeyDetails" Strengths="_shadbala" />
+
+                    @Head(NatalSection.Sayanadi)
+                    <SayanadiWorkingTable KeyDetails="D1KeyDetails" JanmaGhatis="_panchanga?.JanmaGhatis" StateNames="_stateNames" />
                                 </div>
                             }
                             @if (SubShows(_activeTab, 2))
@@ -645,7 +648,8 @@ else
         public static readonly Section MrityuPushkara = new("af-mrityu-pushkara", "Mrityu bhāga & Puṣkara", D1Only: true);
         public static readonly Section RudraMaheswara = new("af-rudra-maheswara", "Rudra, Trishoola & Maheswara", D1Only: true);
         public static readonly Section States = new("af-states", "Planet states (avasthas)", D1Only: true);
-        public static readonly Section[] AboutPlanetsTab = [Moon, Dignity, Motion, MrityuPushkara, RudraMaheswara, States];
+        public static readonly Section Sayanadi = new("af-sayanadi", "Śayanādi working", D1Only: true);
+        public static readonly Section[] AboutPlanetsTab = [Moon, Dignity, Motion, MrityuPushkara, RudraMaheswara, States, Sayanadi];
 
         public static readonly Section HouseLords = new("af-house-lords", "House lord placement");
         public static readonly Section HouseFindings = new("af-house-findings", "House lord key findings");
