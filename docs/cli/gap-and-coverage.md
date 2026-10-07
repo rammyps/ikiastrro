@@ -80,10 +80,7 @@ detection** (`verify-strength` all green) · source-attributed yoga inputs · pr
 ## Parity gaps (lower priority)
 
 - **Sphutas — 13 delivered** (`Engines/KeyInfo/Sphutas.cs`: Prāṇa, Deha, Mṛtyu, Sūkṣma Tri-, Tithi, Yoga (Sun–Moon), Rāhu Tithi, Kṣetra, Bīja, Tri-, Catus-, Pañca-sphuṭa, Yogi, Avayoga; all match JHora to under 0.1″, `SphutasJhoraTests`). Remaining: **Kuṇḍa** — no formula found; no integer-multiple combination of Lagna/grahas/Gulika/Māndi (± constant) fits JHora's five reference charts, so it needs a source. Vighati Lagna stays deliberately unbuilt (equals Pranapada in the reference chart).
-- **Additional dashas** — Ashtottari, Yogini (applicability rules); Jaimini rāśi dashas
-  (Moola, Narayana, Sudasa); Kālachakra. Each uses the generic dasha-period storage, carries
-  its system + rule-set identity, and has worked reference assertions. PyJHora is a
-  cross-check reference only (AGPL).
+- **Additional dashas — checked against JHora's export for 1_Ramakrishnan (`DashaJhoraGoldenTests`).** Ashtottari maha dates match JHora within 3 days; Narayana (12 maha signs and starts) match; Sudasa shares JHora's kendra cycle and first-dasa balance. **Known divergences, engine keeps PVR:** Ashtottari antardasas — PVR §17.2.2 puts the maha lord's own antardasa last, JHora first; Sudasa seed — PVR §20.2 starts in the Sree Lagna sign (Taurus here), JHora in its 7th (Scorpio, which holds the Moon). **Still open:** Yogini (applicability rules), **Moola** (JHora's Lagna-Kendradi Graha dasa — strength-ranked, not in PVR) and **Kālachakra** (JHora's output labels each maha by a nakṣatra pāda in a way PyJHora's own port notes does not reproduce — needs reverse-engineering from the five reference charts). PyJHora is a cross-check reference only (AGPL).
 - **Varga composition** — D81 / D108 / D144 (varga-of-a-varga) and D150.
 
 ## Open engineering
