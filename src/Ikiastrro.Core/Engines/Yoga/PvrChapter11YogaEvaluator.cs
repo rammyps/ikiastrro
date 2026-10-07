@@ -22,6 +22,10 @@ public static class PvrChapter11YogaEvaluator
     [
         Row("YOGA_MAALA", Maala(d1), "PVR_CH11_MAALA", "ch.11 §11.5.2 Dala Yogas; printed pp.119-120",
             "Maalaa Yoga: 3 of the 4 kendras occupied by natural benefics. A malefic also present in one of those kendras weakens, but per PVR's own wording does not negate, the yoga."),
+        Row("YOGA_SARPA", Sarpa(d1), "PVR_CH11_SARPA", "ch.11 §11.5.2 Dala Yogas; printed p.120",
+            "Sarpa Yoga: 3 of the 4 kendras occupied by natural malefics (Sun, Mars, Saturn, Rahu, Ketu — PVR's own example uses Mars, Rahu and Ketu). A benefic also present in one of those kendras weakens, but per PVR's own wording does not negate, the yoga."),
+        Row("YOGA_MRIDANGA", Mridanga(d1), "PVR_CH11_MRIDANGA", "ch.11 §11.6; printed p.126",
+            "Mridanga Yoga: one or more planets in own or exaltation sign in a kendra or trikona, and the lagna lord strong (own, exaltation or moolatrikona — PVR §3.3)."),
         Row("YOGA_SUBHA", Subha(d1), "PVR_CH11_SUBHA", "ch.11 §11.6; printed p.124",
             "Subha Yoga: lagna occupied by a natural benefic, or subha kartari (natural benefics in both the 2nd and 12th)."),
         Row("YOGA_ASUBHA", Asubha(d1), "PVR_CH11_ASUBHA", "ch.11 §11.6; printed p.124",
@@ -55,6 +59,22 @@ public static class PvrChapter11YogaEvaluator
     // Maalaa Yoga: "If three quadrants are occupied by natural benefics, this yoga is formed."
     private static bool Maala(ChartAnalysisInput c) =>
         Kendra.Count(h => OccupiedBy(c, h, B)) >= 3;
+
+    // Sarpa Yoga: "If three quadrants are occupied by natural malefics, this yoga is formed."
+    // PVR's worked example places Mars, Rahu and Ketu in the quadrants, so the nodes count as malefics.
+    private static readonly PlanetName[] SarpaMalefics =
+        [PlanetName.Sun, PlanetName.Mars, PlanetName.Saturn, PlanetName.Rahu, PlanetName.Ketu];
+    private static bool Sarpa(ChartAnalysisInput c) =>
+        Kendra.Count(h => OccupiedBy(c, h, SarpaMalefics)) >= 3;
+
+    // Mridanga Yoga: "(1) there are planets in own and exaltation signs in quadrants and trines and
+    // (2) lagna lord is strong". Strong = own rasi, exaltation rasi or moolatrikona (PVR §3.3).
+    private static readonly PlanetName[] Classical7 =
+        [PlanetName.Sun, PlanetName.Moon, PlanetName.Mars, PlanetName.Mercury, PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn];
+    private static bool IsStrong(ChartAnalysisInput c, PlanetName p) => Dignity(c, p) is "OWN" or "MOOLATRIKONA" or "EXALTED";
+    private static bool Mridanga(ChartAnalysisInput c) =>
+        IsStrong(c, Lord(c, 1)) &&
+        Classical7.Any(p => Dignity(c, p) is "OWN" or "EXALTED" && Find(c, p) is { } x && KendraTrikona.Contains(x.HouseNumber));
 
     // Subha Yoga: "If lagna has benefics or has subha kartari - benefics in 12th and 2nd."
     private static bool Subha(ChartAnalysisInput c) =>

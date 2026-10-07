@@ -77,7 +77,7 @@ public sealed class ChartPipeline
     /// The Jaimini 8-karaka (Ashta) label per graha, from this person's D1 degree-within-sign.
     /// Lifted verbatim from ChartGenerationService.CharaKarakaByPlanet — pure, no I/O.
     /// </summary>
-    private static IReadOnlyDictionary<string, string> CharaKarakaByPlanet(SiderealPositions ctx)
+    public static IReadOnlyDictionary<string, string> CharaKarakaByPlanet(SiderealPositions ctx)
     {
         var degIn = new Dictionary<PlanetName, double>();
         foreach (var p in new[] { PlanetName.Sun, PlanetName.Moon, PlanetName.Mars, PlanetName.Mercury,
