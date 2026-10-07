@@ -12,13 +12,19 @@ public sealed record DashaMatterChart(ChartAnalysisInput Chart, IReadOnlyDiction
 /// <summary>A planet that meets a rule, and the placement that makes it meet it.</summary>
 public sealed record DashaMatterPlanet(PlanetName Planet, string Why);
 
+public enum DashaMatterScopeKind { Example, ChartTheme, House, NaturalKaraka }
+
+/// <summary>Machine-readable scope used to join a rule to a LifeMatter without matching prose.</summary>
+public sealed record DashaMatterScope(DashaMatterScopeKind Kind, int? House = null, PlanetName? Karaka = null);
+
 /// <summary>
 /// One of PVR's nine examples. <see cref="Planets"/> are the planets whose dasas and antardasas can bring the
 /// <see cref="Result"/>; empty with a null <see cref="NotEvaluated"/> means the chart has no planet meeting the rule.
 /// </summary>
 public sealed record DashaMatterRule(
     int Number, string Varga, string Statement, string Result,
-    IReadOnlyList<DashaMatterPlanet> Planets, string? NotEvaluated, string? Note, string Source = "");
+    IReadOnlyList<DashaMatterPlanet> Planets, string? NotEvaluated, string? Note, string Source = "",
+    DashaMatterScope? Scope = null);
 
 /// <summary>
 /// P.V.R. Narasimha Rao, <i>Vedic Astrology: An Integrated Approach</i> sec.16.5.1, printed p.214
@@ -103,7 +109,8 @@ public static class DashaMatters
         var n = 10;
         foreach (var (varga, theme) in Table11)
             rules.Add(Rule(charts, n++, varga, "The lagna lord, and planets in the lagna", $"can bring matters of {theme}",
-                c => LordAndOccupants(c, 1), null, note, $"PVR Table 11 ({varga}: {theme})"));
+                c => LordAndOccupants(c, 1), null, note, $"PVR Table 11 ({varga}: {theme})",
+                new(DashaMatterScopeKind.ChartTheme)));
         foreach (var spec in Extended)
         {
             var statement = spec.Karaka is { } k
@@ -111,7 +118,10 @@ public static class DashaMatters
                 : $"The {Ordinal(spec.House)} lord, and planets in the {Ordinal(spec.House)}";
             var result = $"can bring matters of {spec.Matter}";
             rules.Add(Rule(charts, n++, spec.Varga, statement, result,
-                c => spec.Karaka is { } kk ? KarakaIn(c, kk, spec.Varga) : LordAndOccupants(c, spec.House), null, note, ConventionSource));
+                c => spec.Karaka is { } kk ? KarakaIn(c, kk, spec.Varga) : LordAndOccupants(c, spec.House), null, note, ConventionSource,
+                spec.Karaka is { } karaka
+                    ? new(DashaMatterScopeKind.NaturalKaraka, Karaka: karaka)
+                    : new(DashaMatterScopeKind.House, House: spec.House)));
         }
         return rules;
     }
@@ -133,12 +143,13 @@ public static class DashaMatters
     }
 
     private static DashaMatterRule Rule(IReadOnlyDictionary<string, DashaMatterChart> charts, int number, string varga, string statement,
-        string result, Func<DashaMatterChart, IEnumerable<DashaMatterPlanet>> find, string? blocked = null, string? note = null, string? source = null)
+        string result, Func<DashaMatterChart, IEnumerable<DashaMatterPlanet>> find, string? blocked = null, string? note = null, string? source = null,
+        DashaMatterScope? scope = null)
     {
-        if (blocked is not null) return new(number, varga, statement, result, [], blocked, note, source ?? PvrSource(number));
-        if (!charts.TryGetValue(varga, out var chart)) return new(number, varga, statement, result, [], $"Needs the {varga} chart.", note, source ?? PvrSource(number));
-        if (Signs(chart.Chart).Count < 9) return new(number, varga, statement, result, [], $"The {varga} chart is incomplete.", note, source ?? PvrSource(number));
-        return new(number, varga, statement, result, find(chart).ToList(), null, note, source ?? PvrSource(number));
+        if (blocked is not null) return new(number, varga, statement, result, [], blocked, note, source ?? PvrSource(number), scope);
+        if (!charts.TryGetValue(varga, out var chart)) return new(number, varga, statement, result, [], $"Needs the {varga} chart.", note, source ?? PvrSource(number), scope);
+        if (Signs(chart.Chart).Count < 9) return new(number, varga, statement, result, [], $"The {varga} chart is incomplete.", note, source ?? PvrSource(number), scope);
+        return new(number, varga, statement, result, find(chart).ToList(), null, note, source ?? PvrSource(number), scope);
     }
 
     private static Dictionary<PlanetName, ZodiacName> Signs(ChartAnalysisInput chart) =>
