@@ -18,11 +18,11 @@ public static class IkiastrroTheme
     private const string LightLine = "#CBD5E1";
     private const string LightAccent = "#087E9A";
 
-    private const string DarkCanvas = "#0B0F19";
-    private const string DarkSurface = "#111827";
+    private const string DarkCanvas = "#1C0B2B";
+    private const string DarkSurface = "#2A1040";
     private const string DarkInk = "#F8FAFC";
     private const string DarkMuted = "#94A3B8";
-    private const string DarkLine = "#334155";
+    private const string DarkLine = "#4A2A6A";
     private const string DarkAccent = "#22D3EE";
 
     public static readonly MudTheme DefaultLight = new()
@@ -77,7 +77,7 @@ public static class IkiastrroTheme
             PrimaryContrastText = DarkCanvas,
             Secondary = DarkMuted,
             Background = DarkCanvas,
-            BackgroundGray = "#172033",
+            BackgroundGray = "#3A1856",
             Surface = DarkSurface,
             AppbarBackground = DarkSurface,
             AppbarText = DarkInk,

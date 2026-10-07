@@ -580,13 +580,13 @@ html thead th :is(button, a, small) {
 :root[data-theme='cosmic-dark'] {
     color-scheme: dark;
 
-    --cosmos-canvas: #0b0f19;
-    --cosmos-surface: #111827;
-    --cosmos-surface-raised: #172033;
+    --cosmos-canvas: #1c0b2b;
+    --cosmos-surface: #2a1040;
+    --cosmos-surface-raised: #3a1856;
     --cosmos-architecture: #94a3b8;
     --cosmos-structure: rgb(148 163 184 / 0.22);
     --cosmos-accent: #22d3ee;
-    --cosmos-accent-fg: #0b0f19;
+    --cosmos-accent-fg: #1c0b2b;
     /* Sudarsana chakra rings (Transit tab): Sun = soul, Moon = mind, Lagna = body — fill + edge per theme. */
     --tripod-sun: #4a3a12;
     --tripod-moon: #12404f;
@@ -615,7 +615,7 @@ html thead th :is(button, a, small) {
     --accent-line: #67e8f9;
     --asc-glow: rgb(34 211 238 / 0.16);
     --shadow: rgb(0 0 0 / 0.38);
-    --control-bg: #334155;
+    --control-bg: #4a2a6a;
     --control-fg: #f8fafc;
 
     --cell-fill: var(--cosmos-surface);
@@ -656,10 +656,10 @@ html thead th :is(button, a, small) {
     --status-moderate-bg: color-mix(in srgb, #f2c14e 14%, var(--cosmos-surface));
     --status-weak: #f87171;
     --status-weak-bg: color-mix(in srgb, #f87171 16%, var(--cosmos-surface));
-    --status-on: #0b0f19;
+    --status-on: #1c0b2b;
 
     --danger: #f87171;
-    --danger-fg: #0b0f19;
+    --danger-fg: #1c0b2b;
     --danger-line: #fca5a5;
 
     --planet-sun: #f59e5b;
