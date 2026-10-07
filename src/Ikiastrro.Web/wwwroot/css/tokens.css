@@ -224,6 +224,11 @@
     --sl-pp: #0f766e;
     --sl-ps: #78350f;
     --sl-gk: #57534e;
+    /* Special-point groups on the Spl Lagnas chart (PointCatalog.ColorVar). */
+    --pg-upagraha: #57534e;
+    --pg-sensitive: #0f766e;
+    --pg-sphuta: #1d4ed8;
+    --pg-saham: #9a3412;
 
     /* Shadbala/Bhava-Bala component category palette — the Bala groups both step-3 breakdown
        panels split their total into. Dig/Drik reused across both (same underlying concept,
@@ -714,6 +719,10 @@ html thead th :is(button, a, small) {
     --sl-pp: #5eead4;
     --sl-ps: #d6a26c;
     --sl-gk: #a8a29e;
+    --pg-upagraha: #a8a29e;
+    --pg-sensitive: #5eead4;
+    --pg-sphuta: #93c5fd;
+    --pg-saham: #fdba74;
 }
 
 /* Chart-local segmented controls historically used --brand-midnight as both ink and fill.

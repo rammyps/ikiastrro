@@ -1,0 +1,47 @@
+/* Chart-control dropdown (ChartMenu). The button matches `.ki-chart-picker`: --control-bg / --control-fg, 32px high,
+   uppercase 0.8 x control size. The panel opens under the button, scrolls past 60vh, and `.cm-end` flips it to the
+   button's right edge so the last dropdown in a row never runs off the chart's width. */
+.cm { position: relative; flex: 1 1 0; min-width: 0; }
+.cm-btn {
+    display: flex; align-items: center; gap: 6px; width: 100%; min-height: 32px; padding: 4px 8px;
+    border: 1px solid var(--brand-line); border-radius: 8px;
+    background: var(--control-bg, var(--brand-midnight)); color: var(--control-fg, var(--brand-canvas));
+    font: 700 calc(var(--font-size-control) * 0.8) / 1.2 'Manrope', 'Segoe UI', sans-serif; text-transform: uppercase;
+    cursor: pointer; white-space: nowrap;
+}
+.cm-btn:focus-visible { outline: 2px solid var(--brand-sunrise); outline-offset: 2px; }
+.cm-label { overflow: hidden; text-overflow: ellipsis; }
+.cm-count {
+    margin-left: auto; min-width: 1.6em; padding: 0 6px; border-radius: 999px; text-align: center;
+    background: var(--brand-sunrise); color: var(--brand-midnight); font-size: 0.9em;
+}
+.cm-caret { opacity: .8; }
+.cm.is-open .cm-btn { border-color: var(--brand-sunrise); }
+.cm-backdrop { position: fixed; inset: 0; z-index: 30; background: transparent; }
+.cm-panel {
+    position: absolute; z-index: 31; top: calc(100% + 4px); left: 0; width: max(100%, 400px); max-width: min(92vw, 460px);
+    max-height: 60vh; overflow: auto; padding: 8px; border: 1px solid var(--brand-line); border-radius: 10px;
+    background: var(--brand-canvas); color: var(--card-fg); box-shadow: 0 10px 28px rgb(0 0 0 / .22);
+    font: 500 var(--font-size-control) / 1.3 'Manrope', 'Segoe UI', sans-serif;
+}
+.cm-end .cm-panel { left: auto; right: 0; }
+.cm-tools { position: sticky; top: -8px; z-index: 1; margin: -8px -8px 6px; padding: 8px; background: var(--brand-canvas); border-bottom: 1px solid var(--brand-line); }
+.cm-search { width: 100%; margin-bottom: 6px; padding: 5px 8px; border: 1px solid var(--brand-line); border-radius: 6px; background: var(--brand-surface); color: var(--card-fg); font: inherit; }
+.cm-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+.cm-chip, .cm-grp {
+    padding: 2px 9px; border: 1px solid var(--brand-line); border-radius: 999px; background: var(--brand-surface);
+    color: var(--card-fg); font-weight: 700; font-size: 0.78em; line-height: 1.4; font-family: inherit; cursor: pointer;
+}
+.cm-chip:hover, .cm-grp:hover { background: var(--brand-sunrise); }
+.cm-group { margin: 0 0 8px; padding: 0; border: 0; }
+.cm-group legend { display: flex; align-items: center; gap: 6px; width: 100%; padding: 0; font-weight: 800; font-size: 0.85em; letter-spacing: .04em; text-transform: uppercase; color: var(--brand-muted); }
+.cm-group legend span { margin-right: auto; }
+.cm-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 8px; margin-top: 2px; }
+.cm-item { display: flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 6px; cursor: pointer; color: var(--brand-muted); }
+.cm-item.is-on { color: var(--card-fg); }
+.cm-item:hover { background: var(--brand-surface); }
+.cm-item input { margin: 0; accent-color: var(--brand-midnight); }
+.cm-sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.cm-short { font-weight: 800; min-width: 1.9em; font-variant-numeric: tabular-nums; }
+.cm-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) { .cm { flex-basis: 45%; } .cm-panel { width: min(92vw, 360px); } }

@@ -62,7 +62,7 @@
                     </div>
                 </div>
             }
-            @if (ShowSpecialLagnas)
+            @if (ShowSpecialLagnas && !HideLagnaToolbar)
             {
                 <div class="su-group">
                     <span class="su-label">Spl lagnas</span>
@@ -90,7 +90,7 @@
             var el = SindUniGlyphs.ElementOf(sign);
             var two = s.Planets.Count > (View == SindUniView.Micro ? 2 : 3);
             var bars = View == SindUniView.Micro && ShowSpecialLagnas
-                ? SindUniGlyphs.SpecialLagnas.Where(k => _lagnas.Contains(k.Code) && s.SpecialLagnas.Contains(k.Code)).ToList()
+                ? SindUniGlyphs.SpecialLagnas.Where(k => LagnaSet.Contains(k.Code) && s.SpecialLagnas.Contains(k.Code)).ToList()
                 : [];
             var cellStyle = $"grid-column:{pos.Col};grid-row:{pos.Row};--el:var(--el-{el.ToString().ToLowerInvariant()});"
                 + (isTarget ? $"--c:var(--{(_lens == SindUniLens.Aspects ? "cosmos-accent" : "arg")});" : lensSource is not null ? $"--c:{lensSource.Value.Color};" : "");
@@ -187,6 +187,16 @@
                         @if (View == SindUniView.Micro && ShowSpecialLagnas)
                         {
                             @foreach (var b in bars) { <span class="tag" style="--t:var(@b.ColorVar)" title="@b.Name">@b.Code</span> }
+                            var extras = ExtraIn(sign);
+                            var chipCap = Math.Max(2, Math.Max(3, MaxChips - 2 * ((s.Planets.Count + 1) / 2)) - bars.Count);
+                            @foreach (var xp in extras.Take(chipCap))
+                            {
+                                <span class="tag xp" style="--t:var(@PointCatalog.ColorVar(xp.Def.Group))" title="@PointTitle(xp)">@xp.Def.Short</span>
+                            }
+                            @if (extras.Count > chipCap)
+                            {
+                                <span class="tag xp more" title="@string.Join(", ", extras.Skip(chipCap).Select(p => p.Def.Name))">+@(extras.Count - chipCap)</span>
+                            }
                         }
                         else if (View != SindUniView.Micro)
                         {
@@ -236,6 +246,16 @@
                         <dt>House</dt>
                         <dd>@c.HouseFromLagna from the Lagna@(Chart.PlanetSigns.TryGetValue(_ref, out var rs) ? $" · {SindUniChart.HouseFrom(rs, cs)} from the {_ref}" : "")</dd>
                         @if (c.Planets.Count > 0) { <dt>Occupants</dt><dd>@string.Join(" ", c.Planets.Select(p => p.Label))</dd> }
+                        @if (View == SindUniView.Micro && ExtraIn(cs) is { Count: > 0 } here)
+                        {
+                            <dt>Points here</dt>
+                            <dd class="xp-list">
+                                @foreach (var xp in here)
+                                {
+                                    <span class="xp-row" style="--t:var(@PointCatalog.ColorVar(xp.Def.Group))" title="@xp.Def.Meaning"><b>@xp.Def.Short</b> @xp.Def.Name <i>@KeyInfoFormat.Degree(xp.Def.Longitude) · H@(xp.House)</i></span>
+                                }
+                            </dd>
+                        }
                     </dl>
                 </div>
             }
