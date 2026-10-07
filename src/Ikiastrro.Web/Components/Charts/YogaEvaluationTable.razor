@@ -164,6 +164,8 @@
             </div>
         }
     </article>
+
+    <PlainWords Lines="SummaryLines" Title="Yogas in plain words" />
 </section>
 
 @if (_editRow is not null && !_pendingSave)
@@ -211,6 +213,14 @@
     [Parameter] public EventCallback<InterpretationEditRequest> OnSaveInterpretation { get; set; }
 
     public sealed record InterpretationEditRequest(string SubjectCode, string? SourceRefCode, string? SourceVariantCode, string StandardText, string ShortText);
+
+    private IReadOnlyList<string> SummaryLines => YogaSummary.Build(VariantRows.Select(r =>
+    {
+        var planets = PlanetsOf(r);
+        var weakest = WeakestPercent(r);
+        return new YogaFact(DisplayYoga(r.YogaCode), r.OutcomeNatureCode, r.YogaTypeCode is null ? null : BasedLabel(r),
+            r.Present == true, planets.Select(p => p.ToString()).ToList(), weakest == double.MaxValue ? null : (decimal)weakest);
+    }).ToList());
 
     private bool _showAll;
     private string _query = "";

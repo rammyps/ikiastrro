@@ -252,6 +252,7 @@ else
 
                     @Head(NatalSection.Dignity)
                     <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
+                    @if (!Printing) { <PlainWords Lines="DignityLines(natalChart)" Title="Dignity in plain words" /> }
 
                     @Head(NatalSection.Motion)
                     <PlanetMotionTable KeyDetails="D1KeyDetails" />
@@ -503,6 +504,7 @@ else
                     else
                     {
                         <PlanetStrengthChart Rows="_shadbala" Components="_shadbalaComponents" />
+                        @if (!Printing) { <PlainWords Lines="PlanetStrengthLines()" Title="Planet strength in plain words" /> }
                     }
                     </div>
                 }
@@ -521,6 +523,7 @@ else
                     else
                     {
                         <HouseStrengthChart Rows="_bhavaBala" Components="_bhavaBalaComponents" />
+                        @if (!Printing) { <PlainWords Lines="HouseStrengthLines()" Title="House strength in plain words" /> }
                     }
                     </div>
                 }
@@ -971,6 +974,20 @@ else
     private decimal? MoonPakshaBala => _shadbalaComponents.FirstOrDefault(c =>
         c.Planet.Equals("Moon", StringComparison.OrdinalIgnoreCase) &&
         c.SubComponentCode.Equals("PAKSHA_BALA", StringComparison.OrdinalIgnoreCase))?.ValueVirupas;
+
+    // Plain-words readings under the Dignity and strength tables (Core PlainSummaries).
+    private static IReadOnlyList<string> DignityLines(LoadedChart lc) => Ikiastrro.Core.Engines.Strength.DignitySummary.Build(
+        lc.KeyDetails.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant")
+            .Select(k => new Ikiastrro.Core.Engines.Strength.DignityFact(
+                k.Planet, k.DignityStatus, k.HouseNumberFromLagna, k.IsCombust == true, k.IsRetrograde == true)).ToList());
+
+    private IReadOnlyList<string> PlanetStrengthLines() => Ikiastrro.Core.Engines.Strength.PlanetStrengthSummary.Build(
+        _shadbala.Select(s => new Ikiastrro.Core.Engines.Strength.PlanetStrengthFact(
+            s.Planet, s.ShadbalaRupas, s.MinimumRequiredRupas, s.PercentOfMinimum)).ToList(),
+        _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet);
+
+    private IReadOnlyList<string> HouseStrengthLines() => Ikiastrro.Core.Engines.Strength.HouseStrengthSummary.Build(
+        _bhavaBala.Select(b => new Ikiastrro.Core.Engines.Strength.HouseStrengthFact(b.HouseNumber, b.BhavaBalaRupas, b.LordPlanet)).ToList());
 
     // D1 house lords and graha placements for the Yoga tab's Planets column (yogas are evaluated on D1).
     private IReadOnlyDictionary<int, PlanetName> YogaHouseLords =>

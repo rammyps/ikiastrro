@@ -1,0 +1,20 @@
+@* The "In plain words" box under an Astro Facts table: bullets built from the chart's own numbers
+   (Core PlainSummaries). Renders nothing when there are no lines. *@
+@if (Lines.Count > 0)
+{
+    <aside class="pw" aria-label="@Title">
+        <h4 class="pw-title">@Title</h4>
+        <ul>
+            @foreach (var line in Lines)
+            {
+                <li>@line</li>
+            }
+        </ul>
+        <p class="pw-note">Plain-English reading of the numbers above. The wording is the project's own synthesis, not a quotation from a classical text.</p>
+    </aside>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<string> Lines { get; set; } = Array.Empty<string>();
+    [Parameter] public string Title { get; set; } = "In plain words";
+}
