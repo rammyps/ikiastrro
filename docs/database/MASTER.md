@@ -96,6 +96,9 @@ Publishes to the CLI and UI streams under
   charts/statistics. It makes no outcome claim and performs no D1/Varga averaging.
   Migration 173 adds dedicated comparison persistence keyed by analytics run, anonymous subject,
   Life Matter focus, evidence lens and feature. Eligibility changes and person deletion remove
+  `LifeMatterPopulationEvidenceRepository` reads the latest completed run without exposing
+  `SubjectKey`, optionally filters to one Life Matter, and returns explicit not-enrolled,
+  not-eligible, no-run, no-comparison and available states for the UI boundary.
   both house and Life Matter comparisons atomically.
 
 - **`FEAT-AVASTHA-05` — Sayanaadi (PostureState, DB slice)** — migration 083: 12-state
