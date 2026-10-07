@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-10-07
 workstream: cli
 togaf: E — gap analysis
 safe: Program backlog input
@@ -30,6 +30,8 @@ Avastha (PostureState, all 12 states)** (`verify-avastha` reproduces the JHora e
 Activity table exactly, all 9 grahas) · **Dina / Horā / Tribhāga Bala + Graha Yuddha
 detection** (`verify-strength` all green) · source-attributed yoga inputs · provenance
 (ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
+
+**JHora gap step 4 (Core engines, `Engines/KeyInfo` + `Engines/Karakas`; UI tables not yet wired)** — **Special tārās** from Moon and Lagna (28-nakṣatra circle with Abhijit) · **Lattā nakṣatras** (the struck star; JHora's "Aspected Stars" column is undocumented and not reproduced) · **all 36 Special Tithis** (k × birth elongation) · **Lords of the 64th navamsa and 22nd drekkana** in all five D3 schemes · **all 36 Sahams** (`SahamTable`; night-birth golden, every row within an arcsecond of JHora). `KeyInfoJhoraStep4Tests` checks each against JHora's own Basics ▸ Key Info views for 1_Ramakrishnan. Still open from the same JHora view list: **Planetary drekkanas (Ayudha / Kroora / Agni / Mriga…)** — the extra attributes are not in PyJHora's table and need BPHS ch. 6 drekkana forms — and **Sahams on a day-birth golden chart** (day branches mirror the night ones per PVR Table 74 but are unverified against JHora).
 
 ## Priority gaps
 
