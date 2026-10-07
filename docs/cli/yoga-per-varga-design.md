@@ -109,6 +109,43 @@ attribution.
 - **Still open — a second golden chart** with JHora Yogas captured, ideally with non-D1 rows. Capture it on
   a chart whose place/time match ikiastrro's (RamakrishnanP's JHora file once carried an Australian place).
 
+## Golden pass, 2026-10-07 (built: first cut of slices 1–2)
+
+JHora's Yogas list was captured for RamakrishnanP (Chennai, India, Aries lagna) in each of D1/D2/D3/D9/D12/D30
+(`cproj_win_app_explorer/src/jhora_yogas_per_varga.py` → `explorer_output/jhora/yogas-per-varga/`). The list is
+**per-varga in JHora**: right-click ▸ "Select a varga". Built: `ProductionYogaEngine.DetectForVarga(bundle, chartType)`
+(single-chart geometry evaluators only — Verified source engine, Malika, both Nabhasa batches, PVR ch.11 named yogas;
+D1-bound and multi-chart rules are not run) and `ProductionYogaEngine.VargaReferenceCharts`. Not built: persistence,
+`--vargas`, the view's `ChartType`, the UI. `JhoraYogaPerVargaGoldenTests` fixes ikiastrro's own varga positions and
+checks the layer against JHora.
+
+**Confirmed from JHora's output**
+- Cross-varga rules ("same planet aspecting lagna in D-1, D-9, D-2, D-3, D-12, D-30") and Kalpadruma's dispositor
+  chain print **identically in every varga** — JHora does not re-base them. Our "evaluate once" stands.
+- Karaka rules (Raja Sambandha, Raja AK-PiK) take karakas from D1 but positions from the varga chart.
+- HL/GL rules (Yogada, Maha Yogada) use the HL/GL projected into that varga.
+
+**Agreement.** The 13 yogas where JHora and ikiastrro share a definition (Ruchaka, Sasa, Sunapha, Anapha,
+Gaja-Kesari, Sarpa, Sula, Paasa, Kedara, Daama, Dharma-Karmadhipati, Budha-Aditya, Ubhayachara) match JHora in all
+six vargas.
+
+**Divergences found (definitional; ikiastrro keeps its PVR/Raman reading — none decided yet)**
+
+| Yoga | JHora | ikiastrro |
+|---|---|---|
+| Adhi | fires only with **two or more** benefics in 6/7/8 from Moon | any one of Jupiter/Mercury/Venus (Raman 007, `PVR_CH11_ADHI`); PVR's text says "benefics occupy the 6th, 7th and 8th" |
+| Subha | benefics in **2nd and 12th** only | also benefic in lagna (PVR p.124) |
+| Mridanga | needs **≥2** own/exalted planets in kendra/kona; lagna-lord strength read from **D1** (fires in D12 with Mars weak there) | ≥1 planet; lagna lord strong in the same chart |
+| Chaamara | two benefics **collectively** across 7th/9th/10th | joined in one house |
+| Vesi / Vosi / Ubhayachara | mutually exclusive (Ubhayachara when both sides) | all three fire together |
+| Parvata, Kaahala, Vimala | listed (PVR wording) | no PVR variant — only Raman variants (different rules), or none |
+| Kemadruma | not listed in D1 | present in D1 (Moon alone in 2nd/12th) |
+
+Missing PVR variants (Parvata, Kaahala, Vimala) are the same kind of gap as Sarpa/Mridanga (migration 175) and are
+the next cheap wins. The Mridanga row is the one design-relevant finding: some "strong lagna lord" conditions are
+read from D1 even in a varga, so the portability catalogue needs a *mixed* kind (varga geometry + D1 strength), not
+just Portable/D1-bound.
+
 ## Out of scope
 
 Weighting or ranking varga confirmations; yoga dating/timing; changing any existing D1 row.
