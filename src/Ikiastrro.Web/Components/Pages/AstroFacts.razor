@@ -572,7 +572,7 @@ else
                 <h1 class="ki-heading">YOGAS</h1>
             </div>
 
-            @if (_yogaEvaluations.Count == 0)
+            @if (_yogaEvaluations.Count == 0 && _yogaVarga == "D1")
             {
                 <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
                     Yogas have not been evaluated for this chart yet.
@@ -581,6 +581,7 @@ else
             else
             {
                 <YogaEvaluationTable Rows="_yogaEvaluations" HouseLords="YogaHouseLords" Placements="YogaPlacements" Shadbala="_shadbala" Interpretations="_interpretations"
+                                     Varga="@_yogaVarga" Vargas="Ikiastrro.Core.Engines.Yoga.ProductionYogaEngine.VargaReferenceCharts" OnVargaChanged="SelectYogaVarga"
                                      OnSaveInterpretation="SaveInterpretation" />
             }
         </div>
@@ -989,15 +990,24 @@ else
     private IReadOnlyList<string> HouseStrengthLines() => Ikiastrro.Core.Engines.Strength.HouseStrengthSummary.Build(
         _bhavaBala.Select(b => new Ikiastrro.Core.Engines.Strength.HouseStrengthFact(b.HouseNumber, b.BhavaBalaRupas, b.LordPlanet)).ToList());
 
-    // D1 house lords and graha placements for the Yoga tab's Planets column (yogas are evaluated on D1).
+    // The Yoga tab's divisional chart (JHora's Yogas list is per-varga). D1 is the full source-attributed set.
+    private string _yogaVarga = "D1";
+
+    private void SelectYogaVarga(string varga)
+    {
+        _yogaVarga = varga;
+        _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id, varga);
+    }
+
+    // House lords and graha placements of the selected varga for the Yoga tab's Planets column.
     private IReadOnlyDictionary<int, PlanetName> YogaHouseLords =>
-        (_data?.Charts.GetValueOrDefault("D1")?.HouseLords ?? [])
+        (_data?.Charts.GetValueOrDefault(_yogaVarga)?.HouseLords ?? [])
             .Where(h => Enum.TryParse<PlanetName>(h.LordPlanet, true, out _))
             .GroupBy(h => h.HouseNumber)
             .ToDictionary(g => g.Key, g => Enum.Parse<PlanetName>(g.First().LordPlanet, true));
 
     private IReadOnlyDictionary<PlanetName, Ikiastrro.Core.Engines.Yoga.YogaPlacement> YogaPlacements =>
-        (_data?.Charts.GetValueOrDefault("D1")?.Grahas ?? [])
+        (_data?.Charts.GetValueOrDefault(_yogaVarga)?.Grahas ?? [])
             .Where(g => Enum.TryParse<PlanetName>(g.Planet, true, out _))
             .GroupBy(g => Enum.Parse<PlanetName>(g.Planet, true))
             .ToDictionary(g => g.Key, g => new Ikiastrro.Core.Engines.Yoga.YogaPlacement(
@@ -1078,6 +1088,7 @@ else
         _vargottama = VargottamaRepo.GetByBirthDetailId(Id);
         _vimsopakaWeights = TransitStrengthRuleRepo.GetVimsopakaWeights(1);
         _vedhaRules = TransitStrengthRuleRepo.GetGocharaVedhaRules(1);
+        _yogaVarga = "D1";
         _yogaEvaluations = YogaEvaluationRepo.GetByBirthDetailId(Id);
         _interpretations = InterpretationRepo.GetBySubjectType(1, "YOGA");
         _argalaSignificanceNotes = ArgalaRuleRepo.GetArgalaSignificanceNotes(1);

@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Data;
 using Ikiastrro.Web.Components.Charts;
@@ -110,4 +111,49 @@ public sealed class YogaEvaluationTableTests : BunitContext
         Assert.Contains("A conservative interpretation.", cut.Markup);
     }
 
+    [Fact]
+    public void VargaSelectorMarksTheSelectedChartAndRaisesTheChange()
+    {
+        var rows = new[] { new YogaEvaluationRow("SRC_PVR_INTEGRATED", "YOGA_RUCHAKA", true, "EVALUATED", "LAGNA", "Mars own in a kendra", null, ChartType: "D9") };
+        string? picked = null;
+        var cut = Render<YogaEvaluationTable>(p => p
+            .Add(x => x.Rows, rows)
+            .Add(x => x.Varga, "D9")
+            .Add(x => x.Vargas, new[] { "D1", "D2", "D3", "D9", "D12", "D30" })
+            .Add(x => x.OnVargaChanged, EventCallback.Factory.Create<string>(this, v => picked = v)));
+
+        var buttons = cut.FindAll(".yg-varga");
+        Assert.Equal(6, buttons.Count);
+        Assert.Equal("D9 Navamsa", cut.Find(".yg-varga.is-on").Normalized());
+        Assert.Contains("Ṣaḍbala is the natal (D1) strength", cut.Find(".yg-varga-note").Normalized());
+
+        buttons.Single(b => b.TextContent.Contains("D12")).Click();
+        Assert.Equal("D12", picked);
+    }
+
+    [Fact]
+    public void ShowsTheVargaOfEachRowAndHidesTheSelectorWithASingleChart()
+    {
+        var rows = new[] { new YogaEvaluationRow("SRC_PVR_INTEGRATED", "YOGA_RUCHAKA", true, "EVALUATED", "LAGNA", "Mars own in a kendra", null, ChartType: "D30") };
+        var withSelector = Render<YogaEvaluationTable>(p => p.Add(x => x.Rows, rows).Add(x => x.Varga, "D30")
+            .Add(x => x.Vargas, new[] { "D1", "D30" }));
+        Assert.Equal("D30", withSelector.Find(".yg-varga-cell").Normalized());
+
+        var plain = Render<YogaEvaluationTable>(p => p.Add(x => x.Rows, rows));
+        Assert.Empty(plain.FindAll(".yg-varga"));
+    }
+
+    [Fact]
+    public void VargaPlacementsDriveTheCausingPlanetsAndNaturalShadbalaStays()
+    {
+        // Mars is the lagna lord in the selected varga; the Ṣaḍbala column still reads the natal strength.
+        var rows = new[] { new YogaEvaluationRow("SRC_RAMAN_300_COMBINATIONS", "YOGA_X", true, "EVALUATED", "LAGNA",
+            "Lagna lord and 2nd lord exchange houses", null, ChartType: "D9") };
+        var cut = Render<YogaEvaluationTable>(p => p.Add(x => x.Rows, rows).Add(x => x.Varga, "D9")
+            .Add(x => x.Vargas, new[] { "D1", "D9" })
+            .Add(x => x.HouseLords, new Dictionary<int, PlanetName> { [1] = PlanetName.Mars, [2] = PlanetName.Venus })
+            .Add(x => x.Shadbala, new[] { new ShadbalaSummaryRow("Mars", 0, 0, 0, 0, 0, 0, 0, 0, 6.5m, 5m, 130m) }));
+        Assert.Contains("Mars, Venus", cut.Markup);
+        Assert.Contains("130%", cut.Markup);
+    }
 }

@@ -46,6 +46,22 @@
                 <p>@DisplayRows.Count shown@(_nature is { } n ? $" · {NatureTiles.First(t => t.Code == n).Label} only" : "")</p>
             </div>
         </header>
+        @if (Vargas.Count > 1)
+        {
+            @* JHora's Yogas list is per-varga (right-click > Select a varga); same here, over the charts its rules
+               name. D1 carries the full source-attributed set; the others are single-chart geometry rules only. *@
+            <div class="yg-vargas" role="group" aria-label="Yogas in divisional chart">
+                @foreach (var v in Vargas)
+                {
+                    <button type="button" class="yg-varga @(v == Varga ? "is-on" : null)" aria-pressed="@(v == Varga ? "true" : "false")"
+                            @onclick="() => SelectVarga(v)">@VargaLabel(v)</button>
+                }
+            </div>
+            @if (Varga != "D1")
+            {
+                <p class="yg-varga-note">@VargaLabel(Varga): single-chart yoga rules read off this divisional chart, with the planets taken from it. Ṣaḍbala is the natal (D1) strength. Rules that need birth-level inputs or several charts are listed under D1.</p>
+            }
+        }
         <div class="yg-controls" aria-label="Yoga filters">
             <label>
                 <span>Find yoga</span>
@@ -58,7 +74,9 @@
         </div>
         @if (DisplayRows.Count == 0)
         {
-            <p class="yg-empty">No yoga variants match the current filters.</p>
+            <p class="yg-empty">@(Rows.Count == 0 && Varga != "D1"
+                ? $"No yogas are stored for {VargaLabel(Varga)} yet — run refresh-yogas <name> --vargas."
+                : "No yoga variants match the current filters.")</p>
         }
         else
         {
@@ -85,6 +103,7 @@
                                 <td>@(r.YogaSetName ?? r.YogaTypeCode ?? "—")</td>
                                 <td>@DisplayYoga(r.YogaCode)</td>
                                 <td><code>@r.SourceVariantCode</code></td>
+                                <td class="yg-varga-cell">@VargaCode(r)</td>
                                 <td>@BasedLabel(r)</td>
                                 <td><span class="yg-nature yg-nature-@NatureClass(r)">@NatureLabel(r)</span></td>
                                 @if (_showAll)
@@ -209,6 +228,11 @@
     [Parameter] public IReadOnlyDictionary<PlanetName, YogaPlacement> Placements { get; set; } = new Dictionary<PlanetName, YogaPlacement>();
     /// <summary>Ṣaḍbala per planet; its % of the required minimum is each planet's strength here.</summary>
     [Parameter] public IReadOnlyList<ShadbalaSummaryRow> Shadbala { get; set; } = Array.Empty<ShadbalaSummaryRow>();
+    /// <summary>The divisional chart the rows were evaluated on (D1 unless a varga is selected).</summary>
+    [Parameter] public string Varga { get; set; } = "D1";
+    /// <summary>Charts offered in the selector; hidden when there is only one.</summary>
+    [Parameter] public IReadOnlyList<string> Vargas { get; set; } = Array.Empty<string>();
+    [Parameter] public EventCallback<string> OnVargaChanged { get; set; }
     [Parameter] public IReadOnlyList<InterpretationRow> Interpretations { get; set; } = Array.Empty<InterpretationRow>();
     [Parameter] public EventCallback<InterpretationEditRequest> OnSaveInterpretation { get; set; }
 
@@ -221,6 +245,22 @@
         return new YogaFact(DisplayYoga(r.YogaCode), r.OutcomeNatureCode, r.YogaTypeCode is null ? null : BasedLabel(r),
             r.Present == true, planets.Select(p => p.ToString()).ToList(), weakest == double.MaxValue ? null : (decimal)weakest);
     }).ToList());
+
+    private static readonly Dictionary<string, string> VargaNames = new()
+    {
+        ["D1"] = "Rasi", ["D2"] = "Hora", ["D3"] = "Drekkana", ["D9"] = "Navamsa", ["D12"] = "Dwadasamsa", ["D30"] = "Trimsamsa",
+    };
+
+    private static string VargaLabel(string code) => VargaNames.TryGetValue(code, out var n) ? $"{code} {n}" : code;
+
+    private string VargaCode(YogaEvaluationRow r) => string.IsNullOrEmpty(r.ChartType) ? Varga : r.ChartType;
+
+    private async Task SelectVarga(string code)
+    {
+        if (code == Varga) return;
+        _nature = null;
+        await OnVargaChanged.InvokeAsync(code);
+    }
 
     private bool _showAll;
     private string _query = "";
@@ -241,7 +281,7 @@
     // Every column sorts on its header; before any click the rows keep the Set → type → variant
     // order above. Status only shows when "Show all" lets absent/pending rows in — otherwise every
     // row is Present by the filter itself.
-    private enum Col { Set, Yoga, Variant, Based, Nature, Status, Planets, Strength, Rule, Inference, Interpretation, Source }
+    private enum Col { Set, Yoga, Variant, Varga, Based, Nature, Status, Planets, Strength, Rule, Inference, Interpretation, Source }
 
     private static string BasedLabel(YogaEvaluationRow r) => r.YogaTypeCode?.ToUpperInvariant() switch
     {
@@ -283,6 +323,7 @@
 
     private static string ColumnHeader(Col c) => c switch
     {
+        Col.Varga => "Varga",
         Col.Based => "Based on",
         Col.Nature => "Good / Bad",
         Col.Planets => "Planets",
@@ -303,6 +344,7 @@
         Col.Set => r.YogaSetName ?? r.YogaTypeCode ?? "",
         Col.Yoga => DisplayYoga(r.YogaCode),
         Col.Variant => r.SourceVariantCode,
+        Col.Varga => VargaCode(r),
         Col.Based => TypeRank(r.YogaTypeCode),
         Col.Nature => NatureRank(r.OutcomeNatureCode),
         Col.Status => StatusLabel(r),
