@@ -2,7 +2,7 @@ namespace Ikiastrro.Core.Engines.PlanetaryStates;
 
 /// <summary>
 /// Dīptādi Avastha (PVR sec 15.4.3) — "state related to attitude and mood," 9 states, read the way
-/// Jagannatha Hora prints them in its "Mood (D-1)" column (decision 010, golden:
+/// Jagannatha Hora prints them in its "Mood (D-1)" column (decision 012, golden:
 /// <c>AvasthaJhoraMoodGoldenTests</c>, 4 reference charts, 36 planet cells):
 ///   - Deepta (exalted) and Swastha (own sign / moolatrikona) are placement flags.
 ///   - Mudita / Saanta / Deena / Duhkhita are the planet's compound (Panchadha) relationship to its

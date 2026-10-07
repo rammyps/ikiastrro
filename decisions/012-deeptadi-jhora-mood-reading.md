@@ -4,7 +4,7 @@ date: 2026-10-07
 workstream: cli (PlanetaryStates engine)
 ---
 
-# 010 — Dīptādi read the way Jagannatha Hora prints its Mood column
+# 012 — Dīptādi read the way Jagannatha Hora prints its Mood column
 
 ## Decision
 

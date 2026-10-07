@@ -108,7 +108,7 @@ Publishes to the CLI and UI streams under
   This was the avastha masterproduct.md flagged "needs persisted janma ghaṭis, source-blocked"
   — migration 081's `tbl_Chart_Panchanga.JanmaGhatis` removes the first blocker, and §15.4.4
   turned out to already be a fully-specified, unambiguous formula (hand-verified against the
-  JHora export's printed Activity table: Sun → Aagama, Moon → Kautuka, both exact). Not seeded: the secondary Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (needs the native's given-name first sound, which is not stored; Table 37's groups follow the vowel order a, i, u, e, o). Dīptādi and Lajjitādi (`FEAT-AVASTHA-03/04`) are built and persisted as `tbl_Fact_PlanetaryStateFlag`, read as JHora's Mood column prints them (decision 010).
+  JHora export's printed Activity table: Sun → Aagama, Moon → Kautuka, both exact). Not seeded: the secondary Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (needs the native's given-name first sound, which is not stored; Table 37's groups follow the vowel order a, i, u, e, o). Dīptādi and Lajjitādi (`FEAT-AVASTHA-03/04`) are built and persisted as `tbl_Fact_PlanetaryStateFlag`, read as JHora's Mood column prints them (decision 012).
 - **Jaimini special lagnas / Karakamsa** — migration 082: `vw_ChartKarakamsa`, the D9 sign of
   AK (PVR sec 7.3.6). No new storage: `ChartGenerationService.PersistAnalytics` already stamps
   `CharaKaraka` onto every chart type, D9 included, so this view is a plain read over

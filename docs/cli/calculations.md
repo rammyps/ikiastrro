@@ -260,7 +260,7 @@ Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_Wakefuln
 - **Dīptādi + Lajjitādi** (PVR §15.4.3; any chart type): `DeeptadiStateCalculator`,
   `LajjitadiStateCalculator`. Dīptādi follows JHora's Mood column — placement flag (Deepta/Swastha)
   plus the compound relationship to the sign lord, Vikala = at least two natural malefics, Khala =
-  Sun/Mars/Saturn sign lord, Kopita = Sun within 5° ([decision 010](../../decisions/010-deeptadi-jhora-mood-reading.md)).
+  Sun/Mars/Saturn sign lord, Kopita = Sun within 5° ([decision 012](../../decisions/012-deeptadi-jhora-mood-reading.md)).
   Check: `AvasthaJhoraMoodGoldenTests` (4 reference charts). Open: node relationship tiers.
 - Not built: Śayanaadi's own secondary Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (needs the native's
   given-name first sound; Table 37's groups follow the vowel order a, i, u, e, o). Check: `verify-avastha`.

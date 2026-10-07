@@ -90,7 +90,7 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (Table 37's groups follow the vowel order a, i, u, e, o;
   it needs the native's given-name first sound, an input not stored). Dīptādi/Lajjitādi
   (`FEAT-AVASTHA-03/04`) are built and read as JHora's Mood column prints them
-  ([decision 010](../../decisions/010-deeptadi-jhora-mood-reading.md)).
+  ([decision 012](../../decisions/012-deeptadi-jhora-mood-reading.md)).
 - **`FEAT-STRENGTH-01` (CLI slice)** — Dina / Horā / Tribhāga Bala + Graha Yuddha detection
   **done** (migrations 072/076/084 on `workstream/database`; `ShadbalaCalculator` extended,
   `verify-strength` new, `tests/Ikiastrro.Yoga.Tests/ShadbalaKalaBalaTests` (5)). Dina Bala (45

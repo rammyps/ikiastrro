@@ -13,7 +13,7 @@ namespace Ikiastrro.Yoga.Tests;
 /// Lajjita and Garvita from PVR's second six, so only those two are compared. No DB: a hand-built
 /// rule set stands in for the repository.
 /// Rahu/Ketu: the relationship tier (Mudita/Saanta/Deena/Duhkhita) is not compared — JHora gives the
-/// nodes real friend/enemy tiers and the engine has no node Naisargika table (open, decision 010).
+/// nodes real friend/enemy tiers and the engine has no node Naisargika table (open, decision 012).
 /// </summary>
 public class AvasthaJhoraMoodGoldenTests
 {

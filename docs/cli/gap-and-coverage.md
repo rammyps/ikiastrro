@@ -70,10 +70,10 @@ detection** (`verify-strength` all green) · source-attributed yoga inputs · pr
    `verify-avastha` reproduces the JHora export's Activity table exactly, all 9 grahas.
    Dīptādi + Lajjitādi: `DeeptadiStateCalculator` / `LajjitadiStateCalculator`, persisted as
    `tbl_Fact_PlanetaryStateFlag`. Re-read 2026-10-07 to match JHora's Mood column
-   ([decision 010](../../decisions/010-deeptadi-jhora-mood-reading.md)): `AvasthaJhoraMoodGoldenTests`
+   ([decision 012](../../decisions/012-deeptadi-jhora-mood-reading.md)): `AvasthaJhoraMoodGoldenTests`
    reproduces all 36 cells of the four reference exports, apart from the relationship tier of three
    node cells. Remaining: **node friend/enemy tiers** (JHora's Rahu/Ketu Naisargika table is not
-   known — decision 010), Kopita's exact orb (5° chosen inside a [4.3°, 6.4°) gap), and **Śayanādi's
+   known — decision 012), Kopita's exact orb (5° chosen inside a [4.3°, 6.4°) gap), and **Śayanādi's
    Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement**. That one is not OCR-blocked: Table 37's five sound
    groups follow the vowel order a, i, u, e, o (PVR Example 49: "V" → 1), but the formula needs the
    first sound of the native's *given name*, an input ikiastrro does not store; JHora's export
