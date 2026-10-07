@@ -1,0 +1,40 @@
+<div id="cosmos-palette" aria-label="Three-color Cosmos palette in light and dark modes">
+  <style>
+    #cosmos-palette { display: grid; gap: 20px; color: var(--foreground); }
+    #cosmos-palette .mode { display: grid; gap: 10px; }
+    #cosmos-palette h2 { margin: 0; }
+    #cosmos-palette .strip { display: grid; grid-template-columns: 6fr 3fr 1fr; min-height: 138px; overflow: hidden; border-radius: 14px; }
+    #cosmos-palette .swatch { display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; padding: 16px; }
+    #cosmos-palette .name { font-weight: 500; }
+    #cosmos-palette .hex { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; opacity: .78; }
+    #cosmos-palette .share { opacity: .72; }
+    #cosmos-palette .dark-primary { background: #0B0F19; color: #F8FAFC; }
+    #cosmos-palette .dark-secondary { background: #94A3B8; color: #0B0F19; }
+    #cosmos-palette .dark-accent { background: #22D3EE; color: #0B0F19; }
+    #cosmos-palette .light-primary { background: #F8FAFC; color: #172033; box-shadow: inset 0 0 0 1px #CBD5E1; }
+    #cosmos-palette .light-secondary { background: #334155; color: #F8FAFC; }
+    #cosmos-palette .light-accent { background: #087E9A; color: #FFFFFF; }
+    @media (max-width: 520px) {
+      #cosmos-palette .strip { grid-template-columns: 1fr; }
+      #cosmos-palette .swatch { min-height: 76px; }
+    }
+  </style>
+
+  <section class="mode" aria-labelledby="cosmos-dark-title">
+    <h2 id="cosmos-dark-title">Cosmos Dark</h2>
+    <div class="strip">
+      <div class="swatch dark-primary"><span class="name">Obsidian Blue</span><span class="hex">#0B0F19</span><span class="share">60% canvas</span></div>
+      <div class="swatch dark-secondary"><span class="name">Stardust Platinum</span><span class="hex">#94A3B8</span><span class="share">30% structure</span></div>
+      <div class="swatch dark-accent"><span class="name">Aurora Teal</span><span class="hex">#22D3EE</span><span class="share">10% action</span></div>
+    </div>
+  </section>
+
+  <section class="mode" aria-labelledby="cosmos-light-title">
+    <h2 id="cosmos-light-title">Cosmos Light</h2>
+    <div class="strip">
+      <div class="swatch light-primary"><span class="name">Minimal Alabaster</span><span class="hex">#F8FAFC</span><span class="share">60% canvas</span></div>
+      <div class="swatch light-secondary"><span class="name">Deep Slate Blue</span><span class="hex">#334155</span><span class="share">30% structure</span></div>
+      <div class="swatch light-accent"><span class="name">Deep Cosmic Teal</span><span class="hex">#087E9A</span><span class="share">10% action</span></div>
+    </div>
+  </section>
+</div>
