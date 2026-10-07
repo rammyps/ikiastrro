@@ -171,9 +171,9 @@ public static class AstroFactsGuides
             "A sign with many points (about 31 or more) is favourable when planets transit it; few points (under about 25) is unfavourable. Each planet's own table (BAV) shows where that planet transits best.",
             "Brihat Parashara Hora Shastra, Aṣṭakavarga chapter", Pvr),
         ["karakas"] = new(
-            "The Jaimini karakas: the planets ranked by degree, each given a role in your life (self, career, siblings, mother, father, children, relatives, spouse), plus special lagnas.",
-            "The planet with the highest degree is the Ātmakāraka, the \"soul\" planet; the rest are read as the people and themes of life. Special lagnas (Hora, Ghaṭi, Śrī and others) are alternate starting points for judging wealth, power and status.",
-            Pvr),
+            "One chart for every special reference point: the special lagnas (Hora, Ghaṭi, Śrī, Bhāva, Indu, Prāṇapada and others) and the special points — upagrahas, Bhṛgu Bindu and Varṇada lagnas, the 14 sphuṭas and the 36 sahams — laid on the sign you pick, as a polar wheel or a South Indian grid. The Jaimini karakas (the planet ranked highest by degree is the Ātmakāraka, the \"soul\" planet) are in the table below.",
+            "Use the four dropdowns under the chart picker — Lagnas, Upagrahas, Sphuṭas, Sahams. Each opens a checklist with a Find box, All / None and a preset (for example Key 10 sahams); the number on the button is how many are on. In the Grid a coloured chip in a sign is a point sitting there (grey upagraha, teal Bhṛgu Bindu/Varṇada, blue sphuṭa, brown saham) and \"+n\" means more — hover or tap a sign to list them all with degree and house. In the Wheel each sign's points sit in their own ring inside the planets, and the lagna rings show house numbers counted from each lagna. On a divisional chart the points keep their rāśi (D1) degree and take that chart's sign.",
+            Pvr, Jhora),
         ["yogas"] = new(
             "Yogas are named planetary combinations, each with a classical meaning. The table lists those present in your chart.",
             "\"Based on\" shows the reference point (Sun, Moon or Lagna). \"Planets\" are those that make the yoga and the strength column shows how strong each is. Good yogas help most when their planets are strong; weak planets give a faint result.",

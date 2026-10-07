@@ -2,13 +2,13 @@
 @using Ikiastrro.Core.Presentation
 
 <section class="pgls" aria-label="Special Lagna chart">
- @if (View == "polar")
+ @if (View == "polar" && !HideControls)
  {
   <div class="pgls-lagnas" role="group" aria-label="Lagna references">
    @foreach (var reference in OrderedReferences)
    {
-    <label class="pgls-check @ReferenceClass(reference.Code) @(_selectedReferenceCodes.Contains(reference.Code) ? "is-active" : null)">
-     <input type="checkbox" checked="@_selectedReferenceCodes.Contains(reference.Code)" @onchange="e => ToggleReference(reference.Code, e)" />
+    <label class="pgls-check @ReferenceClass(reference.Code) @(ActiveRefs.Contains(reference.Code) ? "is-active" : null)">
+     <input type="checkbox" checked="@ActiveRefs.Contains(reference.Code)" @onchange="e => ToggleReference(reference.Code, e)" />
      <span>@reference.Name.ToUpperInvariant()</span>
     </label>
    }
@@ -66,6 +66,36 @@
      </g>
     }
 
+    @* Special-points ring (upagrahas, sphuṭas, sahams …) — drawn only when the page passes ExtraPoints. Each sector
+       lists its points as small chips in the point group's colour, up to PointsPerLine on a line and MaxPointLines
+       lines, with "+n" for the rest (hover any chip for its name, degree and meaning). *@
+    @if (HasPointRing)
+    {
+     @foreach (var sector in Sectors.OrderBy(s => s.HouseNumber))
+     {
+      var angle = (sector.HouseNumber - 1) * 30d;
+      var (cx, cy) = Xy(angle, (PointRingOuter + PointRingInner) / 2);
+      var here = PointsIn(sector.Sign);
+      var (perLine, maxLines, pitch) = PointGrid(angle);
+      var capacity = perLine * maxLines;
+      var overflow = here.Count > capacity;
+      var shown = overflow ? capacity - 1 : here.Count;
+      var slots = PointSlots(shown + (overflow ? 1 : 0), perLine, pitch);
+      <g class="pgls-sector pgls-points">
+       <path d="@AnnularSector(angle - 15, angle + 15, PointRingInner, PointRingOuter)" />
+       @for (var i = 0; i < shown; i++)
+       {
+        var p = here[i];
+        <g><text x="@F(cx + slots[i].Dx)" y="@F(cy + slots[i].Dy)" class="pgls-pt" style="fill:var(@PointCatalog.ColorVar(p.Def.Group))"><title>@($"{p.Def.Name} · {KeyInfoFormat.Degree(p.Def.Longitude)} {KeyInfoFormat.Sign(p.Def.Longitude)} (D1) · H{p.House} · {p.Def.Meaning}")</title>@p.Def.Short</text></g>
+       }
+       @if (overflow)
+       {
+        <g><text x="@F(cx + slots[shown].Dx)" y="@F(cy + slots[shown].Dy)" class="pgls-pt pgls-pt-more"><title>@string.Join(", ", here.Skip(shown).Select(q => q.Def.Name))</title>+@(here.Count - shown)</text></g>
+       }
+      </g>
+     }
+    }
+
     @* One ring per special lagna (Sign/Arudha/Hora/Sree/Ghati) — each shows its own house number
        per sign, with the sign matching that lagna's own placement (house 1, "self") picked out
        as a solid ticker band in that lagna's accent colour. *@
@@ -75,7 +105,7 @@
      var refClass = ReferenceClass(reference.Code);
      var (ringOuter, ringInner) = LagnaRingRadii(ringIndex);
      var ringMid = (ringOuter + ringInner) / 2;
-     var isSelected = _selectedReferenceCodes.Contains(reference.Code);
+     var isSelected = ActiveRefs.Contains(reference.Code);
      @foreach (var sector in Sectors.OrderBy(s => s.HouseNumber))
      {
       var angle = (sector.HouseNumber - 1) * 30d;
@@ -129,13 +159,38 @@
  [Parameter]public string ChartCode{get;set;}="D1";
  [Parameter]public string AscendantSign{get;set;}="Aries";
  [Parameter]public string View{get;set;}="polar";
+ /// <summary>Special points already placed on this chart's signs (see PointCatalog.Place); drawn as a ring of chips.</summary>
+ [Parameter]public IReadOnlyList<PlacedPoint> ExtraPoints{get;set;}=Array.Empty<PlacedPoint>();
+ /// <summary>When set, the lagna rings shown (LAGNA, ARUDHA_LAGNA, HORA_LAGNA, SREE_LAGNA, GHATI_LAGNA) are these, not the wheel's own checkboxes.</summary>
+ [Parameter]public IReadOnlySet<string>? SelectedReferenceCodes{get;set;}
+ /// <summary>Hide the wheel's own lagna checkboxes (the page supplies a dropdown instead).</summary>
+ [Parameter]public bool HideControls{get;set;}
+ private IReadOnlySet<string> ActiveRefs=>SelectedReferenceCodes??_selectedReferenceCodes;
  private static readonly string[] ReferenceOrder=["LAGNA","ARUDHA_LAGNA","HORA_LAGNA","SREE_LAGNA","GHATI_LAGNA"];
 
  // Sign ring outer boundary (720x720 viewBox, centre 360,360) and the sign/planet band split —
  // fixed regardless of how many lagna rings follow, so those two bands never resize.
  private const double SignRingOuter=338, SignRingInner=304, SignRingMid=(SignRingOuter+SignRingInner)/2;
  private const double PlanetRingOuter=SignRingInner, PlanetRingInner=272, PlanetRingMid=(PlanetRingOuter+PlanetRingInner)/2;
- private const double LagnaRingsOuter=PlanetRingInner, LagnaRingsInner=104, CoreRadius=90;
+ private const double LagnaRingsInner=104, CoreRadius=90;
+ // The optional points ring sits between the planet ring and the lagna rings; the lagna rings shrink to share what is left.
+ private const double PointBand=56;
+
+ // Chips are horizontal text, so the grid they sit in follows the sector: top and bottom sectors are wide and shallow
+ // (rows of five, three rows), the side sectors are narrow and tall (columns of three, up to seven rows).
+ private static (int PerLine,int MaxLines,double Pitch) PointGrid(double angle)=>Math.Abs(Math.Sin(angle*Math.PI/180))>=0.85?(3,7,17d):(5,3,19d);
+ private static IReadOnlyList<(double Dx,double Dy)> PointSlots(int count,int perLine,double pitch)
+ {
+  var lines=(int)Math.Ceiling(count/(double)perLine);
+  var list=new List<(double,double)>(count);
+  for(var i=0;i<count;i++){var line=i/perLine;var inLine=Math.Min(perLine,count-line*perLine);list.Add((((i%perLine)-(inLine-1)/2d)*pitch,(line-(lines-1)/2d)*13d));}
+  return list;
+ }
+ private double PointRingOuter=>PlanetRingInner;
+ private double PointRingInner=>PlanetRingInner-PointBand;
+ private bool HasPointRing=>ExtraPoints.Count>0;
+ private double LagnaRingsOuter=>HasPointRing?PointRingInner:PlanetRingInner;
+ private IReadOnlyList<PlacedPoint> PointsIn(string sign)=>ExtraPoints.Where(p=>SameSign(p.Sign.ToString(),sign)).OrderBy(p=>p.Def.Group).ThenBy(p=>p.Def.Longitude).ToList();
 
  // 5 lagna rings share the remaining radial space evenly (default: all 5 selected/available); a
  // chart where fewer references apply (e.g. only Sign+Arudha for a non-D1/D9 varga) still divides
@@ -151,7 +206,7 @@
  private readonly HashSet<string> _selectedReferenceCodes = new(StringComparer.OrdinalIgnoreCase) { "LAGNA", "ARUDHA_LAGNA", "HORA_LAGNA", "SREE_LAGNA", "GHATI_LAGNA" };
  private string? _lastChartCode;
  private IReadOnlyList<ReferencePoint> OrderedReferences=>ReferenceOrder.Select(code=>ReferencePoints.FirstOrDefault(r=>r.Code==code)).Where(r=>r is not null).Cast<ReferencePoint>().ToList();
- private IReadOnlyList<ReferencePoint> SelectedReferences=>OrderedReferences.Where(r=>_selectedReferenceCodes.Contains(r.Code)).ToList();
+ private IReadOnlyList<ReferencePoint> SelectedReferences=>OrderedReferences.Where(r=>ActiveRefs.Contains(r.Code)).ToList();
  private string SelectedReferenceNames=>string.Join(" · ",SelectedReferences.Select(r=>ShortName(r.Code)));
  private IReadOnlyDictionary<string,IReadOnlyList<GridPlanetGlyph>> PlanetsBySign=>PlanetPlacements.GroupBy(p=>p.Sign).ToDictionary(g=>g.Key,g=>(IReadOnlyList<GridPlanetGlyph>)g.Select(p=>new GridPlanetGlyph(p.Planet,ChartViewModel.DignityToken(p.DignityStatus),false,false)).ToList());
  private IReadOnlyDictionary<string,IReadOnlyList<string>> SpecialPointLabels=>ReferencePoints.Where(r=>r.Code!="LAGNA").GroupBy(r=>r.Sign).ToDictionary(g=>g.Key,g=>(IReadOnlyList<string>)g.Select(r=>ShortName(r.Code)).Distinct().ToList());

@@ -554,7 +554,7 @@ else
         <div class="ki-panelbody" id="ki-panel-3" role="tabpanel" aria-labelledby="ki-tab-3">
             @PrintHead(3)
             @Guide("karakas")
-            <KarakaPolarWheel Id="@Id" Embedded="true" />
+            <KarakaPolarWheel Id="@Id" Embedded="true" IsNightBirth="@(_panchanga?.IsNightBirth ?? false)" />
         </div>
     }
 

@@ -17,3 +17,15 @@
 @media(max-width:720px){.karaka-head{flex-wrap:wrap}.karaka-view-tabs{justify-content:center}}
 /* Grid view: SIND-UNI-3 with special-lagna bars (spec_SIND-UNI_GridChart.md). */
 .karaka-uni { max-width: 760px; margin: 0 auto 20px; display: grid; gap: 8px; }
+
+/* Spl Lagnas stage (2026-10-07): the chart-control bar and the chart share one width so every dropdown lines up with
+   the chart below it — row 1 the chart picker and Wheel/Grid, row 2 the lagna and special-point dropdowns. */
+.kpw-stage { --stage-w: 740px; max-width: var(--stage-w); margin: 0 auto; }
+.kpw-bar { display: grid; gap: 8px; margin: 0 0 12px; }
+.kpw-row { display: flex; align-items: center; gap: 8px; }
+.kpw-chart { flex: 1 1 0; min-width: 0; max-width: none; }
+.kpw-menus { flex-wrap: wrap; }
+.kpw-wheel { width: 100%; }
+.kpw-note { margin: 8px 0 0; color: var(--brand-muted); font: 500 var(--font-size-control) / 1.35 var(--font-interface); }
+.kpw-note b { color: var(--card-fg); }
+@media (max-width: 720px) { .kpw-row { flex-wrap: wrap; } }

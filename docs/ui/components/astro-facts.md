@@ -646,3 +646,28 @@ Any new chart dropdown should use the same class so it inherits this.
 
 **Known:** values for Ananya differ from JHora's export by a few arc-minutes in the sums that include Sun, Moon, Rahu or the Lagna
 (Moon−Sun ≈ 3′, Rahu−Sun ≈ 25′) — input differences, not the formulas, which match JHora exactly when fed JHora's own longitudes.
+
+## 2026-10-07 — Spl Lagnas: dropdown system, special points on the wheel and the grid
+
+The READINGS ▸ SPL LAGNAS chart (page `KarakaPolarWheel`, Wheel = `PolarGridLagnaSelect`, Grid = `SindUni3Grid`) now carries every special
+point, not just the special lagnas.
+
+- **One stage, one width.** `.kpw-stage` (740px) holds the controls and the chart, so the chart picker + Wheel/Grid row and the dropdown
+  row line up with the chart's own edges. Phones wrap the dropdowns two to a row.
+- **Dropdown system — `ChartMenu`.** A multi-select dropdown: button with the on-count, a panel of checkboxes under group headings, Find box
+  (long lists), per-group all/none, menu-wide All / None and named presets. No JS (state + backdrop; Escape closes). Four menus:
+  **Lagnas** (the 12 `SindUniGlyphs.SpecialLagnas`; presets *Wheel rings*, *Classic*), **Upagrahas** (11 upagrahas + Bhṛgu Bindu + Varṇada V1–V12),
+  **Sphuṭas** (14), **Sahams** (10 life-area + 26 others; preset *Key 10*). Both views read the same selections, so the grid's own lagna-chip
+  row and the wheel's lagna checkboxes are hidden (`HideLagnaToolbar` / `HideControls`); the old controls still work where the components are used alone.
+  Default on: the classic lagnas and the *Essentials* points (both Gulika points, Bhṛgu Bindu, Prāṇa/Deha/Mṛtyu sphuṭas, Punya/Vivaha/Karma sahams).
+- **`PointCatalog`** builds every point from the D1 key details with the Core engines (`Sphutas`, `SahamTable`, `SensitivePoints`) and places it on
+  the picked chart: a point keeps its D1 longitude and takes the sign that longitude falls in under that varga's rule
+  (`VargaSchemeRepository` → `VargaSignRuleFactory`), house from that chart's Lagna. Group colours: `--pg-upagraha/-sensitive/-sphuta/-saham`.
+- **Grid:** coloured chips in the cell's tag row; the cap shrinks with the planets in the cell (a "+n" chip holds the rest); the centre card of a
+  hovered or pinned sign gets a *Points here* list of everything in it with degree and house.
+- **Wheel:** a points ring between the planets and the lagna rings (the lagna rings share what is left). Chips are horizontal text, so the grid
+  they sit in follows the sector: rows of five on top/bottom sectors, columns of three on the side ones; "+n" past capacity; each chip's `<title>` names it.
+- **Below the chart:** a one-line summary of how many points are shown, the Special Lagnas table, and a *Special points on this chart* table.
+- The tab's plain-words guide (`karakas`) explains the dropdowns, chip colours and the divisional-chart rule.
+- **Known:** `PolarGridLagnaSelectTests` has two older tests (12 sectors; one active ring by default) that predate the five-ring redesign and fail on
+  master as well; they were not touched.

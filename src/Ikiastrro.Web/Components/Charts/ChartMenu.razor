@@ -1,0 +1,111 @@
+@* Multi-select dropdown for chart controls — one button showing how many items are on, opening a panel of
+   checkboxes grouped under headings, with search, per-group all/none and named presets. Used by the Spl Lagnas
+   chart (Wheel and Grid) for its lagna and special-point layers. No JS: the open state is a bool and a transparent
+   backdrop closes it on an outside click; Escape closes it too. The button takes the chart-control look
+   (`--control-bg` / `--control-fg`, same as `.ki-chart-picker`). *@
+<div class="cm @(_open ? "is-open" : null) @(AlignEnd ? "cm-end" : null)" @onkeydown="OnKey">
+    <button type="button" class="cm-btn" aria-haspopup="true" aria-expanded="@(_open ? "true" : "false")" @onclick="ToggleOpen">
+        <span class="cm-label">@Label</span>
+        <span class="cm-count" title="@SelectedCount of @TotalCount on">@SelectedCount</span>
+        <span class="cm-caret" aria-hidden="true">▾</span>
+    </button>
+    @if (_open)
+    {
+        <div class="cm-backdrop" @onclick="Close"></div>
+        <div class="cm-panel" role="group" aria-label="@Label">
+            <div class="cm-tools">
+                @if (Searchable)
+                {
+                    <input type="search" class="cm-search" placeholder="Find…" aria-label="Find in @Label" value="@_filter"
+                           @oninput="e => _filter = e.Value?.ToString() ?? string.Empty" />
+                }
+                <div class="cm-presets">
+                    <button type="button" class="cm-chip" @onclick="() => SetAll(true)">All</button>
+                    <button type="button" class="cm-chip" @onclick="() => SetAll(false)">None</button>
+                    @foreach (var preset in Presets)
+                    {
+                        var codes = preset.Codes;
+                        <button type="button" class="cm-chip" @onclick="() => Apply(codes)">@preset.Label</button>
+                    }
+                </div>
+            </div>
+            @foreach (var group in Groups)
+            {
+                var items = Visible(group);
+                if (items.Count == 0) { continue; }
+                <fieldset class="cm-group">
+                    <legend>
+                        <span>@group.Label</span>
+                        <button type="button" class="cm-grp" @onclick="() => SetGroup(group, true)">all</button>
+                        <button type="button" class="cm-grp" @onclick="() => SetGroup(group, false)">none</button>
+                    </legend>
+                    <div class="cm-items">
+                        @foreach (var item in items)
+                        {
+                            var on = Selected.Contains(item.Code);
+                            <label class="cm-item @(on ? "is-on" : null)" title="@item.Hint">
+                                <input type="checkbox" checked="@on" @onchange="e => ToggleItem(item.Code, e.Value is true)" />
+                                @if (item.ColorVar is not null) { <i class="cm-sw" style="background:var(@item.ColorVar)"></i> }
+                                <span class="cm-short">@item.Short</span>
+                                <span class="cm-name">@item.Label</span>
+                            </label>
+                        }
+                    </div>
+                </fieldset>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    public sealed record MenuItem(string Code, string Label, string Short, string? ColorVar = null, string? Hint = null);
+    public sealed record MenuGroup(string Label, IReadOnlyList<MenuItem> Items);
+    public sealed record MenuPreset(string Label, IReadOnlySet<string> Codes);
+
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public IReadOnlyList<MenuGroup> Groups { get; set; } = Array.Empty<MenuGroup>();
+    [Parameter] public IReadOnlySet<string> Selected { get; set; } = new HashSet<string>();
+    [Parameter] public EventCallback<IReadOnlySet<string>> SelectedChanged { get; set; }
+    [Parameter] public IReadOnlyList<MenuPreset> Presets { get; set; } = Array.Empty<MenuPreset>();
+    /// <summary>Show a Find box — worth it for the long lists (sahams, sphuṭas).</summary>
+    [Parameter] public bool Searchable { get; set; }
+    /// <summary>Open the panel against the right edge of the button (for the last dropdowns in a row).</summary>
+    [Parameter] public bool AlignEnd { get; set; }
+
+    private bool _open;
+    private string _filter = "";
+
+    private IEnumerable<string> AllCodes => Groups.SelectMany(g => g.Items).Select(i => i.Code);
+    private int TotalCount => AllCodes.Count();
+    private int SelectedCount => AllCodes.Count(Selected.Contains);
+
+    private void ToggleOpen() { _open = !_open; _filter = ""; }
+    private void Close() => _open = false;
+    private void OnKey(KeyboardEventArgs e) { if (e.Key == "Escape") _open = false; }
+
+    private IReadOnlyList<MenuItem> Visible(MenuGroup group) =>
+        string.IsNullOrWhiteSpace(_filter)
+            ? group.Items
+            : group.Items.Where(i => i.Label.Contains(_filter, StringComparison.OrdinalIgnoreCase)
+                                     || i.Short.Contains(_filter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private Task Emit(IEnumerable<string> codes) => SelectedChanged.InvokeAsync(new HashSet<string>(codes));
+
+    private Task ToggleItem(string code, bool on) =>
+        Emit(on ? Selected.Append(code) : Selected.Where(c => c != code));
+
+    private Task SetAll(bool on) => Emit(on ? Selected.Concat(AllCodes) : Selected.Where(c => !AllCodes.Contains(c)));
+
+    private Task SetGroup(MenuGroup group, bool on)
+    {
+        var codes = group.Items.Select(i => i.Code).ToHashSet();
+        return Emit(on ? Selected.Concat(codes) : Selected.Where(c => !codes.Contains(c)));
+    }
+
+    /// <summary>A preset replaces the selection within this menu only; codes outside the menu are kept.</summary>
+    private Task Apply(IReadOnlySet<string> codes)
+    {
+        var mine = AllCodes.ToHashSet();
+        return Emit(Selected.Where(c => !mine.Contains(c)).Concat(codes.Where(mine.Contains)));
+    }
+}

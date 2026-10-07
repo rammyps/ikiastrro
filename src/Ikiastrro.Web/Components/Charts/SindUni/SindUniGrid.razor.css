@@ -164,3 +164,11 @@
 .su-compact .card { gap: .35em; }
 .su-compact .card dl { font-size: .74em; gap: .2em .6em; }
 .su-compact .card-hd { font-size: .95em; }
+
+/* Special points chips (ExtraPoints) — same chip as .tag, drawn in the point group's colour; "+n" lists the rest on hover. */
+.tag.xp { font-size: .62em; padding: .2em .32em; }
+.tag.xp.more { color: var(--brand-muted); --t: var(--brand-muted); }
+.card dd.xp-list { display: grid; gap: .12em; font-weight: 600; max-height: 9em; overflow: auto; }
+.xp-row { display: block; color: var(--card-fg); }
+.xp-row b { color: var(--t); margin-right: .2em; }
+.xp-row i { font-style: normal; color: var(--brand-muted); margin-left: .3em; font-variant-numeric: tabular-nums; }

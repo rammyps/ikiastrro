@@ -27,6 +27,15 @@ public partial class SindUniGrid
     /// <summary>Spl Lagnas view: multi-select special lagnas drawn as colour bars (Micro only).</summary>
     [Parameter] public bool ShowSpecialLagnas { get; set; }
 
+    /// <summary>When set, these special-lagna codes are drawn instead of the grid's own toggles — the Spl Lagnas page
+    /// drives them from its dropdowns (pair with <see cref="HideLagnaToolbar"/>).</summary>
+    [Parameter] public IReadOnlySet<string>? ActiveLagnas { get; set; }
+    /// <summary>Hide the grid's own row of special-lagna chips (the page supplies a dropdown instead).</summary>
+    [Parameter] public bool HideLagnaToolbar { get; set; }
+    /// <summary>Special points (upagrahas, sphuṭas, sahams …) already placed on this chart's signs, drawn as small
+    /// coloured chips in each cell (Micro only) and listed in full on the centre card when a sign is hovered or pinned.</summary>
+    [Parameter] public IReadOnlyList<PlacedPoint>? ExtraPoints { get; set; }
+
     /// <summary>Pinned sign (two-way). Hover previews; click pins; clicking the pinned sign unpins.</summary>
     [Parameter] public ZodiacName? PinnedSign { get; set; }
     [Parameter] public EventCallback<ZodiacName?> PinnedSignChanged { get; set; }
@@ -91,6 +100,28 @@ public partial class SindUniGrid
     private string? _preset;
     private ZodiacName? _hover;
     private bool _initialised;
+
+    private IReadOnlySet<string> LagnaSet => ActiveLagnas ?? _lagnas;
+
+    /// <summary>Chips a cell can hold with no planets; each pair of planets in the cell takes two chips' room (the "+n" chip covers the rest).</summary>
+    private const int MaxChips = 8;
+    private IReadOnlyList<PlacedPoint>? _extraSource;
+    private IReadOnlyDictionary<ZodiacName, IReadOnlyList<PlacedPoint>> _extraBySign = new Dictionary<ZodiacName, IReadOnlyList<PlacedPoint>>();
+
+    private IReadOnlyList<PlacedPoint> ExtraIn(ZodiacName sign)
+    {
+        if (!ReferenceEquals(_extraSource, ExtraPoints))
+        {
+            _extraSource = ExtraPoints;
+            _extraBySign = (ExtraPoints ?? [])
+                .GroupBy(p => p.Sign)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<PlacedPoint>)g.OrderBy(p => p.Def.Group).ThenBy(p => p.Def.Longitude).ToList());
+        }
+        return _extraBySign.GetValueOrDefault(sign) ?? [];
+    }
+
+    private static string PointTitle(PlacedPoint p) =>
+        $"{p.Def.Name} · {KeyInfoFormat.Degree(p.Def.Longitude)} {KeyInfoFormat.Sign(p.Def.Longitude)} (D1) · {p.Def.Meaning}";
 
     protected IReadOnlyList<LayerDef> Layers => LayersByView[View].Select(k => AllLayers.First(l => l.Key == k)).ToList();
 

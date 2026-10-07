@@ -1,5 +1,6 @@
 @page "/charts/{Id:int}/karaka-wheel"
 @using Ikiastrro.Web.Components.Workspace
+@using Ikiastrro.Core.Engines.DivisionalCharts
 @inject BirthDetailsRepository BirthDetailsRepo
 @inject ChartResultsRepository ChartResultsRepo
 @inject ChartKeyDetailsRepository ChartKeyDetailsRepo
@@ -9,6 +10,7 @@
 @inject ChartConjunctionsRepository ChartConjunctionsRepo
 @inject ChartMultiGrahaConjunctionRepository ChartMultiGrahaConjunctionRepo
 @inject ChartTypeRepository ChartTypeRepo
+@inject VargaSchemeRepository VargaSchemeRepo
 @inject SqlConnectionFactory ConnectionFactory
 @inject ActivePerson Active
 @inject NavigationManager Nav
@@ -23,30 +25,55 @@ else if (_data is null || _rules is null)
 }
 else
 {
- <header class="karaka-head">
-  <select class="karaka-chart-select" value="@_chartCode" @onchange="ChangeChart" aria-label="Chart">@foreach(var chart in AvailableCharts){<option value="@chart.ChartType">@chart.ChartType · @chart.SanskritName</option>}</select>
-  <nav class="karaka-view-tabs" aria-label="Chart view">
-   <button type="button" class="@(_view == "polar" ? "is-active" : null)" @onclick="ShowPolar">Wheel</button>
-   <button type="button" class="@(_view == "south" ? "is-active" : null)" @onclick="ShowSouth">Grid</button>
-  </nav>
+<div class="kpw-stage">
+ <header class="kpw-bar">
+  <div class="kpw-row">
+   <select class="karaka-chart-select kpw-chart" value="@_chartCode" @onchange="ChangeChart" aria-label="Chart">@foreach(var chart in AvailableCharts){<option value="@chart.ChartType">@chart.ChartType · @chart.SanskritName</option>}</select>
+   <nav class="karaka-view-tabs" aria-label="Chart view">
+    <button type="button" class="@(_view == "polar" ? "is-active" : null)" @onclick="ShowPolar">Wheel</button>
+    <button type="button" class="@(_view == "south" ? "is-active" : null)" @onclick="ShowSouth">Grid</button>
+   </nav>
+  </div>
+  <div class="kpw-row kpw-menus" role="group" aria-label="Lagnas and special points on the chart">
+   <ChartMenu Label="Lagnas" Groups="LagnaGroups" Presets="LagnaPresets" Selected="_lagnaSel" SelectedChanged="SetLagnas" />
+   <ChartMenu Label="Upagrahas" Groups="PointGroupsFor(PointGroup.Upagraha, PointGroup.Sensitive)" Presets="UpagrahaPresets" Selected="_pointSel" SelectedChanged="SetPoints" />
+   <ChartMenu Label="Sphuṭas" Groups="PointGroupsFor(PointGroup.Sphuta)" Presets="SphutaPresets" Selected="_pointSel" SelectedChanged="SetPoints" Searchable="true" />
+   <ChartMenu Label="Sahams" Groups="PointGroupsFor(PointGroup.SahamKey, PointGroup.Saham)" Presets="SahamPresets" Selected="_pointSel" SelectedChanged="SetPoints" Searchable="true" AlignEnd="true" />
+  </div>
  </header>
  @if (SelectedChart is { } selected)
  {
+  var placed = PlacedFor(selected);
   @if (_view == "south")
   {
    @* Grid view = SIND-UNI-3 with the special-lagna bars, the same view as Key Inference's chart
-      (docs/ui/components/spec_SIND-UNI_GridChart.md). The wheel stays PolarGridLagnaSelect. *@
+      (docs/ui/components/spec_SIND-UNI_GridChart.md). The wheel stays PolarGridLagnaSelect. The lagna and special-point
+      dropdowns above drive both views, so the grid's own lagna chip row is hidden. *@
    <div class="karaka-uni">
     <SindUni3Grid Chart="SindUniBuilder.Build(selected)" ShowSpecialLagnas="true" Title="@selected.ChartType"
                   Name="@selected.SanskritName" Meta="@($"Lagna {selected.AscendantSign}")"
+                  ActiveLagnas="_lagnaSel" HideLagnaToolbar="true" ExtraPoints="placed"
                   @bind-PinnedSign="_uniPinned" PrefsKey="spl-lagnas" AriaLabel="@($"{selected.ChartType} special lagnas")" />
    </div>
   }
   else
   {
-   <PolarGridLagnaSelect Sectors="BuildSectors(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" View="@_view"
-       KeyDetails="selected.KeyDetails" Aspects="selected.Aspects" NaisargikaKarakas="_rules.Primary" />
+   <div class="kpw-wheel">
+    <PolarGridLagnaSelect Sectors="BuildSectors(selected)" PlanetPlacements="BuildPlanetPlacements(selected)" ReferencePoints="BuildReferencePoints(selected,_rules.LagnaReferences)" ChartCode="@selected.ChartType" AscendantSign="@selected.AscendantSign" View="@_view"
+        KeyDetails="selected.KeyDetails" Aspects="selected.Aspects" NaisargikaKarakas="_rules.Primary"
+        SelectedReferenceCodes="WheelRings" HideControls="true" ExtraPoints="placed" />
+   </div>
   }
+  <p class="kpw-note" role="status">
+   @if (placed.Count == 0)
+   {
+    <text>Pick points from the dropdowns above to place them on the chart. Hover or tap a sign for what sits in it.</text>
+   }
+   else
+   {
+    <text><b>@placed.Count</b> special @(placed.Count == 1 ? "point" : "points") shown@(selected.ChartType == "D1" ? "" : $" — D1 positions placed by the {selected.ChartType} rule")@(_view == "polar" ? ". The wheel draws the Lagna, Arudha, Hora, Sree and Ghati rings from the Lagnas menu." : ". Hover or tap a sign to list them.")</text>
+   }
+  </p>
 
   var lagnaRows = BuildSpecialLagnaRows(selected, _rules.LagnaReferences);
   @if (lagnaRows.Count > 0)
@@ -64,11 +91,30 @@ else
     </table>
    </div>
   }
+
+  @if (placed.Count > 0)
+  {
+   <h3 class="karaka-sectionhead">Special points on this chart</h3>
+   <div class="karaka-scroll">
+    <table class="karaka-table">
+     <thead><tr><th>Point</th><th>Kind</th><th>Sign</th><th>House</th><th>D1 degree</th><th>Stands for</th></tr></thead>
+     <tbody>
+      @foreach (var pp in placed.OrderBy(x => x.Def.Group).ThenBy(x => x.Def.Longitude))
+      {
+       <tr><td><b style="color:var(@PointCatalog.ColorVar(pp.Def.Group))">@pp.Def.Short</b> @pp.Def.Name</td><td>@PointCatalog.GroupLabel(pp.Def.Group)</td><td>@KeyInfoFormat.Sign((int)pp.Sign * 30)</td><td class="num">@pp.House</td><td class="num">@KeyInfoFormat.Degree(pp.Def.Longitude)</td><td>@pp.Def.Meaning</td></tr>
+      }
+     </tbody>
+    </table>
+   </div>
+  }
  }
+</div>
 }
 @code {
  [Parameter] public int Id { get; set; }
  [Parameter] public bool Embedded { get; set; }
+ /// <summary>From the Pañchāṅga — the saham formulas that reverse by night need it.</summary>
+ [Parameter] public bool IsNightBirth { get; set; }
  private WorkspaceData? _data; private NaisargikaKarakaRules? _rules; private string _chartCode = "D1"; private string _view = "polar"; private Ikiastrro.Core.Engines.Astronomy.ZodiacName? _uniPinned; private int? _loadedId;
  private IEnumerable<LoadedChart> AvailableCharts => _data?.Charts.Values.OrderBy(c => _data.ChartTypes.FirstOrDefault(t => t.Code == c.ChartType)?.DivisionalFactor ?? int.MaxValue) ?? Enumerable.Empty<LoadedChart>();
  private LoadedChart? SelectedChart => _data?.Charts.GetValueOrDefault(_chartCode);
@@ -79,8 +125,60 @@ else
   _data=WorkspaceData.Load(Id,BirthDetailsRepo,ChartResultsRepo,ChartKeyDetailsRepo,ChartHouseLordsRepo,ChartHouseLordInterpretationRepo,ChartAspectsRepo,ChartConjunctionsRepo,ChartMultiGrahaConjunctionRepo,ChartTypeRepo.GetAll());
   _rules=_data is null ? null : new NaisargikaKarakaRepository(ConnectionFactory).LoadActive();
   if(_data is not null && !_data.Charts.ContainsKey(_chartCode)) _chartCode=_data.Charts.ContainsKey("D1") ? "D1" : _data.Charts.Keys.First();
+  _points=_data?.Charts.GetValueOrDefault("D1") is { } d1 ? PointCatalog.Build(d1.KeyDetails, IsNightBirth) : [];
   if(_data is null){Active.Clear();return;} var p=_data.Person; Active.Set(Id,p.Name,$"{p.DateOfBirth:dd MMM yyyy} · {p.TimeOfBirth:HH\\:mm} · {p.PlaceCity}, {p.PlaceCountry}");
  }
+ // --- Lagna and special-point dropdowns (both Wheel and Grid read these) ---
+ private IReadOnlySet<string> _lagnaSel = new HashSet<string>(SindUniGlyphs.SpecialLagnas.Where(k => k.OnByDefault).Select(k => k.Code));
+ private IReadOnlySet<string> _pointSel = new HashSet<string>(PointCatalog.Essentials);
+ private IReadOnlyList<PointDef> _points = [];
+ private IReadOnlyList<VargaScheme>? _schemes;
+ private void SetLagnas(IReadOnlySet<string> s) => _lagnaSel = s;
+ private void SetPoints(IReadOnlySet<string> s) => _pointSel = s;
+
+ private static readonly IReadOnlyList<ChartMenu.MenuGroup> LagnaGroups =
+  [new("Special lagnas", SindUniGlyphs.SpecialLagnas.Select(k => new ChartMenu.MenuItem(k.Code, k.Name, k.Code, k.ColorVar)).ToList())];
+ private static readonly IReadOnlyList<ChartMenu.MenuPreset> LagnaPresets =
+ [
+  new("Wheel rings", new HashSet<string> { "ASC", "AL", "HL", "SL", "GL" }),
+  new("Classic", new HashSet<string>(SindUniGlyphs.SpecialLagnas.Where(k => k.OnByDefault).Select(k => k.Code))),
+ ];
+ private static readonly IReadOnlyList<ChartMenu.MenuPreset> UpagrahaPresets =
+ [
+  new("Gulika pair", new HashSet<string> { "UP_GULIKA", "UP_MAANDI" }),
+  new("Essentials", new HashSet<string> { "UP_GULIKA", "UP_MAANDI", "BB" }),
+ ];
+ private static readonly IReadOnlyList<ChartMenu.MenuPreset> SphutaPresets =
+  [new("Life trio", new HashSet<string> { "SP_PRANA", "SP_DEHA", "SP_MRITYU", "SP_SOOKSHMA_TRI" })];
+ private static readonly IReadOnlyList<ChartMenu.MenuPreset> SahamPresets =
+  [new("Key 10", new HashSet<string>(new[] { "PUNYA", "VIDYA", "PUTRA", "VIVAHA", "KARMA", "ARTHA", "MATRU", "PITRU", "BHRATRU", "MRITYU" }.Select(c => "SH_" + c)))];
+
+ private IReadOnlyList<ChartMenu.MenuGroup> PointGroupsFor(params PointGroup[] groups) => groups
+  .Select(g => new ChartMenu.MenuGroup(PointCatalog.GroupLabel(g), _points.Where(p => p.Group == g)
+   .Select(p => new ChartMenu.MenuItem(p.Code, p.Name.Replace(" Sphuta", "").Replace(" saham", ""), p.Short, PointCatalog.ColorVar(g), p.Name + " — " + p.Meaning)).ToList()))
+  .Where(g => g.Items.Count > 0).ToList();
+
+ /// <summary>The Lagnas menu's codes as the wheel's ring codes (the wheel draws five lagna rings).</summary>
+ private IReadOnlySet<string> WheelRings => new HashSet<string>(_lagnaSel.Select(c => c switch
+ {
+  "ASC" => "LAGNA", "AL" => "ARUDHA_LAGNA", "HL" => "HORA_LAGNA", "SL" => "SREE_LAGNA", "GL" => "GHATI_LAGNA", _ => c,
+ }));
+
+ /// <summary>The chosen special points on <paramref name="c"/>: each keeps its D1 longitude and takes that varga's sign.</summary>
+ private IReadOnlyList<PlacedPoint> PlacedFor(LoadedChart c)
+ {
+  var chosen = _points.Where(p => _pointSel.Contains(p.Code)).ToList();
+  if (chosen.Count == 0) return [];
+  IVargaSignRule? rule = null;
+  if (c.ChartType != "D1")
+  {
+   var scheme = (_schemes ??= VargaSchemeRepo.GetAll(1)).FirstOrDefault(x => x.ChartType == c.ChartType);
+   if (scheme is null) return [];
+   rule = VargaSignRuleFactory.For(scheme.SignRuleKey, scheme.DivisionFactor);
+  }
+  return PointCatalog.Place(chosen, rule, Enum.Parse<Ikiastrro.Core.Engines.Astronomy.ZodiacName>(c.AscendantSign));
+ }
+
  private void ChangeChart(ChangeEventArgs e) { _chartCode=e.Value?.ToString()??"D1"; _uniPinned=null; }
  private void ShowPolar() => _view = "polar";
  private void ShowSouth() => _view = "south";
