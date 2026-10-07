@@ -106,8 +106,8 @@ public static class LifeMatterTimingDataAdapter
 
 /// <summary>
 /// Loads one saved person's persisted LifeMatter timing inputs and invokes the Core orchestrator.
-/// It does not invent missing varga evidence: until DomainConfirmation is populated by the varga
-/// adapter, that stage remains NotEvaluated in the returned activation.
+/// The relevant varga is evaluated independently and attached to the D1 promise before activation;
+/// missing varga facts remain explicit and leave that stage NotEvaluated.
 /// </summary>
 public sealed class LifeMatterTimingDataService(
     LifeMatterPromiseService promises,
@@ -119,7 +119,11 @@ public sealed class LifeMatterTimingDataService(
     DashaPeriodsRepository dashaPeriods,
     GocharaRepository gochara,
     PlanetaryStrengthRepository planetaryStrength,
-    BhavaStrengthRepository bhavaStrength)
+    BhavaStrengthRepository bhavaStrength,
+    AshtakavargaRepository ashtakavarga,
+    AmsabalaRepository amsabala,
+    ArgalaFactRepository argala,
+    NaisargikaKarakaRepository naisargika)
 {
     private const byte RuleSetId = 1;
     private static readonly LifeMatterFocusResolver FocusResolver = new();
@@ -152,6 +156,33 @@ public sealed class LifeMatterTimingDataService(
         var requiredChart = focus.Subject?.ChartTypeCode ?? "D1";
         if (!charts.ContainsKey(requiredChart))
             missing.Add($"The relevant {requiredChart} chart is missing; its dasha rules cannot be evaluated.");
+        var promise = reading.Primary.Promise;
+        if (!string.Equals(requiredChart, "D1", StringComparison.OrdinalIgnoreCase) &&
+            charts.ContainsKey(requiredChart))
+        {
+            var domainResult = storedResults.First(result =>
+                string.Equals(result.ChartType, requiredChart, StringComparison.OrdinalIgnoreCase));
+            var domainDetails = keyDetails.GetByChartResultId(domainResult.Id);
+            var domainAscendant = domainDetails.FirstOrDefault(row =>
+                row.PointKind == "Graha" && row.Planet == "Ascendant")?.Sign;
+            if (domainAscendant is null)
+                missing.Add($"The relevant {requiredChart} chart has no persisted Ascendant; varga support was not evaluated.");
+            else
+            {
+                var shadbala = planetaryStrength.GetSummaryByBirthDetailId(birthDetailId);
+                var domainStats = new LifeMatterStatistics(requiredChart, domainAscendant,
+                    ashtakavarga.GetByBirthDetailId(birthDetailId), [], shadbala,
+                    ArgalaFacts.ForChart(argala.GetByBirthDetailId(birthDetailId), requiredChart,
+                        domainAscendant, domainDetails), null, amsabala.GetByBirthDetailId(birthDetailId));
+                var naturalRules = naisargika.LoadActive();
+                var domain = LifeMatterVargaConfirmationAdapter.Read(reading.Primary, focus,
+                    requiredChart, domainDetails, domainAscendant, domainStats, shadbala,
+                    LifeMatterPromiseAdapter.Significations(naturalRules.Details),
+                    LifeMatterPromiseAdapter.HouseMatters(naturalRules.Houses));
+                promise = promise with { Domain = domain };
+            }
+        }
+
         var availableRules = DashaMatters.EvaluateExtended(charts);
 
         var dasha = dashaPeriods.GetLordsOnDate(birthDetailId, utc.Date);
@@ -182,7 +213,7 @@ public sealed class LifeMatterTimingDataService(
 
         var transits = LifeMatterTimingDataAdapter.QualifyTransits(gochara.GetSnapshots(utc), natal, dasha);
         var timing = LifeMatterTimingOrchestrator.Evaluate(new(
-            reading.Primary.Promise, focus, availableRules, dasha, transits));
+            promise, focus, availableRules, dasha, transits));
         missing.AddRange(timing.Selection.MissingMappings);
         return new LifeMatterTimingDataResult(birthDetailId, step.LifeMatterId,
             step.LifeMatterCode, utc, timing, missing.Distinct().ToList());
