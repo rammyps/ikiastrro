@@ -102,7 +102,6 @@
                             <tr>
                                 <td>@(r.YogaSetName ?? r.YogaTypeCode ?? "—")</td>
                                 <td>@DisplayYoga(r.YogaCode)</td>
-                                <td><code>@r.SourceVariantCode</code></td>
                                 <td class="yg-varga-cell">@VargaCode(r)</td>
                                 <td>@BasedLabel(r)</td>
                                 <td><span class="yg-nature yg-nature-@NatureClass(r)">@NatureLabel(r)</span></td>
@@ -110,18 +109,8 @@
                                 {
                                     <td><span class="yg-status yg-status-@StatusClass(r)">@StatusLabel(r)</span></td>
                                 }
-                                <td class="yg-planets">
-                                    @{ var causing = PlanetsOf(r); }
-                                    @if (causing.Count == 0)
-                                    {
-                                        <span class="yg-interp-empty">—</span>
-                                    }
-                                    else
-                                    {
-                                        @string.Join(", ", causing)
-                                    }
-                                </td>
                                 <td class="yg-strength">
+                                    @{ var causing = PlanetsOf(r); }
                                     @if (causing.Count == 0)
                                     {
                                         <span class="yg-interp-empty">—</span>
@@ -281,7 +270,7 @@
     // Every column sorts on its header; before any click the rows keep the Set → type → variant
     // order above. Status only shows when "Show all" lets absent/pending rows in — otherwise every
     // row is Present by the filter itself.
-    private enum Col { Set, Yoga, Variant, Varga, Based, Nature, Status, Planets, Strength, Rule, Inference, Interpretation, Source }
+    private enum Col { Set, Yoga, Varga, Based, Nature, Status, Strength, Rule, Inference, Interpretation, Source }
 
     private static string BasedLabel(YogaEvaluationRow r) => r.YogaTypeCode?.ToUpperInvariant() switch
     {
@@ -326,7 +315,6 @@
         Col.Varga => "Varga",
         Col.Based => "Based on",
         Col.Nature => "Good / Bad",
-        Col.Planets => "Planets",
         Col.Strength => "Planet strength (Ṣaḍbala)",
         _ => c.ToString(),
     };
@@ -343,12 +331,10 @@
     {
         Col.Set => r.YogaSetName ?? r.YogaTypeCode ?? "",
         Col.Yoga => DisplayYoga(r.YogaCode),
-        Col.Variant => r.SourceVariantCode,
         Col.Varga => VargaCode(r),
         Col.Based => TypeRank(r.YogaTypeCode),
         Col.Nature => NatureRank(r.OutcomeNatureCode),
         Col.Status => StatusLabel(r),
-        Col.Planets => string.Join(",", PlanetsOf(r)),
         Col.Strength => WeakestPercent(r),
         Col.Rule => r.YogaRule ?? "",
         Col.Inference => r.InferenceText ?? "",

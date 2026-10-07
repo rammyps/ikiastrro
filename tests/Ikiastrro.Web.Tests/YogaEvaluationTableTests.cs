@@ -47,7 +47,7 @@ public sealed class YogaEvaluationTableTests : BunitContext
             .Add(x => x.Shadbala, shadbala));
 
         Assert.Contains("Lagna based", cut.Markup);
-        Assert.Contains("Mars, Venus", cut.Markup);
+        Assert.Equal(new[] { "Mars", "Venus" }, cut.FindAll(".yg-pstrength b").Select(b => b.TextContent));
         Assert.Contains("yg-tier-strong", cut.Markup);
         Assert.Contains("yg-tier-weak", cut.Markup);
         Assert.Contains("130%", cut.Markup);
@@ -153,7 +153,7 @@ public sealed class YogaEvaluationTableTests : BunitContext
             .Add(x => x.Vargas, new[] { "D1", "D9" })
             .Add(x => x.HouseLords, new Dictionary<int, PlanetName> { [1] = PlanetName.Mars, [2] = PlanetName.Venus })
             .Add(x => x.Shadbala, new[] { new ShadbalaSummaryRow("Mars", 0, 0, 0, 0, 0, 0, 0, 0, 6.5m, 5m, 130m) }));
-        Assert.Contains("Mars, Venus", cut.Markup);
+        Assert.Equal(new[] { "Mars", "Venus" }, cut.FindAll(".yg-pstrength b").Select(b => b.TextContent));
         Assert.Contains("130%", cut.Markup);
     }
 }
