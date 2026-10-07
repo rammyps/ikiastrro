@@ -95,16 +95,19 @@ attribution.
    so a second chart must be captured) and diff per varga.
 5. **UI** — confirmation column and the varga selector. Needs a product call on weighting.
 
-## Open decisions (need rammyps)
+## Decisions
 
-- **Authority.** Is "JHora's behaviour" an acceptable cited basis for the per-varga layer, given the
-  classical sources don't license it rule by rule? (Recommended: yes, labelled as a confirmation layer.)
-- **Which vargas.** All 21, or only the ones JHora's rules name (D1/2/3/9/12/30) plus the life-matter
-  vargas (D9, D10, D7, D4…)? Per-varga lagna rules are meaningless in some of the small vargas.
-- **Sarpa / Mridanga.** JHora fires both on RamakrishnanP; ikiastrro's (Raman 102 / 046) do not. The
-  definitions differ and the kendra reference JHora uses is unidentified. Resolve before comparing per-varga
-  output, or the per-varga diff will inherit the discrepancy.
-- **A second golden chart** with JHora Yogas captured, ideally with non-D1 rows.
+- **Vargas (decided 2026-10-07, rammyps): only the vargas JHora's rules name — D1, D2, D3, D9, D12, D30.**
+  This is the Shad-Varga set plus none of the others; D4/D7/D10/D16… are not evaluated. The re-based
+  evaluation therefore runs on at most six charts per person (D1 unchanged).
+- **Sarpa / Mridanga (resolved 2026-10-07):** both were missing PVR variants, not definitional conflicts —
+  added as `PVR_CH11_SARPA` / `PVR_CH11_MRIDANGA` (migration 175). The per-varga diff no longer inherits
+  the discrepancy.
+- **Still open — authority.** Is "JHora's behaviour" an acceptable cited basis for the per-varga layer,
+  given the classical sources don't license it rule by rule? (Recommended: yes, labelled as a confirmation
+  layer.)
+- **Still open — a second golden chart** with JHora Yogas captured, ideally with non-D1 rows. Capture it on
+  a chart whose place/time match ikiastrro's (RamakrishnanP's JHora file once carried an Australian place).
 
 ## Out of scope
 
