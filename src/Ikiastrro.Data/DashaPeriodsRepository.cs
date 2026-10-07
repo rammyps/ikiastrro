@@ -1,5 +1,7 @@
 using Dapper;
+using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Dasha;
+using Ikiastrro.Core.Engines.Transits;
 
 namespace Ikiastrro.Data;
 
@@ -77,6 +79,30 @@ public class DashaPeriodsRepository
         using var connection = _connectionFactory.CreateOpenConnection();
         var flatRows = connection.Query<DashaPeriodRecord>(sql, new { BirthDetailId = birthDetailId }).ToList();
         return DashaPeriodRecord.BuildTree(flatRows);
+    }
+    /// <summary>The running Vimshottari lords at an instant. Null levels remain explicit when the
+    /// stored tree is incomplete; null is returned when no stored period covers the instant.</summary>
+    public GocharaDashaLords? GetLordsOnDate(int birthDetailId, DateTime date)
+    {
+        const string sql = """
+            SELECT LevelNumber, Lord
+            FROM dbo.tbl_Chart_DashaPeriods
+            WHERE ChartResultId IN (SELECT Id FROM dbo.tbl_ChartResults WHERE BirthDetailId = @BirthDetailId)
+              AND LevelNumber <= 3 AND StartDate <= @Date AND @Date < EndDate
+            ORDER BY LevelNumber
+            """;
+        using var connection = _connectionFactory.CreateOpenConnection();
+        var rows = connection.Query<(byte LevelNumber, string Lord)>(sql,
+            new { BirthDetailId = birthDetailId, Date = date }).ToList();
+        if (rows.Count == 0) return null;
+
+        PlanetName? At(byte level)
+        {
+            var name = rows.FirstOrDefault(row => row.LevelNumber == level).Lord;
+            return Enum.TryParse<PlanetName>(name, true, out var planet) ? planet : null;
+        }
+
+        return new GocharaDashaLords(At(1), At(2), At(3));
     }
 
     /// <summary>
