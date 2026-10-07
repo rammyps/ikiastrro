@@ -50,36 +50,36 @@ detection** (`verify-strength` all green) · source-attributed yoga inputs · pr
    **Mahakala Hora / Kaala Lord** (JHora extensions past PVR's 24-hora scheme).
 3. **Jaimini base layer — Karakāṁśa + Bhaava/Ghati/Sree Lagna are delivered** (migration 082
    `vw_ChartKarakamsa`; `BhaavaLagnaCalculator`/`GhatiLagnaCalculator`/`SreeLagnaCalculator`;
-   `verify-jaimini` exact vs the JHora export). Remaining, deliberately out of scope —
-   `SRC_PVR_INTEGRATED` §5.7 states outright "there are some more special lagnas defined by
-   Parasara, but they are beyond the scope of this book", and no other registered source covers
-   them: **Vighati Lagna**, **Varnada Lagna**, **Pranapada Lagna**, **Indu Lagna**, **Bhṛgu
-   Bindu**. Jaimini rāśi dashas depend on some of these (e.g. Sudasa already uses Sree Lagna,
-   which is delivered).
+   `verify-jaimini` exact vs the JHora export). **Indu and Pranapada lagnas (Vighati is derived
+   inside the Pranapada calculator), Varnada and Bhṛgu Bindu also have code** (`InduLagnaCalculator`,
+   `PranapadaLagnaCalculator`, `Engines/KeyInfo/SensitivePoints.cs`; migrations 150–151) — the earlier
+   "out of scope" note is stale. Not re-checked against the JHora export in this pass.
 4. **Strength systems** — **Ashtakavarga is delivered** (BAV / SAV / Śodhana / Piṇḍa, exact
    vs the JHora export — migrations 074–078 + `AshtakavargaCalculator` + `verify-ashtakavarga`).
    **Dina / Horā / Tribhāga Bala and Graha Yuddha detection are delivered** (migration 072/076/084
    + `ShadbalaCalculator` extended + `verify-strength`) — Dina/Hora reuse `PanchangaCalculator`'s
    verified weekday lord and Hora Lord, Tribhaga reuses its Janma Ghaṭis; Graha Yuddha detects
    the five tara grahas within 1° and picks the winner by ecliptic latitude. Remaining, source-
-   blocked — `SRC_RAMAN_GRAHA_BHAVA_BALAS` is a DJVU with no text extract: **Varṣa/Māsa/Ayana
-   Bala** (three more Kālabala sub-components) and the **Yuddha Bala magnitude** (the
+   blocked — `SRC_RAMAN_GRAHA_BHAVA_BALAS` is a DJVU with no text extract: the **Yuddha Bala magnitude** (the
    diameter-based delta formula; detection and the winner criterion are already computed,
-   1_Ramakrishnan has no war to verify a magnitude against either way). Also remaining:
-   Iṣṭa/Kaṣṭa reconciliation, `MinimumRequiredRupas` population; Vimśopaka Bala + Vaiśeṣikāṁśa
-   (four varga-group weights still need a cited source).
-5. **Avastha & karaka reference — Śayanādi (PostureState) is delivered** (migration 083
-   `tbl_Rule_PostureStateFormula`; `PostureStateCalculator`; `verify-avastha` reproduces the
-   JHora export's Activity table exactly, all 9 grahas). It turned out to be a fully-specified,
-   unambiguous formula once `FEAT-DATA-06` supplied Janma Ghaṭis — not source-blocked after all.
-   Not seeded: the secondary Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (PVR's Table 37
-   sound-to-number map renders OCR-ambiguously in the raw extract). Remaining, genuinely
-   harder — PVR §15.4.3's 9 Dīptādi + 6 Lajjitādi states depend on conjunction/aspect
-   precedence the passage doesn't fully order (e.g. a planet both exalted and Sun-conjoined),
-   so they need a shared benefic/malefic classifier and a closer source read before schema, not
-   just missing input data. Also still open: apply the designed `tbl_Dim_HouseSignification` /
-   Sthira / Naisargika reference data (migration 030) instead of the hard-coded `LifeAreaMap`;
-   decide Sapta vs Aṣṭa Naisargika coverage.
+   1_Ramakrishnan has no war to verify a magnitude against either way). Varṣa/Māsa Bala rows (`AbdaMasaLords`), Iṣṭa/Kaṣṭa Phala and `VimsopakaCalculator` (versioned
+   weight table) exist in code; whether their numbers match JHora is unchecked here. Also remaining:
+   `MinimumRequiredRupas` population; Vaiśeṣikāṁśa's four varga-group weights still need a cited source.
+5. **Avastha & karaka reference — Śayanādi (PostureState) and Dīptādi/Lajjitādi are delivered.**
+   Śayanādi: migration 083 `tbl_Rule_PostureStateFormula`; `PostureStateCalculator`;
+   `verify-avastha` reproduces the JHora export's Activity table exactly, all 9 grahas.
+   Dīptādi + Lajjitādi: `DeeptadiStateCalculator` / `LajjitadiStateCalculator`, persisted as
+   `tbl_Fact_PlanetaryStateFlag`. Re-read 2026-10-07 to match JHora's Mood column
+   ([decision 010](../../decisions/010-deeptadi-jhora-mood-reading.md)): `AvasthaJhoraMoodGoldenTests`
+   reproduces all 36 cells of the four reference exports, apart from the relationship tier of three
+   node cells. Remaining: **node friend/enemy tiers** (JHora's Rahu/Ketu Naisargika table is not
+   known — decision 010), Kopita's exact orb (5° chosen inside a [4.3°, 6.4°) gap), and **Śayanādi's
+   Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement**. That one is not OCR-blocked: Table 37's five sound
+   groups follow the vowel order a, i, u, e, o (PVR Example 49: "V" → 1), but the formula needs the
+   first sound of the native's *given name*, an input ikiastrro does not store; JHora's export
+   prints no Cheṣṭā strength to check against, so PVR Examples 48–49 are the only oracle. Also still
+   open: apply the designed `tbl_Dim_HouseSignification` / Sthira / Naisargika reference data
+   (migration 030) instead of the hard-coded `LifeAreaMap`; decide Sapta vs Aṣṭa Naisargika coverage.
 
 ## Parity gaps (lower priority)
 

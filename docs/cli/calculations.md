@@ -257,11 +257,13 @@ Star-schema (`tbl_Dim_PlanetaryState` + `tbl_Rule_AgeState` / `tbl_Rule_Wakefuln
   `AstroMath.NakshatraCanonicalNames`, not `Enum.TryParse<ConstellationName>` — that enum's
   member spellings are a legacy form unrelated to the stored display names (its own doc
   comment says so; this cost one wrong-on-7-of-9-planets round trip before the fix).
-- Not built: Dīptādi, Lajjitādi (PVR §15.4.3 gives 9 + 6 states, but several depend on
-  conjunction/aspect precedence the passage doesn't fully order — needs a closer source read,
-  not just a shared benefic/malefic classifier); Sayanaadi's own secondary Cheṣṭā/Dṛṣṭi/
-  Vicheṣṭā strength refinement (Table 37's sound-to-number map is OCR-ambiguous in the raw
-  extract). Check: `verify-avastha`.
+- **Dīptādi + Lajjitādi** (PVR §15.4.3; any chart type): `DeeptadiStateCalculator`,
+  `LajjitadiStateCalculator`. Dīptādi follows JHora's Mood column — placement flag (Deepta/Swastha)
+  plus the compound relationship to the sign lord, Vikala = at least two natural malefics, Khala =
+  Sun/Mars/Saturn sign lord, Kopita = Sun within 5° ([decision 010](../../decisions/010-deeptadi-jhora-mood-reading.md)).
+  Check: `AvasthaJhoraMoodGoldenTests` (4 reference charts). Open: node relationship tiers.
+- Not built: Śayanaadi's own secondary Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (needs the native's
+  given-name first sound; Table 37's groups follow the vowel order a, i, u, e, o). Check: `verify-avastha`.
 
 ## 12. Jaimini Chara Karakas & special points
 

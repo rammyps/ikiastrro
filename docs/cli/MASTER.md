@@ -86,10 +86,11 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
   lookup from `tbl_Chart_KeyDetails.Nakshatra` (AstroMath's canonical display names, e.g.
   "Ashwini") must not go through `Enum.TryParse<ConstellationName>` — that enum's member
   spellings are an unrelated legacy form ("Aswini") per its own doc comment; fixed to index
-  against `AstroMath.NakshatraCanonicalNames` instead. Deliberately not built: the secondary
-  Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (PVR's Table 37 sound-map is OCR-ambiguous in the
-  raw extract). Deeptādi/Lajjitādi (`FEAT-AVASTHA-03/04`) remain unbuilt — real precedence-order
-  ambiguity in the source, not a missing-input blocker like this one was.
+  against `AstroMath.NakshatraCanonicalNames` instead. Not built: the secondary
+  Cheṣṭā/Dṛṣṭi/Vicheṣṭā strength refinement (Table 37's groups follow the vowel order a, i, u, e, o;
+  it needs the native's given-name first sound, an input not stored). Dīptādi/Lajjitādi
+  (`FEAT-AVASTHA-03/04`) are built and read as JHora's Mood column prints them
+  ([decision 010](../../decisions/010-deeptadi-jhora-mood-reading.md)).
 - **`FEAT-STRENGTH-01` (CLI slice)** — Dina / Horā / Tribhāga Bala + Graha Yuddha detection
   **done** (migrations 072/076/084 on `workstream/database`; `ShadbalaCalculator` extended,
   `verify-strength` new, `tests/Ikiastrro.Yoga.Tests/ShadbalaKalaBalaTests` (5)). Dina Bala (45
@@ -115,8 +116,7 @@ persisted rows to the UI stream ([`../architecture/domain-contracts.md`](../arch
 ## Planned
 
 - `ChartGenerationService.GenerateAll` adopts the `ChartPipeline` bundle path.
-- Reserved engine seams: Dispositor, Vimśopaka, Sthira/Naisargika Karaka, Dīptādi/Lajjitādi
-  avasthas.
+- Reserved engine seams: Dispositor, Sthira/Naisargika Karaka.
 - Full Ṣaḍbala port from the vendored MIT `jyotishganit` (attribution).
 - **2026-09-11 rule-mapping audit** (`../database/rules-engine.md`) found formulas this
   workstream has delivered and CLI-verified, but that carry **no `tbl_Rule_*` citation at

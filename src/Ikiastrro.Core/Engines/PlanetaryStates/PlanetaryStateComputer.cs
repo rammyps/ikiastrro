@@ -1,6 +1,7 @@
 using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Core.Engines.Dignity;
 using Ikiastrro.Core.Engines.Houses;
+using Ikiastrro.Core.Engines.Relationships;
 using Ikiastrro.Core.Models;
 
 using Ikiastrro.Core.Pipeline;
@@ -111,9 +112,21 @@ public static class PlanetaryStateComputer
             var conjunctWith = conjunctionsByPlanet.GetValueOrDefault(kd.Planet, Array.Empty<string>());
             var aspectedBy = aspectingByTarget.GetValueOrDefault(kd.Planet, Array.Empty<string>());
 
+            // Relationship of the planet to its sign lord (null for nodes / a planet in its own sign)
+            // and its real angular separation from the Sun (null for the Sun itself).
+            string? relationToSignLord = null;
+            if (kd.SignLordPlanet is { } signLord && signLord != kd.Planet
+                && signByPlanet.TryGetValue(kd.Planet, out var planetSign)
+                && signByPlanet.TryGetValue(signLord, out var lordSign))
+                relationToSignLord = DignityEngine.EvaluatePairRelationship(kd.Planet, signLord, planetSign, lordSign);
+
+            var sunDetail = grahaDetails.FirstOrDefault(k => k.Planet == "Sun");
+            decimal? distanceFromSun = kd.Planet != "Sun" && sunDetail is not null
+                ? CombustionEngine.AngularSeparation(kd.NirayanaLongitudeDegrees, sunDetail.NirayanaLongitudeDegrees)
+                : null;
+
             fact.DeeptadiStateIds = DeeptadiStateCalculator.For(
-                kd.DignityStatus, kd.SignLordPlanet, conjunctWith, IsNaturalMalefic,
-                kd.IsCombust ?? false, rules);
+                kd.DignityStatus, relationToSignLord, kd.SignLordPlanet, conjunctWith, distanceFromSun, rules);
 
             if (signByPlanet.TryGetValue(kd.Planet, out var ownSign))
             {
