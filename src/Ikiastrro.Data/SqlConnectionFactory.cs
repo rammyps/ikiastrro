@@ -34,7 +34,7 @@ public class SqlConnectionFactory
                  ?? Environment.GetEnvironmentVariable("IKIASTRRO_DB")
                  ?? DefaultDb;
         return new SqlConnectionFactory(
-            $"Server=localhost\\SQLSERVER2025;Database={db};Integrated Security=True;TrustServerCertificate=True;");
+            $"Server=lpc:localhost\\SQLSERVER2025;Database={db};Integrated Security=True;TrustServerCertificate=True;");
     }
 
     /// <summary>Back-compat: the historical default (Windows Auth, localhost\SQLSERVER2025, <c>ikiastrro</c>).</summary>
