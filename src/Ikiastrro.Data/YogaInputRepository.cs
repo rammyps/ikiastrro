@@ -21,6 +21,25 @@ public sealed class YogaInputRepository(SqlConnectionFactory factory)
         var bundle = new ChartBundle(birth, positions, sunTimes, charts,
             ChartPipeline.CharaKarakaByPlanet(positions), []) { Strengths = strengths };
         var rows = new ProductionYogaEngine().DetectDetailed(bundle);
+        WriteRows(connection, chartResultId, ruleSetId, birth.Sex, sunTimes.IsNightBirth, Phase(charts), rows);
+    }
+
+    /// <summary>Per-varga yoga confirmation rows (D2/D3/D9/D12/D30) for one divisional chart's own ChartResultId.
+    /// Single-chart geometry evaluators only; birth-level lunar-phase / night-birth columns stay NULL.</summary>
+    public void ReplaceVarga(int chartResultId, int ruleSetId, ChartAnalysisInput chart)
+    {
+        using var connection = factory.CreateOpenConnection();
+        var sex = connection.QuerySingle<string?>("""
+            SELECT b.Sex FROM dbo.tbl_BirthDetails b
+            JOIN dbo.tbl_ChartResults c ON c.BirthDetailId=b.Id WHERE c.Id=@chartResultId
+            """, new { chartResultId });
+        var rows = new ProductionYogaEngine().DetectForChart(chart);
+        WriteRows(connection, chartResultId, ruleSetId, sex, null, null, rows);
+    }
+
+    private static void WriteRows(System.Data.IDbConnection connection, int chartResultId, int ruleSetId, string? sex,
+        bool? isNightBirth, LunarPhase? phase, IReadOnlyList<UnifiedYogaEvaluation> rows)
+    {
         using var transaction = System.Transactions.Transaction.Current is null ? connection.BeginTransaction() : null;
         connection.Execute("DELETE dbo.tbl_Fact_YogaInputEvaluations WHERE ChartResultId=@chartResultId",
             new { chartResultId }, transaction);
@@ -36,10 +55,10 @@ public sealed class YogaInputRepository(SqlConnectionFactory factory)
                 """, new {
                     chartResultId, ruleSetId, row.Result.SourceRefCode, row.Result.SourceVariantCode,
                     row.Result.YogaCode, row.Result.SourceLocator, row.Result.Present, row.Result.EvaluationStatus,
-                    Missing = JsonSerializer.Serialize(row.MissingRequirementCodes), Sex = birth.Sex,
-                    IsNightBirth = (bool?)sunTimes.IsNightBirth,
-                    Elongation = Phase(charts)?.ElongationDegrees, Waxing = Phase(charts)?.IsWaxing,
-                    FullMoon = Phase(charts)?.IsFullMoon, Policy = Phase(charts)?.PolicyCode,
+                    Missing = JsonSerializer.Serialize(row.MissingRequirementCodes), Sex = sex,
+                    IsNightBirth = isNightBirth,
+                    Elongation = phase?.ElongationDegrees, Waxing = phase?.IsWaxing,
+                    FullMoon = phase?.IsFullMoon, Policy = phase?.PolicyCode,
                     SunriseMethodCode = "SWISSEPH_DISC_CENTER_NO_REFRACTION", row.Result.Notes }, transaction);
         transaction?.Commit();
     }

@@ -8,7 +8,8 @@ public sealed record YogaEvaluationRow(
     string SourceVariantCode = "", string? SourceLocator = null,
     string? YogaSetCode = null, string? YogaSetName = null, string? VariantDisplayName = null,
     string? OutcomeNatureCode = null, string? InferenceText = null,
-    string? InferenceSourceRefCode = null, string? InferenceSourceLocator = null);
+    string? InferenceSourceRefCode = null, string? InferenceSourceLocator = null,
+    string ChartType = "D1");
 
 public sealed record YogaLifeMatterPathRow(
     string SourceRefCode, string SourceVariantCode, string YogaCode, byte PathRank,
@@ -29,17 +30,19 @@ public sealed class YogaEvaluationRepository
     private readonly SqlConnectionFactory _connectionFactory;
     public YogaEvaluationRepository(SqlConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
 
-    public IReadOnlyList<YogaEvaluationRow> GetByBirthDetailId(int birthDetailId)
+    /// <summary>Yogas for one chart type (default D1 — the full source-attributed set). D2/D3/D9/D12/D30 carry the
+    /// per-varga confirmation rows written by <see cref="YogaInputRepository.ReplaceVarga"/>.</summary>
+    public IReadOnlyList<YogaEvaluationRow> GetByBirthDetailId(int birthDetailId, string chartType = "D1")
     {
         using var connection = _connectionFactory.CreateOpenConnection();
         return connection.Query<YogaEvaluationRow>("""
             SELECT SourceRefCode, YogaCode, Present, EvaluationStatus, YogaTypeCode, YogaRule, Notes,
                    SourceVariantCode, SourceLocator, YogaSetCode, YogaSetName, VariantDisplayName,
-                   OutcomeNatureCode, InferenceText, InferenceSourceRefCode, InferenceSourceLocator
+                   OutcomeNatureCode, InferenceText, InferenceSourceRefCode, InferenceSourceLocator, ChartType
             FROM dbo.vw_ChartYogaEvaluations
-            WHERE BirthDetailId = @birthDetailId
+            WHERE BirthDetailId = @birthDetailId AND ChartType = @chartType
             ORDER BY SourceRefCode, YogaCode
-            """, new { birthDetailId }).ToList();
+            """, new { birthDetailId, chartType }).ToList();
     }
 
     public IReadOnlyList<YogaLifeMatterPathRow> GetLifeMatterPathsByBirthDetailId(int birthDetailId)
@@ -54,7 +57,7 @@ public sealed class YogaEvaluationRepository
               ON y.RuleSetId = m.RuleSetId
              AND y.SourceRefCode = m.SourceRefCode
              AND y.SourceVariantCode = m.SourceVariantCode
-            WHERE y.BirthDetailId = @birthDetailId
+            WHERE y.BirthDetailId = @birthDetailId AND y.ChartType = 'D1'
             ORDER BY m.SourceRefCode, m.SourceVariantCode, m.PathRank
             """, new { birthDetailId }).ToList();
     }

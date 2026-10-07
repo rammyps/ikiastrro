@@ -16,7 +16,7 @@ Optional `--db <name>` overrides the target database. `dotnet build` / `dotnet r
 |---|---|
 | *(no args)* | Prompt Name / DOB / time / place (+ optional corrected time), resolve lat-long-offset, run the production yoga composition, compute + store all 21 charts + Vimśottari dasha via `ChartGenerationService`, print |
 | `compute-all <name>` | Regenerate every chart type + dasha for one saved person (e.g. after a birth-time correction or an ayanāṁśa change) |
-| `refresh-yogas <name>` | Safely refresh D1 analytics and persisted yoga evidence for one saved person without replacing chart rows |
+| `refresh-yogas <name> [--vargas]` / `refresh-yogas --all [--vargas]` | Safely refresh D1 analytics and persisted yoga evidence without replacing chart rows; `--vargas` also writes the per-varga yoga confirmation rows (D2/D3/D9/D12/D30, migration 176 `ChartType` on `vw_ChartYogaEvaluations`) |
 | `compute-dasha <name>` / `show-dasha <name>` | Recompute + print / print stored dasha tree |
 | `compute-all` variants | `backfill-charts` (add any missing chart type, idempotent) · `backfill-analytics` / `recompute-keydetails` (re-derive the analytics tables) · `backfill-dasha` (bulk) |
 | `recompute-keydetails` | Re-derive `tbl_Chart_KeyDetails` for every calculable chart type (e.g. after a column is added) |

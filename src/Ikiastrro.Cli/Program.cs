@@ -2791,11 +2791,22 @@ if (args.Length > 0 && args[0] == "verify-rules")
 // Scoped safe refresh for source-attributed yoga changes; preserves ChartResults and dependent facts.
 if (args.Length > 1 && args[0] == "refresh-yogas")
 {
-    var query = string.Join(' ', args.Skip(1));
-    var person = birthDetailsRepo.GetAll().FirstOrDefault(p => p.Name.Equals(query, StringComparison.OrdinalIgnoreCase))
-        ?? throw new InvalidOperationException($"No saved person named '{query}'.");
-    var refreshReport = chartGenerationService.RecomputeAnalytics(person, chartTypeFilter: "D1");
-    Console.WriteLine($"{person.Name}: refreshed D1 analytics and yoga evidence [{string.Join(", ", refreshReport.ChartTypesWritten)}]");
+    // refresh-yogas <name> [--vargas] | refresh-yogas --all [--vargas]
+    // --vargas also writes the per-varga yoga confirmation rows (D2/D3/D9/D12/D30).
+    var withVargas = args.Contains("--vargas");
+    var nameArgs = args.Skip(1).Where(a => a != "--vargas" && a != "--all").ToList();
+    var people = args.Contains("--all")
+        ? birthDetailsRepo.GetAll().ToList()
+        : [birthDetailsRepo.GetAll().FirstOrDefault(p => p.Name.Equals(string.Join(' ', nameArgs), StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException($"No saved person named '{string.Join(' ', nameArgs)}'.")];
+    foreach (var person in people)
+    {
+        var written = new List<string>();
+        var filters = withVargas ? Ikiastrro.Core.Engines.Yoga.ProductionYogaEngine.VargaReferenceCharts : ["D1"];
+        foreach (var chartType in filters)
+            written.AddRange(chartGenerationService.RecomputeAnalytics(person, chartTypeFilter: chartType).ChartTypesWritten);
+        Console.WriteLine($"{person.Name}: refreshed analytics and yoga evidence [{string.Join(", ", written)}]");
+    }
     return;
 }
 

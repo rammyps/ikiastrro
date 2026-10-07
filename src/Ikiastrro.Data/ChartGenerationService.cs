@@ -9,6 +9,7 @@ using Ikiastrro.Core.Engines.Dasha;
 using Ikiastrro.Core.Engines.Karakas;
 using Ikiastrro.Core.Models;
 using Ikiastrro.Core.Engines.Strength;
+using Ikiastrro.Core.Engines.Yoga;
 
 namespace Ikiastrro.Data;
 
@@ -373,6 +374,12 @@ public class ChartGenerationService
                 _argalaFactRepo.DeleteForChart(chartResultId, chartTypeId);
                 _argalaFactRepo.InsertAll(chartResultId, ruleSetId, chartTypeId, argalaFacts);
             }
+        }
+        else if (ProductionYogaEngine.VargaReferenceCharts.Contains(input.ChartType, StringComparer.OrdinalIgnoreCase))
+        {
+            // Per-varga yoga confirmation rows (docs/cli/yoga-per-varga-design.md): the D2/D3/D9/D12/D30 charts
+            // JHora's rules name, on their own ChartResultId. D1 above keeps the full source-attributed set.
+            _yogaInputRepo.ReplaceVarga(chartResultId, ruleSetId, input);
         }
     }
 

@@ -129,13 +129,13 @@ public sealed class AstrologerEvidenceRepository(SqlConnectionFactory factory)
                        SUM(CASE WHEN EvaluationStatus='NOT_EVALUATED' THEN 1 ELSE 0 END) AS NotEvaluated,
                        COUNT(DISTINCT CASE WHEN SourceRefCode='SRC_RAMAN_300_COMBINATIONS' THEN SourceVariantCode END) AS RamanVariants,
                        COUNT(DISTINCT CASE WHEN SourceRefCode='SRC_PVR_INTEGRATED' THEN SourceVariantCode END) AS PvrVariants
-                FROM dbo.vw_ChartYogaEvaluations WHERE BirthDetailId=@birthDetailId
+                FROM dbo.vw_ChartYogaEvaluations WHERE BirthDetailId=@birthDetailId AND ChartType='D1'
                 """, new { birthDetailId }),
             Query(connection, "yogas", "11b. Yoga source variants", """
                 SELECT SourceVariantCode,YogaCode,SourceRefCode,
                        CASE WHEN Present=1 THEN 'PRESENT' WHEN Present=0 THEN 'ABSENT' ELSE 'NOT_EVALUATED' END AS Result,
                        EvaluationStatus,MissingRequirementCodesJson,SourceLocator,Notes,RuleSetId,ComputedAtUtc
-                FROM dbo.vw_ChartYogaEvaluations WHERE BirthDetailId=@birthDetailId
+                FROM dbo.vw_ChartYogaEvaluations WHERE BirthDetailId=@birthDetailId AND ChartType='D1'
                 ORDER BY SourceRefCode,SourceVariantCode
                 """, new { birthDetailId }),
             Query(connection, "yoga-charts", "11c. Yoga chart requirements", """

@@ -87,8 +87,12 @@ public sealed class ProductionYogaEngine : IYogaEngine
         if (!VargaReferenceCharts.Contains(chartType, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentOutOfRangeException(nameof(chartType), chartType, "Not a yoga reference chart.");
         var chart = bundle.Charts.FirstOrDefault(x => x.ChartType.Equals(chartType, StringComparison.OrdinalIgnoreCase));
-        if (chart is null) return [];
+        return chart is null ? [] : DetectForChart(chart);
+    }
 
+    /// <summary><see cref="DetectForVarga"/> for a chart already in hand (persistence runs it one chart at a time).</summary>
+    public IReadOnlyList<UnifiedYogaEvaluation> DetectForChart(ChartAnalysisInput chart)
+    {
         var rows = new Dictionary<(string Source, string Variant), UnifiedYogaEvaluation>();
         void Add(ContextualYogaResult result)
         {
