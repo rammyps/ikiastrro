@@ -1,0 +1,70 @@
+@using Ikiastrro.Core.Engines.KeyInfo
+@* Astro Facts — Special points: the thirteen sphuṭas (Core Sphutas, computed live from D1 with the stored Gulika). *@
+@if (_rows.Count == 0)
+{
+    <p class="kit-muted">Needs every graha, the Lagna and the Māndi point (JHora's Gulika) of the D1 chart.</p>
+}
+else
+{
+    <p class="kit-summary">
+        <b>Prāṇa</b> (life force) falls in <b>@Sign("PRANA")</b>, <b>Deha</b> (body) in <b>@Sign("DEHA")</b> and <b>Mṛtyu</b> (death)
+        in <b>@Sign("MRITYU")</b>; <b>Sūkṣma Tri-sphuṭa</b>, their sum, is in <b>@Sign("SOOKSHMA_TRI")</b>.
+        Where these land is read for health and longevity, together with the 8th house.
+    </p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Sphuṭa</th><th>Rasi</th><th>Degree</th><th>Nakshatra</th><th>House</th><th>Made from</th></tr></thead>
+            <tbody>
+            @foreach (var r in _rows)
+            {
+                <tr>
+                    <td><b>@r.Name</b></td>
+                    <td>@KeyInfoFormat.Sign(r.Longitude)</td>
+                    <td class="mono">@KeyInfoFormat.Degree(r.Longitude)</td>
+                    <td>@KeyInfoFormat.Star(r.Longitude)</td>
+                    <td class="mono">H@(_inputs.HouseOf(r.Longitude))</td>
+                    <td>@Formula(r.Code)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private KeyInfoInputs _inputs = KeyInfoInputs.From(Array.Empty<ChartKeyDetail>());
+    private IReadOnlyList<SphutaRow> _rows = Array.Empty<SphutaRow>();
+
+    protected override void OnParametersSet()
+    {
+        _inputs = KeyInfoInputs.From(KeyDetails);
+        _rows = Array.Empty<SphutaRow>();
+        if (!_inputs.Complete || _inputs.Gulika is not { } gulika) return;
+        var g = _inputs.Grahas;
+        _rows = Sphutas.Compute(_inputs.Lagna, g[PlanetName.Sun], g[PlanetName.Moon], g[PlanetName.Mars],
+            g[PlanetName.Jupiter], g[PlanetName.Venus], g[PlanetName.Rahu], gulika);
+    }
+
+    private string Sign(string code) => KeyInfoFormat.Sign(_rows.First(r => r.Code == code).Longitude);
+
+    private static string Formula(string code) => code switch
+    {
+        "PRANA" => "5 × Lagna + Gulika",
+        "DEHA" => "8 × Moon + Gulika",
+        "MRITYU" => "7 × Gulika + Sun",
+        "SOOKSHMA_TRI" => "Prāṇa + Deha + Mṛtyu",
+        "TITHI" => "Moon − Sun",
+        "YOGA_SUN_MOON" => "Sun + Moon",
+        "RAHU_TITHI" => "Rahu − Sun",
+        "KSHETRA" => "Moon + Jupiter + Mars",
+        "BEEJA" => "Sun + Jupiter + Venus",
+        "TRI" => "Moon + Lagna + Gulika",
+        "CHATUS" => "Sun + Tri-sphuṭa",
+        "PANCHA" => "Rahu + Catus-sphuṭa",
+        "YOGI" => "Sun + Moon + 93°20′ (the Yogi point)",
+        "AVAYOGI" => "Yogi point + 186°40′",
+        _ => "",
+    };
+}

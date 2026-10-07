@@ -1,0 +1,61 @@
+@using Ikiastrro.Core.Engines.KeyInfo
+@* Astro Facts — Special points: lords of the 64th navamsa and the 22nd drekkana, from the Lagna and from the Moon
+   (Core MaliciousDivisions, computed live from D1; the 22nd drekkana in each of the five D3 schemes). *@
+@if (_lagna is null || _moon is null)
+{
+    <p class="kit-muted">Needs the Moon and Lagna of the D1 chart.</p>
+}
+else
+{
+    <p class="kit-summary">
+        The <b>64th navamsa</b> lord is <b>@Navamsa(_lagna.Value)</b> from the Lagna and <b>@Navamsa(_moon.Value)</b> from the Moon.
+        The 22nd drekkana lord depends on which D3 scheme you follow, so each is shown: from the Lagna
+        @for (var i = 0; i < Schemes.Length; i++)
+        {
+            <b>@Drekkana(Schemes[i].Scheme, _lagna.Value)</b>@(i < Schemes.Length - 1 ? ", " : ";")
+        }
+        read in the order of the rows below.
+    </p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Division</th><th>Lord from the Lagna</th><th>Lord from the Moon</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><b>The 64th navamsa</b></td>
+                    <td><PlanetChip Planet="@Navamsa(_lagna.Value)" /> @Navamsa(_lagna.Value)</td>
+                    <td><PlanetChip Planet="@Navamsa(_moon.Value)" /> @Navamsa(_moon.Value)</td>
+                </tr>
+                @foreach (var s in Schemes)
+                {
+                    <tr>
+                        <td><b>The 22nd drekkana</b> — @s.Label</td>
+                        <td><PlanetChip Planet="@Drekkana(s.Scheme, _lagna.Value)" /> @Drekkana(s.Scheme, _lagna.Value)</td>
+                        <td><PlanetChip Planet="@Drekkana(s.Scheme, _moon.Value)" /> @Drekkana(s.Scheme, _moon.Value)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private static readonly (DrekkanaScheme Scheme, string Label)[] Schemes =
+    {
+        (DrekkanaScheme.Parasara, "Parāśara"), (DrekkanaScheme.ParivrittiTraya, "Parivṛtti traya"),
+        (DrekkanaScheme.Somanatha, "Somanātha"), (DrekkanaScheme.UmaShambhu, "Umā-Śambhu (JHora's default)"),
+        (DrekkanaScheme.Jagannatha, "Jagannātha"),
+    };
+
+    private double? _lagna, _moon;
+
+    protected override void OnParametersSet()
+    {
+        _lagna = KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Ascendant")?.NirayanaLongitudeDegrees;
+        _moon = KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Moon")?.NirayanaLongitudeDegrees;
+    }
+
+    private static string Navamsa(double longitude) => MaliciousDivisions.Lord64thNavamsa(longitude).ToString();
+    private static string Drekkana(DrekkanaScheme scheme, double longitude) => MaliciousDivisions.Lord22ndDrekkana(scheme, longitude).ToString();
+}

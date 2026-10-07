@@ -15,6 +15,7 @@ public static class AstroFactsGuides
     private const string RamanHtjh = "B.V. Raman, How to Judge a Horoscope";
     private const string Raman300 = "B.V. Raman, Three Hundred Important Combinations";
     private const string RamanBalas = "B.V. Raman, Graha and Bhava Balas";
+    private const string Jhora = "Jagannatha Hora (P.V.R. Narasimha Rao's software) — formulae reproduced and checked against its own output for the reference chart; a classical page is not yet cited";
     private const string Synthesis = "ikiastrro project synthesis — the app's own wording, not a classical text";
 
     public static SectionGuideEntry? For(string key) => Entries.GetValueOrDefault(key);
@@ -56,6 +57,31 @@ public static class AstroFactsGuides
             "The nine tārās: the 27 stars grouped in nine sets counted from your birth star (and from the Lagna's star), each set friendly or unfriendly.",
             "Used for judging a day or a planet: stars in friendly sets (Sampat, Kṣema, Sādhana, Mitra, Parama Mitra) favour; Vipat, Pratyak and Naidhana disfavour.",
             Pvr),
+
+        ["af-special-tara"] = new(
+            "Eleven more star-sets counted from your birth star (and from the Lagna's star): Janma, Karma, Sāmudāyika, Sāṅghātika, Jāti, Naidhana, Deśa, Abhiṣeka, Ādhāna, Vainaśika and Mānasa. Unlike the nine tārās, this count includes Abhijit, the small 28th star between U.Āṣāḍhā and Śravaṇa.",
+            "Each name is an area of life — Karma is work, Naidhana is death, Abhiṣeka is coronation (rise in status), Mānasa is the mind. Planets transiting or running a dasha through these stars colour that area. Read it as a timing helper, not a verdict.",
+            Jhora),
+        ["af-latta"] = new(
+            "Each planet \"kicks\" one star: Sun the 12th from where it stands, Moon the 22nd back, Mars the 3rd, Mercury the 7th back, Jupiter the 6th, Venus the 5th back, Saturn the 8th, and the nodes the 9th back. A planet sitting in that star is said to be struck.",
+            "Look at the last column: a planet named there is the one being kicked. A kick from a malefic is read as trouble for the struck planet's matters; from a benefic it is milder. The traditional lists are short, so absence of a kick is normal.",
+            Jhora),
+        ["af-special-tithis"] = new(
+            "Thirty-six special tithis worked from the Moon–Sun gap at birth: multiply the gap by 1, 2, 3 … 36 and read the lunar day each lands on. The first twelve are named Janma (birth), Dhana (wealth), Bhrātṛ (siblings), Mātṛ (mother), Putra (children), Śatru (enemies), Kalatra (spouse), Mṛtyu (death), Bhāgya (fortune), Karma (work), Lābha (gains), Vyaya (loss); the next two rounds repeat them.",
+            "Each row gives the lunar day, whether the Moon is waxing (bright) or waning (dark), how much of it is left, its planetary lord and its goddess (Nityā devī). A tithi whose lord is a friend of the matter it names is read as supportive.",
+            Jhora),
+        ["af-sphutas"] = new(
+            "Sensitive points built by adding multiples of the Lagna, Moon, Sun and Gulika. Prāṇa (life force), Deha (body) and Mṛtyu (death) are the group read for health and longevity; the Tri-, Catus- and Pañca-sphuṭas add the Moon, Sun and Rahu in turn. Tithi, Yoga and Rāhu-tithi sphuṭas are sums and differences of Sun, Moon and Rahu.",
+            "A sphuṭa is a point in a sign, like a planet. Its sign and nakshatra, the house it falls in and who rules it are what is read; a malefic or the 6th, 8th or 12th house is the usual warning. The \"Made from\" column shows the arithmetic. \"Gulika\" in those formulas is the point this app lists as Māndi — JHora and this app swap the two names, and JHora's Gulika is the one the formulas use.",
+            Jhora),
+        ["af-sahams"] = new(
+            "Thirty-six sensitive points, each standing for one matter (fortune, marriage, children, profession, death and so on). Each is worked as one planet's distance from another, laid off again from a third point, usually the Lagna. By night most formulas run in reverse.",
+            "Find the matter you care about, then read the sign, house and sign lord: a saham in a kendra or trikona house with a strong lord is favourable, one in the 6th, 8th or 12th is the reverse. Sahams are mainly used to time events when a planet transits over them.",
+            Pvr, Jhora),
+        ["af-malicious"] = new(
+            "Two \"malicious\" divisions used in longevity reading: the 64th navamsa and the 22nd drekkana counted from the Lagna's and from the Moon's own navamsa and drekkana. Their lords are the planets said to bring danger in their periods.",
+            "The 64th navamsa is the same in every method; the 22nd drekkana depends on which of the five D3 schemes you follow, so all five are shown. Where several schemes agree on a planet, that planet carries more weight.",
+            Bphs, Jhora),
 
         // ---- Natal › About planets
         ["af-moon"] = new(

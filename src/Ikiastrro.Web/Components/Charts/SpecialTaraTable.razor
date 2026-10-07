@@ -1,0 +1,59 @@
+@using Ikiastrro.Core.Engines.KeyInfo
+@* Astro Facts — Special points: the eleven special tārās counted from the Moon's nakṣatra and from the Lagna's, side
+   by side (Core SpecialTara, computed live from D1; the 28-nakṣatra circle with Abhijit). *@
+@if (_fromMoon.Count == 0 || _fromLagna.Count == 0)
+{
+    <p class="kit-muted">Needs the Moon and Lagna of the D1 chart.</p>
+}
+else
+{
+    <p class="kit-summary">
+        Counted from the Moon's star (<b>@_moonStar</b>) and the Lagna's (<b>@_lagnaStar</b>). The tārā to watch is
+        <b>Naidhana</b> (death): <b>@Star(_fromMoon[5])</b> from the Moon, <b>@Star(_fromLagna[5])</b> from the Lagna.
+        <b>Abhiṣeka</b> (coronation) falls on <b>@Star(_fromMoon[7])</b> and <b>@Star(_fromLagna[7])</b>.
+    </p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead>
+                <tr><th rowspan="2">Special tārā</th><th rowspan="2">Meaning</th><th colspan="2">From the Moon</th><th colspan="2">From the Lagna</th></tr>
+                <tr><th>Nakshatra</th><th>Lord</th><th>Nakshatra</th><th>Lord</th></tr>
+            </thead>
+            <tbody>
+            @for (var i = 0; i < _fromMoon.Count; i++)
+            {
+                var m = _fromMoon[i];
+                var l = _fromLagna[i];
+                <tr>
+                    <td><b>@m.Name</b></td>
+                    <td>@m.Meaning</td>
+                    <td>@Star(m)</td>
+                    <td><PlanetChip Planet="@m.Lord.ToString()" /> @m.Lord.ToString()</td>
+                    <td>@Star(l)</td>
+                    <td><PlanetChip Planet="@l.Lord.ToString()" /> @l.Lord.ToString()</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private IReadOnlyList<SpecialTaraRow> _fromMoon = Array.Empty<SpecialTaraRow>();
+    private IReadOnlyList<SpecialTaraRow> _fromLagna = Array.Empty<SpecialTaraRow>();
+    private string _moonStar = "", _lagnaStar = "";
+
+    protected override void OnParametersSet()
+    {
+        var moon = KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Moon");
+        var lagna = KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Ascendant");
+        _fromMoon = moon is null ? Array.Empty<SpecialTaraRow>() : SpecialTara.FromLongitude(moon.NirayanaLongitudeDegrees);
+        _fromLagna = lagna is null ? Array.Empty<SpecialTaraRow>() : SpecialTara.FromLongitude(lagna.NirayanaLongitudeDegrees);
+        _moonStar = moon is null ? "" : AstroMath.GetNakshatraName(AstroMath.GetNakshatraAndPada(moon.NirayanaLongitudeDegrees).Nakshatra);
+        _lagnaStar = lagna is null ? "" : AstroMath.GetNakshatraName(AstroMath.GetNakshatraAndPada(lagna.NirayanaLongitudeDegrees).Nakshatra);
+    }
+
+    private static string Star(SpecialTaraRow row) =>
+        row.IsAbhijit || row.Nakshatra is null ? "Abhijit" : AstroMath.GetNakshatraName(row.Nakshatra.Value);
+}

@@ -619,3 +619,30 @@ nothing stored, no regeneration needed. `KeyInfoTests` checks every figure again
 - **KP sub-lords** were already in 1.1's Planet positions (Sub Lord, chain L2–L7). They match JHora
   through the prati-sub; from the sookshma down the few arcseconds left between our positions and
   JHora's (decision 009) can move them.
+
+## 2026-10-07 — JHora gap step 4 surfaced: special tārās, lattā, special tithis, sphuṭas, sahams, malicious divisions
+
+Computed live from the **D1** key details by Core `Engines/KeyInfo` and `Engines/Karakas` (nothing stored; engines are checked against
+JHora in `Ikiastrro.Yoga.Tests.KeyInfoJhoraStep4Tests`). Six new tables follow **Nava tārā** on the SPECIAL POINTS sub-tab, each with
+a one-line plain-words summary above it, a collapsed "What is this?" guide (`AstroFactsGuides`), a D1 tag and a jump link.
+
+- **Special tārās** (`SpecialTaraTable`) — eleven, from the Moon and the Lagna side by side, on the 28-nakṣatra circle with Abhijit.
+  Summary names the Naidhana and Abhiṣeka stars.
+- **Lattā nakṣatras** (`LattaTable`) — each graha's occupied and kicked star, and who sits in the kicked star. Summary lists the "struck" planets.
+  JHora's "Aspected Stars" column is not reproduced (undocumented rule).
+- **Special tithis** (`SpecialTithiTable`) — all 36 with tithi, half, % left, lord and Nityā devī. Summary gives the Janma, Mṛtyu and Dhana tithis.
+- **Sphuṭas** (`SphutaTable`) — the 14 rows (13 sphuṭas + Yogi/Avayoga), with a "Made from" formula column. Summary names the Prāṇa/Deha/Mṛtyu signs.
+  **Gulika naming:** the formulas use JHora's Gulika, which this app stores as **Māndi** (the two upagraha names are swapped against JHora;
+  checked on Ananya: app Māndi 28°22′49″ Taurus = JHora Gulika 28°24′30″). `KeyInfoInputs` reads the `Maandi` row.
+- **Sahams** (`SahamsTable`) — the 36, day or night from the Pañchāṅga's `IsNightBirth`. Summary says which formula direction applied and lists sahams in the 6th, 8th or 12th house.
+- **64th navamsa & 22nd drekkana** (`MaliciousDivisionsTable`) — lords from the Lagna and the Moon; the 22nd drekkana in all five D3 schemes.
+
+Shared plumbing: `KeyInfoInputs` (D1 positions, house-of) and `KeyInfoFormat` (sign / degree / star text). Planet chips in these tables carry the
+planet's name beside the glyph (the glyph alone is unreadable for the lord columns).
+
+**Chart picker width.** `.ki-chart-picker` was a fixed 27ch, leaving a ragged right edge against the 320–420px chart column. It now takes the
+rest of the toolbar row beside EXPAND/COLLAPSE CHART, so the toolbar spans exactly the chart's width (measured: picker right edge = chart right edge, 420px).
+Any new chart dropdown should use the same class so it inherits this.
+
+**Known:** values for Ananya differ from JHora's export by a few arc-minutes in the sums that include Sun, Moon, Rahu or the Lagna
+(Moon−Sun ≈ 3′, Rahu−Sun ≈ 25′) — input differences, not the formulas, which match JHora exactly when fed JHora's own longitudes.

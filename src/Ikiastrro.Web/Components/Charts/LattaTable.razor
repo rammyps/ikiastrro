@@ -1,0 +1,67 @@
+@using Ikiastrro.Core.Engines.KeyInfo
+@* Astro Facts — Special points: each graha's lattā (kick) nakṣatra and any planet sitting in it (Core LattaStar,
+   computed live from D1). *@
+@if (!_inputs.Complete)
+{
+    <p class="kit-muted">Needs every graha and the Lagna of the D1 chart.</p>
+}
+else
+{
+    <p class="kit-summary">
+        @if (_struck.Count == 0)
+        {
+            <text>No graha sits in another graha's lattā star in this chart.</text>
+        }
+        else
+        {
+            <text>Planets sitting in another planet's lattā star (tradition reads the struck planet as troubled):
+            @for (var i = 0; i < _struck.Count; i++)
+            {
+                <b>@_struck[i]</b>@(i < _struck.Count - 1 ? "; " : ".")
+            }</text>
+        }
+    </p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Graha</th><th>Occupies</th><th>Kicks (lattā star)</th><th>Planets sitting there</th></tr></thead>
+            <tbody>
+            @foreach (var r in _rows)
+            {
+                <tr>
+                    <td><PlanetChip Planet="@r.Planet.ToString()" /> @r.Planet.ToString()</td>
+                    <td>@AstroMath.GetNakshatraName(r.Occupied)</td>
+                    <td><b>@AstroMath.GetNakshatraName(r.Latta)</b></td>
+                    <td>@(r.Sitting.Count == 0 ? "—" : string.Join(", ", r.Sitting))</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private sealed record Row(PlanetName Planet, ConstellationName Occupied, ConstellationName Latta, IReadOnlyList<string> Sitting);
+
+    private KeyInfoInputs _inputs = KeyInfoInputs.From(Array.Empty<ChartKeyDetail>());
+    private IReadOnlyList<Row> _rows = Array.Empty<Row>();
+    private List<string> _struck = new();
+
+    protected override void OnParametersSet()
+    {
+        _inputs = KeyInfoInputs.From(KeyDetails);
+        _rows = Array.Empty<Row>();
+        _struck = new();
+        if (!_inputs.Complete) return;
+
+        var star = _inputs.Grahas.ToDictionary(g => g.Key, g => AstroMath.GetNakshatraAndPada(g.Value).Nakshatra);
+        _rows = Enum.GetValues<PlanetName>().Select(p =>
+        {
+            var latta = LattaStar.For(p, _inputs.Grahas[p]);
+            var sitting = star.Where(s => s.Key != p && s.Value == latta).Select(s => s.Key.ToString()).ToList();
+            return new Row(p, star[p], latta, sitting);
+        }).ToList();
+        _struck = _rows.SelectMany(r => r.Sitting.Select(s => $"{s} sits in {r.Planet}'s lattā star")).ToList();
+    }
+}

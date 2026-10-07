@@ -1,0 +1,68 @@
+@using Ikiastrro.Core.Engines.Karakas
+@using Ikiastrro.Core.Engines.Houses
+@* Astro Facts — Special points: the 36 sahams (Core SahamTable, computed live from D1; day or night birth from the
+   Pañchāṅga). *@
+@if (_rows.Count == 0)
+{
+    <p class="kit-muted">Needs every graha and the Lagna of the D1 chart.</p>
+}
+else
+{
+    <p class="kit-summary">
+        Worked for a <b>@(IsNightBirth ? "night" : "day")</b> birth, so the formulas run @(IsNightBirth ? "reversed (B − A + C)" : "as written (A − B + C)")
+        where the tradition reverses them.
+        @if (_hard.Count > 0)
+        {
+            <text>Sahams in a 6th, 8th or 12th house: </text>
+            @for (var i = 0; i < _hard.Count; i++)
+            {
+                <b>@_hard[i]</b>@(i < _hard.Count - 1 ? ", " : ".")
+            }
+        }
+        else
+        {
+            <text>None of the sahams falls in a 6th, 8th or 12th house.</text>
+        }
+    </p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Saham</th><th>Stands for</th><th>Rasi</th><th>Degree</th><th>Nakshatra</th><th>House</th><th>Sign lord</th></tr></thead>
+            <tbody>
+            @foreach (var s in _rows)
+            {
+                var house = _inputs.HouseOf(s.LongitudeDegrees);
+                <tr>
+                    <td><b>@s.Name.Replace(" Saham", "")</b></td>
+                    <td>@s.Meaning</td>
+                    <td>@KeyInfoFormat.Sign(s.LongitudeDegrees)</td>
+                    <td class="mono">@KeyInfoFormat.Degree(s.LongitudeDegrees)</td>
+                    <td>@KeyInfoFormat.Star(s.LongitudeDegrees)</td>
+                    <td class="mono">H@(house)</td>
+                    <td><PlanetChip Planet="@HouseEngine.GetSignLord(s.Sign)" /> @HouseEngine.GetSignLord(s.Sign)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+    /// <summary>From the Pañchāṅga (birth before sunrise or after sunset).</summary>
+    [Parameter] public bool IsNightBirth { get; set; }
+
+    private KeyInfoInputs _inputs = KeyInfoInputs.From(Array.Empty<ChartKeyDetail>());
+    private IReadOnlyList<NatalSaham> _rows = Array.Empty<NatalSaham>();
+    private List<string> _hard = new();
+
+    protected override void OnParametersSet()
+    {
+        _inputs = KeyInfoInputs.From(KeyDetails);
+        _rows = Array.Empty<NatalSaham>();
+        _hard = new();
+        if (!_inputs.Complete) return;
+        _rows = SahamTable.Compute(_inputs.Grahas, _inputs.Lagna, IsNightBirth);
+        _hard = _rows.Where(s => _inputs.HouseOf(s.LongitudeDegrees) is 6 or 8 or 12)
+            .Select(s => $"{s.Name.Replace(" Saham", "")} (H{_inputs.HouseOf(s.LongitudeDegrees)})").ToList();
+    }
+}

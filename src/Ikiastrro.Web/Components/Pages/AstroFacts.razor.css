@@ -356,11 +356,16 @@
    which cut every varga name off after "Rasi · D1"-length text). Options render in caps to
    match every other tab/label in the app (`text-transform: uppercase` — the values themselves,
    `LoadedChart.Label`, stay mixed-case for everywhere else that reads them). */
+/* 2026-10-07: the picker now takes whatever width is left on the toolbar row beside EXPAND/COLLAPSE CHART, so the
+   toolbar as a whole lines up with the chart's own width (rammyps: "keep the dropdowns aligned to the chart width").
+   It was a fixed 27ch, which left a ragged right edge against the 320-420px chart column; the longest label still
+   fits at that column width, and `text-overflow` covers a narrower phone column. */
 .ki-chart-picker {
-    flex: 0 0 auto;
+    flex: 1 1 0;
     min-height: 32px;
     min-width: 0;
-    width: 27ch;
+    max-width: 100%;
+    text-overflow: ellipsis;
     padding: 4px 8px;
     border: 1px solid var(--brand-line);
     border-radius: 8px;
