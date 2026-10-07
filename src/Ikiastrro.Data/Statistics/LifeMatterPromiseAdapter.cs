@@ -148,6 +148,59 @@ public static class LifeMatterPromiseAdapter
     private static string Ordinal(int n) =>
         n + (n % 100 is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
 }
+/// <summary>
+/// Reads the matter's designated divisional chart independently of D1 and returns the compact
+/// confirmation consumed by the timing pipeline. The same target-house number is counted from the
+/// varga Lagna; varga SAV/BAV and Argala are chart-specific, while planetary capacity and Amsabala
+/// retain their existing person-level definitions. D1-only Bhava Bala is deliberately unavailable.
+/// </summary>
+public static class LifeMatterVargaConfirmationAdapter
+{
+    public static DomainConfirmation Read(
+        MatterTargetPromise d1Target,
+        ResolvedLifeMatterFocus focus,
+        string chartType,
+        IReadOnlyList<ChartKeyDetail> chartKeyDetails,
+        string ascendantSign,
+        LifeMatterStatistics stats,
+        IReadOnlyList<ShadbalaSummaryRow> shadbala,
+        IReadOnlyDictionary<PlanetName, IReadOnlyList<PlanetSignification>>? significations = null,
+        IReadOnlyDictionary<int, string>? houseMatters = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(chartType);
+        if (string.Equals(chartType, "D1", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("A domain confirmation requires a divisional chart, not D1.", nameof(chartType));
+
+        var grahas = chartKeyDetails.Where(row => row.PointKind == "Graha").ToList();
+        var lagna = Enum.Parse<ZodiacName>(ascendantSign);
+        var target = LifeMatterFocusResolver.ResolveHouseSign(lagna, d1Target.House);
+        var karakas = LifeMatterPromiseAdapter.KarakaPlanets(grahas, focus);
+        var targetStats = stats.ForSign(target.ToString(), karakas.Select(planet => planet.ToString()));
+        var input = new MatterPromiseInput(
+            d1Target.Promise.MatterCode, lagna, $"{Ordinal(d1Target.House)} house", target,
+            LifeMatterPromiseAdapter.PlanetFacts(grahas, shadbala), karakas,
+            TargetCapacity: Capacity.Unknown,
+            SavBand: LifeMatterPromiseAdapter.ToCapacity(targetStats.SavBand),
+            LordBavBand: LifeMatterPromiseAdapter.ToCapacity(targetStats.LordBavBand),
+            ArgalaPlanets: LifeMatterPromiseAdapter.ArgalaPlanets(targetStats.Argala, held: true),
+            VirodhargalaPlanets: LifeMatterPromiseAdapter.ArgalaPlanets(targetStats.Argala, held: false),
+            TechnicalSupportIndex: targetStats.StrengthPercent,
+            Chart: chartType,
+            ArgalaLinks: LifeMatterPromiseAdapter.Links(targetStats.Argala),
+            Significations: significations,
+            HouseMatters: houseMatters);
+        var reading = D1PromiseEngine.Read(input);
+        return new DomainConfirmation(chartType, reading.Verdict,
+            $"{chartType} {Ordinal(d1Target.House)}-house confirmation from its own Lagna: {reading.DominantSupport}; obstruction: {reading.DominantObstruction}.");
+    }
+
+    private static string Ordinal(int number) =>
+        number + (number % 100 is 11 or 12 or 13 ? "th" : (number % 10) switch
+        {
+            1 => "st", 2 => "nd", 3 => "rd", _ => "th"
+        });
+}
+
 
 /// <summary>Reads every life matter's D1 promise for one saved person, from the persisted chart and
 /// strength facts. The loader mirrors <c>MarriageMattersReader</c>; Core and the adapter hold the logic.</summary>
