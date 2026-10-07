@@ -142,6 +142,8 @@ else
 {
     var lc = _data.Charts["D1"];
 
+    @GroupNav
+
     @if (Shows(0))
     {
         <div class="ki-panelbody" id="ki-panel-0" role="tabpanel" aria-labelledby="ki-tab-0">
@@ -550,7 +552,7 @@ else
             }
             else
             {
-                <YogaEvaluationTable Rows="_yogaEvaluations" LagnaLordPlanet="@LagnaLord" Interpretations="_interpretations"
+                <YogaEvaluationTable Rows="_yogaEvaluations" HouseLords="YogaHouseLords" Placements="YogaPlacements" Shadbala="_shadbala" Interpretations="_interpretations"
                                      OnSaveInterpretation="SaveInterpretation" />
             }
         </div>
@@ -749,19 +751,28 @@ else
     /// <c>Active.SetHeaderExtra</c>, whose <c>Changed</c> event makes MainLayout re-render and
     /// repaint the pills, and also calls <c>StateHasChanged()</c> for this page's own
     /// <c>@if (_masterTab == N)</c> panels.</summary>
-    private static readonly string[] MasterSteps =
+    private static readonly string[] SubLabels =
     {
-        "NATAL",
-        "TRANSIT",
-        "STRENGTH",
-        "SPL LAGNAS",
-        "YOGAS",
-        "VARGAS",
-        "ALL CHARTS",
-        "D1-PROMISE",
-        "PHALITA DASAS",
-        "DASHA MATTERS",
+        "NATAL", "TRANSIT", "BALAS & ASHTAVARGA", "SPL LAGNAS", "YOGAS", "VARGAS",
+        "ALL CHARTS", "D1-PROMISE", "PHALITA DASAS", "DASHA MATTERS",
     };
+
+    /// <summary>The rail's pills (2026-10-07, rammyps: merge tabs) — six groups over the ten panels.
+    /// Panels, print modules and ?step= links keep their <c>_masterTab</c> indices; a group with
+    /// several panels shows them as a second row of pills at the top of the page
+    /// (<see cref="GroupNav"/>, labelled by <see cref="SubLabels"/>). A pill lands on its group's
+    /// first panel.</summary>
+    private static readonly (string Label, int[] Panels)[] Groups =
+    {
+        ("NATAL", new[] { 0 }),
+        ("TRANSIT", new[] { 1 }),
+        ("STRENGTH", new[] { 2, 5 }),
+        ("READINGS", new[] { 4, 3, 7 }),
+        ("DASHAS", new[] { 8, 9 }),
+        ("ALL CHARTS", new[] { 6 }),
+    };
+
+    private static int GroupOf(int master) => Array.FindIndex(Groups, g => Array.IndexOf(g.Panels, master) >= 0);
 
     private IReadOnlyList<Ikiastrro.Data.Statistics.MatterPromiseReading>? _promiseReadings;
     private bool _promiseLoaded;
@@ -790,16 +801,30 @@ else
     }
 
     private RenderFragment MasterNav => @<nav class="ki-master" role="tablist" aria-label="Astro Facts steps">
-        @for (var i = 0; i < MasterSteps.Length; i++)
+        @for (var i = 0; i < Groups.Length; i++)
         {
-            var index = i;
-            var step = MasterSteps[i];
-            <button type="button" role="tab" id="@($"ki-tab-{index}")" aria-selected="@(_masterTab == index)"
-                    aria-controls="@($"ki-panel-{index}")" class="ki-steptab" @onclick="() => SelectMaster(index)">
-                @step
+            var group = i;
+            var first = Groups[i].Panels[0];
+            <button type="button" role="tab" id="@($"ki-tab-{first}")" aria-selected="@(GroupOf(_masterTab) == group)"
+                    aria-controls="@($"ki-panel-{first}")" class="ki-steptab" @onclick="() => SelectMaster(GroupOf(_masterTab) == group ? _masterTab : first)">
+                @Groups[i].Label
             </button>
         }
     </nav>;
+
+    /// <summary>Second row of pills for a group holding several panels; empty for the rest and when printing.</summary>
+    private RenderFragment GroupNav => Printing || Groups[GroupOf(_masterTab)].Panels.Length < 2
+        ? @<text></text>
+        : @<div class="ki-subnav-wrap">
+            <nav class="ki-subnav" role="tablist" aria-label="@($"{Groups[GroupOf(_masterTab)].Label} sections")">
+                @foreach (var panel in Groups[GroupOf(_masterTab)].Panels)
+                {
+                    var index = panel;
+                    <button type="button" role="tab" id="@(index == Groups[GroupOf(_masterTab)].Panels[0] ? null : $"ki-tab-{index}")" aria-selected="@(_masterTab == index)"
+                            aria-controls="@($"ki-panel-{index}")" class="ki-steptab ki-steptab-sub" @onclick="() => SelectMaster(index)">@SubLabels[index]</button>
+                }
+            </nav>
+        </div>;
 
     /// <summary>The natal-chart toolbar (collapse/expand + chart picker) + grid, shared by every
     /// master tab that should keep the chart visible on the left (STRENGTH/YOGAS/VARGAS —
@@ -908,8 +933,19 @@ else
         c.Planet.Equals("Moon", StringComparison.OrdinalIgnoreCase) &&
         c.SubComponentCode.Equals("PAKSHA_BALA", StringComparison.OrdinalIgnoreCase))?.ValueVirupas;
 
-    private string? LagnaLord =>
-        _data?.Charts.GetValueOrDefault("D1")?.HouseLords.FirstOrDefault(h => h.HouseNumber == 1)?.LordPlanet;
+    // D1 house lords and graha placements for the Yoga tab's Planets column (yogas are evaluated on D1).
+    private IReadOnlyDictionary<int, PlanetName> YogaHouseLords =>
+        (_data?.Charts.GetValueOrDefault("D1")?.HouseLords ?? [])
+            .Where(h => Enum.TryParse<PlanetName>(h.LordPlanet, true, out _))
+            .GroupBy(h => h.HouseNumber)
+            .ToDictionary(g => g.Key, g => Enum.Parse<PlanetName>(g.First().LordPlanet, true));
+
+    private IReadOnlyDictionary<PlanetName, Ikiastrro.Core.Engines.Yoga.YogaPlacement> YogaPlacements =>
+        (_data?.Charts.GetValueOrDefault("D1")?.Grahas ?? [])
+            .Where(g => Enum.TryParse<PlanetName>(g.Planet, true, out _))
+            .GroupBy(g => Enum.Parse<PlanetName>(g.Planet, true))
+            .ToDictionary(g => g.Key, g => new Ikiastrro.Core.Engines.Yoga.YogaPlacement(
+                g.First().HouseNumberFromLagna, g.First().HouseNumberFromSun, g.First().HouseNumberFromMoon));
 
     private void SaveInterpretation(YogaEvaluationTable.InterpretationEditRequest request) =>
         InterpretationRepo.Upsert(1, "YOGA", request.SubjectCode, request.SourceRefCode, request.StandardText, request.ShortText, request.SourceVariantCode);

@@ -1,5 +1,8 @@
 @using System.Globalization
 @using Ikiastrro.Data
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Strength
+@using Ikiastrro.Core.Engines.Yoga
 
 <section class="yg" aria-labelledby="yg-title">
     @* Summary card (rammyps, 2026-10-02): the present yogas split by OutcomeNatureCode (migration
@@ -82,17 +85,43 @@
                                 <td>@(r.YogaSetName ?? r.YogaTypeCode ?? "—")</td>
                                 <td>@DisplayYoga(r.YogaCode)</td>
                                 <td><code>@r.SourceVariantCode</code></td>
+                                <td>@BasedLabel(r)</td>
                                 <td><span class="yg-nature yg-nature-@NatureClass(r)">@NatureLabel(r)</span></td>
                                 @if (_showAll)
                                 {
                                     <td><span class="yg-status yg-status-@StatusClass(r)">@StatusLabel(r)</span></td>
                                 }
+                                <td class="yg-planets">
+                                    @{ var causing = PlanetsOf(r); }
+                                    @if (causing.Count == 0)
+                                    {
+                                        <span class="yg-interp-empty">—</span>
+                                    }
+                                    else
+                                    {
+                                        @string.Join(", ", causing)
+                                    }
+                                </td>
+                                <td class="yg-strength">
+                                    @if (causing.Count == 0)
+                                    {
+                                        <span class="yg-interp-empty">—</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var planet in causing)
+                                        {
+                                            var row = StrengthOf(planet);
+                                            <div class="yg-pstrength yg-tier-@TierOf(row).ToString().ToLowerInvariant()"
+                                                 title="@StrengthTitle(planet, row)">
+                                                <b>@planet</b>
+                                                <span>@(row?.PercentOfMinimum is { } pct ? $"{pct:0}%" : "—")</span>
+                                            </div>
+                                        }
+                                    }
+                                </td>
                                 <td>
                                     @(r.YogaRule ?? "—")
-                                    @if (string.Equals(r.YogaTypeCode, "LAGNA", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(LagnaLordPlanet))
-                                    {
-                                        <div class="yg-lagnalord">Lagna lord: @LagnaLordPlanet</div>
-                                    }
                                     @if (!string.IsNullOrWhiteSpace(r.Notes))
                                     {
                                         <div class="yg-notes">@r.Notes</div>
@@ -172,7 +201,12 @@
 
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<YogaEvaluationRow> Rows { get; set; } = Array.Empty<YogaEvaluationRow>();
-    [Parameter] public string? LagnaLordPlanet { get; set; }
+    /// <summary>House number to its lord, D1 — resolves "Lagna lord", "5th lord" ... in a yoga's rule to a planet.</summary>
+    [Parameter] public IReadOnlyDictionary<int, PlanetName> HouseLords { get; set; } = new Dictionary<int, PlanetName>();
+    /// <summary>Each graha's house from Lagna, Sun and Moon, for the yogas read from the Sun or Moon.</summary>
+    [Parameter] public IReadOnlyDictionary<PlanetName, YogaPlacement> Placements { get; set; } = new Dictionary<PlanetName, YogaPlacement>();
+    /// <summary>Ṣaḍbala per planet; its % of the required minimum is each planet's strength here.</summary>
+    [Parameter] public IReadOnlyList<ShadbalaSummaryRow> Shadbala { get; set; } = Array.Empty<ShadbalaSummaryRow>();
     [Parameter] public IReadOnlyList<InterpretationRow> Interpretations { get; set; } = Array.Empty<InterpretationRow>();
     [Parameter] public EventCallback<InterpretationEditRequest> OnSaveInterpretation { get; set; }
 
@@ -197,7 +231,40 @@
     // Every column sorts on its header; before any click the rows keep the Set → type → variant
     // order above. Status only shows when "Show all" lets absent/pending rows in — otherwise every
     // row is Present by the filter itself.
-    private enum Col { Set, Yoga, Variant, Nature, Status, Rule, Inference, Interpretation, Source }
+    private enum Col { Set, Yoga, Variant, Based, Nature, Status, Planets, Strength, Rule, Inference, Interpretation, Source }
+
+    private static string BasedLabel(YogaEvaluationRow r) => r.YogaTypeCode?.ToUpperInvariant() switch
+    {
+        "SUN" => "Sun based",
+        "MOON" => "Moon based",
+        "LAGNA" => "Lagna based",
+        "COMBINATION" => "Combination",
+        _ => "—",
+    };
+
+    // The planets that make the yoga, and each one's Ṣaḍbala — only for yogas present in this chart.
+    private IReadOnlyList<PlanetName> PlanetsOf(YogaEvaluationRow r) => r.Present == true
+        ? YogaPlanetResolver.Resolve(r.YogaCode, r.YogaRule, HouseLords, Placements)
+        : Array.Empty<PlanetName>();
+
+    private ShadbalaSummaryRow? StrengthOf(PlanetName planet)
+        => Shadbala.FirstOrDefault(s => s.Planet.Equals(planet.ToString(), StringComparison.OrdinalIgnoreCase));
+
+    private static StrengthTier TierOf(ShadbalaSummaryRow? row)
+        => StrengthBands.ShadbalaPercentOfMinimum.Classify(row?.PercentOfMinimum);
+
+    private static string StrengthTitle(PlanetName planet, ShadbalaSummaryRow? row) => row is null
+        ? $"{planet}: Ṣaḍbala not computed"
+        : row.PercentOfMinimum is null
+            ? $"{planet}: {row.ShadbalaRupas:0.00} rūpas, no required minimum on file"
+            : $"{planet}: {row.ShadbalaRupas:0.00} rūpas, {row.PercentOfMinimum:0}% of its required minimum ({TierOf(row)})";
+
+    // Weakest planet's % — the yoga is only as strong as its weakest cause. Yogas without planets sort last.
+    private double WeakestPercent(YogaEvaluationRow r)
+    {
+        var values = PlanetsOf(r).Select(p => StrengthOf(p)?.PercentOfMinimum).Where(v => v.HasValue).Select(v => (double)v!.Value).ToList();
+        return values.Count == 0 ? double.MaxValue : values.Min();
+    }
 
     private Col? _sortKey;
     private bool _desc;
@@ -206,7 +273,10 @@
 
     private static string ColumnHeader(Col c) => c switch
     {
+        Col.Based => "Based on",
         Col.Nature => "Good / Bad",
+        Col.Planets => "Planets",
+        Col.Strength => "Planet strength (Ṣaḍbala)",
         _ => c.ToString(),
     };
 
@@ -223,8 +293,11 @@
         Col.Set => r.YogaSetName ?? r.YogaTypeCode ?? "",
         Col.Yoga => DisplayYoga(r.YogaCode),
         Col.Variant => r.SourceVariantCode,
+        Col.Based => TypeRank(r.YogaTypeCode),
         Col.Nature => NatureRank(r.OutcomeNatureCode),
         Col.Status => StatusLabel(r),
+        Col.Planets => string.Join(",", PlanetsOf(r)),
+        Col.Strength => WeakestPercent(r),
         Col.Rule => r.YogaRule ?? "",
         Col.Inference => r.InferenceText ?? "",
         Col.Interpretation => Resolve(r)?.StandardText ?? "",
@@ -283,8 +356,8 @@
     private int EvaluatedCount => VariantRows.Count(r => r.EvaluationStatus == "EVALUATED");
     private int NotEvaluatedCount => VariantRows.Count - EvaluatedCount;
 
-    private static string SearchText(YogaEvaluationRow r) =>
-        $"{r.YogaCode} {r.SourceVariantCode} {r.YogaSetName} {r.SourceRefCode} {r.YogaRule} {r.InferenceText} {NatureLabel(r)}";
+    private string SearchText(YogaEvaluationRow r) =>
+        $"{r.YogaCode} {r.SourceVariantCode} {r.YogaSetName} {r.SourceRefCode} {r.YogaRule} {r.InferenceText} {NatureLabel(r)} {BasedLabel(r)} {string.Join(' ', PlanetsOf(r))}";
 
     private static string StatusLabel(YogaEvaluationRow r) => r.EvaluationStatus == "NOT_EVALUATED"
         ? "Pending" : r.Present == true ? "Present" : "Absent";

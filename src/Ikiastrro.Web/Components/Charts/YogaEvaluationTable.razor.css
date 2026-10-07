@@ -28,7 +28,14 @@
 .yg tbody tr:last-child td { border-bottom: 0; }
 .yg tbody tr:hover td { background: var(--brand-sunrise); }
 .yg-source { color: var(--brand-muted); font-size: .75rem; white-space: nowrap; }
-.yg-lagnalord { margin-top: 4px; color: var(--brand-muted); font-size: .74rem; font-style: italic; }
+.yg-planets { white-space: nowrap; }
+.yg-strength { white-space: nowrap; }
+.yg-pstrength { display: flex; justify-content: space-between; gap: 10px; padding: 1px 7px; margin-bottom: 2px; border-radius: 999px; font-size: .72rem; }
+.yg-pstrength b { font-weight: 700; }
+.yg-tier-strong { background: var(--status-strong-bg); color: var(--status-strong); }
+.yg-tier-moderate { background: var(--status-moderate-bg); color: var(--brand-midnight); }
+.yg-tier-weak { background: var(--status-weak-bg); color: var(--status-weak); }
+.yg-tier-none { background: var(--brand-surface-soft); color: var(--brand-muted); }
 .yg-notes { margin-top: 4px; color: var(--brand-muted); font-size: .74rem; }
 .yg-sort {
     background: none; border: 0; color: var(--brand-midnight); font: inherit; font-weight: 700;

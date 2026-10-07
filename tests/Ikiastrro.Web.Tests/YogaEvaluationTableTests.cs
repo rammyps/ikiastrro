@@ -1,4 +1,5 @@
 using Bunit;
+using Ikiastrro.Core.Engines.Astronomy;
 using Ikiastrro.Data;
 using Ikiastrro.Web.Components.Charts;
 using Xunit;
@@ -25,22 +26,30 @@ public sealed class YogaEvaluationTableTests : BunitContext
     }
 
     [Fact]
-    public void RendersLagnaLordOnlyForLagnaTypedRows()
+    public void ShowsBasisCausingPlanetsAndTheirShadbala()
     {
         var rows = new[]
         {
-            new YogaEvaluationRow("SRC_PVR_INTEGRATED", "YOGA_SUBHA", true, "EVALUATED", "LAGNA",
-                "Lagna occupied by a natural benefic", null),
-            new YogaEvaluationRow("SRC_RAMAN_300_COMBINATIONS", "YOGA_GAJAKESARI", true, "EVALUATED", "MOON",
-                "Jupiter in a kendra from Moon", null),
+            new YogaEvaluationRow("SRC_RAMAN_300_COMBINATIONS", "YOGA_AYATNA_DHANA_LABHA", true, "EVALUATED", "LAGNA",
+                "Lagna lord and 2nd lord exchange houses", null),
+        };
+        var lords = new Dictionary<int, PlanetName> { [1] = PlanetName.Mars, [2] = PlanetName.Venus };
+        var shadbala = new[]
+        {
+            new ShadbalaSummaryRow("Mars", 0, 0, 0, 0, 0, 0, 0, 0, 6.5m, 5m, 130m),
+            new ShadbalaSummaryRow("Venus", 0, 0, 0, 0, 0, 0, 0, 0, 3m, 5.5m, 55m),
         };
 
         var cut = Render<YogaEvaluationTable>(p => p
             .Add(x => x.Rows, rows)
-            .Add(x => x.LagnaLordPlanet, "Mercury"));
+            .Add(x => x.HouseLords, lords)
+            .Add(x => x.Shadbala, shadbala));
 
-        Assert.Contains("Lagna lord: Mercury", cut.Markup);
-        Assert.Single(cut.FindAll(".yg-lagnalord"));
+        Assert.Contains("Lagna based", cut.Markup);
+        Assert.Contains("Mars, Venus", cut.Markup);
+        Assert.Contains("yg-tier-strong", cut.Markup);
+        Assert.Contains("yg-tier-weak", cut.Markup);
+        Assert.Contains("130%", cut.Markup);
     }
 
     [Fact]

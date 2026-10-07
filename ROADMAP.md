@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-10-04
+last_updated: 2026-10-07
 ---
 
 # ikiastrro — Roadmap
@@ -46,8 +46,10 @@ Close the gap between verified engine logic and what the web app actually shows 
   comparison, synastry, pair similarity, dasha timing, family layers (migrations 170–171),
   pair history card and print group all shipped 2026-10-03/04 on the Compatibility page.
   Open: reconcile `docs/architecture/compatibility_similarity.md` with what was built, and
-  the v10 statistical build (`v10-statisticalbuild.md`, family similarity + linked-dasha
-  extension planned 2026-10-04)
+  the rest of the v10 statistical build (`v10-statisticalbuild.md`). Built 2026-10-06: life-matter
+  varga feature contract, descriptive analytics, persisted comparisons, similarity and
+  dasha-promise engines, analytics SQL boundary + CLI commands. Still open: family similarity
+  and the linked-dasha extension
 - **Strength engine finish** — Ṣaḍbala components (Cheshta, Paksha, Ayana, Nathonnata, Abda,
   Masa fixed), Iṣṭa/Kaṣṭa, Vimśopaka Bala (BPHS weights, bands, bars) and Planet/House
   Strength stacked bars all shipped 2026-10-01/02. Open: confirm Bhāva Bala completeness and
@@ -61,7 +63,8 @@ Close the gap between verified engine logic and what the web app actually shows 
   Matters" panel from `res_charakarakas.md` §2 · `FEAT-KARAKA-01`/`FEAT-KARAKA-06` (new
   2026-09-22). Depends on `FEAT-HOUSE-05`.
 - **Planetary-state (avastha) display** — `AgeState`, `WakefulnessState` · `FEAT-AVASTHA-01/02`.
-  `PlanetaryStateTable` exists on Astro Facts and Key Inference; verify it covers both states
+  `PlanetaryStateTable` exists on Astro Facts and Key Inference; avastha tables reworked
+  2026-10-06 (Sayanadi working table, avasthas on About Planets) — re-verify both states
 - **Slow-planet transit history view** — 1930–2060 sign-transit timeline · `FEAT-TRANSIT-01`
   (the Transit tab and wheel now exist; the multi-decade timeline itself is unconfirmed)
 - ~~**Ashtakavarga cross-varga extension + comparison chart**~~ **Extension half done, closed
@@ -210,6 +213,9 @@ One dated line per ship event (a `git tag` + GitHub Release). Capped at the last
 `git log --first-parent origin/master` and the Releases page hold the rest. This is the
 only time-phased block in the repo's prose (`STANDARDS.md` §E.1 WORKSTREAM-05).
 
+- 2026-10-06 — v10 life-matter analytics, Astro Facts Dasha matters / Phalita dasas /
+  Sayanadi / Rudra-Maheswara-longevity tables, Sudarśana chakra on Transit, SAV on South
+  Indian layout; Astro Facts rail merged from ten tabs to six (2026-10-07)
 - 2026-10-04 — Compatibility page (Kuta, synastry, family, pair history) and Gochara
   inference slices 1–2 landed; Key Inference promise engine started
 - 2026-10-02 — JHora-matching vargas, true node, Ṣaḍbala/Vimśopaka fixes, print report
