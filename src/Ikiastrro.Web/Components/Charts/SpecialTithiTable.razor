@@ -1,0 +1,50 @@
+@using Ikiastrro.Core.Engines.KeyInfo
+@* Astro Facts — Special points: the 36 special tithis (Core SpecialTithi, computed live from the D1 Sun and Moon). *@
+@if (_rows.Count == 0)
+{
+    <p class="kit-muted">Needs the Sun and Moon of the D1 chart.</p>
+}
+else
+{
+    <p class="kit-summary">
+        Birth tithi (<b>Janma</b>): <b>@_rows[0].TithiName</b> (@_rows[0].PercentLeft.ToString("0")% left), lord <b>@_rows[0].Lord</b>.
+        <b>Mṛtyu</b> tithi: <b>@_rows[7].TithiName</b>, lord <b>@_rows[7].Lord</b>;
+        <b>Dhana</b> tithi: <b>@_rows[1].TithiName</b>, lord <b>@_rows[1].Lord</b>.
+        @_brightCount of the 36 fall in the bright (Śukla) half.
+    </p>
+    <div class="kit-scroll">
+        <table class="kit">
+            <thead><tr><th>Special tithi</th><th>Tithi</th><th>Half</th><th>% left</th><th>Lord</th><th>Deity</th></tr></thead>
+            <tbody>
+            @foreach (var r in _rows)
+            {
+                <tr class="@(r.Cycle > 1 ? "kit-sub" : "")">
+                    <td><b>@r.Name</b></td>
+                    <td>@r.TithiName <span class="kit-muted">(@r.TithiNumber)</span></td>
+                    <td>@(r.Bright ? "Bright" : "Dark")</td>
+                    <td class="mono">@r.PercentLeft.ToString("0")%</td>
+                    <td><PlanetChip Planet="@r.Lord.ToString()" /> @r.Lord.ToString()</td>
+                    <td>@r.Deity</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+
+    private IReadOnlyList<SpecialTithiRow> _rows = Array.Empty<SpecialTithiRow>();
+    private int _brightCount;
+
+    protected override void OnParametersSet()
+    {
+        var sun = KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Sun");
+        var moon = KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Moon");
+        _rows = sun is null || moon is null
+            ? Array.Empty<SpecialTithiRow>()
+            : SpecialTithi.Compute(sun.NirayanaLongitudeDegrees, moon.NirayanaLongitudeDegrees);
+        _brightCount = _rows.Count(r => r.Bright);
+    }
+}

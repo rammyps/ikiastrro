@@ -213,6 +213,24 @@ else
 
                     @Head(NatalSection.NavaTara)
                     <NavaTaraTable KeyDetails="D1KeyDetails" />
+
+                    @Head(NatalSection.SpecialTara)
+                    <SpecialTaraTable KeyDetails="D1KeyDetails" />
+
+                    @Head(NatalSection.Latta)
+                    <LattaTable KeyDetails="D1KeyDetails" />
+
+                    @Head(NatalSection.SpecialTithis)
+                    <SpecialTithiTable KeyDetails="D1KeyDetails" />
+
+                    @Head(NatalSection.Sphutas)
+                    <SphutaTable KeyDetails="D1KeyDetails" />
+
+                    @Head(NatalSection.Sahams)
+                    <SahamsTable KeyDetails="D1KeyDetails" IsNightBirth="@(_panchanga?.IsNightBirth ?? false)" />
+
+                    @Head(NatalSection.Malicious)
+                    <MaliciousDivisionsTable KeyDetails="D1KeyDetails" />
                                 </div>
                             }
                             @if (SubShows(_activeTab, 1))
@@ -688,7 +706,14 @@ else
         public static readonly Section GrahaArudhas = new("af-graha-arudhas", "Graha ārūḍhas");
         public static readonly Section Yogi = new("af-yogi", "Yogi & sensitive points", D1Only: true);
         public static readonly Section NavaTara = new("af-nava-tara", "Nava tārā", D1Only: true);
-        public static readonly Section[] SpecialPointsTab = [Upagrahas, ArudhaPadas, GrahaArudhas, Yogi, NavaTara];
+        public static readonly Section SpecialTara = new("af-special-tara", "Special tārās", D1Only: true);
+        public static readonly Section Latta = new("af-latta", "Lattā nakṣatras", D1Only: true);
+        public static readonly Section SpecialTithis = new("af-special-tithis", "Special tithis", D1Only: true);
+        public static readonly Section Sphutas = new("af-sphutas", "Sphuṭas", D1Only: true);
+        public static readonly Section Sahams = new("af-sahams", "Sahams", D1Only: true);
+        public static readonly Section Malicious = new("af-malicious", "64th navamsa & 22nd drekkana", D1Only: true);
+        public static readonly Section[] SpecialPointsTab =
+            [Upagrahas, ArudhaPadas, GrahaArudhas, Yogi, NavaTara, SpecialTara, Latta, SpecialTithis, Sphutas, Sahams, Malicious];
 
         public static readonly Section Moon = new("af-moon", "Moon context", D1Only: true);
         public static readonly Section Dignity = new("af-dignity", "Planets — dignity, kāraka, exaltation");
