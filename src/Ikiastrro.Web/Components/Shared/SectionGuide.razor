@@ -1,0 +1,28 @@
+@* Collapsed "In plain words" note under an Astro Facts heading: what the table is, how to read it, and its
+   sources. Text comes from AstroFactsGuides, keyed by section id. Nothing renders for an unknown key. *@
+@if (Entry is { } entry)
+{
+    <details class="sg">
+        <summary>What is this? — in plain words</summary>
+        <dl>
+            <dt>What it is</dt>
+            <dd>@entry.What</dd>
+            <dt>How to read it</dt>
+            <dd>@entry.HowToRead</dd>
+            <dt>References</dt>
+            <dd>
+                <ul>
+                    @foreach (var reference in entry.Refs)
+                    {
+                        <li>@reference</li>
+                    }
+                </ul>
+            </dd>
+        </dl>
+    </details>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Key { get; set; } = "";
+    private SectionGuideEntry? Entry => AstroFactsGuides.For(Key);
+}

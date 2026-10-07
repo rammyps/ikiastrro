@@ -1,0 +1,57 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Dispositors
+@using Ikiastrro.Core.Models
+@using Ikiastrro.Core.Pipeline
+@using Ikiastrro.Data
+
+@* Plain-English reading of the Dispositors table above it (DispositorSummary, Core). Built from the same
+   chains; strength and house-lord facts are D1's, so a divisional chart gets the chain reading only. *@
+@if (Lines.Count > 0)
+{
+    <aside class="dsm" aria-label="What the dispositor chains mean">
+        <h4 class="dsm-title">In plain words</h4>
+        <ul>
+            @foreach (var line in Lines)
+            {
+                <li>@line</li>
+            }
+        </ul>
+        <p class="dsm-note">The chains follow sign lords only — aspects, conjunctions and nakshatras are not part of this reading, so treat it as one lens next to the strength and yoga tabs.
+            The wording of what a chain means is the project's own synthesis, not a quotation from a classical text.</p>
+    </aside>
+}
+
+@code {
+    [Parameter, EditorRequired] public string ChartType { get; set; } = "D1";
+    [Parameter, EditorRequired] public string AscendantSign { get; set; } = "Aries";
+    [Parameter, EditorRequired] public IReadOnlyList<ChartKeyDetail> KeyDetails { get; set; } = Array.Empty<ChartKeyDetail>();
+    [Parameter] public IReadOnlyList<ChartHouseLord> HouseLords { get; set; } = Array.Empty<ChartHouseLord>();
+    [Parameter] public IReadOnlyList<ShadbalaSummaryRow> Shadbala { get; set; } = Array.Empty<ShadbalaSummaryRow>();
+
+    private IReadOnlyList<string> Lines
+    {
+        get
+        {
+            if (!Enum.TryParse<ZodiacName>(AscendantSign, true, out var ascendant)) return Array.Empty<string>();
+            var grahas = KeyDetails.Where(k => k.PointKind == "Graha" && k.Planet != "Ascendant"
+                && Enum.TryParse<PlanetName>(k.Planet, true, out _)).ToList();
+            if (grahas.Count == 0) return Array.Empty<string>();
+
+            var input = new ChartAnalysisInput(ChartType, ascendant, grahas.Select(k => new PlanetPosition
+                { Planet = k.Planet, Sign = k.Sign, PointKind = "Graha", HouseNumber = k.HouseNumberFromLagna }).ToList());
+            var chains = new DispositorEngine().Compute(input);
+
+            var isD1 = ChartType == "D1";
+            var facts = grahas.GroupBy(k => k.Planet).ToDictionary(g => g.Key, g =>
+            {
+                var k = g.First();
+                var ruled = HouseLords.Where(h => h.LordPlanet == k.Planet).Select(h => h.HouseNumber).ToList();
+                var dignity = HouseLords.FirstOrDefault(h => h.LordPlanet == k.Planet)?.LordDignityStatus;
+                var pct = isD1 ? Shadbala.FirstOrDefault(s => s.Planet == k.Planet)?.PercentOfMinimum : null;
+                return new DispositorPlanetFacts(k.Planet, k.HouseNumberFromLagna, k.Sign, dignity,
+                    k.IsCombust == true, k.IsRetrograde == true, pct, ruled);
+            });
+            return DispositorSummary.Build(chains, facts);
+        }
+    }
+}

@@ -291,6 +291,7 @@ else
 
                         @Head(NatalSection.Dispositors)
                         <DispositorTable ChartType="@relationshipChart.ChartType" AscendantSign="@relationshipChart.AscendantSign" KeyDetails="relationshipChart.KeyDetails" />
+                        <DispositorSummaryPanel ChartType="@relationshipChart.ChartType" AscendantSign="@relationshipChart.AscendantSign" KeyDetails="relationshipChart.KeyDetails" HouseLords="relationshipChart.HouseLords" Shadbala="_shadbala" />
 
                         @Head(NatalSection.Conjunctions)
                         <HouseConjunctionsTable Groups="relationshipChart.MultiGrahaConjunctions" KeyDetails="relationshipChart.KeyDetails" />
@@ -308,6 +309,7 @@ else
     {
         <div class="ki-panelbody" id="ki-panel-1" role="tabpanel" aria-labelledby="ki-tab-1">
             @PrintHead(1)
+            @Guide("transit")
 @if (_selection is not null)
                     {
                         <section class="ki-controls" aria-label="Transit date and dasha filters">
@@ -473,6 +475,7 @@ else
                 {
                     <div id="ki-strength-panel-0" role="tabpanel" aria-labelledby="ki-strength-tab-0">
                     @SubHead("Planet strength")
+                    @Guide("strength-planet")
                     @if (_shadbala.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -490,6 +493,7 @@ else
                 {
                     <div id="ki-strength-panel-1" role="tabpanel" aria-labelledby="ki-strength-tab-1">
                     @SubHead("House strength")
+                    @Guide("strength-house")
                     @if (_bhavaBala.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -507,6 +511,7 @@ else
                 {
                     <div id="ki-strength-panel-2" role="tabpanel" aria-labelledby="ki-strength-tab-2">
                     @SubHead("Ashtavarga")
+                    @Guide("strength-ashtavarga")
                     @if (_ashtakavarga.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
@@ -530,6 +535,7 @@ else
     {
         <div class="ki-panelbody" id="ki-panel-3" role="tabpanel" aria-labelledby="ki-tab-3">
             @PrintHead(3)
+            @Guide("karakas")
             <KarakaPolarWheel Id="@Id" Embedded="true" />
         </div>
     }
@@ -540,6 +546,7 @@ else
            D1 grid and chart picker added nothing. *@
         <div class="ki-panelbody" id="ki-panel-4" role="tabpanel" aria-labelledby="ki-tab-4">
             @PrintHead(4)
+            @Guide("yogas")
             <div class="ki-stephead">
                 <h1 class="ki-heading">YOGAS</h1>
             </div>
@@ -562,6 +569,7 @@ else
     {
         <div class="ki-panelbody" id="ki-panel-5" role="tabpanel" aria-labelledby="ki-tab-5">
             @PrintHead(5)
+            @Guide("vargas")
           <div class="ki-natal-layout @(_natalChartCollapsed ? "is-chart-collapsed" : null)">
             @ChartColumn
             <div class="ki-natal-detail">
@@ -588,6 +596,7 @@ else
     {
         <div class="ki-panelbody" id="ki-panel-6" role="tabpanel" aria-labelledby="ki-tab-6">
             @PrintHead(6)
+            @Guide("all-charts")
             <h1 class="ki-heading">7. ALL CHARTS</h1>
             <AllChartsGrid Data="_data" />
         </div>
@@ -597,6 +606,7 @@ else
     {
         <div class="ki-panelbody" id="ki-panel-7" role="tabpanel" aria-labelledby="ki-tab-7">
             @PrintHead(7)
+            @Guide("d1-promise")
             <D1PromisePanel Readings="PromiseReadings" Error="_promiseError" />
         </div>
     }
@@ -605,6 +615,7 @@ else
     {
         <div class="ki-panelbody" id="ki-panel-8" role="tabpanel" aria-labelledby="ki-tab-8">
             @PrintHead(8)
+            @Guide("phalita")
             <h1 class="ki-heading">9. PHALITA DASAS</h1>
             <PhalitaDasaPanel Chart="@(_data?.Charts.GetValueOrDefault("D1"))" Person="_data?.Person" Panchanga="_panchanga" />
         </div>
@@ -614,6 +625,7 @@ else
     {
         <div class="ki-panelbody" id="ki-panel-9" role="tabpanel" aria-labelledby="ki-tab-9">
             @PrintHead(9)
+            @Guide("dasha-matters")
             <h1 class="ki-heading">10. DASHA MATTERS</h1>
             <DashaMattersTable Charts="_data?.Charts" Periods="_dashaTree" />
         </div>
@@ -706,7 +718,7 @@ else
 
     /// <summary>A section heading. A D1-only section carries a "D1" tag, and while the picker
     /// shows another chart a note says the table did not follow it.</summary>
-    private RenderFragment Head(Section section) => @<h3 class="ki-sectionhead" id="@section.Id" tabindex="-1">
+    private RenderFragment Head(Section section) => @<text><h3 class="ki-sectionhead" id="@section.Id" tabindex="-1">
         @section.Title
         @if (section.D1Only)
         {
@@ -716,7 +728,9 @@ else
                 <span class="ki-d1note">always the rāśi chart — not the @_natalChart in the picker</span>
             }
         }
-    </h3>;
+    </h3>@Guide(section.Id)</text>;
+
+    private RenderFragment Guide(string key) => Printing ? @<text></text> : @<SectionGuide Key="@key" />;
 
     /// <summary>Jump links to a sub-tab's sections; not printed.</summary>
     private RenderFragment JumpNav(IReadOnlyList<Section> sections) => Printing

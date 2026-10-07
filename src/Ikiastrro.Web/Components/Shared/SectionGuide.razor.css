@@ -1,0 +1,8 @@
+.sg { margin: 4px 0 10px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); font-size: var(--font-size-control); }
+.sg > summary { cursor: pointer; padding: 6px 12px; color: var(--brand-midnight); font-weight: 600; font-size: .78rem; list-style-position: inside; }
+.sg[open] > summary { border-bottom: 1px solid var(--card-line); }
+.sg dl { margin: 0; padding: 8px 12px 10px; display: grid; gap: 2px; }
+.sg dt { margin-top: 6px; color: var(--brand-muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.sg dd { margin: 0; line-height: 1.45; }
+.sg ul { margin: 0; padding-left: 18px; color: var(--brand-muted); font-size: .78rem; }
+@media print { .sg { display: none; } }
