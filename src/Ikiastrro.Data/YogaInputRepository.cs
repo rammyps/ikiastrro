@@ -19,7 +19,7 @@ public sealed class YogaInputRepository(SqlConnectionFactory factory)
             JOIN dbo.tbl_ChartResults c ON c.BirthDetailId=b.Id WHERE c.Id=@chartResultId
             """, new { chartResultId });
         var bundle = new ChartBundle(birth, positions, sunTimes, charts,
-            new Dictionary<string, string>(), []) { Strengths = strengths };
+            ChartPipeline.CharaKarakaByPlanet(positions), []) { Strengths = strengths };
         var rows = new ProductionYogaEngine().DetectDetailed(bundle);
         using var transaction = System.Transactions.Transaction.Current is null ? connection.BeginTransaction() : null;
         connection.Execute("DELETE dbo.tbl_Fact_YogaInputEvaluations WHERE ChartResultId=@chartResultId",
