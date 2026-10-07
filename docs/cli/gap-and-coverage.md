@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-11
+last_updated: 2026-10-07
 workstream: cli
 togaf: E — gap analysis
 safe: Program backlog input
@@ -30,6 +30,10 @@ Avastha (PostureState, all 12 states)** (`verify-avastha` reproduces the JHora e
 Activity table exactly, all 9 grahas) · **Dina / Horā / Tribhāga Bala + Graha Yuddha
 detection** (`verify-strength` all green) · source-attributed yoga inputs · provenance
 (ayanāṁśa degrees, sidereal time, rule set, method) on every chart.
+
+**JHora gap step 4 (Core engines, `Engines/KeyInfo` + `Engines/Karakas`; UI tables not yet wired)** — **Special tārās** from Moon and Lagna (28-nakṣatra circle with Abhijit) · **Lattā nakṣatras** (the struck star; JHora's "Aspected Stars" column is undocumented and not reproduced) · **all 36 Special Tithis** (k × birth elongation) · **Lords of the 64th navamsa and 22nd drekkana** in all five D3 schemes · **all 36 Sahams** (`SahamTable`; night-birth golden, every row within an arcsecond of JHora). `KeyInfoJhoraStep4Tests` checks each against JHora's own Basics ▸ Key Info views for 1_Ramakrishnan. Still open from the same JHora view list: **Planetary drekkanas (Ayudha / Kroora / Agni / Mriga…)** — the extra attributes are not in PyJHora's table and need BPHS ch. 6 drekkana forms — and **Sahams on a day-birth golden chart** (day branches mirror the night ones per PVR Table 74 but are unverified against JHora).
+
+**JHora Yogas / Aspect Table / Matching, captured 2026-10-07** (`cproj_win_app_explorer/docs/reference-jhora-yogas-matching.md`). JHora's Yogas list for RamakrishnanP has 20 yogas (givers, results, definitions) — a golden for the yoga engines. Its Aspect Table is the sphuta graha-dṛṣṭi percentage grid (a golden for `GrahaDrishtiStrengthCalculator`; screenshot only). Its Horoscope Matching Score gives only an Ashtakoota total out of 36; the 216-case sweep for a native in Anuradha pada 2 (`docs/artifacts/reference-charts/JHora_matching_sweep_Anuradha_p2.json`) agrees with `AshtakootaCalculator` in only 8 of 216 totals (PyJHora's own table: 56 of 216), so JHora's koota tables and exceptions differ from Vasudev's — **known divergence, the engine keeps the book**; reconciling needs the per-koota rules inferred from the sweep or from JHora's help text.
 
 ## Priority gaps
 
@@ -77,12 +81,8 @@ detection** (`verify-strength` all green) · source-attributed yoga inputs · pr
 
 ## Parity gaps (lower priority)
 
-- **Sphutas** — Prana, Deha, Mrityu, Sookshma Tri-Sphuta, Tithi, Yoga, Kshetra, Beeja, Tri,
-  Chatus, Pancha, Kunda, Avayoga and Dhūma-derived points.
-- **Additional dashas** — Ashtottari, Yogini (applicability rules); Jaimini rāśi dashas
-  (Moola, Narayana, Sudasa); Kālachakra. Each uses the generic dasha-period storage, carries
-  its system + rule-set identity, and has worked reference assertions. PyJHora is a
-  cross-check reference only (AGPL).
+- **Sphutas — 13 delivered** (`Engines/KeyInfo/Sphutas.cs`: Prāṇa, Deha, Mṛtyu, Sūkṣma Tri-, Tithi, Yoga (Sun–Moon), Rāhu Tithi, Kṣetra, Bīja, Tri-, Catus-, Pañca-sphuṭa, Yogi, Avayoga; all match JHora to under 0.1″, `SphutasJhoraTests`). Remaining: **Kuṇḍa** — no formula found; no integer-multiple combination of Lagna/grahas/Gulika/Māndi (± constant) fits JHora's five reference charts, so it needs a source. Vighati Lagna stays deliberately unbuilt (equals Pranapada in the reference chart).
+- **Additional dashas — checked against JHora's export for 1_Ramakrishnan (`DashaJhoraGoldenTests`).** Ashtottari maha dates match JHora within 3 days; Narayana (12 maha signs and starts) match; Sudasa shares JHora's kendra cycle and first-dasa balance. **Known divergences, engine keeps PVR:** Ashtottari antardasas — PVR §17.2.2 puts the maha lord's own antardasa last, JHora first; Sudasa seed — PVR §20.2 starts in the Sree Lagna sign (Taurus here), JHora in its 7th (Scorpio, which holds the Moon). **Still open:** Yogini (applicability rules), **Moola** (JHora's Lagna-Kendradi Graha dasa — strength-ranked, not in PVR) and **Kālachakra** (JHora's output labels each maha by a nakṣatra pāda in a way PyJHora's own port notes does not reproduce — needs reverse-engineering from the five reference charts). PyJHora is a cross-check reference only (AGPL).
 - **Varga composition** — D81 / D108 / D144 (varga-of-a-varga) and D150.
 
 ## Open engineering

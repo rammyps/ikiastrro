@@ -24,6 +24,16 @@ public static class SahamCalculator
         return AstroMath.Normalize(a - b + c + (distanceToC <= arc ? 0.0 : 30.0));
     }
 
+    /// <summary>A − B + C where the +30° arc test uses <paramref name="checkPoint"/> instead of C — the
+    /// sahams whose third term is not the Lagna but whose test point still is (Śāstra, Karyasiddhi, Santāpa,
+    /// Prīti).</summary>
+    public static double Evaluate(double a, double b, double c, double checkPoint)
+    {
+        var arc = AstroMath.Normalize(a - b);
+        var distanceToCheck = AstroMath.Normalize(checkPoint - b);
+        return AstroMath.Normalize(a - b + c + (distanceToCheck <= arc ? 0.0 : 30.0));
+    }
+
     /// <summary>The day formula's (A, B) swapped for a night birth.</summary>
     public static double EvaluateDayNight(double a, double b, double c, bool isNightBirth) =>
         isNightBirth ? Evaluate(b, a, c) : Evaluate(a, b, c);

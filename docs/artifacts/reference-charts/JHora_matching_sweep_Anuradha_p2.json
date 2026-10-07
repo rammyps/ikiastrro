@@ -1,0 +1,1730 @@
+[
+{
+"role": 0,
+"nak": 0,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 0,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 0,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 0,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 1,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 1,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 1,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 1,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 2,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 2,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 25.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 2,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 25.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 2,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 25.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 3,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 30.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 3,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 30.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 3,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 30.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 3,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 30.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 4,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 4,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 4,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 11.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 4,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 11.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 5,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 5,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 5,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 5,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 6,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 6,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 6,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 6,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 7,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 19.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 7,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 19.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 7,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 19.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 7,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 19.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 8,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 8,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 8,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 8,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 9,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 9,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 9,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 9,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 10,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 10,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 10,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 10,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 11,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 32.0,
+"level": "Excellent"
+},
+{
+"role": 0,
+"nak": 11,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 11,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 11,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 12,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 12,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 12,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 12,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 13,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 11.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 13,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 11.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 13,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 7.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 13,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 7.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 14,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 23.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 14,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 23.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 14,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 23.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 14,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 23.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 15,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 15,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 15,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 15,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 16,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 16,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 16,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 16,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 17,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 30.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 17,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 30.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 17,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 30.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 17,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 30.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 18,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 18,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 18,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 18,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 19,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 19,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 19,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 19,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 20,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 25.0,
+"level": "Fair"
+},
+{
+"role": 0,
+"nak": 20,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 20,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 20,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 21,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 21,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 21,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 21,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 22,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 22,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 22,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 12.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 22,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 12.0,
+"level": "Below Average"
+},
+{
+"role": 0,
+"nak": 23,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 23,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 23,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 23,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 24,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 24,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 24,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 24,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 25,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 25,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 25,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 25,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 0,
+"nak": 26,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 26,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 26,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 0,
+"nak": 26,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 0,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 0,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 0,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 0,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 1,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 1,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 1,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 1,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 2,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 19.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 2,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 2,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 2,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 3,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 3,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 3,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 3,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 4,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 4,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 4,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 11.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 4,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 11.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 5,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 16.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 5,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 16.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 5,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 16.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 5,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 16.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 6,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 6,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 6,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 6,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 7,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 7,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 7,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 7,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 8,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 8,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 8,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 8,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 21.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 9,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 9,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 9,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 9,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 10,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 10,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 10,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 10,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 20.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 11,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 29.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 11,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 11,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 11,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 12,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 12,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 12,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 12,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 13,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 12.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 13,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 12.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 13,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 7.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 13,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 7.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 14,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 14,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 14,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 14,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 15,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 15,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 15,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 17.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 15,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 16,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 16,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 16,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 16,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 28.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 17,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 31.0,
+"level": "Excellent"
+},
+{
+"role": 1,
+"nak": 17,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 31.0,
+"level": "Excellent"
+},
+{
+"role": 1,
+"nak": 17,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 31.0,
+"level": "Excellent"
+},
+{
+"role": 1,
+"nak": 17,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 31.0,
+"level": "Excellent"
+},
+{
+"role": 1,
+"nak": 18,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 16.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 18,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 16.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 18,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 16.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 18,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 16.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 19,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 19,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 19,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 19,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 14.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 20,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 20,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 25.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 20,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 25.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 20,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 25.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 21,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 21,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 21,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 21,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 26.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 22,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 12.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 22,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 12.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 22,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 12.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 22,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 12.0,
+"level": "Below Average"
+},
+{
+"role": 1,
+"nak": 23,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 23,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 23,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 23,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 22.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 24,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 24,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 24,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 24,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 24.0,
+"level": "Fair"
+},
+{
+"role": 1,
+"nak": 25,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 25,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 25,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 25,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 18.0,
+"level": "Average"
+},
+{
+"role": 1,
+"nak": 26,
+"pada": 0,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 26,
+"pada": 1,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 26,
+"pada": 2,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+},
+{
+"role": 1,
+"nak": 26,
+"pada": 3,
+"native": "Anuraadha 2",
+"score": 27.0,
+"level": "Good"
+}
+]
