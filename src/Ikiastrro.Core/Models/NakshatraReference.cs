@@ -6,4 +6,4 @@ public record NakshatraReference(
     byte Id, string NakshatraName, decimal StartDegree, decimal EndDegree, byte RulingPlanetId,
     byte SequenceNumber, string? RulingDeity, string? Symbol, string? Guna, string? Gana,
     string? YoniAnimal, string? YoniGender, string? Nadi, string? Varna, string? Tatva, string? Direction,
-    byte PrimaryRasiId, bool StraddlesSignBoundary);
+    byte PrimaryRasiId, bool StraddlesSignBoundary, string? TamilName = null);
