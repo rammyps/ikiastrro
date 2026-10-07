@@ -1,0 +1,9 @@
+/* Same card frame as VimsopakaTable (.vim) and LunarPhaseCard, which sits directly above it. */
+.mna { margin-top: 14px; color: var(--brand-midnight); }
+.mna-card { border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); overflow: hidden; }
+.mna-head { padding: 14px 16px; border-bottom: 1px solid var(--card-line); background: var(--card-head-bg); color: var(--card-head-fg); }
+.mna-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; text-transform: uppercase; letter-spacing: .03em; }
+.mna-head p { margin: 3px 0 0; color: var(--brand-muted); font-size: .78rem; max-width: 80ch; }
+.mna-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 18px; margin: 0; padding: 14px 16px; }
+.mna-grid dt { color: var(--brand-muted); font: 700 .7em/1.2 'Manrope','Segoe UI',sans-serif; text-transform: uppercase; letter-spacing: .04em; }
+.mna-grid dd { margin: 2px 0 0; font-weight: 700; }

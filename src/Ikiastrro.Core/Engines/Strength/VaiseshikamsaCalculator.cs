@@ -36,6 +36,10 @@ public static class VaiseshikamsaCalculator
     public static int SwavargaCount(IReadOnlyList<ChartAnalysisInput> charts, PlanetName planet) =>
         ShodasaVarga.Count(t => OwnsSign(charts, t, planet));
 
+    /// <summary>The Shodasa Varga charts <paramref name="planet"/> owns its sign in, in chart order.</summary>
+    public static IReadOnlyList<string> SwavargaCharts(IReadOnlyList<ChartAnalysisInput> charts, PlanetName planet) =>
+        ShodasaVarga.Where(t => OwnsSign(charts, t, planet)).ToList();
+
     /// <summary>How many of an arbitrary set of charts (e.g. <see cref="Shadvarga"/>)
     /// <paramref name="planet"/> occupies a sign it owns in.</summary>
     public static int SwavargaCount(IReadOnlyList<ChartAnalysisInput> charts, PlanetName planet, IReadOnlyList<string> chartTypes) =>

@@ -1,0 +1,23 @@
+/* Same card frame as VimsopakaTable (.vim), which sits directly above it in step 6. */
+.vai { margin-top: 14px; color: var(--brand-midnight); }
+.vai-card { border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); overflow: hidden; }
+.vai-head { padding: 14px 16px; border-bottom: 1px solid var(--card-line); background: var(--card-head-bg); color: var(--card-head-fg); }
+.vai-head h2 { margin: 0; font: 700 1rem/1.25 'Manrope','Segoe UI',sans-serif; text-transform: uppercase; letter-spacing: .03em; }
+.vai-head p { margin: 3px 0 0; color: var(--brand-muted); font-size: .78rem; max-width: 80ch; }
+.vai-empty { margin: 0; padding: 14px 16px; color: var(--brand-muted); }
+.vai-scroll { overflow-x: auto; padding: 8px 18px; }
+
+.vai-table { width: 100%; border-collapse: collapse; font-size: .9em; }
+.vai-table th, .vai-table td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--brand-line); }
+.vai-table thead th {
+    background: var(--table-head-bg);
+    color: var(--table-head-fg);
+    font: 700 .7em/1.2 'Manrope','Segoe UI',sans-serif;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    border-bottom: 2px solid var(--brand-line);
+}
+.vai-table tbody th { font-weight: 700; }
+.vai-table tbody tr:last-child th, .vai-table tbody tr:last-child td { border-bottom: 0; }
+.vai-num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vai-charts { display: block; margin-top: 2px; color: var(--brand-muted); font-size: .78em; }

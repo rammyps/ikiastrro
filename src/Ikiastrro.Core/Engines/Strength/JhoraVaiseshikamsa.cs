@@ -33,7 +33,11 @@ public static class JhoraVaiseshikamsa
 
     /// <summary>Number of charts in <paramref name="group"/> where the graha is in its own or exaltation sign.</summary>
     public static int Count(IReadOnlyList<ChartAnalysisInput> charts, PlanetName planet, IReadOnlyList<string> group) =>
-        group.Count(t => InOwnOrExaltedSign(charts, t, planet));
+        Matching(charts, planet, group).Count;
+
+    /// <summary>The charts of <paramref name="group"/> where the graha is in its own or exaltation sign, in group order.</summary>
+    public static IReadOnlyList<string> Matching(IReadOnlyList<ChartAnalysisInput> charts, PlanetName planet, IReadOnlyList<string> group) =>
+        group.Where(t => InOwnOrExaltedSign(charts, t, planet)).ToList();
 
     /// <summary>"N-Name" as JHora prints it (e.g. "6-Kerala"), or null below 2 charts.</summary>
     public static string? DasaTier(int count) => Tier(count, DasaNames);

@@ -30,6 +30,7 @@
 @inject Ikiastrro.Data.NaisargikaKarakaRepository NaisargikaRepo
 @inject Ikiastrro.Data.ArgalaFactRepository ArgalaFactRepo
 @inject Ikiastrro.Data.RasiNakshatraCombinationRepository RasiNakshatraCombinationRepo
+@inject Ikiastrro.Data.NakshatraReferenceRepository NakshatraReferenceRepo
 @inject Ikiastrro.Data.GrahaDrishtiStrengthRepository GrahaDrishtiStrengthRepo
 @inject Ikiastrro.Data.PlanetaryStateRepository PlanetaryStateRepo
 @inject Ikiastrro.Data.PlanetaryStateRuleRepository PlanetaryStateRuleRepo
@@ -249,6 +250,7 @@ else
                     {
                         <LunarPhaseCard Moon="_moon" PakshaBalaVirupas="MoonPakshaBala" />
                     }
+                    <MoonNakshatraAttributes Nakshatra="MoonNakshatra" />
 
                     @Head(NatalSection.Dignity)
                     <PlanetDignityTable Rows="ExaltationRows(natalChart)" LagnaSign="@natalChart.AscendantSign" />
@@ -606,6 +608,7 @@ else
                 <AmsabalaTable Rows="_amsabala" Groups="_amsabalaGroups" Vargottama="_vargottama" Charts="_data.Charts" @bind-SelectedChart="_natalChart" @bind-Scheme="_vargaScheme" />
             }
             <VimsopakaTable Charts="_data.Charts" Weights="_vimsopakaWeights" Scheme="@_vargaScheme" />
+            <VaiseshikamsaTable Charts="_data.Charts" />
 
             @Head(Shashtiamsa)
             <ShashtiamsaTable KeyDetails="D1KeyDetails" />
@@ -927,6 +930,14 @@ else
     private IReadOnlyDictionary<int, string> _argalaSignificanceNotes = new Dictionary<int, string>();
     private IReadOnlyDictionary<int, string> _argalaHouseMatters = new Dictionary<int, string>();
     private IReadOnlyList<Ikiastrro.Data.ArgalaFactRow> _argalaFacts = Array.Empty<Ikiastrro.Data.ArgalaFactRow>();
+    private IReadOnlyList<Ikiastrro.Core.Models.NakshatraReference> _nakshatraReferences = Array.Empty<Ikiastrro.Core.Models.NakshatraReference>();
+
+    /// <summary>tbl_Nakshatras row for the nakshatra the D1 Moon is in (always the rasi chart).</summary>
+    private Ikiastrro.Core.Models.NakshatraReference? MoonNakshatra =>
+        D1KeyDetails.FirstOrDefault(k => k.PointKind == "Graha" && k.Planet == "Moon")?.NakshatraId is { } id
+            ? _nakshatraReferences.FirstOrDefault(n => n.Id == id)
+            : null;
+
     private IReadOnlyList<Ikiastrro.Core.Models.RasiNakshatraCombinationRow> _rasiNakshatraCombinations = Array.Empty<Ikiastrro.Core.Models.RasiNakshatraCombinationRow>();
     private IReadOnlyList<Ikiastrro.Data.GrahaDrishtiStrengthRow> _grahaDrishtiStrengths = Array.Empty<Ikiastrro.Data.GrahaDrishtiStrengthRow>();
     private IReadOnlyList<Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord> _dashaTree = Array.Empty<Ikiastrro.Core.Engines.Dasha.DashaPeriodRecord>();
@@ -1095,6 +1106,7 @@ else
         _argalaHouseMatters = Ikiastrro.Data.Statistics.LifeMatterPromiseAdapter.HouseMatters(NaisargikaRepo.LoadActive().Houses);
         _argalaFacts = ArgalaFactRepo.GetByBirthDetailId(Id);
         _rasiNakshatraCombinations = RasiNakshatraCombinationRepo.GetAll(1);
+        _nakshatraReferences = NakshatraReferenceRepo.GetAll();
         _grahaDrishtiStrengths = GrahaDrishtiStrengthRepo.GetByBirthDetailId(Id);
         // AgeStateId is populated for D1 only (PlanetaryStateFact's own doc comment), so this
         // filter is how the page narrows the person's all-chart-types fact list down to D1's

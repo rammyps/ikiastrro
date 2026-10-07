@@ -1,0 +1,91 @@
+@using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Engines.Strength
+@using Ikiastrro.Web.Components.Workspace
+
+@* Vaiseshikamsa — Astro Facts step 6, under Vimśopaka Bala. Counts the vargas a graha sits in its own
+   sign (Raman's Swavarga ladder, 16 charts) or in its own or exaltation sign (Jagannatha Hora's Dasa
+   Varga 10 and Shodasa Varga 16 groups), and names the tier that count reaches. JHora's tiers are
+   reproduced exactly for the seven grahas (JhoraVaiseshikamsaGoldenTests); Rahu and Ketu are not
+   covered. Computed live from the stored charts; nothing stored. *@
+<section class="vai" aria-labelledby="vai-title">
+    <article class="vai-card">
+        <header class="vai-head">
+            <h2 id="vai-title">Vaiseshikamsa</h2>
+            <p>How many vargas a graha holds in its own sign (Raman) or its own or exaltation sign (Jagannatha Hora),
+                and the tier that count earns. Rāhu and Ketu are not scored.</p>
+        </header>
+        @if (_missing.Count > 0)
+        {
+            <p class="vai-empty">Not every varga this needs has been generated for this person (missing @string.Join(", ", _missing)).</p>
+        }
+        else
+        {
+            <div class="vai-scroll">
+                <table class="vai-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Graha</th>
+                            <th colspan="2">Raman · own sign, 16 vargas</th>
+                            <th colspan="2">JHora · own or exalted, Dasa Varga (10)</th>
+                            <th colspan="2">JHora · own or exalted, Shodasa Varga (16)</th>
+                        </tr>
+                        <tr>
+                            <th class="vai-num">Count</th><th>Grade</th>
+                            <th class="vai-num">Count</th><th>Tier</th>
+                            <th class="vai-num">Count</th><th>Tier</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in _rows)
+                        {
+                            <tr>
+                                <th scope="row">@r.Planet</th>
+                                <td class="vai-num"><b>@r.RamanCount</b></td>
+                                <td>@(r.RamanGrade ?? "—") <span class="vai-charts">@Join(r.RamanCharts)</span></td>
+                                <td class="vai-num"><b>@r.DasaCount</b></td>
+                                <td>@(r.DasaTier ?? "—") <span class="vai-charts">@Join(r.DasaCharts)</span></td>
+                                <td class="vai-num"><b>@r.ShodasaCount</b></td>
+                                <td>@(r.ShodasaTier ?? "—") <span class="vai-charts">@Join(r.ShodasaCharts)</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </article>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyDictionary<string, LoadedChart> Charts { get; set; } = new Dictionary<string, LoadedChart>();
+
+    private static readonly PlanetName[] Grahas =
+        [PlanetName.Sun, PlanetName.Moon, PlanetName.Mars, PlanetName.Mercury, PlanetName.Jupiter, PlanetName.Venus, PlanetName.Saturn];
+
+    private sealed record Row(string Planet, int RamanCount, string? RamanGrade, IReadOnlyList<string> RamanCharts,
+        int DasaCount, string? DasaTier, IReadOnlyList<string> DasaCharts,
+        int ShodasaCount, string? ShodasaTier, IReadOnlyList<string> ShodasaCharts);
+
+    private IReadOnlyList<Row> _rows = [];
+    private IReadOnlyList<string> _missing = [];
+
+    protected override void OnParametersSet()
+    {
+        _missing = JhoraVaiseshikamsa.DasaVarga.Concat(JhoraVaiseshikamsa.ShodasaVarga).Distinct()
+            .Where(t => !Charts.ContainsKey(t)).ToList();
+        if (_missing.Count > 0) { _rows = []; return; }
+
+        var inputs = Charts.Values.Select(c => c.ToAnalysisInput()).ToList();
+        _rows = Grahas.Select(p =>
+        {
+            var raman = VaiseshikamsaCalculator.SwavargaCharts(inputs, p);
+            var dasa = JhoraVaiseshikamsa.Matching(inputs, p, JhoraVaiseshikamsa.DasaVarga);
+            var shodasa = JhoraVaiseshikamsa.Matching(inputs, p, JhoraVaiseshikamsa.ShodasaVarga);
+            return new Row(p.ToString(),
+                raman.Count, VaiseshikamsaCalculator.Grade(raman.Count), raman,
+                dasa.Count, JhoraVaiseshikamsa.DasaTier(dasa.Count), dasa,
+                shodasa.Count, JhoraVaiseshikamsa.ShodasaTier(shodasa.Count), shodasa);
+        }).ToList();
+    }
+
+    private static string Join(IReadOnlyList<string> charts) => charts.Count == 0 ? "" : string.Join(" ", charts);
+}

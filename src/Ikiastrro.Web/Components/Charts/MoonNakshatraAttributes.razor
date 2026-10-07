@@ -1,0 +1,34 @@
+@using Ikiastrro.Core.Models
+
+@* The Moon's nakshatra attributes — Astro Facts, About planets, under Moon context. The matching
+   facts (Gaṇa, Yoni, Nāḍī, Varṇa) plus Guṇa, Tattva, deity, symbol and direction, read from
+   tbl_Nakshatras. The Compatibility page scores the same Gaṇa, Yoni and Nāḍī for a pair; this is
+   where a single chart shows them. *@
+@if (Nakshatra is not null)
+{
+    <section class="mna" aria-labelledby="mna-title">
+        <article class="mna-card">
+            <header class="mna-head">
+                <h2 id="mna-title">Moon nakṣatra attributes — @Nakshatra.NakshatraName</h2>
+                <p>The traditional attributes of the nakṣatra the Moon is in; Gaṇa, Yoni, Nāḍī and Varṇa are the ones marriage matching reads.</p>
+            </header>
+            <dl class="mna-grid">
+                <div><dt>Gaṇa</dt><dd>@Show(Nakshatra.Gana)</dd></div>
+                <div><dt>Yoni</dt><dd>@(Nakshatra.YoniAnimal is null ? "—" : $"{Nakshatra.YoniAnimal}{(Nakshatra.YoniGender is null ? "" : $" ({Nakshatra.YoniGender.ToLowerInvariant()})")}")</dd></div>
+                <div><dt>Nāḍī</dt><dd>@Show(Nakshatra.Nadi)</dd></div>
+                <div><dt>Varṇa</dt><dd>@Show(Nakshatra.Varna)</dd></div>
+                <div><dt>Guṇa</dt><dd>@Show(Nakshatra.Guna)</dd></div>
+                <div><dt>Tattva</dt><dd>@Show(Nakshatra.Tatva)</dd></div>
+                <div><dt>Ruling deity</dt><dd>@Show(Nakshatra.RulingDeity)</dd></div>
+                <div><dt>Symbol</dt><dd>@Show(Nakshatra.Symbol)</dd></div>
+                <div><dt>Direction</dt><dd>@Show(Nakshatra.Direction)</dd></div>
+            </dl>
+        </article>
+    </section>
+}
+
+@code {
+    [Parameter] public NakshatraReference? Nakshatra { get; set; }
+
+    private static string Show(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
+}
