@@ -134,4 +134,38 @@ public sealed class LifeMatterPromiseAdapterTests
         Assert.Equal(PromiseVerdict.Indeterminate, promise.Verdict);
         Assert.Contains(promise.MissingEvidence, m => m.Contains("Saturn"));
     }
+
+    [Fact]
+    public void Varga_confirmation_reanchors_the_same_house_from_the_varga_lagna()
+    {
+        var focus = Focus([(10, "LAGNA", 1)], "GRAHA_SUN");
+        var d1 = LifeMatterPromiseAdapter.Read(Step(), focus, Grahas(), "Aries", Stats(), Shadbala()).Primary!;
+        var d10Grahas = Grahas();
+        d10Grahas[0].Sign = "Cancer";
+        var d10Stats = new LifeMatterStatistics("D10", "Cancer", [], [], Shadbala(), []);
+
+        var confirmation = LifeMatterVargaConfirmationAdapter.Read(
+            d1, focus, "D10", d10Grahas, "Cancer", d10Stats, Shadbala());
+
+        Assert.Equal("D10", confirmation.Chart);
+        Assert.NotEqual(PromiseVerdict.Indeterminate, confirmation.Verdict);
+        Assert.Contains("D10 10th-house confirmation", confirmation.Inference);
+
+        var vargaInput = new MatterPromiseInput(
+            d1.Promise.MatterCode, ZodiacName.Cancer, "10th house", ZodiacName.Aries,
+            LifeMatterPromiseAdapter.PlanetFacts(d10Grahas, Shadbala()),
+            Chart: "D10");
+        var vargaReading = D1PromiseEngine.Read(vargaInput);
+        Assert.All(vargaReading.D1.Testimonies, testimony => Assert.Equal("D10", testimony.Chart));
+    }
+
+    [Fact]
+    public void Varga_confirmation_rejects_D1_as_a_domain_chart()
+    {
+        var focus = Focus([(10, "LAGNA", 1)], "GRAHA_SUN");
+        var d1 = LifeMatterPromiseAdapter.Read(Step(), focus, Grahas(), "Aries", Stats(), Shadbala()).Primary!;
+
+        Assert.Throws<ArgumentException>(() => LifeMatterVargaConfirmationAdapter.Read(
+            d1, focus, "D1", Grahas(), "Aries", Stats(), Shadbala()));
+    }
 }
