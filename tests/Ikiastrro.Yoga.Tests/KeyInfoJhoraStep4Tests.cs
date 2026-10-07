@@ -216,3 +216,30 @@ public sealed class SahamTableJhoraTests
             SahamTable.Compute(Grahas, 0.6574, false).First(s => s.Code == "BHRATRU").LongitudeDegrees, 6);
     }
 }
+
+public sealed class SphutasJhoraTests
+{
+    // JHora "Copy complete calculations" for the 1_Ramakrishnan chart with Lagna 28 Pi 29' (clipboard export,
+    // 2026-09-06), longitudes from its DMS to 1e-6 deg.
+    [Fact]
+    public void ThirteenSphutasMatchJhora()
+    {
+        var rows = Sphutas.Compute(
+            lagna: 358.485128, sun: 8.019350, moon: 214.988756, mars: 3.802258,
+            jupiter: 158.742308, venus: 11.751908, rahu: 102.951003, gulika: 187.504728);
+        var expected = new (string Code, double Longitude)[]
+        {
+            ("PRANA", 179.930361), ("DEHA", 107.414764), ("MRITYU", 240.552442), ("SOOKSHMA_TRI", 167.897567),
+            ("TITHI", 206.969406), ("YOGA_SUN_MOON", 223.008103), ("RAHU_TITHI", 94.931653),
+            ("KSHETRA", 17.533322), ("BEEJA", 178.513567), ("TRI", 40.978608), ("CHATUS", 48.997958),
+            ("PANCHA", 151.948958), ("YOGI", 316.341436), ("AVAYOGI", 143.008103),
+        };
+        Assert.Equal(expected.Length, rows.Count);
+        for (var i = 0; i < expected.Length; i++)
+        {
+            Assert.Equal(expected[i].Code, rows[i].Code);
+            var diff = Math.Abs(AstroMath.Normalize(rows[i].Longitude - expected[i].Longitude + 180) - 180);
+            Assert.True(diff < 0.0001, $"{expected[i].Code}: ours {rows[i].Longitude:F5}, JHora {expected[i].Longitude:F5}");
+        }
+    }
+}

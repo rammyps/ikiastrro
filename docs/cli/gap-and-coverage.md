@@ -79,8 +79,7 @@ detection** (`verify-strength` all green) · source-attributed yoga inputs · pr
 
 ## Parity gaps (lower priority)
 
-- **Sphutas** — Prana, Deha, Mrityu, Sookshma Tri-Sphuta, Tithi, Yoga, Kshetra, Beeja, Tri,
-  Chatus, Pancha, Kunda, Avayoga and Dhūma-derived points.
+- **Sphutas — 13 delivered** (`Engines/KeyInfo/Sphutas.cs`: Prāṇa, Deha, Mṛtyu, Sūkṣma Tri-, Tithi, Yoga (Sun–Moon), Rāhu Tithi, Kṣetra, Bīja, Tri-, Catus-, Pañca-sphuṭa, Yogi, Avayoga; all match JHora to under 0.1″, `SphutasJhoraTests`). Remaining: **Kuṇḍa** — no formula found; no integer-multiple combination of Lagna/grahas/Gulika/Māndi (± constant) fits JHora's five reference charts, so it needs a source. Vighati Lagna stays deliberately unbuilt (equals Pranapada in the reference chart).
 - **Additional dashas** — Ashtottari, Yogini (applicability rules); Jaimini rāśi dashas
   (Moola, Narayana, Sudasa); Kālachakra. Each uses the generic dasha-period storage, carries
   its system + rule-set identity, and has worked reference assertions. PyJHora is a
