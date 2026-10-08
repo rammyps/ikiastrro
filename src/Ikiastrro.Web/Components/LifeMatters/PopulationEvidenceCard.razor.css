@@ -1,4 +1,4 @@
-.pop-card { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: color-mix(in srgb, var(--card-bg) 94%, var(--brand-accent)); color: var(--card-fg); min-width: 0; }
+.pop-card { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); min-width: 0; }
 .pop-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .pop-kicker { font-size: var(--font-size-meta); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-muted); }
 .pop-what { margin: 2px 0 0; font-size: var(--font-size-support); }
@@ -28,7 +28,7 @@
 /* Distribution strip: 0–100 axis; position is the value, so colour is only a scan aid. */
 .pop-strip { position: relative; height: 26px; margin: 14px 0 0; border-radius: 4px; background: color-mix(in srgb, var(--brand-line) 45%, transparent); }
 .pop-strip > span { position: absolute; }
-.pop-iqr { top: 5px; bottom: 5px; border-radius: 3px; background: color-mix(in srgb, var(--brand-accent) 38%, transparent); }
+.pop-iqr { top: 5px; bottom: 5px; border-radius: 3px; background: color-mix(in srgb, var(--status-moderate) 70%, transparent); }
 .pop-ci { top: 11px; height: 4px; background: var(--card-fg); opacity: .55; }
 .pop-median { top: 3px; bottom: 3px; width: 2px; margin-left: -1px; background: var(--card-fg); }
 .pop-you { top: -3px; bottom: -3px; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--brand-midnight); box-shadow: 0 0 0 2px var(--card-bg); }
@@ -40,7 +40,7 @@
 .pop-legend li { display: inline-flex; align-items: center; gap: 6px; }
 .pop-legend i { display: inline-block; }
 .k-you { width: 4px; height: 12px; background: var(--brand-midnight); border-radius: 2px; }
-.k-iqr { width: 16px; height: 8px; background: color-mix(in srgb, var(--brand-accent) 38%, transparent); border-radius: 2px; }
+.k-iqr { width: 16px; height: 8px; background: color-mix(in srgb, var(--status-moderate) 70%, transparent); border-radius: 2px; }
 .k-median { width: 2px; height: 12px; background: var(--card-fg); }
 .k-ci { width: 16px; height: 4px; background: var(--card-fg); opacity: .55; }
 

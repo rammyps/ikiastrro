@@ -48,6 +48,8 @@
 
 @code {
     [Parameter, EditorRequired] public int Id { get; set; }
+    /// <summary>Development preview only: render this snapshot instead of reading the latest run.</summary>
+    [Parameter] public PopulationEvidenceSnapshot? PreviewSnapshot { get; set; }
 
     private PopulationEvidenceSnapshot _snapshot = default!;
     private IReadOnlyList<PopulationComparison> _rows = [];
@@ -100,7 +102,7 @@
     protected override void OnParametersSet()
     {
 
-        _snapshot = PopulationEvidenceRepo.GetLatestForBirthDetail(Id);
+        _snapshot = PreviewSnapshot ?? PopulationEvidenceRepo.GetLatestForBirthDetail(Id);
         const byte ruleSetId = 1;
         _houseMatters = LifeMatterHouseIndex.ByHouse(
             LifeMatterReferenceRepo.GetAllSteps(ruleSetId), LifeMatterFocusRepo.GetFoci(ruleSetId));

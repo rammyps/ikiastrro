@@ -1,0 +1,43 @@
+@page "/key-stats-preview/{Id:int}"
+@using Ikiastrro.Data.Statistics
+@using Ikiastrro.Web.Components.LifeMatters
+@inject IWebHostEnvironment Env
+
+@* Development-only: the POPULATION view over fabricated comparison data, so the populated layout
+   (summary chips, filters, house grid, links) can be checked without a 30-person cohort. Nothing
+   is read from or written to the analytics tables. 404-equivalent outside Development. *@
+
+@if (!Env.IsDevelopment())
+{
+    <p>Not found.</p>
+}
+else
+{
+    <p class="ks-preview-banner">DEVELOPMENT PREVIEW — fabricated data, not a real cohort.</p>
+    <KeyStatsPanel Id="Id" PreviewSnapshot="_snapshot" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private static readonly PopulationEvidenceSnapshot _snapshot = Build();
+
+    private static PopulationEvidenceSnapshot Build()
+    {
+        // house, personal, median, q1, q3, z, percentile, sufficiency, measured
+        (byte H, decimal P, decimal M, decimal Q1, decimal Q3, decimal Z, decimal Pct, string S, int N)[] data =
+        [
+            (1, 36, 48, 40, 56, -1.4m, 14, "SUFFICIENT", 48), (2, 61, 50, 42, 58, 1.2m, 82, "SUFFICIENT", 48),
+            (3, 49, 51, 43, 59, -.2m, 44, "SUFFICIENT", 47), (4, 72, 52, 44, 60, 2.3m, 96, "SUFFICIENT", 48),
+            (5, 55, 50, 41, 57, .5m, 63, "EXPLORATORY", 31), (6, 30, 47, 39, 55, -2.1m, 4, "SUFFICIENT", 48),
+            (7, 45, 49, 40, 57, -.4m, 38, "SUFFICIENT", 46), (8, 58, 48, 40, 55, 1.1m, 77, "EXPLORATORY", 33),
+            (9, 52, 51, 43, 59, .1m, 53, "SUFFICIENT", 48), (10, 40, 50, 42, 58, -1.0m, 21, "SUFFICIENT", 48),
+            (11, 64, 49, 41, 57, 1.8m, 90, "SUFFICIENT", 48), (12, 47, 46, 38, 54, .2m, 55, "INSUFFICIENT", 12)
+        ];
+        var rows = data.Select(d => new PopulationComparison(
+            d.H, "KI_D1_HOUSE_SUPPORT_V2", d.S == "INSUFFICIENT" ? null : d.P, 48, d.N, 1m - d.N / 48m, d.M, d.Q1, d.Q3,
+            d.S == "INSUFFICIENT" ? null : d.Z, d.S == "INSUFFICIENT" ? null : d.Pct, d.M - 3, d.M + 3, d.S)).ToList();
+        return new PopulationEvidenceSnapshot("AVAILABLE", "ELIGIBLE", "RESEARCH", 48, 0, "PREVIEW", 0, "v2", 1,
+            DateTime.UtcNow, rows);
+    }
+}

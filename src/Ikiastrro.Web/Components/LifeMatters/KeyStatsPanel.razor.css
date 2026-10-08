@@ -30,3 +30,4 @@
 .ks-filter { padding: 4px 12px; border: 1px solid var(--brand-line); border-radius: 999px; background: transparent; color: var(--card-fg); font: 700 var(--font-size-meta) 'Manrope', 'Segoe UI', sans-serif; cursor: pointer; }
 .ks-filter small { margin-left: 4px; color: var(--brand-muted); }
 .ks-filter.is-on { background: var(--brand-sunrise); border-color: var(--brand-midnight); color: var(--brand-midnight); }
+.ks-card ::deep .pop-row-head { flex-wrap: wrap; row-gap: 4px; }
