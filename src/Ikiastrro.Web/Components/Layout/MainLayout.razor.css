@@ -305,10 +305,11 @@
     background: var(--brand-sunrise);
 }
 
+/* Logo lockup flush to the left edge of the bar with no gap (rammyps, 2026-10-08), so the inner row is
+   full-bleed on the left (no max-width column, no left padding); the dedication takes everything to the
+   right of the logo, centred in that span. */
 .ik-footer-inner {
-    max-width: var(--maxw);
-    margin-inline: auto;
-    padding: 20px var(--pad-x);
+    padding: 20px var(--pad-x) 20px 0;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -325,7 +326,7 @@
    footer width and centres within it, so it still reads as the bar's focal line even though the
    brand now shares the row (rammyps, 2026-09-26). */
 .ik-footer-line {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     display: inline-block;
     text-align: center;
     text-wrap: balance;
