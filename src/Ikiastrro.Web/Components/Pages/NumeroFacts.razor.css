@@ -1,5 +1,5 @@
 /* NUMEROFACTS. Tokens only; Manrope; the one card look. */
-.nf-heading { margin: 4px 0 16px; color: var(--brand-midnight); font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }
+.nf-heading { margin: 4px 0 16px; color: var(--brand-midnight); font: 800 var(--font-size-display) / 1.1 'Manrope', 'Segoe UI', sans-serif; letter-spacing: -0.03em; text-transform: uppercase; }
 .nf-card { max-width: 1000px; margin-bottom: 16px; padding: 18px 22px; border: 1px solid var(--card-line, var(--brand-line)); border-radius: 12px; background: var(--card-bg, var(--brand-canvas)); box-shadow: 0 6px 18px var(--shadow, rgb(15 32 65 / 0.08)); }
 .nf-sub { margin: 0 0 6px; color: var(--brand-midnight); font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
 .nf-note { margin: 6px 0; color: var(--brand-muted); font-size: var(--font-size-support); }
