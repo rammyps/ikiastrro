@@ -1,0 +1,9 @@
+/* Row ↔ chart link. Fill = the theme's soft highlight (--brand-sunrise, retuned per theme), edge and
+   text weight = the theme ink (--brand-midnight): the same pair the chart cell uses, so a row and its
+   cell read as one thing in every colour theme. */
+tr.pl-row { cursor: pointer; transition: background-color .12s ease; }
+tr.pl-row:hover, tr.pl-row.is-linked { background: color-mix(in srgb, var(--brand-sunrise) 70%, transparent); }
+tr.pl-row.is-linked > td:first-child { box-shadow: inset 4px 0 0 var(--brand-midnight); }
+tr.pl-row.is-linked > td { font-weight: 700; }
+tr.pl-row.is-pinned { background: var(--brand-sunrise); }
+tr.pl-row:focus-visible { outline: 2px solid var(--brand-midnight); outline-offset: -2px; }

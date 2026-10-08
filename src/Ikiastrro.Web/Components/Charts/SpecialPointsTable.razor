@@ -14,7 +14,7 @@
         @foreach (var p in Rows)
         {
             var (nakshatra, pada) = AstroMath.GetNakshatraAndPada(p.NirayanaLongitudeDegrees);
-            <tr>
+            <LinkedRow Focus="@(new PointFocus(p.Sign, Label(p.Planet)))">
                 <td><span class="code">@Code(p.Planet)</span> @Label(p.Planet)</td>
                 <td>@Disp(p.Sign)</td>
                 @if (ShowDegree)
@@ -24,7 +24,7 @@
                     <td class="mono">@pada</td>
                 }
                 <td class="mono">H@(p.HouseNumberFromLagna)</td>
-            </tr>
+            </LinkedRow>
         }
         </tbody>
     </table>

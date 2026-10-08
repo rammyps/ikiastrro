@@ -1,0 +1,51 @@
+@implements IDisposable
+@* A table row tied to a chart point. Hover / keyboard focus previews the point on the chart, a click
+   (or Enter / Space) pins it, clicking again unpins. Outside a PointLinkState cascade it renders as
+   a plain row. Highlight colours come from the theme's tokens (see LinkedRow.razor.css). *@
+@if (State is null || Focus is null)
+{
+    <tr class="@Class">@ChildContent</tr>
+}
+else
+{
+    <tr class="pl-row @Class @(IsCurrent ? "is-linked" : null) @(IsPinned ? "is-pinned" : null)"
+        tabindex="0" aria-pressed="@(IsPinned ? "true" : "false")"
+        title="Hover to show on the chart; click to pin"
+        @onmouseenter="() => State.SetHover(Focus)" @onmouseleave="() => State.SetHover(null)"
+        @onfocus="() => State.SetHover(Focus)" @onblur="() => State.SetHover(null)"
+        @onclick="() => State.TogglePin(Focus)" @onkeydown="OnKey">
+        @ChildContent
+    </tr>
+}
+
+@code {
+    [CascadingParameter] public PointLinkState? State { get; set; }
+    [Parameter] public PointFocus? Focus { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private PointLinkState? _subscribed;
+
+    private bool IsCurrent => State?.Current is { } c && c == Focus;
+    private bool IsPinned => State?.Pinned is { } p && p == Focus;
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_subscribed, State)) return;
+        if (_subscribed is not null) _subscribed.Changed -= OnChanged;
+        _subscribed = State;
+        if (_subscribed is not null) _subscribed.Changed += OnChanged;
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " " && State is not null && Focus is not null) State.TogglePin(Focus);
+    }
+
+    public void Dispose()
+    {
+        if (_subscribed is not null) _subscribed.Changed -= OnChanged;
+    }
+}

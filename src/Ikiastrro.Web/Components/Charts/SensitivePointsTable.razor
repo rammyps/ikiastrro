@@ -14,14 +14,14 @@ else
             @foreach (var r in Rows)
             {
                 var (nak, pada) = AstroMath.GetNakshatraAndPada(r.Longitude);
-                <tr class="@(r.IsVarnada ? "kit-sub" : "")">
+                <LinkedRow Class="@(r.IsVarnada ? "kit-sub" : "")" Focus="@(new PointFocus(PointFocus.SignOf(r.Longitude), r.Name))">
                     <td><b>@r.Name</b></td>
                     <td>@SignName(r.Longitude)</td>
                     <td class="mono">@AstroMath.FormatDegreesMinutesSeconds(r.Longitude % 30)</td>
                     <td>@(r.IsVarnada ? "—" : $"{AstroMath.GetNakshatraName(nak)} {pada}")</td>
                     <td class="mono">H@(HouseFrom(r.Longitude))</td>
                     <td>@r.Note</td>
-                </tr>
+                </LinkedRow>
             }
             </tbody>
         </table>

@@ -390,9 +390,16 @@
     margin-left: calc(50% - 50vw);
     padding-inline: 12px;
 }
+/* Locked while the tables scroll: the whole chart column — collapse button, chart / varga picker and
+   the chart — stays under the app bar, so a hovered or pinned special point is always visible on it
+   (rammyps, 2026-10-08). Taller than the viewport (short windows) → the column scrolls itself. */
 .ki-natal-layout .ki-gridwrap {
     position: sticky;
-    top: 12px;
+    top: calc(var(--ik-appbar-h, 58px) + 12px);
+    max-height: calc(100vh - var(--ik-appbar-h, 58px) - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: 3;
     width: 100%;
     margin: 0;
 }

@@ -24,6 +24,7 @@
         @foreach (var cell in GridCells)
         {
             var isAscendant = cell.MatchSign == AscendantSign;
+            var isLinked = !Compact && HighlightSign == cell.MatchSign;
             var glyphs = PlanetsBySign.TryGetValue(cell.MatchSign, out var list) ? list : Array.Empty<GridPlanetGlyph>();
             var cellSign = Enum.Parse<ZodiacName>(cell.MatchSign);
             var houseFromLagna = AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(AscendantSign), cellSign);
@@ -32,7 +33,7 @@
                 : AstroMath.CountFromSignToSign(Enum.Parse<ZodiacName>(MoonSign), cellSign);
             var aspectedBy = !Compact && AspectedByGlyphs.TryGetValue(cell.MatchSign, out var byList) ? byList : Array.Empty<string>();
 
-            <div class="cell @(isAscendant ? "ascendant" : "")" style="grid-column:@cell.Col;grid-row:@cell.Row;">
+            <div class="cell @(isAscendant ? "ascendant" : "") @(isLinked ? "link-hl" : "")" data-sign="@cell.MatchSign" style="grid-column:@cell.Col;grid-row:@cell.Row;">
                 <span class="house-nums">
                     <span class="house-num from-lagna" title="House @houseFromLagna from Lagna">@houseFromLagna</span>
                     @if (houseFromMoon is int hm)
@@ -41,6 +42,10 @@
                     }
                 </span>
                 <div class="sign-label"><span class="sign-en">@cell.DisplayEn</span></div>
+                @if (isLinked && !string.IsNullOrEmpty(HighlightLabel))
+                {
+                    <div class="special-labels"><span class="special-label link-label">@HighlightLabel</span></div>
+                }
                 @if (SpecialPointLabels.TryGetValue(cell.MatchSign, out var sp) && sp.Count > 0)
                 {
                     <div class="special-labels">
@@ -99,6 +104,11 @@
 
     /// <summary>Reduced detail for the saved-charts card gallery: hides the aspect strips.</summary>
     [Parameter] public bool Compact { get; set; }
+
+    /// <summary>Sign (internal ZodiacName spelling) to highlight as the target of a linked table row, with
+    /// the point's label printed in that cell. Null = no link highlight.</summary>
+    [Parameter] public string? HighlightSign { get; set; }
+    [Parameter] public string? HighlightLabel { get; set; }
 
     /// <summary>
     /// Sign → distinct glyphs of the planets casting an aspect (Drishti) into that sign, sourced from

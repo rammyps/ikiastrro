@@ -31,7 +31,7 @@ else
             @foreach (var s in _rows)
             {
                 var house = _inputs.HouseOf(s.LongitudeDegrees);
-                <tr>
+                <LinkedRow Focus="@(new PointFocus(PointFocus.SignOf(s.LongitudeDegrees), s.Name.Replace(" Saham", "")))">
                     <td><b>@s.Name.Replace(" Saham", "")</b></td>
                     <td>@s.Meaning</td>
                     <td>@KeyInfoFormat.Sign(s.LongitudeDegrees)</td>
@@ -39,7 +39,7 @@ else
                     <td>@KeyInfoFormat.Star(s.LongitudeDegrees)</td>
                     <td class="mono">H@(house)</td>
                     <td><PlanetChip Planet="@HouseEngine.GetSignLord(s.Sign)" /> @HouseEngine.GetSignLord(s.Sign)</td>
-                </tr>
+                </LinkedRow>
             }
             </tbody>
         </table>

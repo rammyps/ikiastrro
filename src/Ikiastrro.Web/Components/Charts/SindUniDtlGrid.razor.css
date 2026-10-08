@@ -66,3 +66,9 @@
 
 /* Gallery cards: little room, so only the house from Lagna is shown. */
 .compact .house-num.from-moon { display: none; }
+
+/* Linked special point (a hovered / pinned table row): the theme's soft highlight fill with the theme
+   ink as the edge — the same pair LinkedRow uses, so it follows whichever colour theme is picked. */
+.cell.link-hl { background: linear-gradient(var(--brand-sunrise), var(--brand-sunrise)), var(--paper-raised); box-shadow: inset 0 0 0 3px var(--brand-midnight); }
+.cell.link-hl.ascendant { box-shadow: inset 0 0 0 3px var(--brand-midnight), inset 0 0 0 5px var(--accent); }
+.cell.link-hl .special-label.link-label { color: var(--brand-midnight); border-color: var(--brand-midnight); font-weight: 700; background: color-mix(in srgb, var(--brand-sunrise) 60%, transparent); }
