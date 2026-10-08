@@ -176,10 +176,10 @@ else
                         <div class="ki-natal-detail ki-subnav-wrap">
                         <nav class="ki-subnav" role="tablist" aria-label="Natal chart details">
                             <button type="button" role="tab" id="ki-natal-tab-0" aria-selected="@(_activeTab == 0)" aria-controls="ki-natal-panel-0" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 0">GENERAL</button>
-                            <button type="button" role="tab" id="ki-natal-tab-4" aria-selected="@(_activeTab == 4)" aria-controls="ki-natal-panel-4" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 4">SPECIAL POINTS</button>
                             <button type="button" role="tab" id="ki-natal-tab-1" aria-selected="@(_activeTab == 1)" aria-controls="ki-natal-panel-1" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 1">ABOUT PLANETS</button>
                             <button type="button" role="tab" id="ki-natal-tab-2" aria-selected="@(_activeTab == 2)" aria-controls="ki-natal-panel-2" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 2">ABOUT HOUSES</button>
                             <button type="button" role="tab" id="ki-natal-tab-3" aria-selected="@(_activeTab == 3)" aria-controls="ki-natal-panel-3" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 3">SIGNS &amp; PLANET ASPECTS</button>
+                            <button type="button" role="tab" id="ki-natal-tab-4" aria-selected="@(_activeTab == 4)" aria-controls="ki-natal-panel-4" class="ki-steptab ki-steptab-sub" @onclick="() => _activeTab = 4">SPECIAL POINTS</button>
                         </nav>
                         <div class="ki-subpanels">
                             @if (SubShows(_activeTab, 0))
@@ -696,8 +696,8 @@ else
         : @<text></text>;
 
     private int _masterTab;
-    /// <summary>Natal sub-tab: 0 General, 4 Special points, 1 About planets, 2 About houses,
-    /// 3 Signs &amp; planet aspects (nav order; 4 was split out of General 2026-10-02, so the
+    /// <summary>Natal sub-tab: 0 General, 1 About planets, 2 About houses,
+    /// 3 Signs &amp; planet aspects, 4 Special points last (nav order; 4 was split out of General 2026-10-02, so the
     /// older indices and their ?step= links keep their meaning).</summary>
     private int _activeTab;
     private int _strengthTab;
