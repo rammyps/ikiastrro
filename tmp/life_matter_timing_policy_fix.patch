@@ -1,0 +1,11 @@
+diff --git a/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs b/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
+--- a/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
++++ b/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
+@@ -88,1 +88,3 @@ public static class LifeMatterTimingDataAdapter
+-        snapshots.Where(snapshot => snapshot.SignId is >= 1 and <= 12)
++        snapshots.Where(snapshot =>
++                snapshot.Planet is PlanetName.Jupiter or PlanetName.Saturn or PlanetName.Rahu or PlanetName.Ketu &&
++                snapshot.SignId is >= 1 and <= 12)
+@@ -151,1 +153,1 @@ public sealed class LifeMatterTimingDataService(
+-        var dasha = dashaPeriods.GetLordsOnDate(birthDetailId, utc);
++        var dasha = dashaPeriods.GetLordsOnDate(birthDetailId, utc.Date);

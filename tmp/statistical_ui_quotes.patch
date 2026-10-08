@@ -1,0 +1,23 @@
+diff --git a/src/Ikiastrro.Web/Components/Pages/KeyInference.razor b/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
+--- a/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
++++ b/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
+@@ -214,6 +214,6 @@
+-            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "READING")"
+-                    class="@(_viewTab == "READING" ? "selected" : null)" @onclick="() => SelectView("READING")">
++            <button type="button" role="tab" aria-selected='@Aria(_viewTab == "READING")'
++                    class='@(_viewTab == "READING" ? "selected" : null)' @onclick='() => SelectView("READING")'>
+                 READING
+             </button>
+-            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "STATISTICAL")"
+-                    class="@(_viewTab == "STATISTICAL" ? "selected" : null)" @onclick="() => SelectView("STATISTICAL")">
++            <button type="button" role="tab" aria-selected='@Aria(_viewTab == "STATISTICAL")'
++                    class='@(_viewTab == "STATISTICAL" ? "selected" : null)' @onclick='() => SelectView("STATISTICAL")'>
+@@ -224 +224 @@
+-        <div class="lm-tab-panel" role="tabpanel" hidden="@(_viewTab != "READING")">
++        <div class="lm-tab-panel" role="tabpanel" hidden='@(_viewTab != "READING")'>
+@@ -756 +756 @@
+-        <section class="lm-statistical lm-tab-panel" role="tabpanel" hidden="@(_viewTab != "STATISTICAL")"
++        <section class="lm-statistical lm-tab-panel" role="tabpanel" hidden='@(_viewTab != "STATISTICAL")'
+@@ -765 +765 @@
+-                    <input type="date" value="@_timingDate.ToString("yyyy-MM-dd")" @onchange="OnTimingDateChanged" />
++                    <input type="date" value='@_timingDate.ToString("yyyy-MM-dd")' @onchange="OnTimingDateChanged" />

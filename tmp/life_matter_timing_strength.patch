@@ -1,0 +1,51 @@
+diff --git a/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs b/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
+--- a/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
++++ b/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
+@@ -55,7 +55,9 @@ public static class LifeMatterTimingDataAdapter
+         return charts;
+     }
+ 
+-    public static GocharaNatalContext? BuildNatalContext(IReadOnlyList<ChartKeyDetail> d1)
++    public static GocharaNatalContext? BuildNatalContext(
++        IReadOnlyList<ChartKeyDetail> d1, IReadOnlyDictionary<PlanetName, StrengthTier>? planetStrength = null,
++        IReadOnlyDictionary<int, StrengthTier>? houseStrength = null)
+     {
+@@ -77,7 +79,8 @@ public static class LifeMatterTimingDataAdapter
+             house => house,
+             house => Enum.Parse<PlanetName>(HouseEngine.GetSignLord(
+                 HouseEngine.GetHouseSign(ascendantSign, house))));
+-        return new GocharaNatalContext(ascendantSign, houseLords, natalSigns,
+-            new Dictionary<PlanetName, StrengthTier>(), new Dictionary<int, StrengthTier>());
++        return new GocharaNatalContext(ascendantSign, houseLords, natalSigns,
++            planetStrength ?? new Dictionary<PlanetName, StrengthTier>(),
++            houseStrength ?? new Dictionary<int, StrengthTier>());
+@@ -118,6 +121,8 @@ public sealed class LifeMatterTimingDataService(
+     ChartKeyDetailsRepository keyDetails,
+     DashaPeriodsRepository dashaPeriods,
+-    GocharaRepository gochara)
++    GocharaRepository gochara,
++    PlanetaryStrengthRepository planetaryStrength,
++    BhavaStrengthRepository bhavaStrength)
+@@ -146,12 +151,28 @@ public sealed class LifeMatterTimingDataService(
+         var dasha = dashaPeriods.GetLordsOnDate(birthDetailId, utc);
+@@ -151,3 +172,19 @@ public sealed class LifeMatterTimingDataService(
+         var d1Result = storedResults.First(result => result.ChartType == "D1");
+-        var natal = LifeMatterTimingDataAdapter.BuildNatalContext(keyDetails.GetByChartResultId(d1Result.Id));
++        var planetBands = planetaryStrength.GetSummaryByBirthDetailId(birthDetailId)
++            .Where(row => Enum.TryParse<PlanetName>(row.Planet, true, out _))
++            .ToDictionary(row => Enum.Parse<PlanetName>(row.Planet, true),
++                row => StrengthBands.ShadbalaPercentOfMinimum.Classify(row.PercentOfMinimum));
++        var rupas = IndependentBhavaBala.RupasByHouse(
++            bhavaStrength.GetComponentsByBirthDetailId(birthDetailId));
++        var houseBands = new Dictionary<int, StrengthTier>();
++        if (rupas.Count >= 2)
++        {
++            var values = rupas.Values.Select(value => (double)value).ToList();
++            var mean = values.Average();
++            var sd = Math.Sqrt(values.Sum(value => (value - mean) * (value - mean)) / values.Count);
++            foreach (var (house, value) in rupas)
++                houseBands[house] = StrengthBands.IndependentBhavaBalaZ.Classify(
++                    sd == 0 ? 0m : (decimal)(((double)value - mean) / sd));
++        }
++        var natal = LifeMatterTimingDataAdapter.BuildNatalContext(
++            keyDetails.GetByChartResultId(d1Result.Id), planetBands, houseBands);

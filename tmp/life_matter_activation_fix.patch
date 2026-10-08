@@ -1,0 +1,7 @@
+diff --git a/src/Ikiastrro.Core/LifeMatters/Activation/LifeMatterActivationEngine.cs b/src/Ikiastrro.Core/LifeMatters/Activation/LifeMatterActivationEngine.cs
+--- a/src/Ikiastrro.Core/LifeMatters/Activation/LifeMatterActivationEngine.cs
++++ b/src/Ikiastrro.Core/LifeMatters/Activation/LifeMatterActivationEngine.cs
+@@ -111,1 +111,2 @@
+-        var relevant = transitList.Where(transit =>
++        var relevant = transitList.Where(transit =>
++            activation.State == DashaActivationState.Active &&

@@ -1,0 +1,103 @@
+diff --git a/src/Ikiastrro.Data/Statistics/LifeMatterPromiseAdapter.cs b/src/Ikiastrro.Data/Statistics/LifeMatterPromiseAdapter.cs
+--- a/src/Ikiastrro.Data/Statistics/LifeMatterPromiseAdapter.cs
++++ b/src/Ikiastrro.Data/Statistics/LifeMatterPromiseAdapter.cs
+@@ -150,0 +151,62 @@ public static class LifeMatterPromiseAdapter
++/// <summary>
++/// Reads the matter's designated divisional chart independently of D1 and returns the compact
++/// confirmation consumed by the timing pipeline. The same target-house number is counted from the
++/// varga Lagna; varga SAV/BAV and Argala are chart-specific, while planetary capacity and Amsabala
++/// retain their existing person-level definitions. D1-only Bhava Bala is deliberately unavailable.
++/// </summary>
++public static class LifeMatterVargaConfirmationAdapter
++{
++    public static DomainConfirmation Read(
++        MatterTargetPromise d1Target,
++        ResolvedLifeMatterFocus focus,
++        string chartType,
++        IReadOnlyList<ChartKeyDetail> chartKeyDetails,
++        string ascendantSign,
++        LifeMatterStatistics stats,
++        IReadOnlyList<ShadbalaSummaryRow> shadbala,
++        IReadOnlyDictionary<PlanetName, IReadOnlyList<PlanetSignification>>? significations = null,
++        IReadOnlyDictionary<int, string>? houseMatters = null)
++    {
++        ArgumentException.ThrowIfNullOrWhiteSpace(chartType);
++        if (string.Equals(chartType, "D1", StringComparison.OrdinalIgnoreCase))
++            throw new ArgumentException("A domain confirmation requires a divisional chart, not D1.", nameof(chartType));
++
++        var grahas = chartKeyDetails.Where(row => row.PointKind == "Graha").ToList();
++        var lagna = Enum.Parse<ZodiacName>(ascendantSign);
++        var target = LifeMatterFocusResolver.ResolveHouseSign(lagna, d1Target.House);
++        var karakas = LifeMatterPromiseAdapter.KarakaPlanets(grahas, focus);
++        var targetStats = stats.ForSign(target.ToString(), karakas.Select(planet => planet.ToString()));
++        var input = new MatterPromiseInput(
++            d1Target.Promise.MatterCode, lagna, $"{Ordinal(d1Target.House)} house", target,
++            LifeMatterPromiseAdapter.PlanetFacts(grahas, shadbala), karakas,
++            TargetCapacity: Capacity.Unknown,
++            SavBand: LifeMatterPromiseAdapter.ToCapacity(targetStats.SavBand),
++            LordBavBand: LifeMatterPromiseAdapter.ToCapacity(targetStats.LordBavBand),
++            ArgalaPlanets: LifeMatterPromiseAdapter.ArgalaPlanets(targetStats.Argala, held: true),
++            VirodhargalaPlanets: LifeMatterPromiseAdapter.ArgalaPlanets(targetStats.Argala, held: false),
++            TechnicalSupportIndex: targetStats.StrengthPercent,
++            Chart: chartType,
++            ArgalaLinks: LifeMatterPromiseAdapter.Links(targetStats.Argala),
++            Significations: significations,
++            HouseMatters: houseMatters);
++        var reading = D1PromiseEngine.Read(input);
++        return new DomainConfirmation(chartType, reading.Verdict,
++            $"{chartType} {Ordinal(d1Target.House)}-house confirmation from its own Lagna: {reading.DominantSupport}; obstruction: {reading.DominantObstruction}.");
++    }
++
++    private static string Ordinal(int number) =>
++        number + (number % 100 is 11 or 12 or 13 ? "th" : (number % 10) switch
++        {
++            1 => "st", 2 => "nd", 3 => "rd", _ => "th"
++        });
++}
++
+diff --git a/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs b/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
+--- a/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
++++ b/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
+@@ -108,3 +108,3 @@ public static class LifeMatterTimingDataAdapter
+-/// It does not invent missing varga evidence: until DomainConfirmation is populated by the varga
+-/// adapter, that stage remains NotEvaluated in the returned activation.
++/// The relevant varga is evaluated independently and attached to the D1 promise before activation;
++/// missing varga facts remain explicit and leave that stage NotEvaluated.
+@@ -124 +124,5 @@ public sealed class LifeMatterTimingDataService(
+-    BhavaStrengthRepository bhavaStrength)
++    BhavaStrengthRepository bhavaStrength,
++    AshtakavargaRepository ashtakavarga,
++    AmsabalaRepository amsabala,
++    ArgalaFactRepository argala,
++    NaisargikaKarakaRepository naisargika)
+@@ -154,0 +159,28 @@ public sealed class LifeMatterTimingDataService(
++        var promise = reading.Primary.Promise;
++        if (!string.Equals(requiredChart, "D1", StringComparison.OrdinalIgnoreCase) &&
++            charts.ContainsKey(requiredChart))
++        {
++            var domainResult = storedResults.First(result =>
++                string.Equals(result.ChartType, requiredChart, StringComparison.OrdinalIgnoreCase));
++            var domainDetails = keyDetails.GetByChartResultId(domainResult.Id);
++            var domainAscendant = domainDetails.FirstOrDefault(row =>
++                row.PointKind == "Graha" && row.Planet == "Ascendant")?.Sign;
++            if (domainAscendant is null)
++                missing.Add($"The relevant {requiredChart} chart has no persisted Ascendant; varga support was not evaluated.");
++            else
++            {
++                var shadbala = planetaryStrength.GetSummaryByBirthDetailId(birthDetailId);
++                var domainStats = new LifeMatterStatistics(requiredChart, domainAscendant,
++                    ashtakavarga.GetByBirthDetailId(birthDetailId), [], shadbala,
++                    ArgalaFacts.ForChart(argala.GetByBirthDetailId(birthDetailId), requiredChart,
++                        domainAscendant, domainDetails), null, amsabala.GetByBirthDetailId(birthDetailId));
++                var naturalRules = naisargika.LoadActive();
++                var domain = LifeMatterVargaConfirmationAdapter.Read(reading.Primary, focus,
++                    requiredChart, domainDetails, domainAscendant, domainStats, shadbala,
++                    LifeMatterPromiseAdapter.Significations(naturalRules.Details),
++                    LifeMatterPromiseAdapter.HouseMatters(naturalRules.Houses));
++                promise = promise with { Domain = domain };
++            }
++        }
++
+@@ -185 +218 @@ public sealed class LifeMatterTimingDataService(
+-            reading.Primary.Promise, focus, availableRules, dasha, transits));
++            promise, focus, availableRules, dasha, transits));

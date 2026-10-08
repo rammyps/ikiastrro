@@ -1,0 +1,14 @@
+diff --git a/src/Ikiastrro.Web/Components/Pages/KeyInference.razor b/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
+--- a/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
++++ b/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
+@@ -752,5 +752,4 @@
+         </section>
+     }
+-}
+-
+         </div>
+ 
+@@ -822,0 +822,2 @@
++}
++
+ @code {

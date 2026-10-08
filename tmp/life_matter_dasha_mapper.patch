@@ -1,0 +1,240 @@
+diff --git a/src/Ikiastrro.Core/Engines/Dasha/DashaMatters.cs b/src/Ikiastrro.Core/Engines/Dasha/DashaMatters.cs
+--- a/src/Ikiastrro.Core/Engines/Dasha/DashaMatters.cs
++++ b/src/Ikiastrro.Core/Engines/Dasha/DashaMatters.cs
+@@ -14,10 +14,17 @@ public sealed record DashaMatterChart(ChartAnalysisInput Chart, IReadOnlyDiction
+ /// <summary>A planet that meets a rule, and the placement that makes it meet it.</summary>
+ public sealed record DashaMatterPlanet(PlanetName Planet, string Why);
+ 
++public enum DashaMatterScopeKind { Example, ChartTheme, House, NaturalKaraka }
++
++/// <summary>Machine-readable scope used to join a rule to a LifeMatter without matching prose.</summary>
++public sealed record DashaMatterScope(DashaMatterScopeKind Kind, int? House = null, PlanetName? Karaka = null);
++
+ /// <summary>
+ /// One of PVR's nine examples. <see cref="Planets"/> are the planets whose dasas and antardasas can bring the
+ /// <see cref="Result"/>; empty with a null <see cref="NotEvaluated"/> means the chart has no planet meeting the rule.
+ /// </summary>
+ public sealed record DashaMatterRule(
+     int Number, string Varga, string Statement, string Result,
+-    IReadOnlyList<DashaMatterPlanet> Planets, string? NotEvaluated, string? Note, string Source = "");
++    IReadOnlyList<DashaMatterPlanet> Planets, string? NotEvaluated, string? Note, string Source = "",
++    DashaMatterScope? Scope = null);
+@@ -103,15 +110,18 @@ public static class DashaMatters
+         var n = 10;
+         foreach (var (varga, theme) in Table11)
+             rules.Add(Rule(charts, n++, varga, "The lagna lord, and planets in the lagna", $"can bring matters of {theme}",
+-                c => LordAndOccupants(c, 1), null, note, $"PVR Table 11 ({varga}: {theme})"));
++                c => LordAndOccupants(c, 1), null, note, $"PVR Table 11 ({varga}: {theme})",
++                new(DashaMatterScopeKind.ChartTheme)));
+         foreach (var spec in Extended)
+         {
+             var statement = spec.Karaka is { } k
+                 ? $"{k}, natural karaka of {spec.Matter}"
+                 : $"The {Ordinal(spec.House)} lord, and planets in the {Ordinal(spec.House)}";
+             var result = $"can bring matters of {spec.Matter}";
+             rules.Add(Rule(charts, n++, spec.Varga, statement, result,
+-                c => spec.Karaka is { } kk ? KarakaIn(c, kk, spec.Varga) : LordAndOccupants(c, spec.House), null, note, ConventionSource));
++                c => spec.Karaka is { } kk ? KarakaIn(c, kk, spec.Varga) : LordAndOccupants(c, spec.House), null, note, ConventionSource,
++                spec.Karaka is { } karaka
++                    ? new(DashaMatterScopeKind.NaturalKaraka, Karaka: karaka)
++                    : new(DashaMatterScopeKind.House, House: spec.House)));
+         }
+         return rules;
+     }
+@@ -134,11 +144,12 @@ public static class DashaMatters
+ 
+     private static DashaMatterRule Rule(IReadOnlyDictionary<string, DashaMatterChart> charts, int number, string varga, string statement,
+-        string result, Func<DashaMatterChart, IEnumerable<DashaMatterPlanet>> find, string? blocked = null, string? note = null, string? source = null)
++        string result, Func<DashaMatterChart, IEnumerable<DashaMatterPlanet>> find, string? blocked = null, string? note = null, string? source = null,
++        DashaMatterScope? scope = null)
+     {
+-        if (blocked is not null) return new(number, varga, statement, result, [], blocked, note, source ?? PvrSource(number));
+-        if (!charts.TryGetValue(varga, out var chart)) return new(number, varga, statement, result, [], $"Needs the {varga} chart.", note, source ?? PvrSource(number));
+-        if (Signs(chart.Chart).Count < 9) return new(number, varga, statement, result, [], $"The {varga} chart is incomplete.", note, source ?? PvrSource(number));
+-        return new(number, varga, statement, result, find(chart).ToList(), null, note, source ?? PvrSource(number));
++        if (blocked is not null) return new(number, varga, statement, result, [], blocked, note, source ?? PvrSource(number), scope);
++        if (!charts.TryGetValue(varga, out var chart)) return new(number, varga, statement, result, [], $"Needs the {varga} chart.", note, source ?? PvrSource(number), scope);
++        if (Signs(chart.Chart).Count < 9) return new(number, varga, statement, result, [], $"The {varga} chart is incomplete.", note, source ?? PvrSource(number), scope);
++        return new(number, varga, statement, result, find(chart).ToList(), null, note, source ?? PvrSource(number), scope);
+     }
+diff --git a/src/Ikiastrro.Core/LifeMatters/Activation/LifeMatterDashaRuleMapper.cs b/src/Ikiastrro.Core/LifeMatters/Activation/LifeMatterDashaRuleMapper.cs
+new file mode 100644
+--- /dev/null
++++ b/src/Ikiastrro.Core/LifeMatters/Activation/LifeMatterDashaRuleMapper.cs
+@@ -0,0 +1,92 @@
++using Ikiastrro.Core.Engines.Astronomy;
++using Ikiastrro.Core.Engines.Dasha;
++
++namespace Ikiastrro.Core.LifeMatters.Activation;
++
++/// <summary>The explicit DashaMatters selection for one stable LifeMatter identity.</summary>
++public sealed record LifeMatterDashaRuleSelection(
++    int LifeMatterId,
++    string PrimaryChart,
++    IReadOnlyList<DashaMatterRule> Rules,
++    IReadOnlyList<string> MissingMappings)
++{
++    public bool IsMapped => Rules.Count > 0;
++}
++
++/// <summary>
++/// Joins the canonical LifeMatter Subject/Focus mapping to structured DashaMatters scopes.
++/// It never searches MatterText, Statement or Result, so wording changes cannot alter inference.
++/// D1 remains the natal gate; this mapper selects timing rules from the relevant confirmation
++/// varga, or D1 when the matter has no divisional subject.
++/// </summary>
++public static class LifeMatterDashaRuleMapper
++{
++    public static LifeMatterDashaRuleSelection Select(
++        ResolvedLifeMatterFocus matter,
++        IEnumerable<DashaMatterRule> availableRules)
++    {
++        ArgumentNullException.ThrowIfNull(matter);
++        ArgumentNullException.ThrowIfNull(availableRules);
++
++        var chart = string.IsNullOrWhiteSpace(matter.Subject?.ChartTypeCode)
++            ? "D1"
++            : matter.Subject.ChartTypeCode.ToUpperInvariant();
++        var rules = availableRules.Where(rule =>
++                string.Equals(rule.Varga, chart, StringComparison.OrdinalIgnoreCase) &&
++                rule.Scope is not null)
++            .ToList();
++
++        var selected = new List<DashaMatterRule>();
++        selected.AddRange(rules.Where(rule => rule.Scope!.Kind == DashaMatterScopeKind.ChartTheme));
++
++        var houses = matter.HouseAndSpecialPointFoci
++            .Where(focus => focus.FocusKind == LifeMatterFocusKind.House && focus.HouseNumber is not null)
++            .Select(focus => focus.HouseNumber!.Value)
++            .ToHashSet();
++        selected.AddRange(rules.Where(rule =>
++            rule.Scope is { Kind: DashaMatterScopeKind.House, House: { } house } && houses.Contains(house)));
++
++        var karakas = matter.Karakas
++            .Select(rule => FixedGraha(rule.KarakaCode))
++            .Where(planet => planet is not null)
++            .Select(planet => planet!.Value)
++            .ToHashSet();
++        selected.AddRange(rules.Where(rule =>
++            rule.Scope is { Kind: DashaMatterScopeKind.NaturalKaraka, Karaka: { } karaka } && karakas.Contains(karaka)));
++
++        var finalRules = selected.DistinctBy(rule => rule.Number).OrderBy(rule => rule.Number).ToList();
++        var missing = new List<string>();
++        if (!rules.Any(rule => rule.Scope!.Kind == DashaMatterScopeKind.ChartTheme))
++            missing.Add($"No chart-theme dasha rule is available for {chart}.");
++        foreach (var house in houses.Where(house => !rules.Any(rule =>
++                     rule.Scope is { Kind: DashaMatterScopeKind.House, House: { } mapped } && mapped == house)))
++            missing.Add($"No {chart} house-{house} dasha rule is available.");
++        foreach (var karaka in karakas.Where(karaka => !rules.Any(rule =>
++                     rule.Scope is { Kind: DashaMatterScopeKind.NaturalKaraka, Karaka: { } mapped } && mapped == karaka)))
++            missing.Add($"No {chart} natural-karaka dasha rule is available for {karaka}.");
++
++        return new LifeMatterDashaRuleSelection(matter.LifeMatterId, chart, finalRules, missing);
++    }
++
++    private static PlanetName? FixedGraha(string code)
++    {
++        const string prefix = "GRAHA_";
++        if (!code.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
++            return null;
++
++        return Enum.TryParse<PlanetName>(code[prefix.Length..], true, out var planet)
++            ? planet
++            : null;
++    }
++}
+diff --git a/tests/Ikiastrro.Yoga.Tests/LifeMatterDashaRuleMapperTests.cs b/tests/Ikiastrro.Yoga.Tests/LifeMatterDashaRuleMapperTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/Ikiastrro.Yoga.Tests/LifeMatterDashaRuleMapperTests.cs
+@@ -0,0 +1,114 @@
++using Ikiastrro.Core.Engines.Astronomy;
++using Ikiastrro.Core.Engines.Dasha;
++using Ikiastrro.Core.LifeMatters;
++using Ikiastrro.Core.LifeMatters.Activation;
++
++namespace Ikiastrro.Yoga.Tests;
++
++public sealed class LifeMatterDashaRuleMapperTests
++{
++    [Fact]
++    public void Selects_theme_house_and_fixed_karaka_from_relevant_varga()
++    {
++        var matter = Matter("D10", houses: [10], karakas: ["GRAHA_SUN"]);
++        var selection = LifeMatterDashaRuleMapper.Select(matter,
++        [
++            Rule(10, "D10", new(DashaMatterScopeKind.ChartTheme)),
++            Rule(11, "D10", new(DashaMatterScopeKind.House, House: 10)),
++            Rule(12, "D10", new(DashaMatterScopeKind.NaturalKaraka, Karaka: PlanetName.Sun)),
++            Rule(13, "D1", new(DashaMatterScopeKind.House, House: 10)),
++        ]);
++
++        Assert.Equal("D10", selection.PrimaryChart);
++        Assert.Equal([10, 11, 12], selection.Rules.Select(rule => rule.Number));
++        Assert.Empty(selection.MissingMappings);
++    }
++
++    [Fact]
++    public void Defaults_to_d1_when_no_divisional_subject_exists()
++    {
++        var selection = LifeMatterDashaRuleMapper.Select(
++            Matter(chart: null, houses: [2], karakas: []),
++            [Rule(1, "D1", new(DashaMatterScopeKind.ChartTheme)),
++             Rule(2, "D1", new(DashaMatterScopeKind.House, House: 2))]);
++
++        Assert.Equal("D1", selection.PrimaryChart);
++        Assert.Equal([1, 2], selection.Rules.Select(rule => rule.Number));
++    }
++
++    [Fact]
++    public void Dynamic_chara_karaka_is_not_misread_as_fixed_planet()
++    {
++        var selection = LifeMatterDashaRuleMapper.Select(
++            Matter("D9", houses: [], karakas: ["KARAKA_AK"]),
++            [Rule(1, "D9", new(DashaMatterScopeKind.ChartTheme)),
++             Rule(2, "D9", new(DashaMatterScopeKind.NaturalKaraka, Karaka: PlanetName.Sun))]);
++
++        Assert.Equal([1], selection.Rules.Select(rule => rule.Number));
++        Assert.Empty(selection.MissingMappings);
++    }
++
++    [Fact]
++    public void Reports_structured_gaps_instead_of_guessing_from_rule_text()
++    {
++        var selection = LifeMatterDashaRuleMapper.Select(
++            Matter("D7", houses: [5], karakas: ["GRAHA_JUPITER"]),
++            [Rule(1, "D7", new(DashaMatterScopeKind.ChartTheme))]);
++
++        Assert.True(selection.IsMapped);
++        Assert.Contains("No D7 house-5 dasha rule is available.", selection.MissingMappings);
++        Assert.Contains("No D7 natural-karaka dasha rule is available for Jupiter.", selection.MissingMappings);
++    }
++
++    [Fact]
++    public void No_available_scope_is_explicitly_unmapped()
++    {
++        var selection = LifeMatterDashaRuleMapper.Select(
++            Matter("D6", houses: [6], karakas: []), []);
++
++        Assert.False(selection.IsMapped);
++        Assert.Contains("No chart-theme dasha rule is available for D6.", selection.MissingMappings);
++        Assert.Contains("No D6 house-6 dasha rule is available.", selection.MissingMappings);
++    }
++
++    private static ResolvedLifeMatterFocus Matter(
++        string? chart, IReadOnlyList<int> houses, IReadOnlyList<string> karakas)
++    {
++        const int matterId = 42;
++        var subject = chart is null ? null : new LifeMatterSubjectRule(1, 1, matterId, "TEST", chart);
++        var karakaRules = karakas.Select((code, index) =>
++            new LifeMatterKarakaRule(index + 1, 1, matterId, index + 1, code, index + 1)).ToList();
++        var foci = houses.Select((house, index) =>
++            new LifeMatterFocusRule(index + 1, 1, matterId, LifeMatterFocusKind.House,
++                "LAGNA", house, null, index + 1)).ToList();
++        return new ResolvedLifeMatterFocus(matterId, subject, karakaRules, foci);
++    }
++
++    private static DashaMatterRule Rule(int number, string varga, DashaMatterScope scope) =>
++        new(number, varga, "structured statement", "structured result",
++            [new DashaMatterPlanet(PlanetName.Jupiter, "test")], null, null, "test", scope);
++}

@@ -1,0 +1,172 @@
+diff --git a/src/Ikiastrro.Web/Components/Pages/KeyInference.razor b/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
+--- a/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
++++ b/src/Ikiastrro.Web/Components/Pages/KeyInference.razor
+@@ -7,0 +8 @@
++@using Ikiastrro.Core.LifeMatters.Activation
+@@ -33,0 +35 @@
++@inject Ikiastrro.Data.Statistics.LifeMatterTimingDataService LifeMatterTiming
+@@ -210,0 +213,13 @@
++        <div class="lm-view-tabs" role="tablist" aria-label="Key inference view">
++            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "READING")"
++                    class="@(_viewTab == "READING" ? "selected" : null)" @onclick="() => SelectView("READING")">
++                READING
++            </button>
++            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "STATISTICAL")"
++                    class="@(_viewTab == "STATISTICAL" ? "selected" : null)" @onclick="() => SelectView("STATISTICAL")">
++                STATISTICAL
++            </button>
++        </div>
++
++        <div class="lm-tab-panel" role="tabpanel" hidden="@(_viewTab != "READING")">
+@@ -739,0 +756,72 @@
++        </div>
++
++        <section class="lm-statistical lm-tab-panel" role="tabpanel" hidden="@(_viewTab != "STATISTICAL")"
++                 aria-label="Statistical timing model">
++            <div class="lm-stat-head">
++                <div>
++                    <p class="lm-step"><b>V10</b> Statistical timing model</p>
++                    <h2>@(step?.MatterText ?? "Choose a question")</h2>
++                    <p>D1 establishes the promise, the relevant varga confirms its domain, DashaMatters activates it, and transit identifies a manifestation window.</p>
++                </div>
++                <label>Evaluation date
++                    <input type="date" value="@_timingDate.ToString("yyyy-MM-dd")" @onchange="OnTimingDateChanged" />
++                </label>
++            </div>
++
++            @if (step is null)
++            {
++                <p class="lm-note">Choose a question to evaluate the timing chain.</p>
++            }
++            else if (_timingResult is null)
++            {
++                <p class="lm-note">The timing model could not be evaluated for this question.</p>
++                @if (_timingMissing.Count > 0)
++                {
++                    <ul class="lm-stat-missing">@foreach (var item in _timingMissing) { <li>@item</li> }</ul>
++                }
++            }
++            else
++            {
++                var timing = _timingResult;
++                <div class="lm-stage-grid">
++                    <article class="lm-stage @StageTone(timing.Activation.D1Verdict.ToString())">
++                        <span>1 · Natal gate</span><h3>D1 promise</h3>
++                        <b>@Words(timing.Activation.D1Verdict.ToString())</b>
++                        <p>@timing.Activation.Lines.FirstOrDefault()</p>
++                    </article>
++                    <article class="lm-stage @StageTone(timing.Activation.VargaSupport.ToString())">
++                        <span>2 · Domain</span><h3>Varga support</h3>
++                        <b>@Words(timing.Activation.VargaSupport.ToString())</b>
++                        <p>@(timing.Activation.Varga?.Inference ?? "Relevant varga evidence is not available.")</p>
++                    </article>
++                    <article class="lm-stage @StageTone(timing.Activation.State.ToString())">
++                        <span>3 · Period</span><h3>Dasha activation</h3>
++                        <b>@Words(timing.Activation.State.ToString())</b>
++                        <p>@timing.Activation.Lines.LastOrDefault()</p>
++                        @if (timing.Activation.Matches.Count > 0)
++                        {
++                            <small>@string.Join(" · ", timing.Activation.Matches.Select(m => $"{m.Level}: {m.Lord}"))</small>
++                        }
++                    </article>
++                    <article class="lm-stage @StageTone(timing.Manifestation.State.ToString())">
++                        <span>4 · Window</span><h3>Transit manifestation</h3>
++                        <b>@Words(timing.Manifestation.State.ToString())</b>
++                        <p>@timing.Manifestation.Lines.FirstOrDefault()</p>
++                        @if (timing.Manifestation.RelevantTransits.Count > 0)
++                        {
++                            <small>@string.Join(" · ", timing.Manifestation.RelevantTransits.Select(t => t.Planet))</small>
++                        }
++                    </article>
++                </div>
++                <p class="lm-stat-policy">A transit trigger is a qualified timing window, not an event guarantee. It cannot override an indeterminate D1 promise or an inactive dasha.</p>
++                @if (_timingMissing.Count > 0)
++                {
++                    <div class="lm-stat-gaps"><b>Evidence gaps</b><ul>@foreach (var item in _timingMissing) { <li>@item</li> }</ul></div>
++                }
++            }
++        </section>
+@@ -793,0 +883,5 @@
++    private string _viewTab = "READING";
++    private DateTime _timingDate = DateTime.Today;
++    private LifeMatterTimingResult? _timingResult;
++    private IReadOnlyList<string> _timingMissing = [];
++
+@@ -895,0 +990,2 @@
++        if (_viewTab == "STATISTICAL") LoadTiming();
++
+@@ -955,0 +1052 @@
++        if (_viewTab == "STATISTICAL") LoadTiming();
+@@ -965,0 +1063 @@
++        if (_viewTab == "STATISTICAL") LoadTiming();
+@@ -973,0 +1072,39 @@
++
++    private void SelectView(string view)
++    {
++        _viewTab = view;
++        if (view == "STATISTICAL") LoadTiming();
++    }
++
++    private void OnTimingDateChanged(ChangeEventArgs args)
++    {
++        if (DateTime.TryParse(args.Value?.ToString(), out var date))
++            _timingDate = date.Date;
++        LoadTiming();
++    }
++
++    private void LoadTiming()
++    {
++        var step = _allSteps.FirstOrDefault(row => row.LifeMatterId == _selectedLifeMatterId);
++        if (_data is null || step is null)
++        {
++            _timingResult = null;
++            _timingMissing = [];
++            return;
++        }
++
++        var atNoonUtc = new DateTime(_timingDate.Year, _timingDate.Month, _timingDate.Day, 12, 0, 0, DateTimeKind.Utc);
++        var result = LifeMatterTiming.Read(Id, step.LifeMatterCode, atNoonUtc);
++        _timingResult = result.Timing;
++        _timingMissing = result.MissingData;
++    }
++
++    private static string Words(string value) =>
++        System.Text.RegularExpressions.Regex.Replace(value, "(?<!^)([A-Z])", " $1");
++
++    private static string StageTone(string value) => value switch
++    {
++        "StrongPositive" or "PositiveConditional" or "Supports" or "Active" or "TriggerPresent" => "is-positive",
++        "Mixed" or "WeakLimited" or "Background" or "Inactive" => "is-mixed",
++        "Adverse" or "Obstructs" or "BlockedByNatalPromise" => "is-negative",
++        _ => "is-pending"
++    };
+diff --git a/src/Ikiastrro.Web/Components/Pages/KeyInference.razor.css b/src/Ikiastrro.Web/Components/Pages/KeyInference.razor.css
+--- a/src/Ikiastrro.Web/Components/Pages/KeyInference.razor.css
++++ b/src/Ikiastrro.Web/Components/Pages/KeyInference.razor.css
+@@ -113,0 +114,26 @@
++.lm-view-tabs { display: flex; gap: 4px; margin: 14px 0 10px; border-bottom: 1px solid var(--brand-line); }
++.lm-view-tabs button { appearance: none; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--brand-muted); padding: 9px 14px 7px; font: 700 .78rem/1 var(--font-interface); letter-spacing: .08em; cursor: pointer; }
++.lm-view-tabs button.selected { border-bottom-color: var(--brand-gold); color: var(--brand-midnight); }
++.lm-tab-panel[hidden] { display: none; }
++.lm-statistical { padding: 16px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); margin-bottom: 18px; }
++.lm-stat-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
++.lm-stat-head h2 { margin: 3px 0 5px; font-size: 1.15rem; }
++.lm-stat-head p { margin: 0; max-width: 760px; color: var(--brand-muted); }
++.lm-stat-head label { display: grid; gap: 5px; flex: 0 0 auto; color: var(--brand-muted); font-size: .78rem; font-weight: 700; }
++.lm-stat-head input { border: 1px solid var(--brand-line); border-radius: 5px; background: var(--brand-white); color: var(--brand-midnight); padding: 7px 9px; font: inherit; }
++.lm-stage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
++.lm-stage { min-width: 0; padding: 13px; border: 1px solid var(--brand-line); border-top: 4px solid var(--brand-muted); border-radius: 7px; background: var(--brand-white); }
++.lm-stage > span { color: var(--brand-muted); font-size: .7rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
++.lm-stage h3 { margin: 5px 0 8px; font-size: .9rem; }
++.lm-stage > b { display: block; margin-bottom: 8px; font-size: 1rem; }
++.lm-stage p, .lm-stage small { color: var(--brand-muted); font-size: .78rem; line-height: 1.45; }
++.lm-stage p { margin: 0 0 7px; }
++.lm-stage.is-positive { border-top-color: #26855b; }
++.lm-stage.is-mixed { border-top-color: #bb7b16; }
++.lm-stage.is-negative { border-top-color: #a33d45; }
++.lm-stage.is-pending { border-top-color: var(--brand-muted); }
++.lm-stat-policy { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--brand-line); color: var(--brand-muted); font-size: .8rem; }
++.lm-stat-gaps { margin-top: 12px; padding: 10px 12px; border-radius: 6px; background: color-mix(in srgb, var(--brand-gold) 9%, transparent); font-size: .8rem; }
++.lm-stat-gaps ul, .lm-stat-missing { margin: 6px 0 0; padding-left: 18px; }
++@media (max-width: 900px) { .lm-stage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
++@media (max-width: 600px) { .lm-stat-head { align-items: stretch; flex-direction: column; } .lm-stage-grid { grid-template-columns: 1fr; } }

@@ -1,0 +1,14 @@
+diff --git a/src/Ikiastrro.Data/DashaPeriodsRepository.cs b/src/Ikiastrro.Data/DashaPeriodsRepository.cs
+--- a/src/Ikiastrro.Data/DashaPeriodsRepository.cs
++++ b/src/Ikiastrro.Data/DashaPeriodsRepository.cs
+@@ -79,6 +79,7 @@ public class DashaPeriodsRepository
+         using var connection = _connectionFactory.CreateOpenConnection();
+         var flatRows = connection.Query<DashaPeriodRecord>(sql, new { BirthDetailId = birthDetailId }).ToList();
+         return DashaPeriodRecord.BuildTree(flatRows);
++    }
+     /// <summary>The running Vimshottari lords at an instant. Null levels remain explicit when the
+@@ -104,5 +105,3 @@ public class DashaPeriodsRepository
+         return new GocharaDashaLords(At(1), At(2), At(3));
+     }
+-
+-    }

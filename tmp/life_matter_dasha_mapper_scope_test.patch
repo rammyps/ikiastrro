@@ -1,0 +1,20 @@
+diff --git a/tests/Ikiastrro.Yoga.Tests/LifeMatterDashaRuleMapperTests.cs b/tests/Ikiastrro.Yoga.Tests/LifeMatterDashaRuleMapperTests.cs
+--- a/tests/Ikiastrro.Yoga.Tests/LifeMatterDashaRuleMapperTests.cs
++++ b/tests/Ikiastrro.Yoga.Tests/LifeMatterDashaRuleMapperTests.cs
+@@ -73,0 +74,17 @@ public sealed class LifeMatterDashaRuleMapperTests
++    [Fact]
++    public void Extended_dasha_rules_publish_machine_readable_scopes_even_when_chart_is_missing()
++    {
++        var rules = DashaMatters.EvaluateExtended(new Dictionary<string, DashaMatterChart>());
++
++        Assert.Contains(rules, rule =>
++            rule.Varga == "D10" && rule.Scope?.Kind == DashaMatterScopeKind.ChartTheme);
++        Assert.Contains(rules, rule =>
++            rule.Varga == "D10" &&
++            rule.Scope is { Kind: DashaMatterScopeKind.House, House: 10 });
++        Assert.Contains(rules, rule =>
++            rule.Varga == "D10" &&
++            rule.Scope is { Kind: DashaMatterScopeKind.NaturalKaraka, Karaka: PlanetName.Sun });
++        Assert.All(rules, rule => Assert.NotNull(rule.Scope));
++    }
++

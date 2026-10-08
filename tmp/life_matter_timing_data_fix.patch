@@ -1,0 +1,10 @@
+diff --git a/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs b/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
+--- a/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
++++ b/src/Ikiastrro.Data/Statistics/LifeMatterTimingDataService.cs
+@@ -149,6 +149,3 @@ public sealed class LifeMatterTimingDataService(
+-        var natal = LifeMatterTimingDataAdapter.BuildNatalContext(
+-            keyDetails.GetByChartResultId(storedResults.Single(result => result.Id == d1.Chart.Planets[0].GetHashCode()).Id));
+-        // BuildNatalContext needs the persisted D1 rows; keep that lookup independent of reconstructed positions.
+         var d1Result = storedResults.First(result => result.ChartType == "D1");
+-        natal = LifeMatterTimingDataAdapter.BuildNatalContext(keyDetails.GetByChartResultId(d1Result.Id));
++        var natal = LifeMatterTimingDataAdapter.BuildNatalContext(keyDetails.GetByChartResultId(d1Result.Id));

@@ -1,0 +1,5 @@
+diff --git a/src/Ikiastrro.Web/Program.cs b/src/Ikiastrro.Web/Program.cs
+--- a/src/Ikiastrro.Web/Program.cs
++++ b/src/Ikiastrro.Web/Program.cs
+@@ -74,0 +75,1 @@
++builder.Services.AddScoped<Ikiastrro.Data.Statistics.LifeMatterTimingDataService>();
