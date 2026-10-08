@@ -1,0 +1,13 @@
+/* Key Stats tab — tokens only, same conventions as Numerology. */
+.ks-heading {
+    margin: 4px 0 20px;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.ks-unavailable p { color: var(--brand-muted); }
+.ks-unavailable a { color: var(--brand-midnight); }
+
+.ks-card { max-width: 860px; }

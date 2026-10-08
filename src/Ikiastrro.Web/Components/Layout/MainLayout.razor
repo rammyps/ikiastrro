@@ -37,6 +37,7 @@
                     <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinference")"><span>KEY</span> <span>INFERENCE</span></a>
                     @* The per-person NUMEROLOGY tab is hidden (2026-10-08); NUMEROFACTS in the main nav replaced it.
                        /numerology/{id} still resolves for any existing link. *@
+                    <a href="@($"/key-stats/{personId}")" class="ik-headtab @TabClass("keystats")"><span>KEY</span> <span>STATS</span></a>
                     <a href="@($"/compatibility/{personId}")" class="ik-headtab @TabClass("compatibility")">COMPATIBILITY</a>
                 </nav>
             }
@@ -179,7 +180,7 @@
     // query is dropped on purpose: ?step= would otherwise snap Astro Facts back to the step the
     // URL was first opened with.
     private static readonly System.Text.RegularExpressions.Regex PersonRoute =
-        new(@"^/(astro-facts|key-inference|numerology|charts)/\d+(?=/|$)");
+        new(@"^/(astro-facts|key-inference|key-stats|numerology|charts)/\d+(?=/|$)");
 
     private void GoToPerson(int id)
     {
@@ -203,6 +204,7 @@
         {
             "astrofacts"  => p.Contains("/timing", StringComparison.Ordinal) || p.Contains("/astro-facts", StringComparison.Ordinal),
             "keyinference" => p.StartsWith("/key-inference", StringComparison.Ordinal) || p.StartsWith("/life-matters", StringComparison.Ordinal),
+            "keystats" => p.StartsWith("/key-stats", StringComparison.Ordinal),
             "numerology" => p.StartsWith("/numerology", StringComparison.Ordinal),
             "compatibility" => p.StartsWith("/compatibility", StringComparison.Ordinal),
             _ => false

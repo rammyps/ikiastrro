@@ -1,0 +1,62 @@
+@page "/key-stats/{Id:int}"
+@using Ikiastrro.Data.Statistics
+@using Ikiastrro.Web.Components.LifeMatters
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject PopulationEvidenceRepository PopulationEvidenceRepo
+@inject ActivePerson Active
+
+@* Key Stats tab — the latest v10 statistical build (v10-statisticalbuild.md) for the active
+   person: where each D1 house's support sits among the eligible reference population, from the
+   latest completed analytics run. Read-only; reuses PopulationEvidenceCard, so the unenrolled /
+   ineligible / no-run / insufficient-data / available states and the "never render a missing
+   percentile as zero" rule are the same as on Key Inference. *@
+
+<PageTitle>@(_person?.Name ?? "Key Stats") &middot; Key Stats</PageTitle>
+
+@if (_person is null)
+{
+    <section class="ks-unavailable" role="status">
+        <h1 class="ks-heading">KEY STATS</h1>
+        <p>No saved person found.</p>
+        <a href="/">Choose a saved person</a>
+    </section>
+}
+else
+{
+    <h1 class="ks-heading">KEY STATS</h1>
+    <div class="ks-card">
+        <PopulationEvidenceCard Snapshot="_snapshot" Rows="_rows" />
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private BirthDetails? _person;
+    private PopulationEvidenceSnapshot _snapshot = default!;
+    private IReadOnlyList<PopulationComparison> _rows = [];
+
+    protected override void OnParametersSet()
+    {
+        _person = BirthDetailsRepo.GetById(Id);
+        if (_person is null)
+        {
+            Active.Clear();
+            return;
+        }
+
+        Active.Set(Id, _person.Name,
+            $"{_person.DateOfBirth:dd MMM yyyy} · {_person.TimeOfBirth:HH:mm} · {_person.PlaceCity}, {_person.PlaceCountry}");
+        Active.SetHeaderExtra(null);
+
+        _snapshot = PopulationEvidenceRepo.GetLatestForBirthDetail(Id);
+        var feature = _snapshot.Comparisons
+            .Select(c => c.FeatureCode)
+            .Where(f => f is "KI_D1_HOUSE_SUPPORT_V1" or "KI_D1_HOUSE_SUPPORT_V2")
+            .OrderByDescending(f => f).FirstOrDefault();
+        _rows = _snapshot.Comparisons
+            .Where(c => c.FeatureCode == feature)
+            .OrderBy(c => c.HouseFromLagna)
+            .ToList();
+    }
+}
