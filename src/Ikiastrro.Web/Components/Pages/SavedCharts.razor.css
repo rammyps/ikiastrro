@@ -28,6 +28,11 @@
 
 .sp-art { display: flex; align-items: center; justify-content: flex-start; overflow: hidden; background: transparent; }
 
+.sp-art .sp-art-dark { display: none; }
+:root[data-theme='cosmic-dark'] .sp-art .sp-art-light,
+:root[data-theme='nebula-dark-7band'] .sp-art .sp-art-light { display: none; }
+:root[data-theme='cosmic-dark'] .sp-art .sp-art-dark,
+:root[data-theme='nebula-dark-7band'] .sp-art .sp-art-dark { display: block; }
 .sp-art img {
     display: block;
     width: 100%;

@@ -330,8 +330,38 @@ else
     {
         <div class="ki-panelbody" id="ki-panel-1" role="tabpanel" aria-labelledby="ki-tab-1">
             @PrintHead(1)
-            @Guide("transit")
-@if (_selection is not null)
+                    <div class="ki-wheelwrap">
+                    <div class="ki-viewswitch ki-viewswitch-corner" role="group" aria-label="Chart style">
+                        <button type="button" aria-pressed="@(!_showSudarsana)" @onclick="() => _showSudarsana = false">Polar wheel</button>
+                        <button type="button" aria-pressed="@_showSudarsana" @onclick="() => _showSudarsana = true">Sudarsana chakra</button>
+                    </div>
+
+                    <div class="ki-wheel">
+                        @if (_d1.Count > 0 && _showSudarsana)
+                        {
+                            <SudarsanaChakra AscendantSign="@lc.AscendantSign" Planets="@SudarsanaPlanets"
+                                             MahaLord="@_selection?.Maha?.Lord" AntarLord="@_selection?.Antar?.Lord"
+                                             PratyantarLord="@_selection?.Pratyantar?.Lord" />
+                        }
+                        else if (_d1.Count > 0)
+                        {
+                            <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
+                                               NatalPoints="@D1WheelPoints"
+                                               TransitPoints="@TransitWheelPoints"
+                                               NatalMoonSign="@_natalSignByPlanet.GetValueOrDefault("Moon")"
+                                               AsOfUtc="@_asOfUtc" />
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
+                                Generate a D1 chart for this person first.
+                            </MudAlert>
+                        }
+                    </div>
+                    </div>
+
+                    @* Date + dasha selector sits under the wheel so the wheel fills the top of the viewport. *@
+                    @if (_selection is not null)
                     {
                         <section class="ki-controls" aria-label="Transit date and dasha filters">
                             <label class="ki-field">
@@ -384,34 +414,6 @@ else
                             </label>
                         </section>
                     }
-
-                    <div class="ki-viewswitch" role="group" aria-label="Chart style">
-                        <button type="button" aria-pressed="@(!_showSudarsana)" @onclick="() => _showSudarsana = false">Polar wheel</button>
-                        <button type="button" aria-pressed="@_showSudarsana" @onclick="() => _showSudarsana = true">Sudarsana chakra</button>
-                    </div>
-
-                    <div class="ki-wheel">
-                        @if (_d1.Count > 0 && _showSudarsana)
-                        {
-                            <SudarsanaChakra AscendantSign="@lc.AscendantSign" Planets="@SudarsanaPlanets"
-                                             MahaLord="@_selection?.Maha?.Lord" AntarLord="@_selection?.Antar?.Lord"
-                                             PratyantarLord="@_selection?.Pratyantar?.Lord" />
-                        }
-                        else if (_d1.Count > 0)
-                        {
-                            <Natal_Transit_Comp_WheelChart AscendantSign="@lc.AscendantSign"
-                                               NatalPoints="@D1WheelPoints"
-                                               TransitPoints="@TransitWheelPoints"
-                                               NatalMoonSign="@_natalSignByPlanet.GetValueOrDefault("Moon")"
-                                               AsOfUtc="@_asOfUtc" />
-                        }
-                        else
-                        {
-                            <MudAlert Severity="Severity.Info" Dense="true" Class="ki-alert">
-                                Generate a D1 chart for this person first.
-                            </MudAlert>
-                        }
-                    </div>
 
                     @if (_transitError is not null || _transits.Count == 0)
                     {

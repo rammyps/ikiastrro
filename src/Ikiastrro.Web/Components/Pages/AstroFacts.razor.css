@@ -88,9 +88,13 @@
 .ki-monthyear select { width: auto; min-width: 3.4em; }
 .ki-monthyear span[aria-hidden] { color: var(--brand-muted); font-weight: 700; }
 
+.ki-wheelwrap { position: relative; }
+
+/* The chart is the key element: a square capped by viewport height (app bar + tab row ≈ 130px)
+   so the whole wheel shows at 100% without scrolling; the legend may run below the fold. */
 .ki-wheel {
-    width: min(90%, 972px);
-    min-width: 0;
+    width: min(96%, 972px, calc(100svh - 150px));
+    min-width: 320px;
     margin: 0 auto 16px;
 }
 .ki-wheel ::deep .ntw { width: 100%; }
@@ -98,6 +102,7 @@
 
 /* Chart-style switch on the Transit tab (polar wheel default, Sudarsana chakra). One pill look, as the tab strips. */
 .ki-viewswitch { display: flex; justify-content: center; gap: 6px; margin: 0 0 10px; }
+.ki-viewswitch-corner { position: absolute; top: 0; right: 0; z-index: 1; margin: 0; flex-wrap: wrap; justify-content: flex-end; }
 .ki-viewswitch button { font: inherit; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 4px 14px; border: 1px solid var(--brand-line); border-radius: 999px; background: var(--brand-surface); color: var(--brand-muted); cursor: pointer; }
 .ki-viewswitch button[aria-pressed="true"] { background: var(--brand-sunrise); border-color: var(--brand-midnight); color: var(--brand-midnight); }
 

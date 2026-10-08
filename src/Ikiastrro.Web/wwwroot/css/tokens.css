@@ -737,6 +737,19 @@ html thead th :is(button, a, small) {
        B5 #6a34bd accent fill · B6 #9a62e0 highlight · B7 #d2b3f5 text tint. Planet/status hues stay semantic. */
     --band-1: #0c0516; --band-2: #1b0b33; --band-3: #2e1259; --band-4: #48208a;
     --band-5: #6a34bd; --band-6: #9a62e0; --band-7: #d2b3f5;
+    --band-gradient: linear-gradient(90deg, var(--band-5), var(--band-4));
+    --band-gradient-soft: linear-gradient(160deg, var(--band-2), var(--band-1));
+    --table-head-bg: var(--band-gradient);
+    --table-head-fg: #f6eeff;
+    --strength-fill: var(--band-6);
+    --strength-fill-soft: color-mix(in srgb, var(--band-6) 45%, transparent);
+    --status-moderate: var(--band-6);
+    --status-moderate-bg: color-mix(in srgb, var(--band-6) 18%, var(--band-2));
+    --chart-fill-a: var(--band-3);
+    --chart-fill-b: var(--band-4);
+    --chart-fill-c: var(--band-5);
+    --chart-fill-d: var(--band-6);
+    --chart-fill-e: var(--band-7);
     --cosmos-canvas: var(--band-1);
     --cosmos-surface: var(--band-2);
     --cosmos-surface-raised: var(--band-3);
@@ -947,3 +960,40 @@ html[data-theme] table { color: var(--brand-midnight); }
     background: var(--brand-surface-soft);
     color: var(--brand-muted);
 }
+
+/* ---- Nebula Violet Dark (7BAND): the seven bands applied across chrome, tables and charts ---- */
+:root[data-theme='nebula-dark-7band'] {
+    scrollbar-color: var(--band-4) var(--band-1);
+}
+:root[data-theme='nebula-dark-7band'] ::selection { background: var(--band-5); color: #fff; }
+:root[data-theme='nebula-dark-7band'] .ik-appbar,
+:root[data-theme='nebula-dark-7band'] .mud-appbar {
+    background: linear-gradient(90deg, var(--band-2), var(--band-1) 50%, var(--band-2)) !important;
+    border-bottom: 1px solid var(--band-4);
+}
+:root[data-theme='nebula-dark-7band'] h1,
+:root[data-theme='nebula-dark-7band'] h2,
+:root[data-theme='nebula-dark-7band'] h3 { color: var(--band-7); }
+:root[data-theme='nebula-dark-7band'] a:not([class]) { color: var(--band-6); }
+:root[data-theme='nebula-dark-7band'] :focus-visible { outline-color: var(--band-6); }
+/* Tables: banded rows B2/B3, hover B3→B4 edge. */
+:root[data-theme='nebula-dark-7band'] table tbody tr:nth-child(even) > td {
+    background: color-mix(in srgb, var(--band-3) 34%, transparent);
+}
+:root[data-theme='nebula-dark-7band'] table tbody tr > td { border-bottom-color: color-mix(in srgb, var(--band-4) 55%, transparent); }
+:root[data-theme='nebula-dark-7band'] table tbody tr:hover > td { background: color-mix(in srgb, var(--band-4) 45%, var(--band-2)); }
+/* Cards / panels: B2→B1 sheen with a B4 edge. */
+:root[data-theme='nebula-dark-7band'] .mud-paper,
+:root[data-theme='nebula-dark-7band'] .mud-card { background: var(--band-gradient-soft); border: 1px solid var(--band-4); }
+/* Charts: grid and rings in B6, nodes/arcs step through the bands. */
+:root[data-theme='nebula-dark-7band'] svg line.grid,
+:root[data-theme='nebula-dark-7band'] svg .grid { stroke: var(--band-6); stroke-opacity: .45; }
+:root[data-theme='nebula-dark-7band'] svg .ntw-transit { fill: var(--band-5); stroke: var(--band-5); }
+:root[data-theme='nebula-dark-7band'] svg .ntw-natal { fill: var(--band-3); stroke: var(--band-6); }
+:root[data-theme='nebula-dark-7band'] svg .ntw-nak { fill: var(--band-2); stroke: var(--band-4); }
+:root[data-theme='nebula-dark-7band'] svg .ntw-core { fill: var(--band-1); stroke: var(--band-6); }
+:root[data-theme='nebula-dark-7band'] svg .ntw-sign-line,
+:root[data-theme='nebula-dark-7band'] svg .ntw-nak-line { stroke: var(--band-6); }
+:root[data-theme='nebula-dark-7band'] svg .ntw-nak-name,
+:root[data-theme='nebula-dark-7band'] svg .ntw-sign,
+:root[data-theme='nebula-dark-7band'] svg .ntw-house { fill: var(--band-7); }

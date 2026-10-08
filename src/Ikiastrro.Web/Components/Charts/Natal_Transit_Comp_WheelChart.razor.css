@@ -12,19 +12,19 @@
 .ntw-pada-line { stroke: var(--brand-muted); stroke-width: .55; opacity: .7; }
 .ntw-natal-line { stroke: var(--brand-midnight); stroke-width: 1.1; opacity: .72; }
 .ntw-sign, .ntw-house, .ntw-nak-name, .ntw-ring-title, .ntw-ring-sub, .ntw-brand, .ntw-caption, .ntw-meta, .ntw-point text { text-anchor: middle; dominant-baseline: central; }
-.ntw-sign { fill: var(--brand-midnight); font-size: 11px; font-weight: 800; }
-.ntw-house { fill: var(--brand-midnight); font-size: 12px; font-weight: 700; }
-.ntw-nak-name { fill: var(--brand-midnight); font-size: 8px; font-weight: 600; }
-.ntw-ring-title { fill: var(--transit-band-fg); font-size: 12px; font-weight: 800; letter-spacing: .08em; }
-.ntw-ring-sub { fill: var(--transit-band-fg); font-size: 8px; font-weight: 700; }
+.ntw-sign { fill: var(--brand-midnight); font-size: 16px; font-weight: 800; }
+.ntw-house { fill: var(--brand-midnight); font-size: 16px; font-weight: 700; }
+.ntw-nak-name { fill: var(--brand-midnight); font-size: 13px; font-weight: 700; }
+.ntw-ring-title { fill: var(--transit-band-fg); font-size: 14px; font-weight: 800; letter-spacing: .08em; }
+.ntw-ring-sub { fill: var(--transit-band-fg); font-size: 12px; font-weight: 700; }
 .ntw-natal-title { fill: var(--brand-midnight); }
 .ntw-brand { fill: var(--brand-midnight); font-size: 28px; font-weight: 700; }
-.ntw-caption { fill: var(--brand-midnight); font-size: 10px; font-weight: 700; letter-spacing: .18em; }
-.ntw-meta { fill: var(--brand-muted); font-size: 9px; font-weight: 600; }
+.ntw-caption { fill: var(--brand-midnight); font-size: 12px; font-weight: 700; letter-spacing: .18em; }
+.ntw-meta { fill: var(--brand-muted); font-size: 12px; font-weight: 600; }
 .ntw-center-date { text-anchor: middle; fill: var(--brand-midnight); font-size: 17px; font-weight: 800; }
 .ntw-point circle { stroke-width: 2; }
-.ntw-point text { font-size: 12px; font-weight: 800; }
-.ntw-karaka { text-anchor: middle; fill: var(--brand-midnight); font-size: 9px; font-weight: 700; }
+.ntw-point text { font-size: 15px; font-weight: 800; }
+.ntw-karaka { text-anchor: middle; fill: var(--brand-midnight); font-size: 12px; font-weight: 700; }
 .ntw-point-natal circle { fill: var(--brand-sunrise); stroke: var(--brand-midnight); }
 .ntw-point-natal text { fill: var(--brand-midnight); }
 .ntw-point-transit circle { fill: var(--brand-sunrise); stroke: var(--brand-midnight); }
