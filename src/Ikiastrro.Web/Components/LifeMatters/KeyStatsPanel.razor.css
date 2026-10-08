@@ -1,14 +1,5 @@
 /* Key Stats tab — tokens only, same conventions as Numerology. */
-.ks-heading {
-    margin: 4px auto 20px; max-width: 1200px;
-    color: var(--brand-midnight);
-    font: 700 var(--font-size-heading) / 1.2 'Manrope', 'Segoe UI', sans-serif;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
 
-.ks-unavailable p { color: var(--brand-muted); }
-.ks-unavailable a { color: var(--brand-midnight); }
 
 
 /* Four houses to a row on wide screens (the card's own grid is auto-fit). */

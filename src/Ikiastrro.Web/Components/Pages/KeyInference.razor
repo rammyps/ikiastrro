@@ -219,6 +219,10 @@ else
                     class="@(_viewTab == "STATISTICAL" ? "selected" : null)" @onclick='() => SelectView("STATISTICAL")'>
                 TIMING
             </button>
+            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "STATS")"
+                    class="@(_viewTab == "STATS" ? "selected" : null)" @onclick='() => SelectView("STATS")'>
+                POPULATION
+            </button>
         </div>
 
         <div class="lm-tab-panel" role="tabpanel" hidden="@(_viewTab != "READING")">
@@ -783,6 +787,7 @@ else
                 }
             }
         </section>
+<section class="lm-tab-panel" role="tabpanel" aria-label="Population statistics" hidden="@(_viewTab != "STATS")">            @if (_viewTab == "STATS")            {                <KeyStatsPanel Id="Id" />            }        </section>
 }
 
 @code {
@@ -793,6 +798,9 @@ else
     [SupplyParameterFromQuery(Name = "matter")] public string? Matter { get; set; }
     [SupplyParameterFromQuery(Name = "lagna")] public string? Lagna { get; set; }
     [SupplyParameterFromQuery(Name = "chart")] public string? Chart { get; set; }
+    /// <summary>?view=reading|timing|stats opens that view (Key Stats links land here).</summary>
+    [SupplyParameterFromQuery(Name = "view")] public string? View { get; set; }
+    private string? _appliedView;
 
     /// <summary>PrintReport's Key Inference codes: PrintModules.Foundation and life-area codes. Set,
     /// the page renders those as static tables instead of the interactive reading.</summary>
@@ -844,6 +852,20 @@ else
     private IReadOnlyList<string> _timingMissing = [];
 
     protected override void OnParametersSet()
+    {
+        ApplyView();
+        LoadOrApply();
+    }
+
+    private void ApplyView()
+    {
+        if (View is null) { _appliedView = null; return; }
+        if (View == _appliedView) return;
+        _appliedView = View;
+        _viewTab = View.ToLowerInvariant() switch { "stats" => "STATS", "timing" => "STATISTICAL", _ => "READING" };
+    }
+
+    private void LoadOrApply()
     {
         if (_loadedId == Id)
         {
