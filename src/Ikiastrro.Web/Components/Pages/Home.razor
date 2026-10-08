@@ -72,7 +72,7 @@
                                             <span>Saved pair</span>
                                             <select @onchange="OpenCouple">
                                                 <option value="">@(_couples.Count == 0 ? "No saved pairs yet" : "Choose a saved pair…")</option>
-                                                @foreach (var c in _couples.Where(c => PersonName.Matches(c.GroomName, _query) || PersonName.Matches(c.BrideName, _query)))
+                                                @foreach (var c in _couples.Where(c => string.IsNullOrWhiteSpace(_query) || PersonName.Matches(c.GroomName, _query) || PersonName.Matches(c.BrideName, _query)))
                                                 {
                                                     <option value="@c.GroomId-@c.BrideId">@c.GroomName &amp; @c.BrideName</option>
                                                 }
