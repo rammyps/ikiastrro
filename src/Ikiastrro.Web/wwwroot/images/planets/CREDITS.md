@@ -19,3 +19,4 @@ works of NASA, which are not subject to copyright in the United States.
 
 Rahu and Ketu have no body to photograph. They are the nodes where eclipses happen, so Rahu is
 shown as a total solar eclipse and Ketu as a total lunar eclipse.
+| Earth | orb-earth.png | source/earth.jpg | NASA (Apollo 17 "Blue Marble", remastered) | [File](https://commons.wikimedia.org/wiki/File:The_Blue_Marble_(remastered).jpg) |
