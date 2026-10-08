@@ -39,7 +39,7 @@
                 }
 
                 @* One dropdown per kind of comparison (PairMode); only one open at a time. Individual is a single
-                   saved-person picker that opens the Saved charts screen, the others list saved pairs filtered by the Name box. *@
+                   saved-person picker that opens that person's Astro Facts (General tab), the others list saved pairs filtered by the Name box. *@
                 <div class="home-results home-drops">
                     @foreach (var (mode, label) in Drops)
                     {
@@ -106,16 +106,64 @@
                                             <button type="button" class="home-pair-go" disabled="@(!CanSavePair)" @onclick="SavePair">Save pair</button>
                                         </details>
                                     }
+                                    else if (m == PairMode.FamilyCore)
+                                    {
+                                        <label class="home-pair-field">
+                                            <span>Saved family</span>
+                                            <select @onchange="OpenFamily">
+                                                <option value="">@(Families.Count == 0 ? "No saved families yet" : "Choose a saved family…")</option>
+                                                @foreach (var f in Families)
+                                                {
+                                                    <option value="@f.Value">@f.Label</option>
+                                                }
+                                            </select>
+                                        </label>
+                                        <details class="home-pair-save">
+                                            <summary>Save a parent and child</summary>
+                                            <label class="home-pair-field">
+                                                <span>Parent</span>
+                                                <select value="@_parentId" @onchange="OnParent">
+                                                    <option value="0">Choose a saved person…</option>
+                                                    @foreach (var p in _people.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                                    {
+                                                        <option value="@p.Id">@p.Name</option>
+                                                    }
+                                                </select>
+                                            </label>
+                                            @if (_parentId > 0)
+                                            {
+                                                <label class="home-pair-field">
+                                                    <span>Child</span>
+                                                    <select value="@_childId" @onchange="OnChild">
+                                                        <option value="0">Choose a saved person…</option>
+                                                        @foreach (var p in _people.Where(x => x.Id != _parentId).OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                                        {
+                                                            <option value="@p.Id">@p.Name</option>
+                                                        }
+                                                    </select>
+                                                </label>
+                                            }
+                                            <button type="button" class="home-pair-go" disabled="@(!CanSaveParent)" @onclick="SaveParent">Save parent</button>
+                                        </details>
+                                    }
                                     else
                                     {
-                                        <p class="home-pair-hint">The Name box above filters these pairs.</p>
-                                        <FamilyPairsTable Mode="m" Filter="@_query" />
+                                        <label class="home-pair-field">
+                                            <span>Saved relation</span>
+                                            <select @onchange="OpenRelation">
+                                                <option value="">@(_extended.Count == 0 ? "No grandparents or siblings yet" : "Choose a saved relation…")</option>
+                                                @foreach (var r in _extended.Where(r => string.IsNullOrWhiteSpace(_query) || PersonName.Matches(r.LeftName, _query) || PersonName.Matches(r.RightName, _query)))
+                                                {
+                                                    <option value="@r.LeftId-@r.RightId">@r.LeftName &amp; @r.RightName (@r.Relation)</option>
+                                                }
+                                            </select>
+                                        </label>
+                                        <p class="home-pair-hint">Grandparents and siblings follow from the Family and Marriage records.</p>
                                     }
                                 </div>
                             }
                         </div>
                     }
-                    <button type="button" class="home-add-new" @onclick="@(() => Nav.NavigateTo("/charts"))">☰ View charts</button>
                 </div>
 
                 <div class="home-results home-addbox">
@@ -184,6 +232,7 @@
         Active.Clear(); // Home has no active person — hide the per-person nav tabs and band.
         _people = BirthDetailsRepo.GetAll().ToList();
         _couples = FamilyRepo.GetCouples();
+        _extended = FamilyRepo.GetExtendedPairs();
     }
 
     // The saved list is only ever *searched* — typing filters, it never navigates. A person is
@@ -227,7 +276,52 @@
         if (parts.Length == 2 && int.TryParse(parts[0], out var g) && int.TryParse(parts[1], out var b))
             Nav.NavigateTo($"/compatibility/{g}?with={b}");
     }
-    private void OpenSavedCharts(ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var id) && id > 0) Nav.NavigateTo("/charts"); }
+    private IReadOnlyList<FamilyExtendedPair> _extended = [];
+    private int _parentId;
+    private int _childId;
+    private bool CanSaveParent => _parentId > 0 && _childId > 0 && _parentId != _childId;
+    private void OnParent(ChangeEventArgs e) { _parentId = int.TryParse(e.Value?.ToString(), out var id) ? id : 0; _childId = 0; }
+    private void OnChild(ChangeEventArgs e) => _childId = int.TryParse(e.Value?.ToString(), out var id) ? id : 0;
+    // A parent and child are recorded as a plain link (no adopted/step flags); the family then appears in the list.
+    private void SaveParent()
+    {
+        if (!CanSaveParent) return;
+        FamilyRepo.AddParent(_parentId, _childId, false, false);
+        _couples = FamilyRepo.GetCouples();
+        _extended = FamilyRepo.GetExtendedPairs();
+        _parentId = _childId = 0;
+    }
+
+    private static bool IsChild(FamilyMember f) => f.Role is "Son" or "Daughter" or "Child";
+    // One entry per (couple, shared child): father, mother and child open the family page.
+    private List<(string Value, string Label)> Families
+    {
+        get
+        {
+            var list = new List<(string, string)>();
+            foreach (var c in _couples)
+            {
+                if (!string.IsNullOrWhiteSpace(_query) && !PersonName.Matches(c.GroomName, _query) && !PersonName.Matches(c.BrideName, _query)) continue;
+                var brideKids = FamilyRepo.GetFor(c.BrideId).Where(IsChild).Select(f => f.RelativeId).ToHashSet();
+                foreach (var k in FamilyRepo.GetFor(c.GroomId).Where(f => IsChild(f) && brideKids.Contains(f.RelativeId)))
+                    list.Add(($"{c.GroomId}-{c.BrideId}-{k.RelativeId}", $"{c.GroomName} & {c.BrideName} · {k.RelativeName}"));
+            }
+            return list;
+        }
+    }
+    private void OpenFamily(ChangeEventArgs e)
+    {
+        var parts = (e.Value?.ToString() ?? "").Split('-');
+        if (parts.Length == 3 && parts.All(x => int.TryParse(x, out _)))
+            Nav.NavigateTo($"/family/{parts[0]}/{parts[1]}/{parts[2]}");
+    }
+    private void OpenRelation(ChangeEventArgs e)
+    {
+        var parts = (e.Value?.ToString() ?? "").Split('-');
+        if (parts.Length == 2 && int.TryParse(parts[0], out var l) && int.TryParse(parts[1], out var r))
+            Nav.NavigateTo($"/compatibility/{l}?with={r}");
+    }
+    private void OpenSavedCharts(ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var id) && id > 0) Nav.NavigateTo($"/astro-facts/{id}"); }
 
     // A search that matches no saved person IS the intent to add that person: reveal the
     // Add-New form, pre-filled from the search text (docs/ui/components/home.md). Retract it

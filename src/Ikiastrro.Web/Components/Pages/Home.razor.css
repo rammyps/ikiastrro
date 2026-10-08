@@ -38,19 +38,19 @@
     letter-spacing: -0.03em;
 }
 
-/* Real NASA Earth photo (orb-earth.png) after "…PATH", kept small beside the caps heading. */
+/* Real NASA Earth photo (orb-earth.png) after "…PATH", sized to the heading font. */
 .home-title-earth {
     display: inline-block;
-    width: 0.38em;
-    height: 0.38em;
-    margin-left: 0.2em;
-    vertical-align: 0.02em;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.15em;
+    vertical-align: -0.1em;
     border-radius: 50%;
     object-fit: cover;
 }
 
 .home-name {
-    max-width: 520px;
+    max-width: 640px;
 }
 
 /* The entered name reads a touch larger than the Preferences toggle above it. */

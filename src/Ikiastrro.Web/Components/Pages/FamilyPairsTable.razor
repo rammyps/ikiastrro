@@ -30,8 +30,6 @@
                     <select @bind="_parent"><option value="0">Choose a saved person…</option>@foreach (var p in _people) { <option value="@p.Id">@p.Name</option> }</select></label>
                 <label class="fp-field"><span>Child</span>
                     <select @bind="_child"><option value="0">Choose a saved person…</option>@foreach (var p in _people) { <option value="@p.Id">@p.Name</option> }</select></label>
-                <label class="fp-check"><input type="checkbox" @bind="_adopted" /> Adopted</label>
-                <label class="fp-check"><input type="checkbox" @bind="_step" /> Step</label>
                 <button type="button" class="fp-btn" @onclick="SaveParent" disabled="@(_parent == 0 || _child == 0 || _parent == _child)">Record parent</button>
             </div>
             <p class="fp-hint">Record each parent separately. Siblings and grandparents then follow on their own.</p>
@@ -157,7 +155,6 @@ else if (Mode == PairMode.FamilyExtended)
     private IReadOnlyList<FamilyExtendedPair> _extended = [];
     private IReadOnlyList<BirthDetails> _people = [];
     private int _spouseA, _spouseB, _parent, _child;
-    private bool _adopted, _step;
     private string? _confirm;
     private string _status = "";
 
@@ -181,10 +178,9 @@ else if (Mode == PairMode.FamilyExtended)
             _status = $"{NameOf(_parent)} is already recorded as {NameOf(_child)}'s child, so cannot also be their parent.";
             return;
         }
-        FamilyRepo.AddParent(_parent, _child, _adopted, _step);
+        FamilyRepo.AddParent(_parent, _child, false, false);
         _status = $"Recorded {NameOf(_parent)} as a parent of {NameOf(_child)}.";
         _parent = _child = 0;
-        _adopted = _step = false;
         Load();
     }
 
