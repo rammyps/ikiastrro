@@ -33,7 +33,15 @@ ikiastrro-analytics validate-dataset
 ikiastrro-analytics describe --git-commit <commit>
 ikiastrro-analytics validate-life-matters
 ikiastrro-analytics describe-life-matters --git-commit <commit>
+dotnet run --project src/Ikiastrro.Cli -- materialize-dasha-features   # C#: writes the natal rule rows first
+ikiastrro-analytics validate-dasha-matters
+ikiastrro-analytics describe-dasha-matters --git-commit <commit>
 ```
+
+Dasha matters (dataset `KI_DASHA_MATTER`, migration 178) describe the natal rule structure only: how many planets meet
+each dasha-matter rule, compared across charts. The running period is excluded because it changes daily and would make a
+run irreproducible. The rules live in Core, so the C# `materialize-dasha-features` step writes the feature rows and
+Python only describes them.
 
 Set `IKIASTRRO_SQL_CONNECTION` to override the default trusted local SQL Server connection.
 

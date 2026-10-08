@@ -65,6 +65,10 @@ IF OBJECT_ID('dbo.tbl_Fact_StatisticalComparisons', 'U') IS NOT NULL
     DELETE FROM dbo.tbl_Fact_StatisticalComparisons;
 IF OBJECT_ID('dbo.tbl_Fact_LifeMatterStatisticalComparisons', 'U') IS NOT NULL
     DELETE FROM dbo.tbl_Fact_LifeMatterStatisticalComparisons;
+IF OBJECT_ID('dbo.tbl_Fact_DashaMatterStatisticalComparisons', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Fact_DashaMatterStatisticalComparisons;
+IF OBJECT_ID('dbo.tbl_Fact_AnalyticsDashaMatterFeatures', 'U') IS NOT NULL
+    DELETE FROM dbo.tbl_Fact_AnalyticsDashaMatterFeatures;
 IF OBJECT_ID('dbo.tbl_Dim_AnalyticsSubjects', 'U') IS NOT NULL
     DELETE FROM dbo.tbl_Dim_AnalyticsSubjects;
 
@@ -137,6 +141,10 @@ IF OBJECT_ID('dbo.tbl_Fact_StatisticalComparisons', 'U') IS NOT NULL
     DBCC CHECKIDENT ('dbo.tbl_Fact_StatisticalComparisons', RESEED, 0);
 IF OBJECT_ID('dbo.tbl_Fact_LifeMatterStatisticalComparisons', 'U') IS NOT NULL
     DBCC CHECKIDENT ('dbo.tbl_Fact_LifeMatterStatisticalComparisons', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Fact_DashaMatterStatisticalComparisons', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Fact_DashaMatterStatisticalComparisons', RESEED, 0);
+IF OBJECT_ID('dbo.tbl_Fact_AnalyticsDashaMatterFeatures', 'U') IS NOT NULL
+    DBCC CHECKIDENT ('dbo.tbl_Fact_AnalyticsDashaMatterFeatures', RESEED, 0);
 IF OBJECT_ID('dbo.tbl_Dim_AnalyticsSubjects', 'U') IS NOT NULL
     DBCC CHECKIDENT ('dbo.tbl_Dim_AnalyticsSubjects', RESEED, 0);
 IF OBJECT_ID('dbo.tbl_Person_Relationship', 'U') IS NOT NULL

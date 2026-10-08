@@ -42,6 +42,7 @@ builder.Services.AddScoped<Ikiastrro.Data.Statistics.HouseStrengthStatisticsRepo
 builder.Services.AddScoped<Ikiastrro.Data.Statistics.HouseStrengthStatisticsService>();
 builder.Services.AddScoped<Ikiastrro.Data.Statistics.PopulationEvidenceRepository>();
 builder.Services.AddScoped<Ikiastrro.Data.Statistics.LifeMatterPopulationEvidenceRepository>();
+builder.Services.AddScoped<Ikiastrro.Data.Statistics.DashaMatterPopulationEvidenceRepository>();
 builder.Services.AddScoped<Ikiastrro.Data.Statistics.AnalyticsSubjectRepository>();
 builder.Services.AddScoped<GrahaDrishtiStrengthRepository>();
 builder.Services.AddScoped<PanchangaRepository>();

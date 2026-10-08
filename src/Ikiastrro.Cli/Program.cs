@@ -163,6 +163,18 @@ if (args.Length > 0 && args[0] == "backfill-strength-statistics")
     return;
 }
 
+// --- `dotnet run -- materialize-dasha-features` ---
+// Writes the natal KI_DASHA_MATTER_V1 feature rows (migration 178) for every ELIGIBLE analytics subject from
+// stored charts. Run before `ikiastrro-analytics validate-dasha-matters` / `describe-dasha-matters`.
+if (args.Length > 0 && args[0] == "materialize-dasha-features")
+{
+    var materializer = new Ikiastrro.Data.Statistics.DashaMatterFeatureMaterializer(
+        connectionFactory, chartResultsRepo, new ChartKeyDetailsRepository(connectionFactory));
+    var (subjects, rows) = materializer.Materialize();
+    Console.WriteLine($"materialize-dasha-features: {subjects} eligible subject(s), {rows} feature row(s).");
+    return;
+}
+
 // --- One-off backfill mode: `dotnet run -- backfill-analytics` ---
 // Unconditionally re-derives all four analytics tables (KeyDetails/HouseLords/Conjunctions/Aspects)
 // for every calculable chart type of every saved person — delete-then-reinsert, with no "skip

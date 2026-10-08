@@ -1,6 +1,7 @@
 @using Ikiastrro.Data.Statistics
 @inject PopulationEvidenceRepository PopulationEvidenceRepo
 @inject LifeMatterPopulationEvidenceRepository LifeMatterEvidenceRepo
+@inject DashaMatterPopulationEvidenceRepository DashaMatterEvidenceRepo
 @inject LifeMatterReferenceRepository LifeMatterReferenceRepo
 @inject LifeMatterFocusRepository LifeMatterFocusRepo
 
@@ -73,6 +74,36 @@
                     }
                 </section>
             }
+            @if (_dashaGroups.Count > 0)
+            {
+                <section class="ks-matters" aria-label="Dasha matters">
+                    <h2 class="ks-matters-title">Dasha matters</h2>
+                    <p class="ks-meaning">How many planets in this chart meet each natal dasha-matter rule, and how common that rule is among comparable saved charts. This describes the chart's structure and its prevalence in a population. It is not a prediction, and it does not say which period is running.</p>
+                    @foreach (var (heading, items) in _dashaGroups)
+                    {
+                        <h3 class="ks-dasha-heading">@heading</h3>
+                        <ul class="ks-matter-list">
+                            @foreach (var d in items)
+                            {
+                                <li class="ks-matter">
+                                    <b class="ks-matter-name">@d.Statement <small>@d.Varga</small></b>
+                                    <div class="ks-matter-row @(d.IsThin ? "is-thin" : "")">
+                                        <span class="ks-matter-lens">@d.Result</span>
+                                        <span class="ks-matter-pct">@(d.PlanetCount is { } n ? $"{n:0} planet{(n == 1 ? "" : "s")}" : "Not evaluated")</span>
+                                        <small class="ks-matter-note">@(d.PresentPercent is { } p ? $"Present in {p:0}% of other comparable charts · " : "")@d.Reliability@(d.IsThin ? " · limited reference data" : "")</small>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    @if (_dashaSnapshot.CompletedAtUtc is { } finished)
+                    {
+                        <details class="pop-prov"><summary>Provenance</summary>
+                            <p>Dataset @_dashaSnapshot.DatasetCode v@_dashaSnapshot.DatasetVersion · feature @_dashaSnapshot.FeatureContractVersion · rule set @_dashaSnapshot.RuleSetId · run @_dashaSnapshot.AnalyticsRunId · @finished.ToString("dd MMM yyyy") UTC</p>
+                        </details>
+                    }
+                </section>
+            }
         }
 </div>
 
@@ -85,6 +116,8 @@
     private IReadOnlyList<PopulationComparison> _rows = [];
     private LifeMatterPopulationEvidenceSnapshot _matterSnapshot = default!;
     private IReadOnlyList<(string Code, string Name, IReadOnlyList<LifeMatterPopulationComparison> Rows)> _matterGroups = [];
+    private DashaMatterPopulationEvidenceSnapshot _dashaSnapshot = default!;
+    private IReadOnlyList<(string Heading, IReadOnlyList<KeyStatsLogic.DashaMatterItem> Items)> _dashaGroups = [];
     private IReadOnlyDictionary<int, string> _houseMatters = new Dictionary<int, string>();
     private string _filter = "all";
 
@@ -114,6 +147,9 @@
         _matterSnapshot = LifeMatterEvidenceRepo.GetLatestForBirthDetail(Id);
         _matterGroups = PreviewSnapshot is null && _matterSnapshot.IsAvailable
             ? KeyStatsLogic.MatterGroups(_matterSnapshot.Comparisons) : [];
+        _dashaSnapshot = DashaMatterEvidenceRepo.GetLatestForBirthDetail(Id);
+        _dashaGroups = PreviewSnapshot is null && _dashaSnapshot.IsAvailable
+            ? KeyStatsLogic.DashaGroups(_dashaSnapshot.Comparisons) : [];
         const byte ruleSetId = 1;
         _houseMatters = KeyStatsLogic.BestMatterByHouse(
             LifeMatterReferenceRepo.GetAllSteps(ruleSetId), LifeMatterFocusRepo.GetFoci(ruleSetId),

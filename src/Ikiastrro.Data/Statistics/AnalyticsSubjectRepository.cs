@@ -49,6 +49,12 @@ public sealed class AnalyticsSubjectRepository(SqlConnectionFactory connectionFa
                 DELETE FROM dbo.tbl_Fact_LifeMatterStatisticalComparisons WHERE SubjectKey = @key
                 """, new { key }, transaction);
             connection.Execute("""
+                DELETE FROM dbo.tbl_Fact_DashaMatterStatisticalComparisons WHERE SubjectKey = @key
+                """, new { key }, transaction);
+            connection.Execute("""
+                DELETE FROM dbo.tbl_Fact_AnalyticsDashaMatterFeatures WHERE SubjectKey = @key
+                """, new { key }, transaction);
+            connection.Execute("""
                 DELETE FROM dbo.tbl_Fact_StatisticalComparisons WHERE SubjectKey = @key
                 """, new { key }, transaction);
         }
@@ -85,6 +91,18 @@ public sealed class AnalyticsSubjectRepository(SqlConnectionFactory connectionFa
             DELETE comparison
             FROM dbo.tbl_Fact_LifeMatterStatisticalComparisons comparison
             JOIN dbo.tbl_Dim_AnalyticsSubjects subject ON subject.SubjectKey = comparison.SubjectKey
+            WHERE subject.BirthDetailId = @birthDetailId
+            """, new { birthDetailId }, transaction);
+        connection.Execute("""
+            DELETE comparison
+            FROM dbo.tbl_Fact_DashaMatterStatisticalComparisons comparison
+            JOIN dbo.tbl_Dim_AnalyticsSubjects subject ON subject.SubjectKey = comparison.SubjectKey
+            WHERE subject.BirthDetailId = @birthDetailId
+            """, new { birthDetailId }, transaction);
+        connection.Execute("""
+            DELETE feature
+            FROM dbo.tbl_Fact_AnalyticsDashaMatterFeatures feature
+            JOIN dbo.tbl_Dim_AnalyticsSubjects subject ON subject.SubjectKey = feature.SubjectKey
             WHERE subject.BirthDetailId = @birthDetailId
             """, new { birthDetailId }, transaction);
         connection.Execute("""

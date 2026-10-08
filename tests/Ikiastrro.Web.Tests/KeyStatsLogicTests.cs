@@ -136,4 +136,28 @@ public sealed class KeyStatsLogicTests : BunitContext
     {
         Assert.Equal("48 of 48 measured · median 50% (95% CI 47–53)", KeyStatsLogic.Reliability(Matter("M", 1, "D1_PROMISE")));
     }
+
+    private static DashaMatterPopulationComparison Dasha(int rule, string scope, string feature, decimal? personal, decimal? mean,
+        string sufficiency = "SUFFICIENT") =>
+        new(rule, "D9", scope, null, null, feature, personal, 48, 48, 0m, 1m, mean, null, 0m, 1m, sufficiency, null);
+
+    [Fact]
+    public void DashaGroups_UseCoreWording_GroupByScope_AndShowPrevalence()
+    {
+        DashaMatterPopulationComparison[] rows =
+        [
+            Dasha(5, "EXAMPLE", "KI_DM_TARGET_COUNT_V1", 1m, 1m), Dasha(5, "EXAMPLE", "KI_DM_PRESENT_V1", 100m, 62.5m),
+            Dasha(10, "CHART_THEME", "KI_DM_TARGET_COUNT_V1", null, 1m, "INCOMPLETE"),
+            Dasha(10, "CHART_THEME", "KI_DM_PRESENT_V1", null, 40m, "INCOMPLETE")
+        ];
+        var groups = KeyStatsLogic.DashaGroups(rows);
+        Assert.Equal(["PVR examples", "Divisional chart themes"], groups.Select(g => g.Heading));
+        var seventh = groups[0].Items.Single();
+        Assert.Equal("The 7th lord in D-9", seventh.Statement);
+        Assert.Equal(1m, seventh.PlanetCount);
+        Assert.Equal(62.5m, seventh.PresentPercent);
+        var theme = groups[1].Items.Single();
+        Assert.Null(theme.PlanetCount);
+        Assert.True(theme.IsThin);
+    }
 }

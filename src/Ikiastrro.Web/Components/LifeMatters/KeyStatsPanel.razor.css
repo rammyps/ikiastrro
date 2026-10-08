@@ -42,3 +42,5 @@
 .ks-matter-pct { font-weight: 800; }
 .ks-matter-row.is-thin .ks-matter-pct { color: var(--brand-muted); }
 .ks-matter-note { grid-column: 1 / -1; }
+.ks-dasha-heading { margin: 8px 0 0; font-size: var(--font-size-support); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-muted); }
+.ks-matter-name small { margin-left: 6px; font-size: var(--font-size-meta); color: var(--brand-muted); }

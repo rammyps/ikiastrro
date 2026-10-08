@@ -1,3 +1,5 @@
+using Ikiastrro.Core.Engines.Astronomy;
+using Ikiastrro.Core.Engines.Dasha;
 using Ikiastrro.Core.LifeMatters;
 using Ikiastrro.Data;
 using Ikiastrro.Data.Statistics;
@@ -64,6 +66,52 @@ public static class KeyStatsLogic
                 text += $" (95% CI {lo:0.#}–{hi:0.#})";
         }
         return text;
+    }
+
+    public static readonly (string Scope, string Heading)[] DashaScopes =
+    [
+        ("EXAMPLE", "PVR examples"), ("CHART_THEME", "Divisional chart themes"),
+        ("HOUSE", "House lords and occupants"), ("NATURAL_KARAKA", "Natural karakas")
+    ];
+
+    /// <summary>One dasha-matter rule for this person against the population.</summary>
+    public sealed record DashaMatterItem(
+        int Number, string Varga, string Statement, string Result, decimal? PlanetCount,
+        decimal? PresentPercent, bool IsThin, string Reliability);
+
+    private static readonly Lazy<IReadOnlyDictionary<int, DashaMatterRule>> DashaCatalogue = new(() =>
+    {
+        var none = new Dictionary<string, DashaMatterChart>();
+        return DashaMatters.Evaluate(none, null).Concat(DashaMatters.EvaluateExtended(none))
+            .ToDictionary(r => r.Number);
+    });
+
+    /// <summary>
+    /// Natal dasha-matter rules grouped by scope. The rule wording comes from Core's own catalogue, so the page never
+    /// restates a rule. "Present in X%" is the leave-one-out mean of the 0/100 presence feature, i.e. how many other
+    /// comparable charts have at least one planet meeting the rule; it is a prevalence, not a score.
+    /// </summary>
+    public static IReadOnlyList<(string Heading, IReadOnlyList<DashaMatterItem> Items)> DashaGroups(
+        IEnumerable<DashaMatterPopulationComparison> rows)
+    {
+        var byRule = rows.GroupBy(c => c.RuleNumber).ToList();
+        var items = new List<(string Scope, DashaMatterItem Item)>();
+        foreach (var rule in byRule.OrderBy(g => g.Key))
+        {
+            var count = rule.FirstOrDefault(c => c.FeatureCode == DashaMatterFeatures.TargetCountFeature);
+            var present = rule.FirstOrDefault(c => c.FeatureCode == DashaMatterFeatures.PresentFeature);
+            var head = count ?? present;
+            if (head is null) continue;
+            var known = DashaCatalogue.Value.TryGetValue(rule.Key, out var r);
+            var thin = (present ?? head).SufficiencyCode is "INSUFFICIENT" or "INCOMPLETE";
+            var text = $"{head.MeasuredCount} of {head.EligibleCount} measured";
+            items.Add((head.ScopeKind, new DashaMatterItem(
+                rule.Key, head.Varga, known ? r!.Statement : $"Rule {rule.Key}", known ? r!.Result : "",
+                count?.PersonalValue, present?.ReferenceMean, thin, text)));
+        }
+        return DashaScopes
+            .Select(s => (s.Heading, (IReadOnlyList<DashaMatterItem>)items.Where(i => i.Scope == s.Scope).Select(i => i.Item).ToList()))
+            .Where(g => g.Item2.Count > 0).ToList();
     }
 
     public static IReadOnlyList<(bool Done, string Text)> UnlockSteps(PopulationEvidenceSnapshot snapshot)

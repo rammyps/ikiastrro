@@ -12,6 +12,13 @@ from .life_matter_sql import (
     fetch_features as fetch_life_matter_features,
     publish_comparisons as publish_life_matter_comparisons,
 )
+from .dasha_matter import build_comparisons as build_dasha_matter_comparisons
+from .dasha_matter import validate_rows as validate_dasha_matter_rows
+from .dasha_matter_sql import (
+    ensure_development_dataset as ensure_dasha_matter_dataset,
+    fetch_features as fetch_dasha_matter_features,
+    publish_comparisons as publish_dasha_matter_comparisons,
+)
 from .sql import (connect, ensure_development_dataset, fetch_features,
                   prepare_personal_cohort, publish_comparisons)
 from .validation import validate_feature_rows
@@ -82,11 +89,40 @@ def describe_life_matters(git_commit: str | None) -> int:
 
 
 
+def validate_dasha_matters() -> int:
+    with connect() as connection:
+        rows = fetch_dasha_matter_features(connection)
+    report = validate_dasha_matter_rows(rows)
+    print(f"eligible_subjects={report.subject_count} dasha_matter_rows={report.row_count}")
+    if not report.is_valid:
+        for error in report.errors:
+            print(f"validation_error={error}")
+        return 1
+    print(f"percentiles_publishable={'yes' if report.subject_count >= 30 else 'no'}")
+    return 0
+
+
+def describe_dasha_matters(git_commit: str | None) -> int:
+    seed = 20261001
+    bootstrap_iterations = 2000
+    with connect() as connection:
+        rows = fetch_dasha_matter_features(connection)
+        validate_dasha_matter_rows(rows).require_valid()
+        dataset_id = ensure_dasha_matter_dataset(connection, git_commit=git_commit)
+        comparisons = build_dasha_matter_comparisons(rows, seed=seed, bootstrap_iterations=bootstrap_iterations)
+        run_id = publish_dasha_matter_comparisons(
+            connection, dataset_id, comparisons, seed=seed,
+            bootstrap_iterations=bootstrap_iterations)
+    print(f"dataset_id={dataset_id} analytics_run_id={run_id} comparisons={len(comparisons)}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(prog="ikiastrro-analytics")
     parser.add_argument(
         "command", choices=["prepare-personal-cohort", "validate-dataset", "describe",
-                            "validate-life-matters", "describe-life-matters"])
+                            "validate-life-matters", "describe-life-matters",
+                            "validate-dasha-matters", "describe-dasha-matters"])
     parser.add_argument("--git-commit")
     args = parser.parse_args()
     if args.command == "prepare-personal-cohort":
@@ -95,6 +131,10 @@ def main() -> int:
         return validate_dataset()
     if args.command == "validate-life-matters":
         return validate_life_matters()
+    if args.command == "validate-dasha-matters":
+        return validate_dasha_matters()
+    if args.command == "describe-dasha-matters":
+        return describe_dasha_matters(args.git_commit)
     if args.command == "describe-life-matters":
         return describe_life_matters(args.git_commit)
     return describe(args.git_commit)
