@@ -94,7 +94,7 @@
         var enrolled = _snapshot.AvailabilityCode is not ("NOT_ENROLLED" or "NOT_ELIGIBLE");
         yield return (enrolled, "Enrol this person on Saved Charts: Research classification plus the explicit-permission confirmation.");
         yield return (_snapshot.EligiblePeople >= 30, $"Reach at least 30 eligible people in the reference population (now {_snapshot.EligiblePeople}).");
-        yield return (_snapshot.AnalyticsRunId is not null, "Complete a statistical analytics run over the eligible cohort.");
+        yield return (_snapshot.EligiblePeople >= 30 && _snapshot.AnalyticsRunId is not null, "Complete a statistical analytics run over the eligible cohort.");
     }
 
     protected override void OnParametersSet()

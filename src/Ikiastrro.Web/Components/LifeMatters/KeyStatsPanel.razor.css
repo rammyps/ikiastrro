@@ -7,11 +7,12 @@
 @media (max-width: 1100px) { .ks-card ::deep .pop-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .ks-card ::deep .pop-rows { grid-template-columns: 1fr; } }
 
+.ks-card, .ks-card * { font-family: 'Manrope', 'Segoe UI', sans-serif; }
 .ks-card { max-width: 1200px; margin-inline: auto; display: grid; gap: 12px; }
 .ks-meaning { margin: 0; font-size: var(--font-size-support); color: var(--brand-muted); }
 .ks-meaning b { color: var(--card-fg); }
 
-.ks-unlock { padding: 18px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); }
+.ks-unlock { font-family: 'Manrope', 'Segoe UI', sans-serif; padding: 18px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); }
 .ks-unlock-title { margin: 0 0 4px; font-size: var(--font-size-heading); }
 .ks-unlock-lead { margin: 0 0 12px; font-size: var(--font-size-support); color: var(--brand-muted); }
 .ks-steps { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; font-size: var(--font-size-support); }

@@ -168,7 +168,21 @@ else
         </ul>
     </section>
 
-    <div class="lm-top">
+        <div class="lm-view-tabs" role="tablist" aria-label="Key inference view">
+            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "READING")"
+                    class="@(_viewTab == "READING" ? "selected" : null)" @onclick='() => SelectView("READING")'>
+                READING
+            </button>
+            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "STATISTICAL")"
+                    class="@(_viewTab == "STATISTICAL" ? "selected" : null)" @onclick='() => SelectView("STATISTICAL")'>
+                TIMING
+            </button>
+            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "STATS")"
+                    class="@(_viewTab == "STATS" ? "selected" : null)" @onclick='() => SelectView("STATS")'>
+                POPULATION
+            </button>
+        </div>
+    <div class="lm-top" hidden="@(_viewTab == "STATS")">
         @* ================= 1 · EXPLORE ================= *@
         <nav class="lm-explore" aria-label="Choose a life area and question">
             <p class="lm-step"><b>1</b> Choose a life area</p>
@@ -209,21 +223,6 @@ else
                 </button>
             }
         </nav>
-
-        <div class="lm-view-tabs" role="tablist" aria-label="Key inference view">
-            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "READING")"
-                    class="@(_viewTab == "READING" ? "selected" : null)" @onclick='() => SelectView("READING")'>
-                READING
-            </button>
-            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "STATISTICAL")"
-                    class="@(_viewTab == "STATISTICAL" ? "selected" : null)" @onclick='() => SelectView("STATISTICAL")'>
-                TIMING
-            </button>
-            <button type="button" role="tab" aria-selected="@Aria(_viewTab == "STATS")"
-                    class="@(_viewTab == "STATS" ? "selected" : null)" @onclick='() => SelectView("STATS")'>
-                POPULATION
-            </button>
-        </div>
 
         <div class="lm-tab-panel" role="tabpanel" hidden="@(_viewTab != "READING")">
         @* ================= 2 · UNDERSTAND ================= *@
@@ -409,8 +408,73 @@ else
         </section>
     </div>
 
+        <section class="lm-statistical lm-tab-panel" role="tabpanel" hidden="@(_viewTab != "STATISTICAL")"
+                 aria-label="Statistical timing model">
+            <div class="lm-stat-head">
+                <div>
+                    <p class="lm-step"><b>V10</b> Statistical timing model</p>
+                    <h2>@(step?.MatterText ?? "Choose a question")</h2>
+                    <p>D1 establishes the promise, the relevant varga confirms its domain, DashaMatters activates it, and transit identifies a manifestation window.</p>
+                </div>
+                <label>Evaluation date
+                    <input type="date" value="@_timingDate.ToString("yyyy-MM-dd")" @onchange="OnTimingDateChanged" />
+                </label>
+            </div>
+
+            @if (step is null)
+            {
+                <p class="lm-note">Choose a question to evaluate the timing chain.</p>
+            }
+            else if (_timingResult is null)
+            {
+                <p class="lm-note">The timing model could not be evaluated for this question.</p>
+                @if (_timingMissing.Count > 0)
+                {
+                    <ul class="lm-stat-missing">@foreach (var item in _timingMissing) { <li>@item</li> }</ul>
+                }
+            }
+            else
+            {
+                var timing = _timingResult;
+                <div class="lm-stage-grid">
+                    <article class="lm-stage @StageTone(timing.Activation.D1Verdict.ToString())">
+                        <span>1 · Natal gate</span><h3>D1 promise</h3>
+                        <b>@Words(timing.Activation.D1Verdict.ToString())</b>
+                        <p>@timing.Activation.Lines.FirstOrDefault()</p>
+                    </article>
+                    <article class="lm-stage @StageTone(timing.Activation.VargaSupport.ToString())">
+                        <span>2 · Domain</span><h3>Varga support</h3>
+                        <b>@Words(timing.Activation.VargaSupport.ToString())</b>
+                        <p>@(timing.Activation.Varga?.Inference ?? "Relevant varga evidence is not available.")</p>
+                    </article>
+                    <article class="lm-stage @StageTone(timing.Activation.State.ToString())">
+                        <span>3 · Period</span><h3>Dasha activation</h3>
+                        <b>@Words(timing.Activation.State.ToString())</b>
+                        <p>@timing.Activation.Lines.LastOrDefault()</p>
+                        @if (timing.Activation.Matches.Count > 0)
+                        {
+                            <small>@string.Join(" · ", timing.Activation.Matches.Select(m => $"{m.Level}: {m.Lord}"))</small>
+                        }
+                    </article>
+                    <article class="lm-stage @StageTone(timing.Manifestation.State.ToString())">
+                        <span>4 · Window</span><h3>Transit manifestation</h3>
+                        <b>@Words(timing.Manifestation.State.ToString())</b>
+                        <p>@timing.Manifestation.Lines.FirstOrDefault()</p>
+                        @if (timing.Manifestation.RelevantTransits.Count > 0)
+                        {
+                            <small>@string.Join(" · ", timing.Manifestation.RelevantTransits.Select(t => t.Planet))</small>
+                        }
+                    </article>
+                </div>
+                <p class="lm-stat-policy">A transit trigger is a qualified timing window, not an event guarantee. It cannot override an indeterminate D1 promise or an inactive dasha.</p>
+                @if (_timingMissing.Count > 0)
+                {
+                    <div class="lm-stat-gaps"><b>Evidence gaps</b><ul>@foreach (var item in _timingMissing) { <li>@item</li> }</ul></div>
+                }
+            }
+        </section>
     @* ================= 3 · INVESTIGATE ================= *@
-    @if (step is not null)
+    @if (step is not null && _viewTab == "READING")
     {
         <section class="lm-investigate" aria-label="Investigate">
             <p class="lm-step"><b>4</b> Investigate the evidence</p>
@@ -722,72 +786,10 @@ else
     }
         </div>
 
-        <section class="lm-statistical lm-tab-panel" role="tabpanel" hidden="@(_viewTab != "STATISTICAL")"
-                 aria-label="Statistical timing model">
-            <div class="lm-stat-head">
-                <div>
-                    <p class="lm-step"><b>V10</b> Statistical timing model</p>
-                    <h2>@(step?.MatterText ?? "Choose a question")</h2>
-                    <p>D1 establishes the promise, the relevant varga confirms its domain, DashaMatters activates it, and transit identifies a manifestation window.</p>
-                </div>
-                <label>Evaluation date
-                    <input type="date" value="@_timingDate.ToString("yyyy-MM-dd")" @onchange="OnTimingDateChanged" />
-                </label>
-            </div>
-
-            @if (step is null)
-            {
-                <p class="lm-note">Choose a question to evaluate the timing chain.</p>
-            }
-            else if (_timingResult is null)
-            {
-                <p class="lm-note">The timing model could not be evaluated for this question.</p>
-                @if (_timingMissing.Count > 0)
-                {
-                    <ul class="lm-stat-missing">@foreach (var item in _timingMissing) { <li>@item</li> }</ul>
-                }
-            }
-            else
-            {
-                var timing = _timingResult;
-                <div class="lm-stage-grid">
-                    <article class="lm-stage @StageTone(timing.Activation.D1Verdict.ToString())">
-                        <span>1 · Natal gate</span><h3>D1 promise</h3>
-                        <b>@Words(timing.Activation.D1Verdict.ToString())</b>
-                        <p>@timing.Activation.Lines.FirstOrDefault()</p>
-                    </article>
-                    <article class="lm-stage @StageTone(timing.Activation.VargaSupport.ToString())">
-                        <span>2 · Domain</span><h3>Varga support</h3>
-                        <b>@Words(timing.Activation.VargaSupport.ToString())</b>
-                        <p>@(timing.Activation.Varga?.Inference ?? "Relevant varga evidence is not available.")</p>
-                    </article>
-                    <article class="lm-stage @StageTone(timing.Activation.State.ToString())">
-                        <span>3 · Period</span><h3>Dasha activation</h3>
-                        <b>@Words(timing.Activation.State.ToString())</b>
-                        <p>@timing.Activation.Lines.LastOrDefault()</p>
-                        @if (timing.Activation.Matches.Count > 0)
-                        {
-                            <small>@string.Join(" · ", timing.Activation.Matches.Select(m => $"{m.Level}: {m.Lord}"))</small>
-                        }
-                    </article>
-                    <article class="lm-stage @StageTone(timing.Manifestation.State.ToString())">
-                        <span>4 · Window</span><h3>Transit manifestation</h3>
-                        <b>@Words(timing.Manifestation.State.ToString())</b>
-                        <p>@timing.Manifestation.Lines.FirstOrDefault()</p>
-                        @if (timing.Manifestation.RelevantTransits.Count > 0)
-                        {
-                            <small>@string.Join(" · ", timing.Manifestation.RelevantTransits.Select(t => t.Planet))</small>
-                        }
-                    </article>
-                </div>
-                <p class="lm-stat-policy">A transit trigger is a qualified timing window, not an event guarantee. It cannot override an indeterminate D1 promise or an inactive dasha.</p>
-                @if (_timingMissing.Count > 0)
-                {
-                    <div class="lm-stat-gaps"><b>Evidence gaps</b><ul>@foreach (var item in _timingMissing) { <li>@item</li> }</ul></div>
-                }
-            }
-        </section>
-<section class="lm-tab-panel" role="tabpanel" aria-label="Population statistics" hidden="@(_viewTab != "STATS")">            @if (_viewTab == "STATS")            {                <KeyStatsPanel Id="Id" />            }        </section>
+    @if (_viewTab == "STATS")
+    {
+        <KeyStatsPanel Id="Id" />
+    }
 }
 
 @code {
