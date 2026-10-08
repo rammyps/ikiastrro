@@ -31,3 +31,14 @@
 .ks-filter small { margin-left: 4px; color: var(--brand-muted); }
 .ks-filter.is-on { background: var(--brand-sunrise); border-color: var(--brand-midnight); color: var(--brand-midnight); }
 .ks-card ::deep .pop-row-head { flex-wrap: wrap; row-gap: 4px; }
+
+.ks-matters { display: grid; gap: 8px; }
+.ks-matters-title { margin: 0; font-size: var(--font-size-heading); }
+.ks-matter-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+.ks-matter { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); }
+.ks-matter-name { font-size: var(--font-size-support); }
+.ks-matter-row { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; align-items: baseline; font-size: var(--font-size-support); }
+.ks-matter-row small { font-size: var(--font-size-meta); color: var(--brand-muted); }
+.ks-matter-pct { font-weight: 800; }
+.ks-matter-row.is-thin .ks-matter-pct { color: var(--brand-muted); }
+.ks-matter-note { grid-column: 1 / -1; }

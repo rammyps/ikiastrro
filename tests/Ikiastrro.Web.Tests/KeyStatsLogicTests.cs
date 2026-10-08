@@ -112,4 +112,28 @@ public sealed class KeyStatsLogicTests : BunitContext
         Render<KeyStats>(p => p.Add(x => x.Id, 3));
         Assert.EndsWith("/key-inference/3?view=stats", Services.GetRequiredService<NavigationManager>().Uri);
     }
+
+    private static LifeMatterPopulationComparison Matter(string code, int focus, string lens, string feature = "KI_LM_SUPPORT_V1",
+        decimal? pct = 60m, string sufficiency = "SUFFICIENT") =>
+        new(1, focus, code, code, lens, "D9", null, feature, 50m, 48, 48, 0m, 50m, 40m, 60m, 0m, pct, 47m, 53m, sufficiency, null);
+
+    [Fact]
+    public void MatterGroups_KeepOnlyOverallSupport_PromiseBeforeVarga_ThinRowsKept()
+    {
+        LifeMatterPopulationComparison[] rows =
+        [
+            Matter("MARRIAGE", 2, "VARGA_CONFIRMATION"), Matter("MARRIAGE", 1, "D1_PROMISE"),
+            Matter("MARRIAGE", 1, "D1_PROMISE", "KI_LM_CAPACITY_V1"), Matter("CAREER", 3, "D1_PROMISE", pct: null, sufficiency: "INSUFFICIENT")
+        ];
+        var groups = KeyStatsLogic.MatterGroups(rows);
+        Assert.Equal(["MARRIAGE", "CAREER"], groups.Select(g => g.Code));
+        Assert.Equal(["D1_PROMISE", "VARGA_CONFIRMATION"], groups[0].Rows.Select(r => r.EvidenceLensCode));
+        Assert.True(KeyStatsLogic.IsThin(groups[1].Rows[0]));
+    }
+
+    [Fact]
+    public void Reliability_NamesMeasuredCountAndMedianInterval()
+    {
+        Assert.Equal("48 of 48 measured · median 50% (95% CI 47–53)", KeyStatsLogic.Reliability(Matter("M", 1, "D1_PROMISE")));
+    }
 }

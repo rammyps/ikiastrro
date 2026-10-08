@@ -1,5 +1,6 @@
 @using Ikiastrro.Data.Statistics
 @inject PopulationEvidenceRepository PopulationEvidenceRepo
+@inject LifeMatterPopulationEvidenceRepository LifeMatterEvidenceRepo
 @inject LifeMatterReferenceRepository LifeMatterReferenceRepo
 @inject LifeMatterFocusRepository LifeMatterFocusRepo
 
@@ -43,6 +44,35 @@
             </div>
             <p class="ks-meaning"><b>What this means.</b> Each percentile shows where this chart's house support sits among comparable saved charts. It describes position in a population, not an outcome probability, and it is withheld where fewer than 30 people were measured. House titles open the matching Key Inference reading.</p>
             <PopulationEvidenceCard Snapshot="_snapshot" Rows="Shown()" HouseLink="HouseHref" />
+            @if (_matterGroups.Count > 0)
+            {
+                <section class="ks-matters" aria-label="Life matters">
+                    <h2 class="ks-matters-title">Life matters</h2>
+                    <p class="ks-meaning">Overall support for each life matter among comparable saved charts, first from the D1 promise and then from the Varga confirmation. A percentile is a position in the population, not an outcome probability.</p>
+                    <ul class="ks-matter-list">
+                        @foreach (var (code, name, rows) in _matterGroups)
+                        {
+                            <li class="ks-matter">
+                                <b class="ks-matter-name">@name</b>
+                                @foreach (var c in rows)
+                                {
+                                    <div class="ks-matter-row @(KeyStatsLogic.IsThin(c) ? "is-thin" : "")">
+                                        <span class="ks-matter-lens">@KeyStatsLogic.LensLabel(c.EvidenceLensCode) <small>@c.ChartType</small></span>
+                                        <span class="ks-matter-pct">@(c.Percentile is null ? "Not published" : PopulationStrip.Ordinal(c.Percentile) + " percentile")</span>
+                                        <small class="ks-matter-note">@KeyStatsLogic.Reliability(c)@(KeyStatsLogic.IsThin(c) ? " · limited reference data" : "")</small>
+                                    </div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                    @if (_matterSnapshot.CompletedAtUtc is { } done)
+                    {
+                        <details class="pop-prov"><summary>Provenance</summary>
+                            <p>Dataset @_matterSnapshot.DatasetCode v@_matterSnapshot.DatasetVersion · feature @_matterSnapshot.FeatureContractVersion · rule set @_matterSnapshot.RuleSetId · run @_matterSnapshot.AnalyticsRunId · @done.ToString("dd MMM yyyy") UTC</p>
+                        </details>
+                    }
+                </section>
+            }
         }
 </div>
 
@@ -53,6 +83,8 @@
 
     private PopulationEvidenceSnapshot _snapshot = default!;
     private IReadOnlyList<PopulationComparison> _rows = [];
+    private LifeMatterPopulationEvidenceSnapshot _matterSnapshot = default!;
+    private IReadOnlyList<(string Code, string Name, IReadOnlyList<LifeMatterPopulationComparison> Rows)> _matterGroups = [];
     private IReadOnlyDictionary<int, string> _houseMatters = new Dictionary<int, string>();
     private string _filter = "all";
 
@@ -78,6 +110,10 @@
     protected override void OnParametersSet()
     {
         _snapshot = PreviewSnapshot ?? PopulationEvidenceRepo.GetLatestForBirthDetail(Id);
+        // Life-matter run is independent of the house run; a development preview never reads it.
+        _matterSnapshot = LifeMatterEvidenceRepo.GetLatestForBirthDetail(Id);
+        _matterGroups = PreviewSnapshot is null && _matterSnapshot.IsAvailable
+            ? KeyStatsLogic.MatterGroups(_matterSnapshot.Comparisons) : [];
         const byte ruleSetId = 1;
         _houseMatters = KeyStatsLogic.BestMatterByHouse(
             LifeMatterReferenceRepo.GetAllSteps(ruleSetId), LifeMatterFocusRepo.GetFoci(ruleSetId),

@@ -28,6 +28,44 @@ public static class KeyStatsLogic
         return ranked.Count == 0 ? null : highest ? ranked.MaxBy(c => c.Percentile) : ranked.MinBy(c => c.Percentile);
     }
 
+    public const string MatterSupportFeature = "KI_LM_SUPPORT_V1";
+
+    public static bool IsThin(LifeMatterPopulationComparison c) => c.SufficiencyCode is "INSUFFICIENT" or "INCOMPLETE";
+
+    public static string LensLabel(string lens) => lens switch
+    {
+        "D1_PROMISE" => "D1 promise",
+        "VARGA_CONFIRMATION" => "Varga confirmation",
+        _ => lens
+    };
+
+    /// <summary>
+    /// Overall-support comparisons grouped by life matter, in the order the repository returned them
+    /// (matter display order). Only the overall-support feature is shown; thin rows are kept so the
+    /// reader sees the limited reference data rather than a silently shorter list.
+    /// </summary>
+    public static IReadOnlyList<(string Code, string Name, IReadOnlyList<LifeMatterPopulationComparison> Rows)> MatterGroups(
+        IEnumerable<LifeMatterPopulationComparison> rows) =>
+        rows.Where(c => c.FeatureCode == MatterSupportFeature)
+            .GroupBy(c => (c.LifeMatterCode, c.LifeMatterName))
+            .Select(g => (g.Key.LifeMatterCode, g.Key.LifeMatterName,
+                (IReadOnlyList<LifeMatterPopulationComparison>)g
+                    .OrderBy(c => c.EvidenceLensCode == "D1_PROMISE" ? 0 : 1)
+                    .ThenBy(c => c.LifeMatterFocusId).ToList()))
+            .ToList();
+
+    public static string Reliability(LifeMatterPopulationComparison c)
+    {
+        var text = $"{c.MeasuredCount} of {c.EligibleCount} measured";
+        if (c.ReferenceMedian is { } m)
+        {
+            text += $" · median {m:0.#}%";
+            if (c.MedianCiLow is { } lo && c.MedianCiHigh is { } hi)
+                text += $" (95% CI {lo:0.#}–{hi:0.#})";
+        }
+        return text;
+    }
+
     public static IReadOnlyList<(bool Done, string Text)> UnlockSteps(PopulationEvidenceSnapshot snapshot)
     {
         var enrolled = snapshot.AvailabilityCode is not ("NOT_ENROLLED" or "NOT_ELIGIBLE");
