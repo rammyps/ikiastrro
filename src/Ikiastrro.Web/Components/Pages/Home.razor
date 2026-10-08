@@ -42,61 +42,77 @@
 
             @if (!_adding)
             {
-                <div class="home-results" role="list">
-                    @foreach (var p in Matches)
+                @if (Matches.Any())
+                {
+                    <div class="home-results" role="list">
+                        @foreach (var p in Matches)
+                        {
+                            <button type="button" class="home-row" role="listitem" @onclick="@(() => OpenPerson(p))">
+                                <span class="home-row-name">@p.Name</span>
+                                <span class="home-row-birth">@BirthLine(p)</span>
+                                <span class="home-row-open">View chart →</span>
+                            </button>
+                        }
+                    </div>
+                }
+
+                @* One dropdown per kind of comparison (PairMode); only one open at a time. Individual is the
+                   two-person Kuta picker, the others list saved pairs filtered by the Name box. *@
+                <div class="home-results home-drops">
+                    @foreach (var (mode, label) in Drops)
                     {
-                        <button type="button" class="home-row" role="listitem" @onclick="@(() => OpenPerson(p))">
-                            <span class="home-row-name">@p.Name</span>
-                            <span class="home-row-birth">@BirthLine(p)</span>
-                            <span class="home-row-open">View chart →</span>
-                        </button>
-                    }
-                    @if (_people.Count >= 2)
-                    {
-                        <button type="button" class="home-add-new" aria-expanded="@_pairing" @onclick="() => _pairing = !_pairing">♡ Check compatibility</button>
+                        var m = mode;
+                        var open = _openDrop == m;
+                        <div class="home-drop">
+                            <button type="button" class="home-drop-head" aria-expanded="@(open ? "true" : "false")"
+                                    @onclick="@(() => _openDrop = open ? null : m)">
+                                <span>@label</span><span class="home-drop-caret">▾</span>
+                            </button>
+                            @if (open)
+                            {
+                                <div class="home-drop-body">
+                                    @if (m == PairMode.Individual)
+                                    {
+                                        <div class="home-pair" role="group" aria-label="Check compatibility">
+                                            <label class="home-pair-field">
+                                                <span>First person</span>
+                                                <select @bind="_pairA">
+                                                    <option value="0">Choose a saved person…</option>
+                                                    @foreach (var p in _people.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                                    {
+                                                        <option value="@p.Id">@p.Name</option>
+                                                    }
+                                                </select>
+                                            </label>
+                                            <label class="home-pair-field">
+                                                <span>Second person</span>
+                                                <select @bind="_pairB">
+                                                    <option value="0">Choose a saved person…</option>
+                                                    @foreach (var p in _people.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                                    {
+                                                        <option value="@p.Id">@p.Name</option>
+                                                    }
+                                                </select>
+                                            </label>
+                                            <p class="home-pair-hint">Groom and bride follow each person's recorded sex.</p>
+                                            <button type="button" class="home-pair-go" disabled="@(!CanPair)" @onclick="OpenPair">Check Kuta agreement →</button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="home-pair-hint">The Name box above filters these pairs.</p>
+                                        <FamilyPairsTable Mode="m" Filter="@_query" />
+                                    }
+                                </div>
+                            }
+                        </div>
                     }
                     <button type="button" class="home-add-new" @onclick="@(() => Nav.NavigateTo("/charts"))">☰ View charts</button>
-                    <button type="button" class="home-add-new" @onclick="StartAdd">＋ Add New</button>
                 </div>
 
-                @if (_pairing)
-                {
-                    @* Two saved people -> the Compatibility page (docs/architecture/compatibility_similarity.md).
-                       Groom and bride are not asked for: the page assigns them from each person's recorded sex. *@
-                    <PairModeTabs @bind-Mode="_pairMode" />
-                    @if (_pairMode != PairMode.Individual)
-                    {
-                        <p class="home-pair-hint">The Name box above filters these pairs.</p>
-                        <FamilyPairsTable Mode="_pairMode" Filter="@_query" />
-                    }
-                    else
-                    {
-                    <div class="home-pair" role="group" aria-label="Check compatibility">
-                        <label class="home-pair-field">
-                            <span>First person</span>
-                            <select @bind="_pairA">
-                                <option value="0">Choose a saved person…</option>
-                                @foreach (var p in _people.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
-                                {
-                                    <option value="@p.Id">@p.Name</option>
-                                }
-                            </select>
-                        </label>
-                        <label class="home-pair-field">
-                            <span>Second person</span>
-                            <select @bind="_pairB">
-                                <option value="0">Choose a saved person…</option>
-                                @foreach (var p in _people.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
-                                {
-                                    <option value="@p.Id">@p.Name</option>
-                                }
-                            </select>
-                        </label>
-                        <p class="home-pair-hint">Groom and bride follow each person's recorded sex.</p>
-                        <button type="button" class="home-pair-go" disabled="@(!CanPair)" @onclick="OpenPair">Check Kuta agreement →</button>
-                    </div>
-                    }
-                }
+                <div class="home-results home-addbox">
+                    <button type="button" class="home-add-new" @onclick="StartAdd">＋ Add New</button>
+                </div>
             }
         </div>
 
@@ -173,8 +189,14 @@
 
     private void OpenPerson(BirthDetails p) => Nav.NavigateTo($"/astro-facts/{p.Id}");
 
-    private bool _pairing;
-    private PairMode _pairMode = PairMode.Individual;
+    private PairMode? _openDrop;
+    private static readonly (PairMode Mode, string Label)[] Drops =
+    [
+        (PairMode.Individual, "Individual"),
+        (PairMode.Marriage, "Marriage"),
+        (PairMode.FamilyCore, "Family"),
+        (PairMode.FamilyExtended, "Family Ext"),
+    ];
     private int _pairA;
     private int _pairB;
     private bool CanPair => _pairA > 0 && _pairB > 0 && _pairA != _pairB;

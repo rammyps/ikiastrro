@@ -134,11 +134,12 @@
             return;
 
         var theme = await JS.InvokeAsync<string>("ikiastrroTheme.initialize");
-        _isDarkMode = theme == "cosmic-dark";
+        _isDarkMode = theme is "cosmic-dark" or "nebula-dark-7band";
         _mudTheme = theme switch
         {
             "default-light" => IkiastrroTheme.DefaultLight,
             "nebula-light" => IkiastrroTheme.NebulaLight,
+            "nebula-dark-7band" => IkiastrroTheme.NebulaViolet7Band,
             _ => IkiastrroTheme.Cosmos,
         };
         await InvokeAsync(StateHasChanged);

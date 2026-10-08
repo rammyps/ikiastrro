@@ -58,7 +58,8 @@ try {
     const expected = {
         'default-light': ['rgb(250, 245, 234)', 'rgb(15, 32, 65)'],
         'cosmic-light': ['rgb(248, 250, 252)', 'rgb(23, 32, 51)'],
-        'cosmic-dark': ['rgb(11, 15, 25)', 'rgb(248, 250, 252)'],
+        'cosmic-dark': ['rgb(11, 15, 25)', 'rgb(242, 238, 231)'],
+        'nebula-dark-7band': ['rgb(12, 5, 22)', 'rgb(243, 236, 251)'],
     };
 
     const results = [];

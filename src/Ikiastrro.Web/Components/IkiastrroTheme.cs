@@ -93,6 +93,32 @@ public static class IkiastrroTheme
         },
     };
 
+    /// <summary>Nebula Violet Dark (7BAND): seven violet-to-purple bands, mirrored in tokens.css (--band-1..7).</summary>
+    public static readonly MudTheme NebulaViolet7Band = new()
+    {
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#6A34BD",
+            PrimaryContrastText = "#F6EEFF",
+            Secondary = "#9A62E0",
+            SecondaryContrastText = "#0C0516",
+            Background = "#0C0516",
+            BackgroundGray = "#2E1259",
+            Surface = "#1B0B33",
+            AppbarBackground = "#1B0B33",
+            AppbarText = "#F3ECFB",
+            DrawerBackground = "#1B0B33",
+            DrawerText = "#F3ECFB",
+            TextPrimary = "#F3ECFB",
+            TextSecondary = "#A798C4",
+            ActionDefault = "#D2B3F5",
+            Divider = "#48208A",
+            LinesDefault = "#48208A",
+            LinesInputs = "#48208A",
+            TableLines = "#48208A",
+        },
+    };
+
     public static readonly MudTheme NebulaLight = new()
     {
         PaletteLight = new PaletteLight

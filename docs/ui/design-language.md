@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-09-23
+last_updated: 2026-10-08
 workstream: ui
 togaf: C — UI standards
 ---
@@ -19,6 +19,11 @@ One language, everywhere. Detail on colours/type: [`brand.md`](brand.md).
   in `localStorage`. Legacy `light` and `dark` values are migrated automatically. Component CSS
   consumes semantic tokens and must work in all three modes; never add a light-only or
   dark-only surface.
+- **Cosmic Dark is restrained, not purple-washed.** Its canvas is obsidian-indigo (`#0b0f19`),
+  its panels step through blue-black surfaces, body text is warm off-white, and antique gold
+  (`#d8b36a`) marks selected/key states. Cyan is reserved for celestial and data meaning rather
+  than used as the page-wide interaction colour. This keeps dense tables calm while matching
+  the sacred-cosmic warmth of the Ganesha artwork.
 - **Tokens, not raw values.** `wwwroot/css/tokens.css` holds real `:root` custom properties
   (the `--brand-*` set + semantic astrology tokens). Components read them via `var(--…)` —
   never a raw hex, never a CSS named colour, never an inline `<style>` in `.razor` markup.
@@ -364,3 +369,10 @@ what the *other* is also showing.
    change behaviour, add `…V2` or a parameter — old components keep compiling and rendering.
 3. **A recurring "A vs B" look is a variant, not a bug** — add `PolarWheelSquare.razor` /
    a `Shape` parameter and let `ChartFrame` pick; each variant carries its own golden snapshot.
+
+## Nebula Violet Dark (7BAND) — `nebula-dark-7band`
+
+Seven violet→purple bands drive every neutral/structural colour (tokens.css `--band-1..7`):
+B1 `#0c0516` canvas · B2 `#1b0b33` surface · B3 `#2e1259` raised/hover · B4 `#48208a` structure ·
+B5 `#6a34bd` accent / table header / active tab · B6 `#9a62e0` highlight, chart grid and wheel rings (alpha) ·
+B7 `#d2b3f5` text tint. Planet, dignity and status hues stay semantic (lifted for dark, as in Cosmic Dark).

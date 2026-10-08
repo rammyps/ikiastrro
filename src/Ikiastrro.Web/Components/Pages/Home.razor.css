@@ -50,7 +50,8 @@
     vertical-align: 0.02em;
 }
 
-:root[data-theme='cosmic-dark'] .home-title-earth {
+:root[data-theme='cosmic-dark'] .home-title-earth,
+:root[data-theme='nebula-dark-7band'] .home-title-earth {
     --earth-ocean: #1f4f96;
     --earth-land: #3f9a63;
     --earth-glow: rgba(120, 180, 255, 0.45);
@@ -304,3 +305,32 @@
     letter-spacing: 0.02em;
 }
 .home-pair-go:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* --- Kind-of-comparison dropdowns + the separate Add-New box (each its own card). --- */
+.home-results + .home-results { margin-top: 0.9rem; }
+
+.home-drop { border-bottom: 1px solid var(--brand-line); text-transform: uppercase; }
+
+.home-drop-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.9rem 1.05rem;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    color: var(--brand-midnight);
+    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+}
+
+.home-drop-head:hover,
+.home-drop-head[aria-expanded="true"] { background: var(--brand-peach); }
+
+.home-drop-caret { transition: transform .15s; }
+.home-drop-head[aria-expanded="true"] .home-drop-caret { transform: rotate(180deg); }
+
+.home-drop-body { padding: 0.75rem 1.05rem 1rem; text-transform: none; }
+
+.home-drops > .home-add-new { border-top: 0; }

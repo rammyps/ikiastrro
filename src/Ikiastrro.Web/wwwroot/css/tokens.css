@@ -580,51 +580,54 @@ html thead th :is(button, a, small) {
 :root[data-theme='cosmic-dark'] {
     color-scheme: dark;
 
-    --cosmos-canvas: #1c0b2b;
-    --cosmos-surface: #2a1040;
-    --cosmos-surface-raised: #3a1856;
-    --cosmos-architecture: #94a3b8;
-    --cosmos-structure: rgb(148 163 184 / 0.22);
-    --cosmos-accent: #22d3ee;
-    --cosmos-accent-fg: #1c0b2b;
+    /* Obsidian-indigo foundation with a restrained antique-gold key colour. The previous
+       purple-on-purple stack collapsed canvas, panels and cards into one visual plane, while
+       saturated cyan made every selected control compete with the chart data. */
+    --cosmos-canvas: #0b0f19;
+    --cosmos-surface: #121827;
+    --cosmos-surface-raised: #182135;
+    --cosmos-architecture: #aab5c8;
+    --cosmos-structure: rgb(170 181 200 / 0.19);
+    --cosmos-accent: #d8b36a;
+    --cosmos-accent-fg: #17130c;
     /* Sudarsana chakra rings (Transit tab): Sun = soul, Moon = mind, Lagna = body — fill + edge per theme. */
-    --tripod-sun: #4a3a12;
-    --tripod-moon: #12404f;
-    --tripod-lagna: #312863;
-    --tripod-sun-edge: #fbbf24;
-    --tripod-moon-edge: #22d3ee;
-    --tripod-lagna-edge: #a78bfa;
+    --tripod-sun: #3b3018;
+    --tripod-moon: #12313b;
+    --tripod-lagna: #272542;
+    --tripod-sun-edge: #e4bd70;
+    --tripod-moon-edge: #67c5cf;
+    --tripod-lagna-edge: #9f91da;
 
     --brand-canvas: var(--cosmos-canvas);
     --brand-surface: var(--cosmos-surface);
     --brand-surface-soft: var(--cosmos-surface-raised);
-    --brand-midnight: #f8fafc;
+    --brand-midnight: #f2eee7;
     --brand-line: var(--cosmos-structure);
-    --brand-muted: #94a3b8;
-    --brand-peach: #17384a;
-    --brand-sunrise: #164e63;
+    --brand-muted: #9aa7bb;
+    --brand-peach: #2a2419;
+    --brand-sunrise: #302719;
 
     --paper: var(--cosmos-canvas);
     --paper-raised: var(--cosmos-surface);
     --paper-line: var(--cosmos-structure);
-    --ink: #f8fafc;
-    --ink-soft: #94a3b8;
+    --ink: #f2eee7;
+    --ink-soft: #aab5c8;
     --ink-faint: #7f8da3;
     --accent: var(--cosmos-accent);
     --accent-fg: var(--cosmos-accent-fg);
-    --accent-line: #67e8f9;
-    --asc-glow: rgb(34 211 238 / 0.16);
-    --shadow: rgb(0 0 0 / 0.38);
-    --control-bg: #4a2a6a;
-    --control-fg: #f8fafc;
+    --accent-line: #e7c783;
+    --asc-glow: rgb(216 179 106 / 0.16);
+    --shadow: rgb(0 0 0 / 0.42);
+    --control-bg: #202a40;
+    --control-fg: #f2eee7;
 
     --cell-fill: var(--cosmos-surface);
-    --lagna-fill: #103344;
-    --grid-stroke: rgb(148 163 184 / 0.32);
-    --sign-text: #cbd5e1;
-    --muted-text: #94a3b8;
-    --wheel-ring: rgb(148 163 184 / 0.34);
-    --wheel-tick: #94a3b8;
+    --lagna-fill: #292419;
+    --grid-stroke: rgb(170 181 200 / 0.3);
+    --sign-text: #cbd3df;
+    --muted-text: #9aa7bb;
+    --wheel-ring: rgb(170 181 200 / 0.32);
+    --wheel-tick: #9aa7bb;
 
     --tab-active-bg: var(--cosmos-accent);
     --tab-active-fg: var(--cosmos-accent-fg);
@@ -633,10 +636,10 @@ html thead th :is(button, a, small) {
     --nav-btn: var(--cosmos-accent);
     --nav-btn-fg: var(--cosmos-accent-fg);
 
-    --relation-benefic: #2dd4bf;
-    --relation-malefic: #fb7185;
-    --relation-mixed: #f2c14e;
-    --relation-neutral: #94a3b8;
+    --relation-benefic: #5bc8b6;
+    --relation-malefic: #ef7f88;
+    --relation-mixed: #d8b36a;
+    --relation-neutral: #9aa7bb;
 
     --planet-sun-bg: color-mix(in srgb, var(--planet-sun) 20%, var(--cosmos-surface));
     --planet-moon-bg: color-mix(in srgb, var(--planet-moon) 24%, var(--cosmos-surface));
@@ -656,10 +659,10 @@ html thead th :is(button, a, small) {
     --status-moderate-bg: color-mix(in srgb, #f2c14e 14%, var(--cosmos-surface));
     --status-weak: #f87171;
     --status-weak-bg: color-mix(in srgb, #f87171 16%, var(--cosmos-surface));
-    --status-on: #1c0b2b;
+    --status-on: #0b0f19;
 
     --danger: #f87171;
-    --danger-fg: #1c0b2b;
+    --danger-fg: #0b0f19;
     --danger-line: #fca5a5;
 
     --planet-sun: #f59e5b;
@@ -696,7 +699,7 @@ html thead th :is(button, a, small) {
 
     --lunar-shadow: #020617;
     --transit-band: #1e293b;
-    --transit-band-fg: #f8fafc;
+    --transit-band-fg: #f2eee7;
 
     --uni-grid: rgb(148 163 184 / 0.34);
     --flame: #fb923c;
@@ -704,6 +707,160 @@ html thead th :is(button, a, small) {
     --mix: #facc15;
     --wash: 14%;
     --watermark: rgb(148 163 184 / 0.07);
+    --el-fire: #fb923c;
+    --el-earth: #a3e635;
+    --el-air: #facc15;
+    --el-water: #22d3ee;
+    --sl-moon: #cbd5e1;
+    --sl-sun: #fb923c;
+    --sl-al: #fb7185;
+    --sl-hl: #fbbf24;
+    --sl-gl: #4ade80;
+    --sl-bl: #a5b4fc;
+    --sl-sl: #d8b4fe;
+    --sl-il: #f9a8d4;
+    --sl-pp: #5eead4;
+    --sl-ps: #d6a26c;
+    --sl-gk: #a8a29e;
+    --pg-upagraha: #a8a29e;
+    --pg-sensitive: #5eead4;
+    --pg-sphuta: #93c5fd;
+    --pg-saham: #fdba74;
+}
+
+/* ---- Nebula Violet Dark (7BAND) ---- */
+:root[data-theme='nebula-dark-7band'] {
+    color-scheme: dark;
+
+    /* Nebula Violet Dark (7BAND): seven violet→purple bands drive every neutral/structural colour.
+       B1 #0c0516 canvas · B2 #1b0b33 surface · B3 #2e1259 raised · B4 #48208a grid/structure ·
+       B5 #6a34bd accent fill · B6 #9a62e0 highlight · B7 #d2b3f5 text tint. Planet/status hues stay semantic. */
+    --band-1: #0c0516; --band-2: #1b0b33; --band-3: #2e1259; --band-4: #48208a;
+    --band-5: #6a34bd; --band-6: #9a62e0; --band-7: #d2b3f5;
+    --cosmos-canvas: var(--band-1);
+    --cosmos-surface: var(--band-2);
+    --cosmos-surface-raised: var(--band-3);
+    --cosmos-architecture: var(--band-7);
+    --cosmos-structure: rgb(154 98 224 / 0.34);
+    --cosmos-accent: var(--band-5);
+    --cosmos-accent-fg: #f6eeff;
+    /* Sudarsana chakra rings (Transit tab): Sun = soul, Moon = mind, Lagna = body — fill + edge per theme. */
+    --tripod-sun: #3a2a4a;
+    --tripod-moon: #1d2f5a;
+    --tripod-lagna: var(--band-3);
+    --tripod-sun-edge: #e4bd70;
+    --tripod-moon-edge: #67c5cf;
+    --tripod-lagna-edge: var(--band-6);
+
+    --brand-canvas: var(--cosmos-canvas);
+    --brand-surface: var(--cosmos-surface);
+    --brand-surface-soft: var(--cosmos-surface-raised);
+    --brand-midnight: #f3ecfb;
+    --brand-line: var(--cosmos-structure);
+    --brand-muted: #a798c4;
+    --brand-peach: var(--band-3);
+    --brand-sunrise: var(--band-4);
+
+    --paper: var(--cosmos-canvas);
+    --paper-raised: var(--cosmos-surface);
+    --paper-line: var(--cosmos-structure);
+    --ink: #f3ecfb;
+    --ink-soft: #cdbfe6;
+    --ink-faint: #9585b3;
+    --accent: var(--cosmos-accent);
+    --accent-fg: var(--cosmos-accent-fg);
+    --accent-line: var(--band-6);
+    --asc-glow: rgb(154 98 224 / 0.22);
+    --shadow: rgb(0 0 0 / 0.42);
+    --control-bg: var(--band-3);
+    --control-fg: #f3ecfb;
+
+    --cell-fill: var(--cosmos-surface);
+    --lagna-fill: var(--band-3);
+    --grid-stroke: rgb(154 98 224 / 0.42);
+    --sign-text: var(--band-7);
+    --muted-text: #a798c4;
+    --wheel-ring: rgb(154 98 224 / 0.45);
+    --wheel-tick: var(--band-6);
+
+    --tab-active-bg: var(--cosmos-accent);
+    --tab-active-fg: var(--cosmos-accent-fg);
+    --tab-inactive-bg: transparent;
+    --tab-inactive-fg: var(--brand-midnight);
+    --nav-btn: var(--cosmos-accent);
+    --nav-btn-fg: var(--cosmos-accent-fg);
+
+    --relation-benefic: #5bc8b6;
+    --relation-malefic: #ef7f88;
+    --relation-mixed: var(--band-6);
+    --relation-neutral: #a798c4;
+
+    --planet-sun-bg: color-mix(in srgb, var(--planet-sun) 20%, var(--cosmos-surface));
+    --planet-moon-bg: color-mix(in srgb, var(--planet-moon) 24%, var(--cosmos-surface));
+    --planet-mars-bg: color-mix(in srgb, var(--planet-mars) 22%, var(--cosmos-surface));
+    --planet-mercury-bg: color-mix(in srgb, var(--planet-mercury) 22%, var(--cosmos-surface));
+    --planet-jupiter-bg: color-mix(in srgb, var(--planet-jupiter) 24%, var(--cosmos-surface));
+    --planet-venus-bg: color-mix(in srgb, var(--planet-venus) 22%, var(--cosmos-surface));
+    --planet-saturn-bg: color-mix(in srgb, var(--planet-saturn) 24%, var(--cosmos-surface));
+    --planet-rahu-bg: color-mix(in srgb, var(--planet-rahu) 24%, var(--cosmos-surface));
+    --planet-ketu-bg: color-mix(in srgb, var(--planet-ketu) 24%, var(--cosmos-surface));
+
+    /* Everything below is drawn as text, a thin line or a pale tint on the page, so the
+       light-theme values (dark inks, pastel tints) vanish or glare on the dark canvas. Same
+       hues, lifted for a dark ground (2026-10-01 theme audit). */
+    --status-strong: #34d399;
+    --status-strong-bg: color-mix(in srgb, #34d399 16%, var(--cosmos-surface));
+    --status-moderate-bg: color-mix(in srgb, #f2c14e 14%, var(--cosmos-surface));
+    --status-weak: #f87171;
+    --status-weak-bg: color-mix(in srgb, #f87171 16%, var(--cosmos-surface));
+    --status-on: var(--band-1);
+
+    --danger: #f87171;
+    --danger-fg: var(--band-1);
+    --danger-line: #fca5a5;
+
+    --planet-sun: #f59e5b;
+    --planet-moon: #ddd3f0;
+    --planet-mars: #f87171;
+    --planet-mercury: #4ade80;
+    --planet-jupiter: #facc15;
+    --planet-venus: #f472b6;
+    --planet-saturn: #a9b4f7;
+    --planet-rahu: #a5a9bd;
+    --planet-ketu: #d6a26c;
+
+    --dignity-exalted: #4ade80;
+    --dignity-good: #6ee7a0;
+    --dignity-moolatrikona: #5eead4;
+    --dignity-own: #6ee7a0;
+    --dignity-great-friend: #86d47a;
+    --dignity-friend: #a3c99a;
+    --dignity-neutral: #c4b88f;
+    --dignity-enemy: #f0a35e;
+    --dignity-great-enemy: #f87158;
+    --dignity-debilitated: #f87171;
+    --vargottama: #6ee7a0;
+    --aspect-faint: #7d6ba3;
+
+    --ref-lagna: #fb7185;
+    --ref-arudha: #38bdf8;
+    --ref-hora: #fbbf24;
+    --ref-sree: #a78bfa;
+    --ref-ghati: #4ade80;
+
+    --house-lagna: #be3455;
+    --house-lagna-fg: #ffffff;
+
+    --lunar-shadow: #07020f;
+    --transit-band: var(--band-3);
+    --transit-band-fg: #f3ecfb;
+
+    --uni-grid: rgb(154 98 224 / 0.4);
+    --flame: #fb923c;
+    --chip-tint: 20%;
+    --mix: #facc15;
+    --wash: 14%;
+    --watermark: rgb(210 179 245 / 0.07);
     --el-fire: #fb923c;
     --el-earth: #a3e635;
     --el-air: #facc15;
@@ -778,6 +935,15 @@ html[data-theme] table { color: var(--brand-midnight); }
     color: var(--relation-benefic);
 }
 :root[data-theme='cosmic-dark'] .yg-status-absent {
+    background: var(--brand-surface-soft);
+    color: var(--brand-muted);
+}
+
+:root[data-theme='nebula-dark-7band'] .yg-status-present {
+    background: color-mix(in srgb, var(--relation-benefic) 18%, var(--brand-surface));
+    color: var(--relation-benefic);
+}
+:root[data-theme='nebula-dark-7band'] .yg-status-absent {
     background: var(--brand-surface-soft);
     color: var(--brand-muted);
 }
