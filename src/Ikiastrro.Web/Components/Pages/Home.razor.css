@@ -36,15 +36,18 @@
     color: var(--brand-midnight);
     font: 800 var(--font-size-display) / 1.1 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: -0.03em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* Real NASA Earth photo (orb-earth.png) after "…PATH", sized to the heading font. */
+/* Real NASA Earth photo (orb-earth.png) after "…PATH", sized to the heading font, pushed flush to the right edge of the heading row. */
 .home-title-earth {
     display: inline-block;
     width: 1em;
     height: 1em;
-    margin-left: 0.15em;
-    vertical-align: -0.1em;
+    flex: none;
+    margin: 0 0 0 auto;
     border-radius: 50%;
     object-fit: cover;
 }
