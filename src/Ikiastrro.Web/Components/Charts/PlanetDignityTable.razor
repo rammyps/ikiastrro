@@ -1,4 +1,5 @@
 @using Ikiastrro.Core.Engines.Astronomy
+@using Ikiastrro.Core.Presentation
 @using Ikiastrro.Core.Engines.Houses
 @* Astro Facts 2.2 is the canonical full-detail owner for planetary role and condition. *@
 <div class="pdt-scroll">
@@ -32,7 +33,7 @@
                 </td>
                 <td>
                     @if (r.DignityStatus is null) { <span class="muted">—</span> }
-                    else { <span class="pill"><span class="dot" style="background:var(--dignity-@ChartViewModel.DignityToken(r.DignityStatus))"></span>@r.DignityStatus</span> }
+                    else { <span class="pill @PlanetBand.Class(r.Planet, PlanetBand.FromDignity(r.DignityStatus))">@r.DignityStatus</span> }
                 </td>
                 <td>@(r.CharaKaraka ?? "—")</td><td>@(r.ExaltationPointDisplay ?? "—")</td>
                 <td class="mono">@(r.DeltaFromExaltationDegrees is { } d ? $"{d:0.0}°" : "—")</td>

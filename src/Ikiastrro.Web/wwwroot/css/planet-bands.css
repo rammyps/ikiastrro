@@ -1,0 +1,255 @@
+/* Planet strength bands — the one standard for "how strong / how well placed", app-wide.
+
+   Each graha has 9 stops, -4 .. +4, as shades of its own identity colour (--planet-*):
+     0   = the planet colour itself (Friend on the dignity scale; the "par" point)
+     +n  = n steps TOWARD the theme's light colour (--pb-lift)   — stronger, brighter
+     -n  = n steps TOWARD the theme's dark colour  (--pb-sink)   — weaker, darker
+   The 8 BANDS are the gaps between adjacent stops (e.g. Exalted lives between +3 and +4).
+   Because every stop derives from --planet-*, each of the 5 themes (default/cosmic/nebula light,
+   cosmic-dark, nebula-dark-7band) gets its own ramp with no per-theme colour lists.
+
+   Dignity scale (ChartViewModel.DignityScore):
+     +4 Exalted · +3 Moolatrikona · +2 Own Sign · +1 Great Friend · 0 Friend
+     -1 Neutral · -2 Enemy · -3 Great Enemy · -4 Debilitated
+   Other measures are normalised onto the same -4..+4 axis by PlanetBand.cs
+   (Shadbala % of required, Ashtakavarga bindus / SAV, bhava bala).
+
+   Use: class="pb pb-<planet>-<stop>" (stop = n4 n3 n2 n1 z p1 p2 p3 p4), or generic
+   pb-golden-<stop> for things with no planet (houses, signs). .pb sets background and picks a
+   readable text colour from the fill's own lightness; tokens --pb-<planet>-<stop> are also
+   available for borders, bars and SVG fills. Never colour by hue alone — keep the label/glyph. */
+
+:root {
+    --pb-lift: #ffffff;
+    --pb-sink: #1a130b;
+}
+:root[data-theme='cosmic-dark'],
+:root[data-theme='nebula-dark-7band'] {
+    --pb-lift: #ffffff;
+    --pb-sink: #04060c;
+}
+
+.pb.pb.pb {   /* triple class: out-ranks any component-scoped background without !important */
+    background: var(--pb-bg);
+    /* black or white, whichever reads on this fill (relative-colour lightness flip) */
+    color: oklch(from var(--pb-bg) clamp(0, (0.66 - l) * 1000, 1) 0 0);
+}
+
+:root {
+    /* sun */
+    --pb-sun-n1: color-mix(in oklab, var(--planet-sun), var(--pb-sink) 14%);
+    --pb-sun-n2: color-mix(in oklab, var(--planet-sun), var(--pb-sink) 28%);
+    --pb-sun-n3: color-mix(in oklab, var(--planet-sun), var(--pb-sink) 42%);
+    --pb-sun-n4: color-mix(in oklab, var(--planet-sun), var(--pb-sink) 56%);
+    --pb-sun-z: var(--planet-sun);
+    --pb-sun-p1: color-mix(in oklab, var(--planet-sun), var(--pb-lift) 14%);
+    --pb-sun-p2: color-mix(in oklab, var(--planet-sun), var(--pb-lift) 28%);
+    --pb-sun-p3: color-mix(in oklab, var(--planet-sun), var(--pb-lift) 42%);
+    --pb-sun-p4: color-mix(in oklab, var(--planet-sun), var(--pb-lift) 56%);
+    /* moon */
+    --pb-moon-n1: color-mix(in oklab, var(--planet-moon), var(--pb-sink) 14%);
+    --pb-moon-n2: color-mix(in oklab, var(--planet-moon), var(--pb-sink) 28%);
+    --pb-moon-n3: color-mix(in oklab, var(--planet-moon), var(--pb-sink) 42%);
+    --pb-moon-n4: color-mix(in oklab, var(--planet-moon), var(--pb-sink) 56%);
+    --pb-moon-z: var(--planet-moon);
+    --pb-moon-p1: color-mix(in oklab, var(--planet-moon), var(--pb-lift) 14%);
+    --pb-moon-p2: color-mix(in oklab, var(--planet-moon), var(--pb-lift) 28%);
+    --pb-moon-p3: color-mix(in oklab, var(--planet-moon), var(--pb-lift) 42%);
+    --pb-moon-p4: color-mix(in oklab, var(--planet-moon), var(--pb-lift) 56%);
+    /* mars */
+    --pb-mars-n1: color-mix(in oklab, var(--planet-mars), var(--pb-sink) 14%);
+    --pb-mars-n2: color-mix(in oklab, var(--planet-mars), var(--pb-sink) 28%);
+    --pb-mars-n3: color-mix(in oklab, var(--planet-mars), var(--pb-sink) 42%);
+    --pb-mars-n4: color-mix(in oklab, var(--planet-mars), var(--pb-sink) 56%);
+    --pb-mars-z: var(--planet-mars);
+    --pb-mars-p1: color-mix(in oklab, var(--planet-mars), var(--pb-lift) 14%);
+    --pb-mars-p2: color-mix(in oklab, var(--planet-mars), var(--pb-lift) 28%);
+    --pb-mars-p3: color-mix(in oklab, var(--planet-mars), var(--pb-lift) 42%);
+    --pb-mars-p4: color-mix(in oklab, var(--planet-mars), var(--pb-lift) 56%);
+    /* mercury */
+    --pb-mercury-n1: color-mix(in oklab, var(--planet-mercury), var(--pb-sink) 14%);
+    --pb-mercury-n2: color-mix(in oklab, var(--planet-mercury), var(--pb-sink) 28%);
+    --pb-mercury-n3: color-mix(in oklab, var(--planet-mercury), var(--pb-sink) 42%);
+    --pb-mercury-n4: color-mix(in oklab, var(--planet-mercury), var(--pb-sink) 56%);
+    --pb-mercury-z: var(--planet-mercury);
+    --pb-mercury-p1: color-mix(in oklab, var(--planet-mercury), var(--pb-lift) 14%);
+    --pb-mercury-p2: color-mix(in oklab, var(--planet-mercury), var(--pb-lift) 28%);
+    --pb-mercury-p3: color-mix(in oklab, var(--planet-mercury), var(--pb-lift) 42%);
+    --pb-mercury-p4: color-mix(in oklab, var(--planet-mercury), var(--pb-lift) 56%);
+    /* jupiter */
+    --pb-jupiter-n1: color-mix(in oklab, var(--planet-jupiter), var(--pb-sink) 14%);
+    --pb-jupiter-n2: color-mix(in oklab, var(--planet-jupiter), var(--pb-sink) 28%);
+    --pb-jupiter-n3: color-mix(in oklab, var(--planet-jupiter), var(--pb-sink) 42%);
+    --pb-jupiter-n4: color-mix(in oklab, var(--planet-jupiter), var(--pb-sink) 56%);
+    --pb-jupiter-z: var(--planet-jupiter);
+    --pb-jupiter-p1: color-mix(in oklab, var(--planet-jupiter), var(--pb-lift) 14%);
+    --pb-jupiter-p2: color-mix(in oklab, var(--planet-jupiter), var(--pb-lift) 28%);
+    --pb-jupiter-p3: color-mix(in oklab, var(--planet-jupiter), var(--pb-lift) 42%);
+    --pb-jupiter-p4: color-mix(in oklab, var(--planet-jupiter), var(--pb-lift) 56%);
+    /* venus */
+    --pb-venus-n1: color-mix(in oklab, var(--planet-venus), var(--pb-sink) 14%);
+    --pb-venus-n2: color-mix(in oklab, var(--planet-venus), var(--pb-sink) 28%);
+    --pb-venus-n3: color-mix(in oklab, var(--planet-venus), var(--pb-sink) 42%);
+    --pb-venus-n4: color-mix(in oklab, var(--planet-venus), var(--pb-sink) 56%);
+    --pb-venus-z: var(--planet-venus);
+    --pb-venus-p1: color-mix(in oklab, var(--planet-venus), var(--pb-lift) 14%);
+    --pb-venus-p2: color-mix(in oklab, var(--planet-venus), var(--pb-lift) 28%);
+    --pb-venus-p3: color-mix(in oklab, var(--planet-venus), var(--pb-lift) 42%);
+    --pb-venus-p4: color-mix(in oklab, var(--planet-venus), var(--pb-lift) 56%);
+    /* saturn */
+    --pb-saturn-n1: color-mix(in oklab, var(--planet-saturn), var(--pb-sink) 14%);
+    --pb-saturn-n2: color-mix(in oklab, var(--planet-saturn), var(--pb-sink) 28%);
+    --pb-saturn-n3: color-mix(in oklab, var(--planet-saturn), var(--pb-sink) 42%);
+    --pb-saturn-n4: color-mix(in oklab, var(--planet-saturn), var(--pb-sink) 56%);
+    --pb-saturn-z: var(--planet-saturn);
+    --pb-saturn-p1: color-mix(in oklab, var(--planet-saturn), var(--pb-lift) 14%);
+    --pb-saturn-p2: color-mix(in oklab, var(--planet-saturn), var(--pb-lift) 28%);
+    --pb-saturn-p3: color-mix(in oklab, var(--planet-saturn), var(--pb-lift) 42%);
+    --pb-saturn-p4: color-mix(in oklab, var(--planet-saturn), var(--pb-lift) 56%);
+    /* rahu */
+    --pb-rahu-n1: color-mix(in oklab, var(--planet-rahu), var(--pb-sink) 14%);
+    --pb-rahu-n2: color-mix(in oklab, var(--planet-rahu), var(--pb-sink) 28%);
+    --pb-rahu-n3: color-mix(in oklab, var(--planet-rahu), var(--pb-sink) 42%);
+    --pb-rahu-n4: color-mix(in oklab, var(--planet-rahu), var(--pb-sink) 56%);
+    --pb-rahu-z: var(--planet-rahu);
+    --pb-rahu-p1: color-mix(in oklab, var(--planet-rahu), var(--pb-lift) 14%);
+    --pb-rahu-p2: color-mix(in oklab, var(--planet-rahu), var(--pb-lift) 28%);
+    --pb-rahu-p3: color-mix(in oklab, var(--planet-rahu), var(--pb-lift) 42%);
+    --pb-rahu-p4: color-mix(in oklab, var(--planet-rahu), var(--pb-lift) 56%);
+    /* ketu */
+    --pb-ketu-n1: color-mix(in oklab, var(--planet-ketu), var(--pb-sink) 14%);
+    --pb-ketu-n2: color-mix(in oklab, var(--planet-ketu), var(--pb-sink) 28%);
+    --pb-ketu-n3: color-mix(in oklab, var(--planet-ketu), var(--pb-sink) 42%);
+    --pb-ketu-n4: color-mix(in oklab, var(--planet-ketu), var(--pb-sink) 56%);
+    --pb-ketu-z: var(--planet-ketu);
+    --pb-ketu-p1: color-mix(in oklab, var(--planet-ketu), var(--pb-lift) 14%);
+    --pb-ketu-p2: color-mix(in oklab, var(--planet-ketu), var(--pb-lift) 28%);
+    --pb-ketu-p3: color-mix(in oklab, var(--planet-ketu), var(--pb-lift) 42%);
+    --pb-ketu-p4: color-mix(in oklab, var(--planet-ketu), var(--pb-lift) 56%);
+    /* golden — the chart colour for everything that is not a graha (Ashtakavarga, houses, signs, totals).
+       Its base is the per-theme --golden (set below, named per theme). */
+    --pb-golden-n1: color-mix(in oklab, var(--golden), var(--pb-sink) 14%);
+    --pb-golden-n2: color-mix(in oklab, var(--golden), var(--pb-sink) 28%);
+    --pb-golden-n3: color-mix(in oklab, var(--golden), var(--pb-sink) 42%);
+    --pb-golden-n4: color-mix(in oklab, var(--golden), var(--pb-sink) 56%);
+    --pb-golden-z: var(--golden);
+    --pb-golden-p1: color-mix(in oklab, var(--golden), var(--pb-lift) 14%);
+    --pb-golden-p2: color-mix(in oklab, var(--golden), var(--pb-lift) 28%);
+    --pb-golden-p3: color-mix(in oklab, var(--golden), var(--pb-lift) 42%);
+    --pb-golden-p4: color-mix(in oklab, var(--golden), var(--pb-lift) 56%);
+}
+
+.pb-sun-n4 { --pb-bg: var(--pb-sun-n4); }
+.pb-sun-n3 { --pb-bg: var(--pb-sun-n3); }
+.pb-sun-n2 { --pb-bg: var(--pb-sun-n2); }
+.pb-sun-n1 { --pb-bg: var(--pb-sun-n1); }
+.pb-sun-z { --pb-bg: var(--pb-sun-z); }
+.pb-sun-p1 { --pb-bg: var(--pb-sun-p1); }
+.pb-sun-p2 { --pb-bg: var(--pb-sun-p2); }
+.pb-sun-p3 { --pb-bg: var(--pb-sun-p3); }
+.pb-sun-p4 { --pb-bg: var(--pb-sun-p4); }
+.pb-moon-n4 { --pb-bg: var(--pb-moon-n4); }
+.pb-moon-n3 { --pb-bg: var(--pb-moon-n3); }
+.pb-moon-n2 { --pb-bg: var(--pb-moon-n2); }
+.pb-moon-n1 { --pb-bg: var(--pb-moon-n1); }
+.pb-moon-z { --pb-bg: var(--pb-moon-z); }
+.pb-moon-p1 { --pb-bg: var(--pb-moon-p1); }
+.pb-moon-p2 { --pb-bg: var(--pb-moon-p2); }
+.pb-moon-p3 { --pb-bg: var(--pb-moon-p3); }
+.pb-moon-p4 { --pb-bg: var(--pb-moon-p4); }
+.pb-mars-n4 { --pb-bg: var(--pb-mars-n4); }
+.pb-mars-n3 { --pb-bg: var(--pb-mars-n3); }
+.pb-mars-n2 { --pb-bg: var(--pb-mars-n2); }
+.pb-mars-n1 { --pb-bg: var(--pb-mars-n1); }
+.pb-mars-z { --pb-bg: var(--pb-mars-z); }
+.pb-mars-p1 { --pb-bg: var(--pb-mars-p1); }
+.pb-mars-p2 { --pb-bg: var(--pb-mars-p2); }
+.pb-mars-p3 { --pb-bg: var(--pb-mars-p3); }
+.pb-mars-p4 { --pb-bg: var(--pb-mars-p4); }
+.pb-mercury-n4 { --pb-bg: var(--pb-mercury-n4); }
+.pb-mercury-n3 { --pb-bg: var(--pb-mercury-n3); }
+.pb-mercury-n2 { --pb-bg: var(--pb-mercury-n2); }
+.pb-mercury-n1 { --pb-bg: var(--pb-mercury-n1); }
+.pb-mercury-z { --pb-bg: var(--pb-mercury-z); }
+.pb-mercury-p1 { --pb-bg: var(--pb-mercury-p1); }
+.pb-mercury-p2 { --pb-bg: var(--pb-mercury-p2); }
+.pb-mercury-p3 { --pb-bg: var(--pb-mercury-p3); }
+.pb-mercury-p4 { --pb-bg: var(--pb-mercury-p4); }
+.pb-jupiter-n4 { --pb-bg: var(--pb-jupiter-n4); }
+.pb-jupiter-n3 { --pb-bg: var(--pb-jupiter-n3); }
+.pb-jupiter-n2 { --pb-bg: var(--pb-jupiter-n2); }
+.pb-jupiter-n1 { --pb-bg: var(--pb-jupiter-n1); }
+.pb-jupiter-z { --pb-bg: var(--pb-jupiter-z); }
+.pb-jupiter-p1 { --pb-bg: var(--pb-jupiter-p1); }
+.pb-jupiter-p2 { --pb-bg: var(--pb-jupiter-p2); }
+.pb-jupiter-p3 { --pb-bg: var(--pb-jupiter-p3); }
+.pb-jupiter-p4 { --pb-bg: var(--pb-jupiter-p4); }
+.pb-venus-n4 { --pb-bg: var(--pb-venus-n4); }
+.pb-venus-n3 { --pb-bg: var(--pb-venus-n3); }
+.pb-venus-n2 { --pb-bg: var(--pb-venus-n2); }
+.pb-venus-n1 { --pb-bg: var(--pb-venus-n1); }
+.pb-venus-z { --pb-bg: var(--pb-venus-z); }
+.pb-venus-p1 { --pb-bg: var(--pb-venus-p1); }
+.pb-venus-p2 { --pb-bg: var(--pb-venus-p2); }
+.pb-venus-p3 { --pb-bg: var(--pb-venus-p3); }
+.pb-venus-p4 { --pb-bg: var(--pb-venus-p4); }
+.pb-saturn-n4 { --pb-bg: var(--pb-saturn-n4); }
+.pb-saturn-n3 { --pb-bg: var(--pb-saturn-n3); }
+.pb-saturn-n2 { --pb-bg: var(--pb-saturn-n2); }
+.pb-saturn-n1 { --pb-bg: var(--pb-saturn-n1); }
+.pb-saturn-z { --pb-bg: var(--pb-saturn-z); }
+.pb-saturn-p1 { --pb-bg: var(--pb-saturn-p1); }
+.pb-saturn-p2 { --pb-bg: var(--pb-saturn-p2); }
+.pb-saturn-p3 { --pb-bg: var(--pb-saturn-p3); }
+.pb-saturn-p4 { --pb-bg: var(--pb-saturn-p4); }
+.pb-rahu-n4 { --pb-bg: var(--pb-rahu-n4); }
+.pb-rahu-n3 { --pb-bg: var(--pb-rahu-n3); }
+.pb-rahu-n2 { --pb-bg: var(--pb-rahu-n2); }
+.pb-rahu-n1 { --pb-bg: var(--pb-rahu-n1); }
+.pb-rahu-z { --pb-bg: var(--pb-rahu-z); }
+.pb-rahu-p1 { --pb-bg: var(--pb-rahu-p1); }
+.pb-rahu-p2 { --pb-bg: var(--pb-rahu-p2); }
+.pb-rahu-p3 { --pb-bg: var(--pb-rahu-p3); }
+.pb-rahu-p4 { --pb-bg: var(--pb-rahu-p4); }
+.pb-ketu-n4 { --pb-bg: var(--pb-ketu-n4); }
+.pb-ketu-n3 { --pb-bg: var(--pb-ketu-n3); }
+.pb-ketu-n2 { --pb-bg: var(--pb-ketu-n2); }
+.pb-ketu-n1 { --pb-bg: var(--pb-ketu-n1); }
+.pb-ketu-z { --pb-bg: var(--pb-ketu-z); }
+.pb-ketu-p1 { --pb-bg: var(--pb-ketu-p1); }
+.pb-ketu-p2 { --pb-bg: var(--pb-ketu-p2); }
+.pb-ketu-p3 { --pb-bg: var(--pb-ketu-p3); }
+.pb-ketu-p4 { --pb-bg: var(--pb-ketu-p4); }
+.pb-golden-n4 { --pb-bg: var(--pb-golden-n4); }
+.pb-golden-n3 { --pb-bg: var(--pb-golden-n3); }
+.pb-golden-n2 { --pb-bg: var(--pb-golden-n2); }
+.pb-golden-n1 { --pb-bg: var(--pb-golden-n1); }
+.pb-golden-z { --pb-bg: var(--pb-golden-z); }
+.pb-golden-p1 { --pb-bg: var(--pb-golden-p1); }
+.pb-golden-p2 { --pb-bg: var(--pb-golden-p2); }
+.pb-golden-p3 { --pb-bg: var(--pb-golden-p3); }
+.pb-golden-p4 { --pb-bg: var(--pb-golden-p4); }
+
+/* ---- Golden: the one non-planet chart colour, tuned per theme ----
+   The Default Light gold is the app's own golden (--bala-naisargika); each other theme gets a gold
+   that sits on its canvas the same way. --golden-name is the label shown in the design reference. */
+:root {
+    --golden: #dcac3a;
+    --golden-name: "Golden - (Default Light Theme)";
+}
+:root[data-theme='nebula-light'] {
+    --golden: #f0a63a;
+    --golden-name: "Golden - (Nebula-Light Theme)";
+}
+:root[data-theme='cosmic-light'] {
+    --golden: #b98a24;
+    --golden-name: "Golden - (Cosmic Light Theme)";
+}
+:root[data-theme='cosmic-dark'] {
+    --golden: #d8b36a;
+    --golden-name: "Golden - (Cosmic Dark Theme)";
+}
+:root[data-theme='nebula-dark-7band'] {
+    --golden: #e3b84f;
+    --golden-name: "Golden - (Nebula Violet Dark 7BAND Theme)";
+}

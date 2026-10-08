@@ -1,4 +1,5 @@
 @using System.Globalization
+@using Ikiastrro.Core.Presentation
 @* Astro Facts 3.1 "Planet Strength" — one stacked bar per graha on a shared rūpa axis
    (vw_ChartShadbala + tbl_Fact_PlanetaryStrengthComponent), docs/ui/components/astro-facts.md
    step 3. Segments are the six balas + Yuddha, or (BALAS / SUB-COMPONENTS switch) every stored
@@ -43,7 +44,7 @@
 
     @foreach (var (rank, row) in Ranked)
     {
-        var (label, css) = StatusOf(row.PercentOfMinimum);
+        var (label, css) = StatusOf(row.Planet, row.PercentOfMinimum);
         <div class="psc-row">
             <span class="psc-c-rank"><span class="psc-rankbadge @css">@rank</span></span>
             <span class="psc-c-planet">@row.Planet</span>
@@ -185,11 +186,11 @@
     /// from Parāśara's required minimum (SRC_BPHS_27), Moderate floor a project heuristic.</summary>
     private static readonly StrengthBandScale Band = StrengthBands.ShadbalaPercentOfMinimum;
 
-    private static (string Label, string CssClass) StatusOf(decimal? percent) => Band.Classify(percent) switch
+    private static (string Label, string CssClass) StatusOf(string planet, decimal? percent) => Band.Classify(percent) switch
     {
-        StrengthTier.Strong => ("Strong", "psc-status-strong"),
-        StrengthTier.Moderate => ("Moderate", "psc-status-moderate"),
-        StrengthTier.Weak => ("Weak", "psc-status-weak"),
+        StrengthTier.Strong => ("Strong", PlanetBand.Class(planet, PlanetBand.FromShadbalaPercent(percent!.Value))),
+        StrengthTier.Moderate => ("Moderate", PlanetBand.Class(planet, PlanetBand.FromShadbalaPercent(percent!.Value))),
+        StrengthTier.Weak => ("Weak", PlanetBand.Class(planet, PlanetBand.FromShadbalaPercent(percent!.Value))),
         _ => ("—", "psc-status-none"),
     };
 

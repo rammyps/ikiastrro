@@ -71,7 +71,7 @@
                             : p.DignityCode;
                         <span class="tplanet">
                             <span class="pglyph" style="color:var(--tmpl-planet-@(p.Key))">@(p.IsRetrograde ? $"({p.Glyph})" : p.Glyph)</span>@(ShowDegrees ? $" +{p.DegreesInSign}" : "")@(p.IsCombust ? " 🔥" : "")
-                            @if (!string.IsNullOrEmpty(dignity)) { <span class="tdignity">@dignity</span> }
+                            @if (!string.IsNullOrEmpty(dignity)) { <span class="tdignity @Ikiastrro.Core.Presentation.PlanetBand.Class(p.Key, p.DignityScore)" title="@Ikiastrro.Core.Presentation.PlanetBand.DignityName(p.DignityScore)">@dignity</span> }
                         </span>
                     }
                 </div>

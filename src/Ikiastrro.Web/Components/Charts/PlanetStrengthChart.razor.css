@@ -66,27 +66,10 @@
     flex: none;
 }
 
-.psc-status-strong { background: var(--status-strong); }
-.psc-status-moderate { background: var(--status-moderate); }
-.psc-status-weak { background: var(--status-weak); }
 .psc-status-none { background: var(--brand-line); }
-
-/* Rank-badge fill + text (2026-09-25, rammyps's call — same convention as HouseStrengthChart's
-   .hsc-rankbadge): the badge now reflects Strong/Moderate/Weak like the Status pill does, solid
-   fill instead of the plain peach-circle default. Strong/Weak read sunrise-orange text, Moderate
-   reads midnight (readable on sunset-orange). Compound selector — .psc-pill/.psc-dot (same
-   .psc-status-* classes) are untouched. */
-.psc-rankbadge.psc-status-strong,
-.psc-rankbadge.psc-status-moderate,
-.psc-rankbadge.psc-status-weak { border-color: transparent; }
-/* Compound selector, not the bare .psc-status-* rules above (2026-09-25 fix) — .psc-rankbadge's
-   own base rule below sets `background: var(--brand-peach)` and, at equal specificity, a later
-   same-specificity rule wins the cascade regardless of which was "meant" to apply; re-declaring
-   the background here with one extra class in the selector reliably outranks it. */
-.psc-rankbadge.psc-status-strong { background: var(--status-strong); color: var(--status-on); }
-.psc-rankbadge.psc-status-moderate { background: var(--status-moderate); color: var(--brand-midnight); }
-.psc-rankbadge.psc-status-weak { background: var(--status-weak); color: var(--status-on); }
-.psc-rankbadge.psc-status-weak { color: var(--status-on); }
+/* Rank badge + Status pill take the graha's own -4..+4 band (planet-bands.css, PlanetBand.
+   FromShadbalaPercent: 100% of the required minimum is par, 200% is +4). The Strong/Moderate/Weak
+   label still comes from the cited StrengthBands cut-offs; the colour is the shared standard. */
 
 .psc-bala-sthana { background: var(--bala-sthana); }
 .psc-bala-dig { background: var(--bala-dig); }
@@ -211,9 +194,6 @@
     font: 700 0.78em/1.5 'Manrope', 'Segoe UI', sans-serif;
 }
 
-.psc-pill.psc-status-strong { background: var(--status-strong-bg); color: var(--status-strong); }
-.psc-pill.psc-status-moderate { background: var(--status-moderate-bg); color: var(--brand-midnight); }
-.psc-pill.psc-status-weak { background: var(--status-weak-bg); color: var(--status-weak); }
 .psc-pill.psc-status-none { background: var(--brand-peach); color: var(--brand-muted); }
 
 /* Phone: the bar drops to its own full-width line under the planet; Min./Capacity hide. */
@@ -228,3 +208,4 @@
     .psc-row > :nth-child(5),
     .psc-row > :nth-child(7) { display: none; }
 }
+.psc-rankbadge.pb { border-color: transparent; font-weight: 800; }

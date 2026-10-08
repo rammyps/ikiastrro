@@ -1,4 +1,5 @@
 @using System.Globalization
+@using Ikiastrro.Core.Presentation
 @using Ikiastrro.Web.Components.Workspace
 
 <section class="av" aria-labelledby="av-title">
@@ -49,7 +50,7 @@
                     @foreach (var recipient in Recipients)
                     {
                         var cells = SelectedRows.Where(r => r.RecipientCode.Equals(recipient, StringComparison.OrdinalIgnoreCase)).ToDictionary(r => (int)r.SignNumber);
-                        <tr><th>@DisplayRecipient(recipient)</th>@foreach (var sign in Signs) { var value = cells.GetValueOrDefault(sign)?.BinduCount; <td class="@BinduBand(value)">@(value?.ToString() ?? "—")</td> }<td class="av-sum">@cells.Values.Sum(r => r.BinduCount)</td></tr>
+                        <tr><th>@DisplayRecipient(recipient)</th>@foreach (var sign in Signs) { var value = cells.GetValueOrDefault(sign)?.BinduCount; <td class="av-bindu @BinduBand(recipient, value)">@(value?.ToString() ?? "—")</td> }<td class="av-sum">@cells.Values.Sum(r => r.BinduCount)</td></tr>
                     }
                 </tbody>
             </table>
@@ -147,31 +148,20 @@
         return SelectedRows.FirstOrDefault(r => r.SignNumber == signNumber)?.HouseNumber ?? signNumber;
     }
     private static int ChartDivisor(string code) => int.TryParse(code.TrimStart('D', 'd'), out var divisor) ? divisor : int.MaxValue;
-    /// <summary>Bhinnashtavarga cell shading (2026-09-25) — fills the 1-5 gap between the existing
-    /// 0 (av-zero) / 6+ (av-high) bands with a moderate middle tier, matching the same 3-band
-    /// --status-strong/moderate/weak traffic light PlanetStrengthChart/HouseStrengthChart already
-    /// use. The 0 and 6+ boundaries themselves are unchanged.</summary>
-    private static string BinduBand(int? value) => value switch
-    {
-        null => "",
-        0 => "av-zero",
-        >= 6 => "av-high",
-        _ => "av-moderate",
-    };
+    /// <summary>Bhinnashtavarga cell shading: the cell takes the recipient graha's own band ramp, with 4 bindus
+    /// as par (stop 0) and 0 / 8 as the -4 / +4 ends (PlanetBand.FromBindus) — the same
+    /// -4..+4 scale Shadbala and dignity use, in planet-bands.css. Lagna, which has no graha
+    /// colour, uses the Golden ramp.</summary>
+    private static string BinduBand(string recipient, int? value) => value is null ? "" : PlanetBand.Class(DisplayRecipient(recipient), PlanetBand.FromBindus(value.Value));
 
     /// <summary>Sarvāṣṭavarga sign-total banding — StrengthBands.SarvaAshtakavargaBindus
     /// (tbl_Rule_StrengthBand, migration 154; SRC_PVR_INTEGRATED via docs/research/domain/
-    /// transit-events.md, "SAV &gt;30 favorable and &lt;25 unfavorable"). 25-30 reads as the
-    /// moderate middle band, matching the same 3-color convention as the rank badges/Bhinnashtavarga
-    /// above. Deliberately NOT applied to the Piṇḍa table below — Rāśi/Graha/Śodhya Piṇḍa are
+    /// transit-events.md, "SAV &gt;30 favorable and &lt;25 unfavorable"). Banded on the Golden ramp (the per-theme chart colour):
+    /// 28 is par (stop 0), one stop per 3 bindus (PlanetBand.FromSarvaTotal), which keeps >30 above
+    /// par and <25 below it. Deliberately NOT applied to the Piṇḍa table below — Rāśi/Graha/Śodhya Piṇḍa are
     /// multiplier/remainder values used to locate a target nakshatra or sign (same source), not
     /// strength scores, so there is no cited threshold to band them by.</summary>
-    private static string SavBand(int totalBindus) => StrengthBands.SarvaAshtakavargaBindus.Classify(totalBindus) switch
-    {
-        StrengthTier.Strong => "av-high",
-        StrengthTier.Weak => "av-zero",
-        _ => "av-moderate",
-    };
+    private static string SavBand(int totalBindus) => PlanetBand.Class(null, PlanetBand.FromSarvaTotal(totalBindus));
 
     private static readonly string[] Grahas = { "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn" };
 

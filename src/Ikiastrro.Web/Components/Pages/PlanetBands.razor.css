@@ -1,0 +1,12 @@
+.pbr-title, .pbr-lead, .pbr-measures, .pbr-sub { font-family: 'Manrope', 'Segoe UI', sans-serif; }
+.pbr-title { margin: 4px 0 8px; color: var(--brand-midnight); font: 700 var(--font-size-heading) / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: .12em; }
+.pbr-lead, .pbr-measures { color: var(--brand-muted); font-size: var(--font-size-support); max-width: 70ch; }
+.pbr-sub { margin: 24px 0 8px; color: var(--brand-midnight); font-size: var(--font-size-control); letter-spacing: .08em; text-transform: uppercase; }
+.pbr-scroll { overflow-x: auto; }
+.pbr { border-collapse: separate; border-spacing: 4px; }
+.pbr th { font-size: var(--font-size-meta); text-align: center; color: var(--brand-muted); }
+.pbr th small { display: block; font-weight: 600; }
+.pbr tbody th { text-align: right; padding-right: 8px; color: var(--brand-midnight); }
+.pbr-cell { display: grid; place-items: center; min-width: 88px; height: 44px; border-radius: 6px; font-size: var(--font-size-support); font-weight: 800; }
+.pbr-golden-name { margin: 0 0 10px; font: 700 var(--font-size-support) 'Manrope', 'Segoe UI', sans-serif; color: var(--brand-midnight); }
+.pbr-golden-name::before { content: var(--golden-name); }

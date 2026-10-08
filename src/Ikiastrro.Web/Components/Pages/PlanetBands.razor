@@ -1,0 +1,52 @@
+@page "/design/planet-bands"
+@using Ikiastrro.Core.Presentation
+
+@* Design reference for the planet strength-band standard (wwwroot/css/planet-bands.css):
+   every graha's -4..+4 ramp, the dignity names each stop carries, and how the other measures
+   normalise onto it. Unlinked from the nav; use it to check a theme. *@
+
+<PageTitle>Planet bands</PageTitle>
+
+<h1 class="pbr-title">PLANET STRENGTH BANDS</h1>
+<p class="pbr-golden-name" aria-label="Golden chart colour for the active theme"></p>
+<p class="pbr-lead">Nine stops, -4 to +4, per graha. 0 is the planet colour; + lightens, − darkens. The eight bands are the gaps between stops.</p>
+
+<div class="pbr-scroll">
+<table class="pbr">
+    <thead>
+        <tr>
+            <th></th>
+            @foreach (var stop in Stops)
+            {
+                <th>@(stop > 0 ? "+" : "")@stop<small>@PlanetBand.DignityName(stop)</small></th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var planet in Planets)
+        {
+            <tr>
+                <th>@planet</th>
+                @foreach (var stop in Stops)
+                {
+                    <td><span class="@PlanetBand.Class(planet, stop) pbr-cell">@(stop > 0 ? "+" : "")@stop</span></td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+
+<h2 class="pbr-sub">Other measures on the same axis</h2>
+<ul class="pbr-measures">
+    <li><b>Golden</b> — every non-graha chart (Ashtakavarga, houses, signs, totals) uses the one Golden ramp, tuned per theme.</li>
+    <li><b>Dignity</b> — Exalted +4, Moolatrikona +3, Own Sign +2, Great Friend +1, Friend 0, Neutral −1, Enemy −2, Great Enemy −3, Debilitated −4.</li>
+    <li><b>Ṣaḍbala</b> — % of the required minimum: 100% is 0, 200% and over is +4, 0% is −4.</li>
+    <li><b>Bhinnāṣṭavarga</b> — bindus in a sign: 4 is 0, 8 is +4, 0 is −4.</li>
+    <li><b>Sarvāṣṭavarga</b> — sign total: 28 is 0, one stop per 3 bindus.</li>
+</ul>
+
+@code {
+    private static readonly int[] Stops = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
+    private static readonly string[] Planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Golden"];
+}

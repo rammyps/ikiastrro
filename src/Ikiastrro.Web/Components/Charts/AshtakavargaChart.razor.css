@@ -29,9 +29,6 @@
 /* Bar fills only are lightened (rammyps, 2026-09-29): a 55% mix of the green/red with white, so
    the long bars read softer than the solid badges; the trailing .av-value pills and the
    Bhinnāṣṭavarga cells keep the full-strength tokens. */
-.av-fill.av-high { background: color-mix(in srgb, var(--status-strong) 55%, var(--brand-surface)); }
-.av-fill.av-moderate { background: var(--status-moderate); }
-.av-fill.av-zero { background: color-mix(in srgb, var(--status-weak) 55%, var(--brand-surface)); }
 .av-value {
     display: inline-block;
     min-width: 2.2em;
@@ -40,9 +37,6 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
-.av-value.av-high { background: var(--status-strong); color: var(--status-on); }
-.av-value.av-moderate { background: var(--status-moderate); color: var(--brand-midnight); }
-.av-value.av-zero { background: var(--status-weak); color: var(--status-on); }
 .av-table-scroll { overflow-x: auto; }
 .av table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: calc(var(--font-size-control) * 0.72); }
 .av th,.av td { padding: 6px 5px; border-bottom: 1px solid var(--brand-line); text-align: center; font-variant-numeric: tabular-nums; }
@@ -53,9 +47,6 @@
    sunrise-orange-for-strong/weak convention as PlanetStrengthChart/HouseStrengthChart's rank
    badges: green/sunset-orange/red fills, sunrise-orange text on green/red, midnight text on the
    sunset-orange moderate fill for contrast. Was pale-tint backgrounds with colored text only. */
-.av-high { background: var(--status-strong); color: var(--status-on); font-weight: 800; }
-.av-moderate { background: var(--status-moderate); color: var(--brand-midnight); font-weight: 800; }
-.av-zero { background: var(--status-weak); color: var(--status-on); font-weight: 800; }
 .av-sum { font-weight: 800; }
 .av-pinda { min-width: 520px !important; }
 @media (max-width: 620px) { .av-card-head { align-items: flex-start; } .av-bars { padding: 14px 10px; } .av-bar-row { grid-template-columns: 64px minmax(90px,1fr) 28px; gap: 7px; } }
@@ -76,3 +67,5 @@
 .av-south-center { display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--brand-surface); color: var(--brand-midnight); }
 .av-south-center strong { font-size: 1.6rem; }
 .av-south-center span { font-size: .7rem; color: var(--brand-muted); text-transform: uppercase; }
+.av-bindu { font-weight: 800; }
+.av-value.pb, .av-south-cell.pb { font-weight: 800; }
