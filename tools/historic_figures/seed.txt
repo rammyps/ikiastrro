@@ -1,0 +1,927 @@
+# Candidate list for the historic-figures database. Only the classification and a birth-year *check* live here;
+# every date, place and coordinate is fetched from Wikidata by build_historic_figures.py.
+# Format: AREA|SUB|GEO|Name (as Wikidata labels it)|birth year (used to reject wrong namesakes, +-1)
+# GEO: IL=IN_LOCAL IS=IN_STATE IR=IN_REGION IG=IN_GLOBAL GR=GL_REGION GC=GL_CONT GG=GL_GLOBAL
+# ~12-15 candidates per cell; the selector keeps the first 10 that resolve with a day-precise birth date,
+# preferring candidates whose GeoArea is still under-filled.
+
+# ---- POL / PRES
+POL|PRES|GG|Abraham Lincoln|1809
+POL|PRES|GG|George Washington|1732
+POL|PRES|GG|Franklin D. Roosevelt|1882
+POL|PRES|GG|Barack Obama|1961
+POL|PRES|GG|John F. Kennedy|1917
+POL|PRES|GC|Nelson Mandela|1918
+POL|PRES|GG|Charles de Gaulle|1890
+POL|PRES|GG|Vladimir Putin|1952
+POL|PRES|GG|Xi Jinping|1953
+POL|PRES|GG|Ronald Reagan|1911
+POL|PRES|GR|Sukarno|1901
+POL|PRES|GR|Gamal Abdel Nasser|1918
+POL|PRES|GC|Luiz Inácio Lula da Silva|1945
+POL|PRES|GC|Thabo Mbeki|1942
+POL|PRES|GC|Juan Perón|1895
+# ---- POL / PM
+POL|PM|GG|Winston Churchill|1874
+POL|PM|GG|Margaret Thatcher|1925
+POL|PM|GC|Otto von Bismarck|1815
+POL|PM|GR|Clement Attlee|1883
+POL|PM|GR|Tony Blair|1954
+POL|PM|GG|Angela Merkel|1954
+POL|PM|GR|Benjamin Disraeli|1804
+POL|PM|GR|William Ewart Gladstone|1809
+POL|PM|GR|Golda Meir|1898
+POL|PM|GR|David Ben-Gurion|1886
+POL|PM|GR|Lee Kuan Yew|1923
+POL|PM|GR|Mahathir Mohamad|1925
+POL|PM|GR|Shinzo Abe|1954
+POL|PM|GG|Zhou Enlai|1898
+POL|PM|GC|Pierre Trudeau|1919
+# ---- POL / MON
+POL|MON|GG|Queen Victoria|1819
+POL|MON|GG|Elizabeth II|1926
+POL|MON|GC|Louis XIV of France|1638
+POL|MON|GC|Peter the Great|1672
+POL|MON|GC|Catherine the Great|1729
+POL|MON|GC|Elizabeth I of England|1533
+POL|MON|GR|Henry VIII of England|1491
+POL|MON|GC|Frederick the Great|1712
+POL|MON|GR|Napoleon III|1808
+POL|MON|GC|Haile Selassie|1892
+POL|MON|GR|Franz Joseph I of Austria|1830
+POL|MON|GR|Charles III|1948
+POL|MON|GR|Akihito|1933
+POL|MON|GR|Mohammad Reza Pahlavi|1919
+POL|MON|GR|Maria Theresa|1717
+# ---- POL / FREEDOM
+POL|FREEDOM|GC|Simón Bolívar|1783
+POL|FREEDOM|GC|Giuseppe Garibaldi|1807
+POL|FREEDOM|GC|Kwame Nkrumah|1909
+POL|FREEDOM|GC|Jomo Kenyatta|1897
+POL|FREEDOM|GR|Ho Chi Minh|1890
+POL|FREEDOM|GR|Sun Yat-sen|1866
+POL|FREEDOM|GR|Mustafa Kemal Atatürk|1881
+POL|FREEDOM|GG|Martin Luther King Jr.|1929
+POL|FREEDOM|GR|José Rizal|1861
+POL|FREEDOM|GC|Patrice Lumumba|1925
+POL|FREEDOM|GR|Aung San|1915
+POL|FREEDOM|GR|Muhammad Ali Jinnah|1876
+POL|FREEDOM|GC|Julius Nyerere|1922
+POL|FREEDOM|GR|Sheikh Mujibur Rahman|1920
+POL|FREEDOM|GC|José de San Martín|1778
+# ---- POL / REVOL
+POL|REVOL|GG|Vladimir Lenin|1870
+POL|REVOL|GC|Leon Trotsky|1879
+POL|REVOL|GG|Che Guevara|1928
+POL|REVOL|GC|Fidel Castro|1926
+POL|REVOL|GG|Mao Zedong|1893
+POL|REVOL|GG|Karl Marx|1818
+POL|REVOL|GC|Maximilien Robespierre|1758
+POL|REVOL|GC|Rosa Luxemburg|1871
+POL|REVOL|GC|Emiliano Zapata|1879
+POL|REVOL|GG|Thomas Paine|1737
+POL|REVOL|GR|Ruhollah Khomeini|1900
+POL|REVOL|GC|Václav Havel|1936
+POL|REVOL|GC|Lech Wałęsa|1943
+# ---- POL / DICT
+POL|DICT|GG|Adolf Hitler|1889
+POL|DICT|GG|Joseph Stalin|1878
+POL|DICT|GC|Benito Mussolini|1883
+POL|DICT|GC|Francisco Franco|1892
+POL|DICT|GR|Saddam Hussein|1937
+POL|DICT|GC|Idi Amin|1925
+POL|DICT|GR|Pol Pot|1925
+POL|DICT|GR|Kim Il-sung|1912
+POL|DICT|GR|Muammar Gaddafi|1942
+POL|DICT|GC|Augusto Pinochet|1915
+POL|DICT|GC|Mobutu Sese Seko|1930
+POL|DICT|GR|Ferdinand Marcos|1917
+POL|DICT|GC|Nicolae Ceaușescu|1918
+POL|DICT|GC|Josip Broz Tito|1892
+# ---- POL / DIPL
+POL|DIPL|GG|Henry Kissinger|1923
+POL|DIPL|GC|Klemens von Metternich|1773
+POL|DIPL|GC|Charles Maurice de Talleyrand-Périgord|1754
+POL|DIPL|GG|Kofi Annan|1938
+POL|DIPL|GG|Dag Hammarskjöld|1905
+POL|DIPL|IG|V. K. Krishna Menon|1896
+POL|DIPL|GC|Cardinal Richelieu|1585
+POL|DIPL|GG|Eleanor Roosevelt|1884
+POL|DIPL|GG|Ralph Bunche|1904
+POL|DIPL|GG|Ban Ki-moon|1944
+POL|DIPL|GG|Madeleine Albright|1937
+POL|DIPL|GR|Cyrus Vance|1917
+POL|DIPL|GG|Cordell Hull|1871
+POL|DIPL|IG|Vijaya Lakshmi Pandit|1900
+# ---- IND / PMIN
+IND|PMIN|IG|Jawaharlal Nehru|1889
+IND|PMIN|IG|Indira Gandhi|1917
+IND|PMIN|IG|Lal Bahadur Shastri|1904
+IND|PMIN|IG|Morarji Desai|1896
+IND|PMIN|IG|Rajiv Gandhi|1944
+IND|PMIN|IG|Atal Bihari Vajpayee|1924
+IND|PMIN|IG|Manmohan Singh|1932
+IND|PMIN|IG|Narendra Modi|1950
+IND|PMIN|IG|P. V. Narasimha Rao|1921
+IND|PMIN|IR|Charan Singh|1902
+IND|PMIN|IG|V. P. Singh|1931
+IND|PMIN|IR|Chandra Shekhar|1927
+IND|PMIN|IR|H. D. Deve Gowda|1933
+IND|PMIN|IR|I. K. Gujral|1919
+IND|PMIN|IR|Gulzarilal Nanda|1898
+# ---- IND / PRESGOV
+IND|PRESGOV|IG|Rajendra Prasad|1884
+IND|PRESGOV|IG|Sarvepalli Radhakrishnan|1888
+IND|PRESGOV|IG|Zakir Husain|1897
+IND|PRESGOV|IG|A. P. J. Abdul Kalam|1931
+IND|PRESGOV|IG|Pranab Mukherjee|1935
+IND|PRESGOV|IG|Pratibha Patil|1934
+IND|PRESGOV|IG|Ram Nath Kovind|1945
+IND|PRESGOV|IG|Droupadi Murmu|1958
+IND|PRESGOV|IG|K. R. Narayanan|1920
+IND|PRESGOV|IG|R. Venkataraman|1910
+IND|PRESGOV|IG|Shankar Dayal Sharma|1918
+IND|PRESGOV|IG|C. Rajagopalachari|1878
+IND|PRESGOV|IS|Sarojini Naidu|1879
+IND|PRESGOV|IG|V. V. Giri|1894
+IND|PRESGOV|IG|Fakhruddin Ali Ahmed|1905
+# ---- IND / FFIGHT
+IND|FFIGHT|IG|Mahatma Gandhi|1869
+IND|FFIGHT|IG|Subhas Chandra Bose|1897
+IND|FFIGHT|IG|Bhagat Singh|1907
+IND|FFIGHT|IG|Vallabhbhai Patel|1875
+IND|FFIGHT|IR|Lala Lajpat Rai|1865
+IND|FFIGHT|IR|Bal Gangadhar Tilak|1856
+IND|FFIGHT|IR|Lakshmibai, Rani of Jhansi|1828
+IND|FFIGHT|IR|Chandrashekhar Azad|1906
+IND|FFIGHT|IG|Abul Kalam Azad|1888
+IND|FFIGHT|IR|Khan Abdul Ghaffar Khan|1890
+IND|FFIGHT|IR|Gopal Krishna Gokhale|1866
+IND|FFIGHT|IR|Bipin Chandra Pal|1858
+IND|FFIGHT|IG|Dadabhai Naoroji|1825
+IND|FFIGHT|IG|Vinayak Damodar Savarkar|1883
+IND|FFIGHT|IL|Mangal Pandey|1827
+IND|FFIGHT|IL|Tantia Tope|1814
+IND|FFIGHT|IR|Rash Behari Bose|1886
+IND|FFIGHT|IS|Aruna Asaf Ali|1909
+IND|FFIGHT|IS|Alluri Sitarama Raju|1897
+IND|FFIGHT|IS|Kunwar Singh|1777
+IND|FFIGHT|IR|Birsa Munda|1875
+IND|FFIGHT|IL|Nana Sahib|1824
+# ---- IND / CM
+IND|CM|IS|M. Karunanidhi|1924
+IND|CM|IS|M. G. Ramachandran|1917
+IND|CM|IS|J. Jayalalithaa|1948
+IND|CM|IS|N. T. Rama Rao|1923
+IND|CM|IS|Jyoti Basu|1914
+IND|CM|IS|Mamata Banerjee|1955
+IND|CM|IS|Bidhan Chandra Roy|1882
+IND|CM|IS|Y. S. Rajasekhara Reddy|1949
+IND|CM|IS|Naveen Patnaik|1946
+IND|CM|IS|Nitish Kumar|1951
+IND|CM|IS|Lalu Prasad Yadav|1948
+IND|CM|IS|Mulayam Singh Yadav|1939
+IND|CM|IS|Mayawati|1956
+IND|CM|IS|Arvind Kejriwal|1968
+IND|CM|IS|Yogi Adityanath|1972
+IND|CM|IR|K. Kamaraj|1903
+IND|CM|IS|C. N. Annadurai|1909
+IND|CM|IS|E. M. S. Namboodiripad|1909
+IND|CM|IS|Prakash Singh Badal|1927
+IND|CM|IS|Sheikh Abdullah|1905
+# ---- IND / CONST
+IND|CONST|IG|B. R. Ambedkar|1891
+IND|CONST|IG|B. N. Rau|1887
+IND|CONST|IR|Alladi Krishnaswami Ayyar|1883
+IND|CONST|IR|K. M. Munshi|1887
+IND|CONST|IR|N. Gopalaswami Ayyangar|1882
+IND|CONST|IS|Durgabai Deshmukh|1909
+IND|CONST|IS|Hansa Mehta|1897
+IND|CONST|IG|Nani Palkhivala|1920
+IND|CONST|IG|Fali S. Nariman|1929
+IND|CONST|IG|M. C. Setalvad|1884
+IND|CONST|IG|Hiralal Jekisundas Kania|1890
+IND|CONST|IR|Hari Singh Gour|1870
+IND|CONST|IR|T. T. Krishnamachari|1899
+IND|CONST|IR|Jaipal Singh Munda|1903
+IND|CONST|IS|Rajkumari Amrit Kaur|1889
+IND|CONST|IL|Sachchidananda Sinha|1871
+IND|CONST|IL|Syama Prasad Mukherjee|1901
+# ---- IND / PRINCE
+IND|PRINCE|IR|Shivaji|1630
+IND|PRINCE|IR|Maharana Pratap|1540
+IND|PRINCE|IS|Tipu Sultan|1751
+IND|PRINCE|IR|Ranjit Singh|1780
+IND|PRINCE|IG|Akbar|1542
+IND|PRINCE|IR|Sambhaji|1657
+IND|PRINCE|IL|Rani Durgavati|1524
+IND|PRINCE|IS|Sayajirao Gaekwad III|1863
+IND|PRINCE|IS|Mir Osman Ali Khan|1886
+IND|PRINCE|IS|Hyder Ali|1720
+IND|PRINCE|IL|Ahilyabai Holkar|1725
+IND|PRINCE|IS|Hari Singh|1895
+IND|PRINCE|IG|Bahadur Shah Zafar|1775
+IND|PRINCE|IG|Shah Jahan|1592
+IND|PRINCE|IG|Aurangzeb|1618
+IND|PRINCE|IS|Ganga Singh|1880
+IND|PRINCE|IL|Krishnaraja Wadiyar IV|1884
+IND|PRINCE|IL|Maharaja Jam Sahib Ranjitsinhji|1872
+IND|PRINCE|IR|Peshwa Bajirao I|1700
+IND|PRINCE|IS|Tarabai|1675
+# ---- IND / REFORM
+IND|REFORM|IR|Raja Ram Mohan Roy|1772
+IND|REFORM|IR|Ishwar Chandra Vidyasagar|1820
+IND|REFORM|IS|Jyotirao Phule|1827
+IND|REFORM|IS|Savitribai Phule|1831
+IND|REFORM|IR|Dayananda Saraswati|1824
+IND|REFORM|IS|Periyar E. V. Ramasamy|1879
+IND|REFORM|IS|Narayana Guru|1856
+IND|REFORM|IS|Pandita Ramabai|1858
+IND|REFORM|IR|Vinoba Bhave|1895
+IND|REFORM|IR|Baba Amte|1914
+IND|REFORM|IS|Anna Hazare|1937
+IND|REFORM|IR|Medha Patkar|1954
+IND|REFORM|IL|Dhondo Keshav Karve|1858
+IND|REFORM|IL|Gopal Ganesh Agarkar|1856
+IND|REFORM|IL|Jamnalal Bajaj|1889
+IND|REFORM|IL|Shahu of Kolhapur|1874
+# ---- MIL / GEN
+MIL|GEN|GG|Dwight D. Eisenhower|1890
+MIL|GEN|GG|George S. Patton|1885
+MIL|GEN|GG|Douglas MacArthur|1880
+MIL|GEN|GG|Erwin Rommel|1891
+MIL|GEN|GG|Georgy Zhukov|1896
+MIL|GEN|GR|Bernard Montgomery|1887
+MIL|GEN|GR|Ulysses S. Grant|1822
+MIL|GEN|GR|Robert E. Lee|1807
+MIL|GEN|GC|Arthur Wellesley, 1st Duke of Wellington|1769
+MIL|GEN|GC|Helmuth von Moltke the Elder|1800
+MIL|GEN|IG|Sam Manekshaw|1914
+MIL|GEN|GR|Colin Powell|1937
+MIL|GEN|GR|Norman Schwarzkopf Jr.|1934
+MIL|GEN|GR|Võ Nguyên Giáp|1911
+MIL|GEN|IL|K. M. Cariappa|1899
+# ---- MIL / ADM
+MIL|ADM|GC|Horatio Nelson|1758
+MIL|ADM|GR|Yi Sun-sin|1545
+MIL|ADM|GR|Isoroku Yamamoto|1884
+MIL|ADM|GG|Chester W. Nimitz|1885
+MIL|ADM|GC|Karl Dönitz|1891
+MIL|ADM|GG|Alfred Thayer Mahan|1840
+MIL|ADM|GR|Heihachirō Tōgō|1848
+MIL|ADM|GR|Hyman G. Rickover|1900
+MIL|ADM|IR|Kanhoji Angre|1669
+MIL|ADM|GR|John Paul Jones|1747
+MIL|ADM|GR|William Halsey Jr.|1882
+MIL|ADM|GC|John Fisher, 1st Baron Fisher|1841
+MIL|ADM|GR|Ernest King|1878
+MIL|ADM|GR|Raymond A. Spruance|1886
+MIL|ADM|GR|Andrew Cunningham, 1st Viscount Cunningham of Hyndhope|1883
+MIL|ADM|IG|Bhaskar Sadashiv Soman|1913
+# ---- MIL / CONQ
+MIL|CONQ|GG|Napoleon|1769
+MIL|CONQ|GG|Timur|1336
+MIL|CONQ|IG|Babur|1483
+MIL|CONQ|GC|Hernán Cortés|1485
+MIL|CONQ|GC|Francisco Pizarro|1478
+MIL|CONQ|GR|Suleiman the Magnificent|1494
+MIL|CONQ|GR|Mehmed the Conqueror|1432
+MIL|CONQ|GR|Nader Shah|1688
+MIL|CONQ|GR|Ahmad Shah Durrani|1722
+MIL|CONQ|GG|Kublai Khan|1215
+MIL|CONQ|GC|Gustavus Adolphus of Sweden|1594
+MIL|CONQ|GC|Charles XII of Sweden|1682
+MIL|CONQ|GC|Alexander Suvorov|1730
+MIL|CONQ|GG|Genghis Khan|1162
+MIL|CONQ|GR|Cyrus the Great|-600
+# ---- MIL / RESIST
+MIL|RESIST|GR|Emilio Aguinaldo|1869
+MIL|RESIST|GC|Omar Mukhtar|1858
+MIL|RESIST|GC|Abd el-Kader|1808
+MIL|RESIST|GC|Toussaint Louverture|1743
+MIL|RESIST|GR|Imam Shamil|1797
+MIL|RESIST|GC|Sitting Bull|1831
+MIL|RESIST|GC|Geronimo|1829
+MIL|RESIST|GC|Crazy Horse|1840
+MIL|RESIST|GC|Pancho Villa|1878
+MIL|RESIST|GC|Augusto César Sandino|1895
+MIL|RESIST|GC|Jean Moulin|1899
+MIL|RESIST|GC|Tecumseh|1768
+MIL|RESIST|GR|Ho Chi Minh|1890
+# ---- MIL / WARLEAD
+MIL|WARLEAD|GR|Georges Clemenceau|1841
+MIL|WARLEAD|GR|David Lloyd George|1863
+MIL|WARLEAD|GR|Jefferson Davis|1808
+MIL|WARLEAD|GR|Hideki Tojo|1884
+MIL|WARLEAD|GG|Chiang Kai-shek|1887
+MIL|WARLEAD|GC|Paul von Hindenburg|1847
+MIL|WARLEAD|GC|Erich Ludendorff|1865
+MIL|WARLEAD|GC|Philippe Pétain|1856
+MIL|WARLEAD|GG|Harry S. Truman|1884
+MIL|WARLEAD|GR|Herbert Kitchener, 1st Earl Kitchener|1850
+MIL|WARLEAD|GR|Louis Mountbatten, 1st Earl Mountbatten of Burma|1900
+MIL|WARLEAD|GR|Józef Piłsudski|1867
+MIL|WARLEAD|GR|Moshe Dayan|1915
+MIL|WARLEAD|GR|Yitzhak Rabin|1922
+MIL|WARLEAD|GR|Ariel Sharon|1928
+# ---- MIL / STRAT
+MIL|STRAT|GG|Carl von Clausewitz|1780
+MIL|STRAT|GG|Antoine-Henri Jomini|1779
+MIL|STRAT|GR|Basil Liddell Hart|1895
+MIL|STRAT|GR|John Boyd|1927
+MIL|STRAT|GR|Giulio Douhet|1869
+MIL|STRAT|GR|J. F. C. Fuller|1878
+MIL|STRAT|GR|Heinz Guderian|1888
+MIL|STRAT|GR|Erich von Manstein|1887
+MIL|STRAT|GR|Mikhail Tukhachevsky|1893
+MIL|STRAT|GC|Ferdinand Foch|1851
+MIL|STRAT|GC|Vauban|1633
+MIL|STRAT|GC|Gerhard von Scharnhorst|1755
+MIL|STRAT|GR|Hans Delbrück|1848
+MIL|STRAT|GR|Edward Luttwak|1942
+MIL|STRAT|IG|K. Subrahmanyam|1929
+MIL|STRAT|GR|André Beaufre|1902
+# ---- MIL / INTEL
+MIL|INTEL|GG|J. Edgar Hoover|1895
+MIL|INTEL|GG|Allen Dulles|1893
+MIL|INTEL|GR|William Joseph Donovan|1883
+MIL|INTEL|GC|Reinhard Heydrich|1904
+MIL|INTEL|GC|Heinrich Himmler|1900
+MIL|INTEL|GC|Lavrentiy Beria|1899
+MIL|INTEL|GC|Felix Dzerzhinsky|1877
+MIL|INTEL|GR|Mata Hari|1876
+MIL|INTEL|GR|Richard Sorge|1895
+MIL|INTEL|GR|Markus Wolf|1923
+MIL|INTEL|GR|Walter Schellenberg|1910
+MIL|INTEL|GR|Sidney Reilly|1873
+MIL|INTEL|GR|Wilhelm Canaris|1887
+MIL|INTEL|GR|Meir Amit|1921
+MIL|INTEL|GR|Isser Harel|1912
+MIL|INTEL|IG|Rameshwar Nath Kao|1918
+MIL|INTEL|IG|Ajit Doval|1945
+MIL|INTEL|GC|Yuri Andropov|1914
+# ---- SPI / HINDU
+SPI|HINDU|IG|Swami Vivekananda|1863
+SPI|HINDU|IR|Ramakrishna|1836
+SPI|HINDU|IS|Ramana Maharshi|1879
+SPI|HINDU|GG|Paramahansa Yogananda|1893
+SPI|HINDU|IG|Sri Aurobindo|1872
+SPI|HINDU|IG|Sathya Sai Baba|1926
+SPI|HINDU|IR|Chaitanya Mahaprabhu|1486
+SPI|HINDU|IR|Swami Sivananda|1887
+SPI|HINDU|GG|Maharishi Mahesh Yogi|1918
+SPI|HINDU|GG|Osho|1931
+SPI|HINDU|IR|Anandamayi Ma|1896
+SPI|HINDU|GG|Jiddu Krishnamurti|1895
+SPI|HINDU|GG|A. C. Bhaktivedanta Swami Prabhupada|1896
+SPI|HINDU|GG|Sri Sri Ravi Shankar|1956
+SPI|HINDU|GG|Sadhguru|1957
+SPI|HINDU|IG|Mata Amritanandamayi|1953
+SPI|HINDU|GR|Meher Baba|1894
+# ---- SPI / BUDD
+SPI|BUDD|GG|14th Dalai Lama|1935
+SPI|BUDD|GG|Thích Nhất Hạnh|1926
+SPI|BUDD|GR|Anagarika Dharmapala|1864
+SPI|BUDD|GR|10th Panchen Lama|1938
+SPI|BUDD|GR|Dilgo Khyentse|1910
+SPI|BUDD|GG|Chögyam Trungpa|1939
+SPI|BUDD|GR|Ajahn Chah|1918
+SPI|BUDD|GG|D. T. Suzuki|1870
+SPI|BUDD|GR|13th Dalai Lama|1876
+SPI|BUDD|GR|Kalu Rinpoche|1905
+SPI|BUDD|GR|Buddhadasa Bhikkhu|1906
+SPI|BUDD|GR|Taixu|1890
+SPI|BUDD|GR|Hsuan Hua|1918
+SPI|BUDD|GG|Shunryū Suzuki|1904
+SPI|BUDD|GR|Sangharakshita|1925
+SPI|BUDD|GR|Lama Yeshe|1935
+# ---- SPI / CHRIST
+SPI|CHRIST|GG|Mother Teresa|1910
+SPI|CHRIST|GG|Pope John Paul II|1920
+SPI|CHRIST|GG|Pope Francis|1936
+SPI|CHRIST|GC|Martin Luther|1483
+SPI|CHRIST|GC|John Calvin|1509
+SPI|CHRIST|GG|Billy Graham|1918
+SPI|CHRIST|GC|Desmond Tutu|1931
+SPI|CHRIST|GG|Pope Benedict XVI|1927
+SPI|CHRIST|GG|Pope John XXIII|1881
+SPI|CHRIST|GC|Óscar Romero|1917
+SPI|CHRIST|GC|Dietrich Bonhoeffer|1906
+SPI|CHRIST|GC|John Wesley|1703
+SPI|CHRIST|GC|Ignatius of Loyola|1491
+SPI|CHRIST|GR|Francis Xavier|1506
+SPI|CHRIST|GG|Pope Paul VI|1897
+SPI|CHRIST|IR|William Carey|1761
+SPI|CHRIST|IR|Sadhu Sundar Singh|1889
+# ---- SPI / ISLAM
+SPI|ISLAM|GR|Muhammad Iqbal|1877
+SPI|ISLAM|IG|Syed Ahmad Khan|1817
+SPI|ISLAM|GR|Abul A'la Maududi|1903
+SPI|ISLAM|GR|Hassan al-Banna|1906
+SPI|ISLAM|GR|Sayyid Qutb|1906
+SPI|ISLAM|GR|Jamal al-Din al-Afghani|1838
+SPI|ISLAM|GR|Muhammad Abduh|1849
+SPI|ISLAM|GR|Ali Shariati|1933
+SPI|ISLAM|GR|Said Nursi|1877
+SPI|ISLAM|GR|Yusuf al-Qaradawi|1926
+SPI|ISLAM|GR|Fethullah Gülen|1941
+SPI|ISLAM|GR|Ahmed Deedat|1918
+SPI|ISLAM|GR|Shah Waliullah Dehlawi|1703
+SPI|ISLAM|IR|Ahmed Raza Khan|1856
+SPI|ISLAM|GR|Muhammad ibn Abd al-Wahhab|1703
+SPI|ISLAM|GG|Malcolm X|1925
+SPI|ISLAM|GR|Ali Khamenei|1939
+SPI|ISLAM|GR|Ali al-Sistani|1930
+# ---- SPI / SIKHJAIN
+SPI|SIKHJAIN|IG|Guru Nanak|1469
+SPI|SIKHJAIN|IR|Guru Gobind Singh|1666
+SPI|SIKHJAIN|IR|Guru Arjan|1563
+SPI|SIKHJAIN|IR|Guru Tegh Bahadur|1621
+SPI|SIKHJAIN|IR|Guru Angad|1504
+SPI|SIKHJAIN|IR|Guru Amar Das|1479
+SPI|SIKHJAIN|IR|Guru Ram Das|1534
+SPI|SIKHJAIN|IR|Guru Hargobind|1595
+SPI|SIKHJAIN|IR|Guru Har Rai|1630
+SPI|SIKHJAIN|IL|Guru Har Krishan|1656
+SPI|SIKHJAIN|IS|Acharya Tulsi|1914
+SPI|SIKHJAIN|IS|Acharya Mahapragya|1920
+SPI|SIKHJAIN|IS|Shrimad Rajchandra|1867
+SPI|SIKHJAIN|IS|Jarnail Singh Bhindranwale|1947
+SPI|SIKHJAIN|IL|Baba Deep Singh|1682
+SPI|SIKHJAIN|IR|Banda Singh Bahadur|1670
+SPI|SIKHJAIN|IS|Master Tara Singh|1885
+SPI|SIKHJAIN|IS|Bhai Vir Singh|1872
+# ---- SPI / MYSTIC
+SPI|MYSTIC|GG|George Gurdjieff|1866
+SPI|MYSTIC|GG|Helena Blavatsky|1831
+SPI|MYSTIC|GC|Rudolf Steiner|1861
+SPI|MYSTIC|GC|Emanuel Swedenborg|1688
+SPI|MYSTIC|GC|Teresa of Ávila|1515
+SPI|MYSTIC|GR|Inayat Khan|1882
+SPI|MYSTIC|GG|Edgar Cayce|1877
+SPI|MYSTIC|GG|Alan Watts|1915
+SPI|MYSTIC|GC|Nostradamus|1503
+SPI|MYSTIC|GG|Aleister Crowley|1875
+SPI|MYSTIC|GG|Annie Besant|1847
+SPI|MYSTIC|GG|Eckhart Tolle|1948
+SPI|MYSTIC|GG|Carl Jung|1875
+SPI|MYSTIC|IS|Swami Rama Tirtha|1873
+# ---- SPI / FOUNDER
+SPI|FOUNDER|GG|Joseph Smith|1805
+SPI|FOUNDER|GG|L. Ron Hubbard|1911
+SPI|FOUNDER|GG|Mary Baker Eddy|1821
+SPI|FOUNDER|GG|Baháʼu'lláh|1817
+SPI|FOUNDER|GG|Brigham Young|1801
+SPI|FOUNDER|GG|Charles Taze Russell|1852
+SPI|FOUNDER|GG|Ellen G. White|1827
+SPI|FOUNDER|GR|Mirza Ghulam Ahmad|1835
+SPI|FOUNDER|GG|William Booth|1829
+SPI|FOUNDER|IS|Swaminarayan|1781
+SPI|FOUNDER|GG|Sri Chinmoy|1931
+SPI|FOUNDER|IR|Kirpal Singh|1894
+SPI|FOUNDER|IR|Baba Sawan Singh|1858
+SPI|FOUNDER|GG|Sun Myung Moon|1920
+SPI|FOUNDER|GR|The Báb|1819
+SPI|FOUNDER|GG|Swami Muktananda|1908
+SPI|FOUNDER|GR|Daisaku Ikeda|1928
+# ---- SCI / PHYS
+SCI|PHYS|GG|Albert Einstein|1879
+SCI|PHYS|GG|Isaac Newton|1643
+SCI|PHYS|GC|Galileo Galilei|1564
+SCI|PHYS|GG|Marie Curie|1867
+SCI|PHYS|GC|Niels Bohr|1885
+SCI|PHYS|GG|Richard Feynman|1918
+SCI|PHYS|GG|Stephen Hawking|1942
+SCI|PHYS|IG|C. V. Raman|1888
+SCI|PHYS|IG|Srinivasa Ramanujan|1887
+SCI|PHYS|IG|Satyendra Nath Bose|1894
+SCI|PHYS|IG|Homi J. Bhabha|1909
+SCI|PHYS|IG|Subrahmanyan Chandrasekhar|1910
+SCI|PHYS|GC|Max Planck|1858
+SCI|PHYS|GC|Werner Heisenberg|1901
+SCI|PHYS|GC|Erwin Schrödinger|1887
+SCI|PHYS|GG|J. Robert Oppenheimer|1904
+SCI|PHYS|GR|Michael Faraday|1791
+SCI|PHYS|GR|James Clerk Maxwell|1831
+SCI|PHYS|IG|Meghnad Saha|1893
+SCI|PHYS|IG|Vikram Sarabhai|1919
+# ---- SCI / INVENT
+SCI|INVENT|GG|Thomas Edison|1847
+SCI|INVENT|GG|Nikola Tesla|1856
+SCI|INVENT|GG|Alexander Graham Bell|1847
+SCI|INVENT|GG|Wilbur Wright|1867
+SCI|INVENT|GG|Orville Wright|1871
+SCI|INVENT|GC|James Watt|1736
+SCI|INVENT|GC|Guglielmo Marconi|1874
+SCI|INVENT|GG|Benjamin Franklin|1706
+SCI|INVENT|GG|Samuel Morse|1791
+SCI|INVENT|GG|Tim Berners-Lee|1955
+SCI|INVENT|GG|Alan Turing|1912
+SCI|INVENT|GR|Charles Babbage|1791
+SCI|INVENT|IG|Jagadish Chandra Bose|1858
+SCI|INVENT|IG|Satish Dhawan|1920
+SCI|INVENT|IR|M. Visvesvaraya|1861
+SCI|INVENT|GC|Rudolf Diesel|1858
+SCI|INVENT|GC|Leonardo da Vinci|1452
+# ---- SCI / ASTRO
+SCI|ASTRO|GC|Johannes Kepler|1571
+SCI|ASTRO|GC|Nicolaus Copernicus|1473
+SCI|ASTRO|GC|Tycho Brahe|1546
+SCI|ASTRO|GG|Edwin Hubble|1889
+SCI|ASTRO|GG|Carl Sagan|1934
+SCI|ASTRO|IG|B. V. Raman|1912
+SCI|ASTRO|IG|Jayant Narlikar|1938
+SCI|ASTRO|IG|Vainu Bappu|1927
+SCI|ASTRO|GC|Pierre-Simon Laplace|1749
+SCI|ASTRO|GR|Edmond Halley|1656
+SCI|ASTRO|GR|William Herschel|1738
+SCI|ASTRO|IR|Jai Singh II|1688
+SCI|ASTRO|GG|Cheiro|1866
+SCI|ASTRO|GR|William Lilly|1602
+SCI|ASTRO|GG|Evangeline Adams|1868
+SCI|ASTRO|GG|Dane Rudhyar|1895
+SCI|ASTRO|GR|Alan Leo|1860
+SCI|ASTRO|GR|Sepharial|1864
+SCI|ASTRO|IG|K. N. Rao|1931
+SCI|ASTRO|IG|P. V. R. Narasimha Rao|1960
+# ---- SCI / MED
+SCI|MED|GG|Louis Pasteur|1822
+SCI|MED|GG|Alexander Fleming|1881
+SCI|MED|GG|Edward Jenner|1749
+SCI|MED|GG|Robert Koch|1843
+SCI|MED|GR|Joseph Lister|1827
+SCI|MED|GG|Florence Nightingale|1820
+SCI|MED|GG|Sigmund Freud|1856
+SCI|MED|IG|Ronald Ross|1857
+SCI|MED|IG|Har Gobind Khorana|1922
+SCI|MED|IS|Anandibai Joshi|1865
+SCI|MED|GG|Jonas Salk|1914
+SCI|MED|GC|Paul Ehrlich|1854
+SCI|MED|GC|Ignaz Semmelweis|1818
+SCI|MED|GR|William Harvey|1578
+SCI|MED|GR|Christiaan Barnard|1922
+SCI|MED|GR|Elizabeth Blackwell|1821
+SCI|MED|IR|Hakim Ajmal Khan|1868
+SCI|MED|IG|Yellapragada Subbarow|1895
+# ---- SCI / ECON
+SCI|ECON|GG|Adam Smith|1723
+SCI|ECON|GG|John Maynard Keynes|1883
+SCI|ECON|GG|Milton Friedman|1912
+SCI|ECON|GG|Friedrich Hayek|1899
+SCI|ECON|IG|Amartya Sen|1933
+SCI|ECON|GC|David Ricardo|1772
+SCI|ECON|GC|Thomas Robert Malthus|1766
+SCI|ECON|GC|Joseph Schumpeter|1883
+SCI|ECON|GG|Paul Samuelson|1915
+SCI|ECON|IG|Raghuram Rajan|1963
+SCI|ECON|GC|Vilfredo Pareto|1848
+SCI|ECON|GC|John Stuart Mill|1806
+SCI|ECON|GR|Alfred Marshall|1842
+SCI|ECON|GC|Max Weber|1864
+SCI|ECON|GC|Émile Durkheim|1858
+SCI|ECON|GR|Joan Robinson|1903
+SCI|ECON|IG|Prasanta Chandra Mahalanobis|1893
+SCI|ECON|IG|Jagdish Bhagwati|1934
+# ---- SCI / PHIL
+SCI|PHIL|GG|Immanuel Kant|1724
+SCI|PHIL|GG|Friedrich Nietzsche|1844
+SCI|PHIL|GG|Bertrand Russell|1872
+SCI|PHIL|GG|Jean-Paul Sartre|1905
+SCI|PHIL|GG|René Descartes|1596
+SCI|PHIL|GG|Voltaire|1694
+SCI|PHIL|GG|Jean-Jacques Rousseau|1712
+SCI|PHIL|GC|Arthur Schopenhauer|1788
+SCI|PHIL|GC|Georg Wilhelm Friedrich Hegel|1770
+SCI|PHIL|GC|Ludwig Wittgenstein|1889
+SCI|PHIL|GR|Karl Popper|1902
+SCI|PHIL|GR|Simone de Beauvoir|1908
+SCI|PHIL|GR|John Locke|1632
+SCI|PHIL|GR|David Hume|1711
+SCI|PHIL|GC|Søren Kierkegaard|1813
+SCI|PHIL|GR|Hannah Arendt|1906
+SCI|PHIL|GG|Noam Chomsky|1928
+# ---- SCI / EDU
+SCI|EDU|GG|Maria Montessori|1870
+SCI|EDU|GG|John Dewey|1859
+SCI|EDU|IG|Madan Mohan Malaviya|1861
+SCI|EDU|GC|Friedrich Fröbel|1782
+SCI|EDU|GC|Johann Heinrich Pestalozzi|1746
+SCI|EDU|GC|Paulo Freire|1921
+SCI|EDU|GR|Booker T. Washington|1856
+SCI|EDU|GR|Horace Mann|1796
+SCI|EDU|IS|Ashutosh Mukherjee|1864
+SCI|EDU|GR|Helen Keller|1880
+SCI|EDU|GG|Jean Piaget|1896
+SCI|EDU|GC|Lev Vygotsky|1896
+SCI|EDU|GG|Salman Khan|1976
+SCI|EDU|IS|Rukmini Devi Arundale|1904
+SCI|EDU|IR|Mahatma Hansraj|1864
+SCI|EDU|IR|Swami Shraddhanand|1856
+SCI|EDU|IS|Anne Sullivan|1866
+# ---- BUS / TECH
+BUS|TECH|GG|Steve Jobs|1955
+BUS|TECH|GG|Bill Gates|1955
+BUS|TECH|GG|Elon Musk|1971
+BUS|TECH|GG|Jeff Bezos|1964
+BUS|TECH|GG|Mark Zuckerberg|1984
+BUS|TECH|GG|Larry Page|1973
+BUS|TECH|GG|Sergey Brin|1973
+BUS|TECH|IG|Sundar Pichai|1972
+BUS|TECH|IG|Satya Nadella|1967
+BUS|TECH|GR|Jack Ma|1964
+BUS|TECH|IG|N. R. Narayana Murthy|1946
+BUS|TECH|IG|Azim Premji|1945
+BUS|TECH|GG|Jensen Huang|1963
+BUS|TECH|GG|Larry Ellison|1944
+BUS|TECH|GG|Michael Dell|1965
+BUS|TECH|GR|Pony Ma|1971
+BUS|TECH|GR|Masayoshi Son|1957
+BUS|TECH|IG|Nandan Nilekani|1955
+BUS|TECH|GG|Steve Wozniak|1950
+BUS|TECH|GG|Sam Altman|1985
+# ---- BUS / INDUS
+BUS|INDUS|IG|J. R. D. Tata|1904
+BUS|INDUS|IG|Jamsetji Tata|1839
+BUS|INDUS|IG|Ratan Tata|1937
+BUS|INDUS|IG|Dhirubhai Ambani|1932
+BUS|INDUS|IG|Mukesh Ambani|1957
+BUS|INDUS|IG|Gautam Adani|1962
+BUS|INDUS|IG|G. D. Birla|1894
+BUS|INDUS|GG|John D. Rockefeller|1839
+BUS|INDUS|GG|Andrew Carnegie|1835
+BUS|INDUS|GG|J. P. Morgan|1837
+BUS|INDUS|GR|Cornelius Vanderbilt|1794
+BUS|INDUS|GC|Alfred Krupp|1812
+BUS|INDUS|GC|Werner von Siemens|1816
+BUS|INDUS|GG|Lakshmi Mittal|1950
+BUS|INDUS|IG|Kumar Mangalam Birla|1967
+BUS|INDUS|IG|Anil Ambani|1959
+BUS|INDUS|IR|Rahul Bajaj|1938
+BUS|INDUS|IR|Walchand Hirachand|1882
+BUS|INDUS|IS|Kasturbhai Lalbhai|1894
+# ---- BUS / INVEST
+BUS|INVEST|GG|Warren Buffett|1930
+BUS|INVEST|GG|George Soros|1930
+BUS|INVEST|IG|Rakesh Jhunjhunwala|1960
+BUS|INVEST|GG|Charlie Munger|1924
+BUS|INVEST|GG|Ray Dalio|1949
+BUS|INVEST|GR|Peter Lynch|1944
+BUS|INVEST|GG|Benjamin Graham|1894
+BUS|INVEST|GR|Carl Icahn|1936
+BUS|INVEST|GR|Jim Simons|1938
+BUS|INVEST|GR|John C. Bogle|1929
+BUS|INVEST|IG|Radhakishan Damani|1954
+BUS|INVEST|GC|Nathan Mayer Rothschild|1777
+BUS|INVEST|GC|Mayer Amschel Rothschild|1744
+BUS|INVEST|GR|Jesse Livermore|1877
+BUS|INVEST|GR|Paul Tudor Jones|1954
+BUS|INVEST|GR|Julian Robertson|1932
+BUS|INVEST|GR|Bill Ackman|1966
+BUS|INVEST|IG|Vinod Khosla|1955
+# ---- BUS / RETAIL
+BUS|RETAIL|GG|Sam Walton|1918
+BUS|RETAIL|GG|Ingvar Kamprad|1926
+BUS|RETAIL|GG|Estée Lauder|1908
+BUS|RETAIL|GG|Coco Chanel|1883
+BUS|RETAIL|GG|Howard Schultz|1953
+BUS|RETAIL|GG|Ray Kroc|1902
+BUS|RETAIL|GG|Colonel Sanders|1890
+BUS|RETAIL|GG|Bernard Arnault|1949
+BUS|RETAIL|GG|Amancio Ortega|1936
+BUS|RETAIL|GG|Phil Knight|1938
+BUS|RETAIL|IG|Kishore Biyani|1961
+BUS|RETAIL|IR|Verghese Kurien|1921
+BUS|RETAIL|IG|Falguni Nayar|1963
+BUS|RETAIL|GG|Levi Strauss|1829
+BUS|RETAIL|GG|Milton S. Hershey|1857
+BUS|RETAIL|GR|Anita Roddick|1942
+BUS|RETAIL|GG|Richard Branson|1950
+# ---- BUS / MEDIA
+BUS|MEDIA|GG|Rupert Murdoch|1931
+BUS|MEDIA|GR|William Randolph Hearst|1863
+BUS|MEDIA|GR|Joseph Pulitzer|1847
+BUS|MEDIA|GG|Ted Turner|1938
+BUS|MEDIA|GG|Michael Bloomberg|1942
+BUS|MEDIA|GG|Oprah Winfrey|1954
+BUS|MEDIA|IG|Subhash Chandra|1950
+BUS|MEDIA|IG|Ramnath Goenka|1904
+BUS|MEDIA|GR|Henry Luce|1898
+BUS|MEDIA|GR|Alfred Harmsworth, 1st Viscount Northcliffe|1865
+BUS|MEDIA|GR|Sumner Redstone|1923
+BUS|MEDIA|GR|Silvio Berlusconi|1936
+BUS|MEDIA|IR|Ramoji Rao|1936
+BUS|MEDIA|IS|Kalanithi Maran|1964
+BUS|MEDIA|IG|Aroon Purie|1944
+BUS|MEDIA|GR|Katharine Graham|1917
+BUS|MEDIA|GC|Axel Springer|1912
+BUS|MEDIA|GR|Robert Maxwell|1923
+BUS|MEDIA|GG|Walt Disney|1901
+BUS|MEDIA|IG|Prannoy Roy|1949
+# ---- BUS / AUTO
+BUS|AUTO|GG|Henry Ford|1863
+BUS|AUTO|GC|Karl Benz|1844
+BUS|AUTO|GC|Gottlieb Daimler|1834
+BUS|AUTO|GC|Enzo Ferrari|1898
+BUS|AUTO|GC|Ferdinand Porsche|1875
+BUS|AUTO|GR|Soichiro Honda|1906
+BUS|AUTO|GR|Kiichiro Toyoda|1894
+BUS|AUTO|GR|Louis Chevrolet|1878
+BUS|AUTO|GR|Walter Chrysler|1875
+BUS|AUTO|GR|Alfred P. Sloan|1875
+BUS|AUTO|GC|Ferruccio Lamborghini|1916
+BUS|AUTO|IG|Anand Mahindra|1955
+BUS|AUTO|GR|Mary Barra|1961
+BUS|AUTO|GR|Lee Iacocca|1924
+BUS|AUTO|GR|Carlos Ghosn|1954
+BUS|AUTO|IG|Keshub Mahindra|1923
+BUS|AUTO|GC|Enrico Mattei|1906
+BUS|AUTO|GR|Calouste Gulbenkian|1869
+BUS|AUTO|GR|T. Boone Pickens|1928
+BUS|AUTO|GR|Ahmed Zaki Yamani|1930
+# ---- BUS / PHIL
+BUS|PHIL|GG|Melinda French Gates|1964
+BUS|PHIL|GG|Alfred Nobel|1833
+BUS|PHIL|GR|George Peabody|1795
+BUS|PHIL|IG|Shiv Nadar|1945
+BUS|PHIL|GR|Aga Khan IV|1936
+BUS|PHIL|IG|Dorabji Tata|1859
+BUS|PHIL|GC|Cecil Rhodes|1853
+BUS|PHIL|GR|Johns Hopkins|1795
+BUS|PHIL|GR|Ezra Cornell|1807
+BUS|PHIL|GR|Leland Stanford|1824
+BUS|PHIL|GR|Madam C. J. Walker|1867
+BUS|PHIL|IS|Jamsetjee Jejeebhoy|1783
+BUS|PHIL|IG|Rohini Nilekani|1960
+BUS|PHIL|GR|MacKenzie Scott|1970
+BUS|PHIL|IS|Sir Ratan Tata|1871
+BUS|PHIL|IL|Sir Cowasji Jehangir|1879
+BUS|PHIL|IL|Premchand Roychand|1831
+# ---- ART / ACTOR
+ART|ACTOR|GG|Charlie Chaplin|1889
+ART|ACTOR|GG|Marilyn Monroe|1926
+ART|ACTOR|GG|Marlon Brando|1924
+ART|ACTOR|GG|Audrey Hepburn|1929
+ART|ACTOR|IG|Amitabh Bachchan|1942
+ART|ACTOR|IG|Dilip Kumar|1922
+ART|ACTOR|IG|Raj Kapoor|1924
+ART|ACTOR|IG|Shah Rukh Khan|1965
+ART|ACTOR|IR|Rajinikanth|1950
+ART|ACTOR|GG|Meryl Streep|1949
+ART|ACTOR|GG|Robert De Niro|1943
+ART|ACTOR|GG|Leonardo DiCaprio|1974
+ART|ACTOR|IG|Madhubala|1933
+ART|ACTOR|IG|Nargis|1929
+ART|ACTOR|IS|Rajkumar|1929
+ART|ACTOR|IS|Sivaji Ganesan|1928
+ART|ACTOR|GG|Marlene Dietrich|1901
+ART|ACTOR|GG|Humphrey Bogart|1899
+ART|ACTOR|GG|Elizabeth Taylor|1932
+ART|ACTOR|GR|Jackie Chan|1954
+ART|ACTOR|IG|Aamir Khan|1965
+ART|ACTOR|IR|Kamal Haasan|1954
+ART|ACTOR|IS|Mohanlal|1960
+ART|ACTOR|IG|Sridevi|1963
+# ---- ART / DIRECT
+ART|DIRECT|IG|Satyajit Ray|1921
+ART|DIRECT|GG|Alfred Hitchcock|1899
+ART|DIRECT|GG|Steven Spielberg|1946
+ART|DIRECT|GG|Akira Kurosawa|1910
+ART|DIRECT|GG|Stanley Kubrick|1928
+ART|DIRECT|GG|Francis Ford Coppola|1939
+ART|DIRECT|GG|Martin Scorsese|1942
+ART|DIRECT|GG|Orson Welles|1915
+ART|DIRECT|GC|Federico Fellini|1920
+ART|DIRECT|GC|Ingmar Bergman|1918
+ART|DIRECT|IG|Guru Dutt|1925
+ART|DIRECT|IG|Mehboob Khan|1907
+ART|DIRECT|IR|Mani Ratnam|1956
+ART|DIRECT|GG|Christopher Nolan|1970
+ART|DIRECT|GG|James Cameron|1954
+ART|DIRECT|IG|Dadasaheb Phalke|1870
+ART|DIRECT|IS|Ritwik Ghatak|1925
+ART|DIRECT|IR|S. S. Rajamouli|1973
+ART|DIRECT|IG|Yash Chopra|1932
+ART|DIRECT|GC|Sergei Eisenstein|1898
+ART|DIRECT|IS|Adoor Gopalakrishnan|1941
+# ---- ART / MUSIC
+ART|MUSIC|GG|Wolfgang Amadeus Mozart|1756
+ART|MUSIC|GG|Ludwig van Beethoven|1770
+ART|MUSIC|GG|Johann Sebastian Bach|1685
+ART|MUSIC|GG|Elvis Presley|1935
+ART|MUSIC|GG|John Lennon|1940
+ART|MUSIC|GG|Michael Jackson|1958
+ART|MUSIC|GG|Bob Dylan|1941
+ART|MUSIC|GR|Bob Marley|1945
+ART|MUSIC|IG|Ravi Shankar|1920
+ART|MUSIC|IG|Lata Mangeshkar|1929
+ART|MUSIC|IG|Mohammed Rafi|1924
+ART|MUSIC|IR|M. S. Subbulakshmi|1916
+ART|MUSIC|IG|Kishore Kumar|1929
+ART|MUSIC|IG|A. R. Rahman|1967
+ART|MUSIC|IR|Ilaiyaraaja|1943
+ART|MUSIC|IR|Bhimsen Joshi|1922
+ART|MUSIC|IG|Asha Bhosle|1933
+ART|MUSIC|IR|Pandit Jasraj|1930
+ART|MUSIC|IG|Zakir Hussain|1951
+ART|MUSIC|IL|Bismillah Khan|1916
+ART|MUSIC|GG|Paul McCartney|1942
+ART|MUSIC|GG|Freddie Mercury|1946
+ART|MUSIC|GG|Louis Armstrong|1901
+ART|MUSIC|IR|Muthuswami Dikshitar|1775
+ART|MUSIC|GG|Madonna|1958
+# ---- ART / AUTHOR
+ART|AUTHOR|GG|William Shakespeare|1564
+ART|AUTHOR|IG|Rabindranath Tagore|1861
+ART|AUTHOR|GG|Leo Tolstoy|1828
+ART|AUTHOR|GG|Charles Dickens|1812
+ART|AUTHOR|GG|Mark Twain|1835
+ART|AUTHOR|GG|Ernest Hemingway|1899
+ART|AUTHOR|IR|Premchand|1880
+ART|AUTHOR|IS|Kuvempu|1904
+ART|AUTHOR|IS|Subramania Bharati|1882
+ART|AUTHOR|IR|Mirza Ghalib|1797
+ART|AUTHOR|IG|R. K. Narayan|1906
+ART|AUTHOR|GG|Salman Rushdie|1947
+ART|AUTHOR|GG|Victor Hugo|1802
+ART|AUTHOR|GG|Johann Wolfgang von Goethe|1749
+ART|AUTHOR|GG|Fyodor Dostoevsky|1821
+ART|AUTHOR|GG|Franz Kafka|1883
+ART|AUTHOR|GG|George Orwell|1903
+ART|AUTHOR|GC|Gabriel García Márquez|1927
+ART|AUTHOR|GG|Toni Morrison|1931
+ART|AUTHOR|GG|Maya Angelou|1928
+ART|AUTHOR|IS|Kazi Nazrul Islam|1899
+ART|AUTHOR|IS|Bankim Chandra Chatterjee|1838
+ART|AUTHOR|IR|Mahadevi Varma|1907
+ART|AUTHOR|GG|J. K. Rowling|1965
+ART|AUTHOR|GG|Agatha Christie|1890
+# ---- ART / CRICK
+ART|CRICK|IG|Sachin Tendulkar|1973
+ART|CRICK|GR|Donald Bradman|1908
+ART|CRICK|IG|Virat Kohli|1988
+ART|CRICK|IG|MS Dhoni|1981
+ART|CRICK|IG|Kapil Dev|1959
+ART|CRICK|IG|Sunil Gavaskar|1949
+ART|CRICK|IG|Rahul Dravid|1973
+ART|CRICK|IG|Sourav Ganguly|1972
+ART|CRICK|GR|Imran Khan|1952
+ART|CRICK|GR|Wasim Akram|1966
+ART|CRICK|GR|Shane Warne|1969
+ART|CRICK|GR|Brian Lara|1969
+ART|CRICK|GR|Viv Richards|1952
+ART|CRICK|GR|W. G. Grace|1848
+ART|CRICK|GR|Garfield Sobers|1936
+ART|CRICK|GR|Ricky Ponting|1974
+ART|CRICK|GR|Muttiah Muralitharan|1972
+ART|CRICK|IL|Vinoo Mankad|1917
+ART|CRICK|GR|Ian Botham|1955
+ART|CRICK|IG|Jasprit Bumrah|1993
+ART|CRICK|IG|Anil Kumble|1970
+ART|CRICK|IG|Rohit Sharma|1987
+# ---- ART / ATHLETE
+ART|ATHLETE|GG|Muhammad Ali|1942
+ART|ATHLETE|GG|Usain Bolt|1986
+ART|ATHLETE|GG|Michael Jordan|1963
+ART|ATHLETE|GG|Pelé|1940
+ART|ATHLETE|GG|Diego Maradona|1960
+ART|ATHLETE|GG|Lionel Messi|1987
+ART|ATHLETE|GG|Cristiano Ronaldo|1985
+ART|ATHLETE|GG|Roger Federer|1981
+ART|ATHLETE|GG|Serena Williams|1981
+ART|ATHLETE|GG|Michael Phelps|1985
+ART|ATHLETE|GR|Jesse Owens|1913
+ART|ATHLETE|IR|Milkha Singh|1929
+ART|ATHLETE|IS|P. T. Usha|1964
+ART|ATHLETE|IG|Dhyan Chand|1905
+ART|ATHLETE|IG|Viswanathan Anand|1969
+ART|ATHLETE|IS|Mary Kom|1983
+ART|ATHLETE|IR|Neeraj Chopra|1997
+ART|ATHLETE|IG|Abhinav Bindra|1982
+ART|ATHLETE|IG|Leander Paes|1973
+ART|ATHLETE|GG|Tiger Woods|1975
+ART|ATHLETE|IG|Sania Mirza|1986
+ART|ATHLETE|IG|Saina Nehwal|1990
+ART|ATHLETE|IG|P. V. Sindhu|1995
+# ---- ART / JOURN
+ART|JOURN|GR|Walter Cronkite|1916
+ART|JOURN|GR|Edward R. Murrow|1908
+ART|JOURN|GR|Bob Woodward|1943
+ART|JOURN|GG|Christiane Amanpour|1958
+ART|JOURN|IG|Barkha Dutt|1971
+ART|JOURN|IG|Ravish Kumar|1974
+ART|JOURN|GR|Nellie Bly|1864
+ART|JOURN|GC|Anna Politkovskaya|1958
+ART|JOURN|GR|Daniel Pearl|1963
+ART|JOURN|IG|Kuldip Nayar|1923
+ART|JOURN|IG|Arnab Goswami|1973
+ART|JOURN|IG|Rajdeep Sardesai|1965
+ART|JOURN|IG|Vir Sanghvi|1956
+ART|JOURN|GR|Ida B. Wells|1862
+ART|JOURN|IS|Gauri Lankesh|1962
+ART|JOURN|GR|Peter Jennings|1938
+ART|JOURN|GR|Larry King|1933
+ART|JOURN|GR|Tom Brokaw|1940
+ART|JOURN|GR|Dan Rather|1931
+ART|JOURN|IG|Shekhar Gupta|1957
+ART|JOURN|GR|Anderson Cooper|1967
+ART|JOURN|GR|Rachel Maddow|1973
