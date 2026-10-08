@@ -136,9 +136,21 @@
 
     private Dictionary<PromiseVerdict, int> Counts => Rows.GroupBy(r => r.Target.Promise.Verdict).ToDictionary(g => g.Key, g => g.Count());
 
-    private IEnumerable<IGrouping<string, Row>> Groups => Rows
+    private IEnumerable<CategoryGroup> Groups => Rows
         .Where(r => _verdict is null || r.Target.Promise.Verdict == _verdict)
-        .GroupBy(r => r.Matter.CategoryName);
+        .GroupBy(r => r.Matter.CategoryName)
+        .Select(g => new CategoryGroup(g.Key, SortByVerdict(g)));
+
+    private sealed record CategoryGroup(string Key, IReadOnlyList<Row> Rows) : IEnumerable<Row>
+    {
+        public IEnumerator<Row> GetEnumerator() => Rows.GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    /// <summary>Strongest verdict first — Strong positive, Positive conditional, Mixed, Weak / limited, Adverse,
+    /// then Indeterminate — keeping the reference order of matters that share a verdict (stable sort).</summary>
+    private static List<Row> SortByVerdict(IEnumerable<Row> rows) =>
+        rows.OrderBy(r => Array.IndexOf(Order, r.Target.Promise.Verdict)).ToList();
 
     private List<MatterPromiseReading> Unread => (Readings ?? []).Where(m => m.Targets.Count == 0).ToList();
 
