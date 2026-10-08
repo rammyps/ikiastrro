@@ -1,0 +1,110 @@
+@using Ikiastrro.Data.Statistics
+
+<section class="pop-card" aria-label="Population comparison">
+    <header class="pop-head">
+        <div>
+            <span class="pop-kicker">@PopulationEvidenceText.Heading(Snapshot)</span>
+            <p class="pop-what">Where this chart's house support sits among comparable saved charts</p>
+        </div>
+        <span class="pop-n" title="People in the eligible reference population">@Snapshot.EligiblePeople <small>eligible people</small></span>
+    </header>
+
+    @if (!Snapshot.IsAvailable)
+    {
+        <p class="pop-state">@PopulationEvidenceText.Message(Snapshot)</p>
+    }
+    else if (Rows.Count == 0)
+    {
+        <p class="pop-state">No compatible D1 house comparison is available for this question.</p>
+    }
+    else
+    {
+        <ul class="pop-rows">
+            @foreach (var c in Rows)
+            {
+                var band = PopulationStrip.Band(c.ReferenceQ1, c.ReferenceQ3);
+                var ci = PopulationStrip.Band(c.MedianCiLow, c.MedianCiHigh);
+                <li class="pop-row @PopulationStrip.Tone(c)">
+                    <div class="pop-row-head">
+                        <span class="pop-house">House @c.HouseFromLagna <small>overall support</small></span>
+                        <span class="pop-badge">@PopulationEvidenceText.Sufficiency(c)</span>
+                    </div>
+                    <div class="pop-figure">
+                        @if (c.Percentile is null)
+                        {
+                            <b class="pop-pct pop-pct--none">Not published</b>
+                        }
+                        else
+                        {
+                            <b class="pop-pct">@PopulationStrip.Ordinal(c.Percentile)<small> percentile</small></b>
+                            <span class="pop-rank">@PopulationStrip.Rank(c)</span>
+                        }
+                        @if (PopulationStrip.Position(c) is { Length: > 0 } position)
+                        {
+                            <span class="pop-position">@position</span>
+                        }
+                    </div>
+
+                    <div class="pop-strip" role="img" aria-label="@StripLabel(c)">
+                        @if (band is { } b)
+                        {
+                            <span class="pop-iqr" style="left:@(b.Left)%;width:@(b.Width)%"></span>
+                        }
+                        @if (ci is { } w)
+                        {
+                            <span class="pop-ci" style="left:@(w.Left)%;width:@(w.Width)%"></span>
+                        }
+                        @if (c.ReferenceMedian is not null)
+                        {
+                            <span class="pop-median" style="left:@(PopulationStrip.Css(c.ReferenceMedian))%"></span>
+                        }
+                        @if (c.PersonalValue is not null)
+                        {
+                            <span class="pop-you" style="left:@(PopulationStrip.Css(c.PersonalValue))%"><i>@(c.PersonalValue.Value.ToString("0.#"))%</i></span>
+                        }
+                    </div>
+                    <div class="pop-axis" aria-hidden="true"><span>0</span><span>50</span><span>100</span></div>
+
+                    <p class="pop-reliab">@Reliability(c)</p>
+                </li>
+            }
+        </ul>
+
+        <ul class="pop-legend" aria-hidden="true">
+            <li><i class="k-you"></i>This chart</li>
+            <li><i class="k-iqr"></i>Middle half of charts (Q1–Q3)</li>
+            <li><i class="k-median"></i>Median</li>
+            <li><i class="k-ci"></i>Median uncertainty</li>
+        </ul>
+    }
+
+    <p class="pop-note">Percentile of lord-only D1 house strength against compatible saved charts. It describes position in a population, not an outcome probability.</p>
+    @if (Snapshot.CompletedAtUtc is { } completed)
+    {
+        <details class="pop-prov">
+            <summary>Provenance</summary>
+            <p>Dataset @Snapshot.DatasetCode v@Snapshot.DatasetVersion · feature @Snapshot.FeatureContractVersion · rule set @Snapshot.RuleSetId · run @Snapshot.AnalyticsRunId · @completed.ToString("dd MMM yyyy") UTC</p>
+        </details>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public PopulationEvidenceSnapshot Snapshot { get; set; } = default!;
+    [Parameter] public IReadOnlyList<PopulationComparison> Rows { get; set; } = [];
+
+    private static string StripLabel(PopulationComparison c) =>
+        $"This chart {(c.PersonalValue is { } v ? $"{v:0.#}%" : "not measured")}; " +
+        $"reference median {(c.ReferenceMedian is { } m ? $"{m:0.#}%" : "not published")}";
+
+    private static string Reliability(PopulationComparison c)
+    {
+        var text = $"{c.MeasuredCount} of {c.EligibleCount} measured · {PopulationStrip.Missing(c)}";
+        if (c.ReferenceMedian is { } m)
+        {
+            text += $" · median {m:0.#}%";
+            if (c.MedianCiLow is { } lo && c.MedianCiHigh is { } hi)
+                text += $" (95% CI {lo:0.#}–{hi:0.#})";
+        }
+        return text;
+    }
+}

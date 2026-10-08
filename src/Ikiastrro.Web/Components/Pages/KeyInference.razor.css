@@ -157,13 +157,6 @@
 .lm-compare dt { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .lm-compare dt span { display: block; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--brand-muted); font-size: var(--font-size-meta); }
 .lm-compare dd { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: var(--font-size-meta); }
-.lm-population { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--brand-line); background: color-mix(in srgb, var(--card-bg) 92%, var(--brand-accent)); }
-.lm-population-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.lm-population-count, .lm-population-note, .lm-population-provenance { color: var(--brand-muted); font-size: var(--font-size-meta); }
-.lm-population-note, .lm-population-provenance { margin: 0; }
-.lm-population-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
-.lm-population-grid article { display: grid; gap: 2px; padding: 8px 10px; border-left: 3px solid var(--brand-accent); background: var(--card-bg); }
-.lm-population-grid article > span, .lm-population-grid small { color: var(--brand-muted); font-size: var(--font-size-meta); }
 
 /* What acts on the target (PVR step 5): answer-card lines and the Investigate table. */
 .lm-acts { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--brand-peach); }

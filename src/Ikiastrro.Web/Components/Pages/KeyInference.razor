@@ -253,42 +253,7 @@ else
                     </div>
                 }
 
-                <section class="lm-population" aria-label="Population comparison">
-                    <div class="lm-population-head">
-                        <span class="lm-kicker">@PopulationEvidenceText.Heading(_populationEvidence)</span>
-                        <span class="lm-population-count">@_populationEvidence.EligiblePeople eligible people</span>
-                    </div>
-                    @if (!_populationEvidence.IsAvailable)
-                    {
-                        <p class="lm-note">@PopulationEvidenceText.Message(_populationEvidence)</p>
-                    }
-                    else
-                    {
-                        var populationRows = PopulationRows(d1Read);
-                        @if (populationRows.Count == 0)
-                        {
-                            <p class="lm-note">No compatible D1 house comparison is available for this question.</p>
-                        }
-                        else
-                        {
-                            <div class="lm-population-grid">
-                                @foreach (var comparison in populationRows)
-                                {
-                                    <article>
-                                        <span>House @comparison.HouseFromLagna · overall support</span>
-                                        <b>@PopulationEvidenceText.Percentile(comparison.Percentile)</b>
-                                        <small>@PopulationEvidenceText.Sufficiency(comparison) · median @(comparison.ReferenceMedian?.ToString("0.#") ?? "—")% · @comparison.MeasuredCount measured</small>
-                                    </article>
-                                }
-                            </div>
-                        }
-                    }
-                    <p class="lm-population-note">Compares the D1 house's lord-only chart strength with compatible saved charts. It is not an outcome probability.</p>
-                    @if (_populationEvidence.CompletedAtUtc is { } completed)
-                    {
-                        <p class="lm-population-provenance">Dataset @_populationEvidence.DatasetCode v@_populationEvidence.DatasetVersion · feature @_populationEvidence.FeatureContractVersion · rule set @_populationEvidence.RuleSetId · run @_populationEvidence.AnalyticsRunId · @completed.ToString("dd MMM yyyy") UTC</p>
-                    }
-                </section>
+                <PopulationEvidenceCard Snapshot="_populationEvidence" Rows="PopulationRows(d1Read)" />
 
                 <dl class="lm-compare">
                     <div>
