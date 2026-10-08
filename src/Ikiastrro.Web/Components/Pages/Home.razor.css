@@ -36,20 +36,44 @@
     letter-spacing: -0.03em;
 }
 
-/* Small sprout after "…Path" — a growth motif. */
-.home-title-sprout {
+/* Earth after "…Path". Colours come from per-theme custom properties so it reads in
+   every theme: bright blue marble on light, deep-night globe with a glowing rim on dark. */
+.home-title-earth {
+    --earth-ocean: #3b82c4;
+    --earth-land: #5aa469;
+    --earth-glow: rgba(59, 130, 196, 0.22);
+    --earth-rim: rgba(15, 32, 65, 0.35);
     display: inline-block;
-    width: 0.62em;
-    height: 0.62em;
-    margin-left: 0.16em;
-    vertical-align: baseline;
+    width: 0.42em;
+    height: 0.42em;
+    margin-left: 0.18em;
+    vertical-align: 0.02em;
 }
 
-.home-title-sprout svg {
+:root[data-theme='cosmic-dark'] .home-title-earth {
+    --earth-ocean: #1f4f96;
+    --earth-land: #3f9a63;
+    --earth-glow: rgba(120, 180, 255, 0.45);
+    --earth-rim: rgba(160, 205, 255, 0.7);
+}
+
+:root[data-theme='nebula-light'] .home-title-earth,
+:root[data-theme='cosmic-light'] .home-title-earth {
+    --earth-ocean: #4a78c8;
+    --earth-land: #62ae7a;
+    --earth-glow: rgba(110, 140, 220, 0.3);
+}
+
+.home-title-earth svg {
     display: block;
     width: 100%;
     height: 100%;
 }
+
+.home-title-earth .earth-glow { fill: var(--earth-glow); }
+.home-title-earth .earth-ocean { fill: var(--earth-ocean); }
+.home-title-earth .earth-land path { fill: var(--earth-land); }
+.home-title-earth .earth-rim { fill: none; stroke: var(--earth-rim); stroke-width: 1; }
 
 .home-name {
     max-width: 520px;
@@ -62,18 +86,26 @@
 
 .home-results {
     display: grid;
-    gap: 2px;
     margin-top: 0.75rem;
+    /* Same card look as the Saved charts table: rounded, bordered, soft shadow. */
+    border: 1px solid var(--brand-line);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--brand-surface);
+    box-shadow: 0 8px 24px var(--shadow, rgba(15, 32, 65, 0.1));
 }
+
+.home-results > * { text-transform: uppercase; border-bottom: 1px solid var(--brand-line); }
+.home-results > *:last-child { border-bottom: 0; }
 
 .home-row {
     display: flex;
     align-items: baseline;
     gap: 0.75rem;
     width: 100%;
-    padding: 0.6rem 0.75rem;
+    padding: 0.9rem 1.05rem;
     border: 0;
-    border-radius: 8px;
+    border-radius: 0;
     background: transparent;
     text-align: left;
     cursor: pointer;
@@ -87,7 +119,7 @@
     outline: none;
 }
 
-.home-row-name { font-weight: 700; }
+.home-row-name { font-weight: 700; font-size: 1.1rem; }
 
 .home-row-birth {
     color: var(--brand-muted);
@@ -102,9 +134,11 @@
 }
 
 .home-add-new {
-    justify-self: start;
-    margin-top: 0.35rem;
-    padding: 0.5rem 0.75rem;
+    justify-self: stretch;
+    text-align: left;
+    display: flex;
+    justify-content: flex-start;
+    padding: 0.75rem 1.05rem;
     border: 0;
     background: transparent;
     cursor: pointer;
@@ -112,7 +146,7 @@
     font: 700 var(--font-size-control) / 1 'Manrope', 'Segoe UI', sans-serif;
 }
 
-.home-add-new:hover { text-decoration: underline; }
+.home-add-new:hover { background: var(--brand-peach); }
 
 /* Two-up grid — Name+Sex, DOB+TOB, City+Country — so the six fields read as three compact
    rows instead of a tall single-column stack (fits the Add-New form under the fixed top nav
