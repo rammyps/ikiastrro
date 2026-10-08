@@ -64,23 +64,36 @@ public sealed class KeyStatsLogicTests : BunitContext
     public void BestMatterByHouse_PrefersPrimaryThenMostSpecificNotAlphabeticalCategory()
     {
         // CAREER sorts before SELF alphabetically and lists house 1 as a secondary house.
-        LifeMatterStepRow[] steps = [Step(1, "CAREER_01", "CAREER"), Step(2, "SELF_01", "SELF"), Step(3, "SELF_02", "SELF")];
+        LifeMatterStepRow[] steps = [Step(1, "CAREER_01", "CAREER"), Step(2, "SELF_01", "SELF"), Step(3, "SELF_02", "SELF"), Step(4, "SELF_03", "SELF")];
         LifeMatterFocusRule[] foci =
         [
             House(1, 1, 10, 1), House(2, 1, 1, 2),                 // career: primary 10th, secondary 1st
-            House(3, 2, 1, 1),                                     // self 01: only the 1st (primary)
+            House(3, 2, 1, 1), House(9, 4, 1, 1),                  // self 01 and 03: only the 1st; ties go to the earlier question
             House(4, 3, 1, 1), House(5, 3, 6, 2), House(6, 3, 8, 3), // self 02: primary 1st but reads from 3 houses
             House(7, 2, 7, 1, "CHANDRA_LAGNA"),                    // not Lagna-counted: ignored
             House(8, 1, 12, 1, active: false)                      // inactive: ignored
         ];
 
-        var best = KeyStatsLogic.BestMatterByHouse(steps, foci);
+        var best = KeyStatsLogic.BestMatterByHouse(steps, foci,
+            [new LifeMatterCategoryRow("SELF", "Self", 1), new LifeMatterCategoryRow("CAREER", "Career", 2)]);
 
         Assert.Equal("SELF_01", best[1]);
         Assert.Equal("CAREER_01", best[10]);
         Assert.Equal("SELF_02", best[6]);
         Assert.False(best.ContainsKey(7));
         Assert.False(best.ContainsKey(12));
+    }
+
+    [Fact]
+    public void BestMatterByHouse_TiesFollowTheAppAreaOrderNotTheAlphabet()
+    {
+        LifeMatterStepRow[] steps = [Step(1, "CAREER_01", "CAREER"), Step(2, "SELF_01", "SELF")];
+        LifeMatterFocusRule[] foci = [House(1, 1, 1, 1), House(2, 2, 1, 1)];
+
+        var best = KeyStatsLogic.BestMatterByHouse(steps, foci,
+            [new LifeMatterCategoryRow("SELF", "Self", 1), new LifeMatterCategoryRow("CAREER", "Career", 2)]);
+
+        Assert.Equal("SELF_01", best[1]);
     }
 
     [Theory]

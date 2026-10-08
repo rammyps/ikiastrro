@@ -80,7 +80,8 @@
         _snapshot = PreviewSnapshot ?? PopulationEvidenceRepo.GetLatestForBirthDetail(Id);
         const byte ruleSetId = 1;
         _houseMatters = KeyStatsLogic.BestMatterByHouse(
-            LifeMatterReferenceRepo.GetAllSteps(ruleSetId), LifeMatterFocusRepo.GetFoci(ruleSetId));
+            LifeMatterReferenceRepo.GetAllSteps(ruleSetId), LifeMatterFocusRepo.GetFoci(ruleSetId),
+            LifeMatterReferenceRepo.GetCategories(ruleSetId));
         var feature = _snapshot.Comparisons
             .Select(c => c.FeatureCode)
             .Where(f => f is "KI_D1_HOUSE_SUPPORT_V1" or "KI_D1_HOUSE_SUPPORT_V2")

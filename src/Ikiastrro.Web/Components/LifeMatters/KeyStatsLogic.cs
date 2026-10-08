@@ -43,13 +43,16 @@ public static class KeyStatsLogic
     /// <summary>
     /// The matter a house title opens. Only Lagna-counted House foci count. Prefer the matter whose
     /// own primary house this is (lowest focus Priority), then the one that reads from the fewest
-    /// houses (most specific to this house), then the reference order — never the alphabetical
-    /// category order, which would send house 1 to Career.
+    /// houses (most specific to this house), then the app's own area and question order — never the alphabetical
+    /// order of the step list, which would send house 1 to Career.
     /// </summary>
     public static IReadOnlyDictionary<int, string> BestMatterByHouse(
-        IEnumerable<LifeMatterStepRow> steps, IEnumerable<LifeMatterFocusRule> foci)
+        IEnumerable<LifeMatterStepRow> steps, IEnumerable<LifeMatterFocusRule> foci,
+        IEnumerable<LifeMatterCategoryRow> categories)
     {
-        var byId = steps.Select((s, i) => (Step: s, Index: i)).ToDictionary(x => x.Step.LifeMatterId);
+        var areaOrder = categories.ToDictionary(c => c.CategoryCode, c => c.DisplayOrder);
+        var byId = steps.Select(s => (Step: s, Index: (areaOrder.GetValueOrDefault(s.CategoryCode, int.MaxValue), s.DisplayOrder)))
+            .ToDictionary(x => x.Step.LifeMatterId);
         var houseFoci = foci
             .Where(f => f.IsActive && f.FocusKind == LifeMatterFocusKind.House && f.HouseNumber is >= 1 and <= 12
                         && (f.ReferenceCode ?? "LAGNA") == "LAGNA" && byId.ContainsKey(f.LifeMatterId))
