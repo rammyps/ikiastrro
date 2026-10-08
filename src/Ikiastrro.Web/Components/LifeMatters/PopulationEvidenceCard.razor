@@ -26,7 +26,7 @@
                 var ci = PopulationStrip.Band(c.MedianCiLow, c.MedianCiHigh);
                 <li class="pop-row @PopulationStrip.Tone(c)">
                     <div class="pop-row-head">
-                        <span class="pop-house">House @c.HouseFromLagna <small>overall support</small></span>
+                        <span class="pop-house">@if (HouseLink?.Invoke(c.HouseFromLagna) is { } href) {<a class="pop-house-link" href="@href" title="Open the Key Inference reading for this house">House @c.HouseFromLagna</a>} else {<text>House @c.HouseFromLagna</text>} <small>overall support</small></span>
                         <span class="pop-badge">@PopulationEvidenceText.Sufficiency(c)</span>
                     </div>
                     <div class="pop-figure">
@@ -91,6 +91,8 @@
 @code {
     [Parameter, EditorRequired] public PopulationEvidenceSnapshot Snapshot { get; set; } = default!;
     [Parameter] public IReadOnlyList<PopulationComparison> Rows { get; set; } = [];
+    /// <summary>Optional: a link target for a house's title (null = plain text).</summary>
+    [Parameter] public Func<byte, string?>? HouseLink { get; set; }
 
     private static string StripLabel(PopulationComparison c) =>
         $"This chart {(c.PersonalValue is { } v ? $"{v:0.#}%" : "not measured")}; " +

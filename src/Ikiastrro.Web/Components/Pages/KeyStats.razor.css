@@ -1,8 +1,8 @@
 /* Key Stats tab — tokens only, same conventions as Numerology. */
 .ks-heading {
-    margin: 4px 0 20px;
+    margin: 4px auto 20px; max-width: 1200px;
     color: var(--brand-midnight);
-    font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif;
+    font: 700 var(--font-size-heading) / 1.2 'Manrope', 'Segoe UI', sans-serif;
     letter-spacing: 0.12em;
     text-transform: uppercase;
 }
@@ -10,4 +10,31 @@
 .ks-unavailable p { color: var(--brand-muted); }
 .ks-unavailable a { color: var(--brand-midnight); }
 
-.ks-card { max-width: 860px; }
+
+/* Four houses to a row on wide screens (the card's own grid is auto-fit). */
+.ks-card ::deep .pop-rows { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .ks-card ::deep .pop-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .ks-card ::deep .pop-rows { grid-template-columns: 1fr; } }
+
+.ks-card { max-width: 1200px; margin-inline: auto; display: grid; gap: 12px; }
+.ks-meaning { margin: 0; font-size: var(--font-size-support); color: var(--brand-muted); }
+.ks-meaning b { color: var(--card-fg); }
+
+.ks-unlock { padding: 18px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); }
+.ks-unlock-title { margin: 0 0 4px; font-size: var(--font-size-heading); }
+.ks-unlock-lead { margin: 0 0 12px; font-size: var(--font-size-support); color: var(--brand-muted); }
+.ks-steps { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; font-size: var(--font-size-support); }
+.ks-steps li { display: flex; gap: 10px; align-items: baseline; }
+.ks-steps li.is-done { color: var(--brand-muted); }
+.ks-step-mark { font-weight: 800; }
+.ks-unlock-link { font-size: var(--font-size-support); font-weight: 700; color: var(--brand-midnight); }
+
+.ks-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.ks-chip { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--card-line); border-radius: var(--card-radius); background: var(--card-bg); color: var(--card-fg); }
+.ks-chip small { font-size: var(--font-size-meta); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--brand-muted); }
+.ks-chip b { font-size: var(--font-size-support); }
+
+.ks-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.ks-filter { padding: 4px 12px; border: 1px solid var(--brand-line); border-radius: 999px; background: transparent; color: var(--card-fg); font: 700 var(--font-size-meta) 'Manrope', 'Segoe UI', sans-serif; cursor: pointer; }
+.ks-filter small { margin-left: 4px; color: var(--brand-muted); }
+.ks-filter.is-on { background: var(--brand-sunrise); border-color: var(--brand-midnight); color: var(--brand-midnight); }

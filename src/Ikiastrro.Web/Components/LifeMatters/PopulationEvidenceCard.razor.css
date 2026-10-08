@@ -47,3 +47,5 @@
 .pop-note, .pop-prov p { margin: 0; font-size: var(--font-size-meta); color: var(--brand-muted); }
 .pop-prov summary { cursor: pointer; font-size: var(--font-size-meta); font-weight: 700; color: var(--brand-muted); }
 @media (max-width: 600px) { .pop-rows { grid-template-columns: 1fr; } }
+.pop-house-link { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
+.pop-house-link:hover { text-decoration: underline; }
