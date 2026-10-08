@@ -1,0 +1,41 @@
+/* Family (father, mother, child). Tokens only; the one card look (--card-*). */
+.ft { max-width: 1100px; margin: 0 auto; padding: 8px 16px 32px; color: var(--brand-midnight); }
+.ft-back { color: var(--brand-muted); font-size: var(--font-size-support); text-decoration: none; }
+.ft-note { padding: 12px 16px; border-left: 3px solid var(--brand-sunrise); background: var(--card-bg); }
+.ft-head { margin: 8px 0 16px; }
+.ft-kicker { margin: 0; color: var(--brand-muted); font-size: var(--font-size-meta); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.ft-title { margin: 2px 0 8px; font: 800 1.6rem / 1.15 'Manrope', 'Segoe UI', sans-serif; }
+.ft-kids { display: flex; flex-wrap: wrap; gap: 6px; }
+.ft-kid { padding: 4px 14px; border: 1px solid var(--brand-line); border-radius: 999px; color: var(--brand-muted); font-weight: 700; text-decoration: none; text-transform: uppercase; letter-spacing: .04em; }
+.ft-kid.is-here { background: var(--key-bg); color: var(--key-fg); border-color: var(--key-bg); }
+
+.ft-people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.ft-person { padding: 14px 16px; border: 1px solid var(--card-line); border-radius: 12px; background: var(--card-bg); }
+.ft-person h2 { margin: 2px 0 6px; font-size: 1.1rem; }
+.ft-role { margin: 0; color: var(--brand-muted); font-size: var(--font-size-meta); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.ft-facts { margin: 0 0 4px; font-size: var(--font-size-support); }
+.ft-person a { font-size: var(--font-size-support); color: var(--brand-midnight); font-weight: 700; }
+
+.ft-card { margin-bottom: 14px; padding: 14px 18px 16px; border: 1px solid var(--card-line); border-radius: 12px; background: var(--card-bg); box-shadow: 0 6px 18px var(--shadow, rgba(15, 32, 65, .08)); }
+.ft-card h2 { margin: 0 0 2px; font-size: 1.1rem; }
+.ft-sub { margin: 0 0 8px; color: var(--brand-muted); font-size: var(--font-size-support); }
+
+.ft-scroll { overflow-x: auto; }
+.ft-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-support); }
+.ft-table th, .ft-table td { padding: 8px 10px; border-bottom: 1px solid var(--card-line); text-align: left; }
+.ft-table thead th { background: var(--key-bg); color: var(--key-fg); }
+.ft-table tbody th { font-weight: 700; }
+.ft-match { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--status-moderate-bg, var(--card-bg-raised)); color: var(--brand-midnight); font-size: var(--font-size-meta); font-weight: 700; white-space: nowrap; }
+
+.ft-share { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ft-sharebox { padding: 10px 12px; border: 1px solid var(--card-line); border-radius: 8px; background: var(--card-bg-raised); }
+.ft-sharebox:first-child { grid-column: 1 / -1; }
+.ft-sharebox h3 { margin: 0 0 6px; font-size: 1rem; }
+.ft-sharebox ul { margin: 0; padding-left: 18px; font-size: var(--font-size-support); }
+.ft-count { margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--key-bg); color: var(--key-fg); font-size: var(--font-size-meta); }
+.ft-links { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; }
+.ft-links a { color: var(--brand-midnight); font-weight: 700; }
+
+@media (max-width: 760px) {
+    .ft-people, .ft-share { grid-template-columns: 1fr; }
+}

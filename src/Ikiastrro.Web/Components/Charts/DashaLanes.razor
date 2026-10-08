@@ -1,0 +1,65 @@
+@using Ikiastrro.Core.Engines.Matching
+
+@* Dasha swimlanes on one date axis: one lane per person, Mahadasha on the upper bar and Antardasha on the
+   lower. Shared by the pair page (two lanes) and the family page (three lanes), so they cannot drift. When
+   Shared is given, a last lane marks the windows in which everyone runs the same lord at the same level. *@
+@foreach (var (name, person) in Lanes)
+{
+    <div class="dl-lane">
+        <span class="dl-lane-name">@name</span>
+        @foreach (var level in new[] { 1, 2 })
+        {
+            <div class="dl-track">
+                @foreach (var s in person.Upcoming.Where(u => u.Level == level))
+                {
+                    var from = Percent(s.Start);
+                    var to = Percent(s.End);
+                    <span class="dl-seg dl-seg-@level" style="left:@Pct(from)%;width:@Pct(to - from)%"
+                          title="@s.Lord @LevelName(level), @s.Start.ToString("MMM yyyy") to @s.End.ToString("MMM yyyy")">@(to - from >= (level == 1 ? 3.5 : 4.5) ? s.Lord : "")</span>
+                }
+            </div>
+        }
+    </div>
+}
+
+@if (Shared is not null)
+{
+    <div class="dl-lane dl-lane-shared">
+        <span class="dl-lane-name">@SharedLabel</span>
+        @foreach (var level in new[] { 1, 2 })
+        {
+            <div class="dl-track">
+                @foreach (var w in Shared.Where(x => x.Level == level))
+                {
+                    var from = Percent(w.Start);
+                    var to = Percent(w.End);
+                    <span class="dl-seg dl-seg-shared" style="left:@Pct(from)%;width:@Pct(to - from)%"
+                          title="Everyone in @w.Lord @LevelName(level), @w.Start.ToString("MMM yyyy") to @w.End.ToString("MMM yyyy")">@(to - from >= (level == 1 ? 3.5 : 4.5) ? w.Lord : "")</span>
+                }
+            </div>
+        }
+    </div>
+}
+
+<div class="dl-axis" aria-hidden="true">
+    @foreach (var year in AxisYears())
+    {
+        <span style="left:@Pct(Percent(new DateTime(year, 1, 1)))%">@year</span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<(string Name, DashaPerson Person)> Lanes { get; set; } = [];
+    [Parameter, EditorRequired] public DateTime Start { get; set; }
+    [Parameter, EditorRequired] public DateTime End { get; set; }
+    [Parameter] public IReadOnlyList<SharedDashaWindow>? Shared { get; set; }
+    [Parameter] public string SharedLabel { get; set; } = "Shared by all";
+
+    private double Percent(DateTime d) => Math.Clamp((d - Start).TotalDays / (End - Start).TotalDays * 100, 0, 100);
+
+    private IEnumerable<int> AxisYears() => Enumerable.Range(Start.Year + 1, Math.Max(0, End.Year - Start.Year)).Where(y => y % 5 == 0);
+
+    private static string Pct(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string LevelName(int level) => level switch { 1 => "Mahadasha", 2 => "Antardasha", _ => "Pratyantar" };
+}

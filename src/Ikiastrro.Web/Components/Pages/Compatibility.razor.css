@@ -136,28 +136,6 @@
 
 .cmp-family { margin: 0 0 14px; padding: 8px 14px; border-left: 3px solid var(--brand-sunrise); background: var(--card-bg); color: var(--brand-midnight); font-size: var(--font-size-support); }
 
-/* Dasha timeline: two lanes on one date axis; bars are positioned by percentage of the 25-year window. */
-.cmp-lane { display: grid; gap: 3px; margin: 10px 0; }
-.cmp-lane-name { color: var(--brand-midnight); font-size: var(--font-size-support); font-weight: 700; }
-.cmp-track { position: relative; height: 26px; border: 1px solid var(--card-line); border-radius: 6px; background: var(--card-bg-raised); overflow: hidden; }
-.cmp-seg {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    box-sizing: border-box;
-    overflow: hidden;
-    padding: 0 4px;
-    border-right: 1px solid var(--card-line);
-    color: var(--brand-midnight);
-    font-size: var(--font-size-meta);
-    line-height: 24px;
-    white-space: nowrap;
-}
-.cmp-seg-1 { background: var(--brand-sunrise); font-weight: 700; }
-.cmp-seg-2 { background: var(--card-bg-raised); }
-.cmp-axis { position: relative; height: 20px; margin-top: 4px; color: var(--brand-muted); font-size: var(--font-size-meta); }
-.cmp-axis > span { position: absolute; transform: translateX(-50%); }
-
 /* Pair summary: the same card look as the Moon context card (stat tiles + a meter), all on theme tokens. */
 .cmp-glance {
     margin-bottom: 14px;
@@ -185,11 +163,6 @@
 /* Table heads take the theme key colour, as on every other card. */
 .cmp-table thead th { background: var(--key-bg); color: var(--key-fg); }
 .cmp-card-head h2, .cmp-card-head .cmp-sub { color: var(--card-head-fg); }
-
-/* Dasha timeline bars: Mahadasha is the key colour, Antardasha the raised surface, on every theme. */
-.cmp-seg { color: var(--card-fg); }
-.cmp-seg-1 { background: var(--key-bg); color: var(--key-fg); }
-.cmp-axis, .cmp-lane-name { color: var(--card-fg-muted); }
 
 @media (max-width: 620px) {
     .cmp-glance { padding: 14px; }

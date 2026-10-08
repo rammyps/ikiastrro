@@ -239,6 +239,11 @@
     overflow: hidden;
 }
 
+.home-art .home-art-dark { display: none; }
+:root[data-theme='cosmic-dark'] .home-art .home-art-light,
+:root[data-theme='nebula-dark-7band'] .home-art .home-art-light { display: none; }
+:root[data-theme='cosmic-dark'] .home-art .home-art-dark,
+:root[data-theme='nebula-dark-7band'] .home-art .home-art-dark { display: block; }
 .home-art img {
     display: block;
     width: 100%;

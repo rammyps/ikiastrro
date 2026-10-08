@@ -489,14 +489,7 @@ else
                     <h2 id="cmp-timing" tabindex="-1">Dashas on one timeline</h2>
                     <p class="cmp-sub">Mahadasha (upper bar) and Antardasha (lower bar) for the next @DashaYears years, both people on the same dates.</p>
                 </header>
-                @TimelineLane(Groom!.Name, _dashaGroom)
-                @TimelineLane(Bride!.Name, _dashaBride)
-                <div class="cmp-axis" aria-hidden="true">
-                    @foreach (var year in AxisYears())
-                    {
-                        <span style="left:@AxisPercent(year)%">@year</span>
-                    }
-                </div>
+                <DashaLanes Lanes="@(new[] { (Groom!.Name, _dashaGroom!), (Bride!.Name, _dashaBride!) })" Start="_tlStart" End="_tlEnd" />
             </article>
 
             <article class="cmp-card">
@@ -836,29 +829,6 @@ else
     private static string MeterPercent(int points) => Pct(points * 100.0 / AshtakootaResult.MaxTotal);
 
     private static string Pct(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-
-    private double TimelinePercent(DateTime d) =>
-        Math.Clamp((d - _tlStart).TotalDays / (_tlEnd - _tlStart).TotalDays * 100, 0, 100);
-
-    private IEnumerable<int> AxisYears() => Enumerable.Range(_tlStart.Year + 1, DashaYears).Where(y => y % 5 == 0);
-
-    private string AxisPercent(int year) => Pct(TimelinePercent(new DateTime(year, 1, 1)));
-
-    private RenderFragment TimelineLane(string name, DashaPerson p) => @<div class="cmp-lane">
-        <span class="cmp-lane-name">@name</span>
-        @foreach (var level in new[] { 1, 2 })
-        {
-            <div class="cmp-track">
-                @foreach (var s in p.Upcoming.Where(u => u.Level == level))
-                {
-                    var from = TimelinePercent(s.Start);
-                    var to = TimelinePercent(s.End);
-                    <span class="cmp-seg cmp-seg-@level" style="left:@Pct(from)%;width:@Pct(to - from)%"
-                          title="@s.Lord @LevelName(level), @s.Start.ToString("MMM yyyy") to @s.End.ToString("MMM yyyy")">@(to - from >= (level == 1 ? 3.5 : 4.5) ? s.Lord : "")</span>
-                }
-            </div>
-        }
-    </div>;
 
     private DoshaReading? _doshaGroom;
     private DoshaReading? _doshaBride;

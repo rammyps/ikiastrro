@@ -335,3 +335,11 @@ Branches: Phase 0 on `workstream/cli`, phases 1 to 2 on `workstream/ui`, phases 
 - Saved Charts' Print picker (`PrintModuleDialog`) gains a "Compatibility" group: one option per recorded spouse of the person being printed ("With X (wife)"), ticked by default; the group is hidden when no spouse is recorded. The URL carries the partner ids as `cp=` (`/print/{id}?af=...&ki=...&cp=12`).
 - `PrintReport` renders each ticked partner as a sheet: a "Compatibility" heading band, then `<Compatibility Id PrintPartner>`. Print mode drops the controls, jump nav and History and notes card, lays out every per-person tab in turn (instead of one tab at a time) and opens every detail; the page's own print rules still apply.
 - Other pairs (siblings, parent and child) are not offered yet; the page itself prints any pair with `PrintPartner`.
+
+### 10.10 Family view: father, mother and child (2026-10-08)
+
+- New page `/family/{father}/{mother}/{child}` (`FamilyTrio.razor`), opened by "Open family" on each child in the Family Core table (Home and Saved charts). A switcher cycles the couple's children.
+- Three dasha swimlanes (Mahadasha above, Antardasha below) on one 25-year axis, plus a lane marking the windows where all three run the same lord at the same level (`TrioDashaTimeline.SharedByAll`, Core; the pair rule generalised to any number of people).
+- Comparison table: Lagna, Sun, Moon sign, nakshatra, pada, gana, yoni, nadi, running Mahadasha and Antardasha, with the child's matches to either parent marked.
+- Similarities: `ChartSimilarity.Compare` for child-father, child-mother and father-mother, plus the facts common to all three. A count of shared facts, not a score (base rates are still not built).
+- The swimlane drawing moved into the shared `DashaLanes` component, now used by the pair page and the family page.

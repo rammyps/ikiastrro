@@ -1,0 +1,251 @@
+@page "/family/{FatherId:int}/{MotherId:int}/{ChildId:int}"
+@using Ikiastrro.Core.Engines.Matching
+@inject BirthDetailsRepository BirthDetailsRepo
+@inject MatchPersonRepository MatchPersonRepo
+@inject DoshaChartRepository DoshaRepo
+@inject NavamsaChartRepository NavamsaRepo
+@inject DashaCompatibilityRepository DashaRepo
+@inject FamilyRepository FamilyRepo
+@inject ActivePerson Active
+
+@* A core family read together: father, mother and one child. Dasha swimlanes on one axis, a comparison table
+   and what the charts share. Facts only: nothing here classifies a period or a coincidence as good or bad
+   (docs/architecture/compatibility_similarity.md, sections 9.3 and 10.10). The pair pages stay the place for
+   synastry, Saturn periods and dasha changes. *@
+
+<PageTitle>Family · @(_child?.Name ?? "…")</PageTitle>
+
+<div class="ft">
+    <a class="ft-back" href="/">← Home</a>
+
+    @if (_notice is not null)
+    {
+        <p class="ft-note" role="status">@_notice</p>
+    }
+    else
+    {
+        <header class="ft-head">
+            <p class="ft-kicker">Family</p>
+            <h1 class="ft-title">@_father!.Name · @_mother!.Name · @_child!.Name</h1>
+            @if (_siblings.Count > 1)
+            {
+                <nav class="ft-kids" aria-label="Children of this couple">
+                    @foreach (var k in _siblings)
+                    {
+                        <a href="/family/@FatherId/@MotherId/@k.Id" class="ft-kid @(k.Id == ChildId ? "is-here" : "")">@k.Name</a>
+                    }
+                </nav>
+            }
+        </header>
+
+        <section class="ft-people" aria-label="The three charts">
+            @foreach (var m in Members)
+            {
+                <article class="ft-person">
+                    <p class="ft-role">@m.Role</p>
+                    <h2>@m.Snap.Name</h2>
+                    <p class="ft-facts">@(m.Chart is null ? "No D1 stored" : $"{SignLabels.For(m.Chart.Lagna)} Lagna") · Moon in @SignLabels.For(m.Snap.Person.MoonSign), @m.Snap.NakshatraName pada @m.Snap.Pada</p>
+                    <p class="ft-facts">Now: @(m.Dasha is null ? "no dasha stored" : Running(m.Dasha))</p>
+                    <a href="/astro-facts/@m.Snap.BirthDetailId">Open chart</a>
+                </article>
+            }
+        </section>
+
+        <article class="ft-card">
+            <header>
+                <h2>Dashas on one timeline</h2>
+                <p class="ft-sub">Mahadasha (upper bar) and Antardasha (lower bar) for the next @DashaYears years, all three on the same dates. The last lane marks where all three run the same lord at the same level.</p>
+            </header>
+            @if (_lanes.Count == 3)
+            {
+                <DashaLanes Lanes="_lanes" Start="_start" End="_end" Shared="_shared" SharedLabel="All three in the same period" />
+            }
+            else
+            {
+                <p class="ft-sub">The dasha periods are not stored for every one of the three, so the timeline cannot be drawn.</p>
+            }
+        </article>
+
+        <article class="ft-card">
+            <header>
+                <h2>Comparison</h2>
+                <p class="ft-sub">Where @_child.Name matches a parent is marked.</p>
+            </header>
+            <div class="ft-scroll">
+                <table class="ft-table">
+                    <thead><tr><th scope="col">Fact</th><th scope="col">Father · @_father.Name</th><th scope="col">Mother · @_mother.Name</th><th scope="col">Child · @_child.Name</th></tr></thead>
+                    <tbody>
+                        @foreach (var row in Rows())
+                        {
+                            <tr>
+                                <th scope="row">@row.Label</th>
+                                <td>@row.Father</td>
+                                <td>@row.Mother</td>
+                                <td>@row.Child @if (row.Matches.Length > 0) { <span class="ft-match">= @row.Matches</span> }</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="ft-card">
+            <header>
+                <h2>What the charts share</h2>
+                <p class="ft-sub">A count of shared facts, not a score: how common each coincidence is has not been measured, so none of it is offered as evidence.</p>
+            </header>
+            <div class="ft-share">
+                @ShareList("All three", _sharedAll, "No fact is common to all three.")
+                @ShareList(_child.Name + " and " + _father.Name, _childFather, "Nothing shared.")
+                @ShareList(_child.Name + " and " + _mother.Name, _childMother, "Nothing shared.")
+                @ShareList(_father.Name + " and " + _mother.Name, _parents, "Nothing shared.")
+            </div>
+        </article>
+
+        <article class="ft-card">
+            <header>
+                <h2>Pair pages</h2>
+                <p class="ft-sub">Synastry, Saturn periods and dasha changes for each pairing.</p>
+            </header>
+            <p class="ft-links">
+                <a href="/compatibility/@FatherId?with=@ChildId">@_child.Name with @_father.Name</a>
+                <a href="/compatibility/@MotherId?with=@ChildId">@_child.Name with @_mother.Name</a>
+                <a href="/compatibility/@FatherId?with=@MotherId">@_father.Name with @_mother.Name</a>
+            </p>
+        </article>
+    }
+</div>
+
+@code {
+    private const int DashaYears = 25;
+
+    [Parameter] public int FatherId { get; set; }
+    [Parameter] public int MotherId { get; set; }
+    [Parameter] public int ChildId { get; set; }
+
+    private sealed record Member(string Role, MatchPersonSnapshot Snap, DoshaChart? Chart, NavamsaChart? D9, DashaPerson? Dasha);
+    private sealed record Kid(int Id, string Name);
+    private sealed record CompRow(string Label, string Father, string Mother, string Child, string Matches);
+
+    private BirthDetails? _father, _mother, _child;
+    private string? _notice;
+    private Member? _f, _m, _c;
+    private List<Kid> _siblings = [];
+    private DateTime _start, _end;
+    private List<(string Name, DashaPerson Person)> _lanes = [];
+    private IReadOnlyList<SharedDashaWindow> _shared = [];
+    private IReadOnlyList<SharedFact> _childFather = [], _childMother = [], _parents = [], _sharedAll = [];
+
+    private IEnumerable<Member> Members => new[] { _f!, _m!, _c! };
+
+    protected override void OnParametersSet()
+    {
+        _notice = null;
+        Active.Clear();
+        _father = BirthDetailsRepo.GetById(FatherId);
+        _mother = BirthDetailsRepo.GetById(MotherId);
+        _child = BirthDetailsRepo.GetById(ChildId);
+        if (_father is null || _mother is null || _child is null)
+        {
+            _notice = "One of the three people is not saved.";
+            return;
+        }
+
+        _f = Load("Father", FatherId);
+        _m = Load("Mother", MotherId);
+        _c = Load("Child", ChildId);
+        if (_f is null || _m is null || _c is null)
+        {
+            _notice = "Each of the three needs a stored Moon position. Generate the missing chart first.";
+            return;
+        }
+
+        var childIds = FamilyRepo.GetFor(MotherId).Where(IsChild).Select(x => x.RelativeId).ToHashSet();
+        _siblings = FamilyRepo.GetFor(FatherId).Where(x => IsChild(x) && childIds.Contains(x.RelativeId))
+            .Select(x => new Kid(x.RelativeId, x.RelativeName)).OrderBy(k => k.Name, StringComparer.OrdinalIgnoreCase).ToList();
+
+        _start = DateTime.Today;
+        _end = _start.AddYears(DashaYears);
+        _lanes = [];
+        _shared = [];
+        if (_f.Dasha is not null && _m.Dasha is not null && _c.Dasha is not null)
+        {
+            _lanes = [(_f.Snap.Name, _f.Dasha), (_m.Snap.Name, _m.Dasha), (_c.Snap.Name, _c.Dasha)];
+            _shared = TrioDashaTimeline.SharedByAll([_f.Dasha, _m.Dasha, _c.Dasha], _start, _end);
+        }
+
+        _childFather = _childMother = _parents = _sharedAll = [];
+        if (_f.Chart is not null && _m.Chart is not null && _c.Chart is not null)
+        {
+            SimilarityInput In(Member x) => new(x.Chart!, x.Snap.Person, x.Snap.Pada, x.D9);
+            _childFather = ChartSimilarity.Compare(In(_c), In(_f), _c.Snap.Name, _f.Snap.Name);
+            _childMother = ChartSimilarity.Compare(In(_c), In(_m), _c.Snap.Name, _m.Snap.Name);
+            _parents = ChartSimilarity.Compare(In(_f), In(_m), _f.Snap.Name, _m.Snap.Name);
+            var inParents = _parents.Select(x => x.Text).ToHashSet();
+            var inMother = _childMother.Select(x => x.Text).ToHashSet();
+            _sharedAll = _childFather.Where(x => inParents.Contains(x.Text) && inMother.Contains(x.Text)).ToList();
+        }
+    }
+
+    private static bool IsChild(FamilyMember f) => f.Role is "Son" or "Daughter" or "Child";
+
+    private Member? Load(string role, int id)
+    {
+        var snap = MatchPersonRepo.GetByBirthDetailId(id);
+        if (snap is null) return null;
+        return new Member(role, snap, DoshaRepo.GetByBirthDetailId(id), NavamsaRepo.GetByBirthDetailId(id),
+            DashaRepo.Get(id, snap.Name, DateTime.Today, DateTime.Today.AddYears(DashaYears)));
+    }
+
+    private static string Running(DashaPerson d)
+    {
+        var maha = d.Running.FirstOrDefault(s => s.Level == 1);
+        var antar = d.Running.FirstOrDefault(s => s.Level == 2);
+        return maha is null ? "—" : $"{maha.Lord}{(antar is null ? "" : "–" + antar.Lord)}, Mahadasha to {maha.End:MMM yyyy}";
+    }
+
+    private IEnumerable<CompRow> Rows()
+    {
+        string Lagna(Member m) => m.Chart is null ? "—" : SignLabels.For(m.Chart.Lagna);
+        string Sign(Member m, PlanetName p) => m.Chart is null ? "—" : SignLabels.For(m.Chart.Signs[p]);
+        string Maha(Member m) => m.Dasha?.Running.FirstOrDefault(s => s.Level == 1)?.Lord ?? "—";
+        string Antar(Member m) => m.Dasha?.Running.FirstOrDefault(s => s.Level == 2)?.Lord ?? "—";
+
+        CompRow Row(string label, Func<Member, string> get)
+        {
+            var f = get(_f!); var m = get(_m!); var c = get(_c!);
+            var who = new List<string>();
+            if (c != "—" && string.Equals(c, f, StringComparison.OrdinalIgnoreCase)) who.Add("father");
+            if (c != "—" && string.Equals(c, m, StringComparison.OrdinalIgnoreCase)) who.Add("mother");
+            return new CompRow(label, f, m, c, string.Join(" and ", who));
+        }
+
+        yield return Row("Lagna", Lagna);
+        yield return Row("Sun sign", x => Sign(x, PlanetName.Sun));
+        yield return Row("Moon sign", x => Sign(x, PlanetName.Moon));
+        yield return Row("Moon nakshatra", x => x.Snap.NakshatraName);
+        yield return Row("Pada", x => x.Snap.Pada.ToString());
+        yield return Row("Gana", x => x.Snap.Person.Gana);
+        yield return Row("Yoni", x => x.Snap.Person.YoniAnimal);
+        yield return Row("Nadi", x => x.Snap.Person.Nadi);
+        yield return Row("Mahadasha now", Maha);
+        yield return Row("Antardasha now", Antar);
+    }
+
+    private RenderFragment ShareList(string title, IReadOnlyList<SharedFact> facts, string none) => @<section class="ft-sharebox">
+        <h3>@title <span class="ft-count">@facts.Count</span></h3>
+        @if (facts.Count == 0)
+        {
+            <p class="ft-sub">@none</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var x in facts)
+                {
+                    <li><b>@x.Category</b> · @x.Text</li>
+                }
+            </ul>
+        }
+    </section>;
+}

@@ -91,6 +91,7 @@ else if (Mode == PairMode.FamilyCore)
                                     @foreach (var k in r.Kids)
                                     {
                                         <li><span>@k.Name</span>
+                                            <a href="/family/@r.GroomId/@r.BrideId/@k.Id" class="fp-family" aria-label="Open the family of @r.GroomName, @r.BrideName and @k.Name">Open family</a>
                                             <a href="/compatibility/@r.GroomId?with=@k.Id" aria-label="Open @r.GroomName and @k.Name">with @r.GroomName</a>
                                             <a href="/compatibility/@r.BrideId?with=@k.Id" aria-label="Open @r.BrideName and @k.Name">with @r.BrideName</a>
                                             @RemoveControl($"cg{r.GroomId}-{k.Id}", $"Unlink {k.Name} from {r.GroomName}", () => RemoveParentLink(r.GroomId, k.Id), $"unlink {r.GroomName}")
