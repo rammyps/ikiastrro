@@ -1,0 +1,29 @@
+/* NUMEROFACTS. Tokens only; Manrope; the one card look. */
+.nf-heading { margin: 4px 0 16px; color: var(--brand-midnight); font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }
+.nf-card { max-width: 1000px; margin-bottom: 16px; padding: 18px 22px; border: 1px solid var(--card-line, var(--brand-line)); border-radius: 12px; background: var(--card-bg, var(--brand-canvas)); box-shadow: 0 6px 18px var(--shadow, rgb(15 32 65 / 0.08)); }
+.nf-sub { margin: 0 0 6px; color: var(--brand-midnight); font: 700 var(--font-size-control) / 1.2 'Manrope', 'Segoe UI', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+.nf-note { margin: 6px 0; color: var(--brand-muted); font-size: var(--font-size-support); }
+.nf-count { margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--key-bg); color: var(--key-fg); font-size: var(--font-size-meta); }
+
+.nf-input, .nf-small { width: 100%; padding: 8px 10px; border: 1px solid var(--brand-line); border-radius: 8px; background: var(--card-bg-raised, var(--brand-canvas)); color: var(--brand-midnight); font: 500 var(--font-size-control) / 1.4 'Manrope', 'Segoe UI', sans-serif; box-sizing: border-box; }
+.nf-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 10px; }
+.nf-row label { display: flex; flex-direction: column; gap: 4px; color: var(--brand-muted); font-size: var(--font-size-meta); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.nf-row .nf-small { min-width: 160px; }
+.nf-grow { flex: 1 1 220px; }
+.nf-btn { padding: 9px 20px; border: 1px solid var(--key-bg); border-radius: 8px; background: var(--key-bg); color: var(--key-fg); font: 800 var(--font-size-support) / 1 'Manrope', 'Segoe UI', sans-serif; letter-spacing: .08em; cursor: pointer; }
+.nf-btn:disabled { opacity: .5; cursor: default; }
+
+.nf-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.nf-chip { padding: 3px 12px; border: 1px solid var(--brand-line); border-radius: 999px; background: transparent; color: var(--brand-muted); font-weight: 700; cursor: pointer; }
+.nf-chip.is-on { background: var(--key-bg); color: var(--key-fg); border-color: var(--key-bg); }
+
+.nf-scroll { overflow-x: auto; }
+.nf-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-support); }
+.nf-table th, .nf-table td { padding: 8px 10px; border-bottom: 1px solid var(--card-line, var(--brand-line)); text-align: left; vertical-align: top; }
+.nf-table thead th { background: var(--key-bg); color: var(--key-fg); }
+.nf-table tbody th { font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.nf-num { font-weight: 800; text-align: center; }
+.nf-meaning { max-width: 460px; color: var(--brand-midnight); }
+.nf-rownote, .nf-letters { display: block; color: var(--brand-muted); font-size: var(--font-size-meta); font-weight: 500; text-transform: none; letter-spacing: 0; }
+.nf-remove { padding: 2px 10px; border: 1px solid var(--brand-line); border-radius: 8px; background: transparent; color: var(--brand-muted); cursor: pointer; }
+.nf-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }

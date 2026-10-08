@@ -19,6 +19,7 @@
         <div class="ik-header-start">
             <nav class="ik-globalnav" aria-label="Main">
                 <a href="/" class="ik-headtab @(CurrentPath == "/" ? "is-here" : "")">HOME</a>
+                <a href="/numerofacts" class="ik-headtab @(CurrentPath.StartsWith("/numerofacts", StringComparison.Ordinal) ? "is-here" : "")">NUMEROFACTS</a>
             </nav>
             @if (Active.Id is int personId)
             {
@@ -34,7 +35,8 @@
                        plain text like HOME rather than the two-word stacked-span pill. *@
                     <a href="@($"/astro-facts/{personId}")" class="ik-headtab @TabClass("astrofacts")"><span>ASTRO</span> <span>FACTS</span></a>
                     <a href="@($"/key-inference/{personId}")" class="ik-headtab @TabClass("keyinference")"><span>KEY</span> <span>INFERENCE</span></a>
-                    <a href="@($"/numerology/{personId}")" class="ik-headtab @TabClass("numerology")">NUMEROLOGY</a>
+                    @* The per-person NUMEROLOGY tab is hidden (2026-10-08); NUMEROFACTS in the main nav replaced it.
+                       /numerology/{id} still resolves for any existing link. *@
                     <a href="@($"/compatibility/{personId}")" class="ik-headtab @TabClass("compatibility")">COMPATIBILITY</a>
                 </nav>
             }

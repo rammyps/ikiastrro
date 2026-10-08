@@ -78,3 +78,12 @@ small bordered chips, one per counted letter, value shown in sunset beneath the 
 - Pythagorean (or any other) system selector — `ikinumero` scaffolded a `NumerologySystem.Code`
   concept for multiple systems, but only ever shipped Chaldean/Cheiro. This page hardcodes
   Cheiro's method; a second system is a future addition, not a retained-but-unused seam.
+
+## NUMEROFACTS (2026-10-08)
+
+The per-person NUMEROLOGY header tab is hidden (the `/numerology/{id}` route still resolves). In its place
+`/numerofacts` (NUMEROFACTS in the main nav beside HOME) compares candidate business names: one name per line or
+comma-separated, a Purpose and an optional Note. Every name is saved at once to `dbo.tbl_NameOption`
+(migration 177) with its stored Cheiro compound and root number, and stays until the user presses Remove.
+The table shows Cheiro's own text for the compound number (10-52) and the letter-by-letter values; a root-number
+filter narrows the list. Facts only: nothing ranks one name above another.

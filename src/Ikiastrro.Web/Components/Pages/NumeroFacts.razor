@@ -1,0 +1,118 @@
+@page "/numerofacts"
+@using Ikiastrro.Core.Numerology
+@inject NameOptionRepository NameRepo
+@inject ActivePerson Active
+
+@* NUMEROFACTS: candidate names (business names, brands, suppliers, car-part lines) read by Cheiro's name-number
+   method. Every name is saved to the database as soon as it is added (dbo.tbl_NameOption, migration 177), with its
+   compound and root number. Facts only: Cheiro's own text for the compound number is shown, nothing here ranks one
+   name above another. *@
+
+<PageTitle>NumeroFacts</PageTitle>
+
+<h1 class="nf-heading">NUMEROFACTS</h1>
+
+<section class="nf-card" aria-label="Add names">
+    <h2 class="nf-sub">Add names</h2>
+    <p class="nf-note">One name per line, or separate them with commas. Each is saved the moment you add it.</p>
+    <textarea class="nf-input" rows="3" @bind="_draft" @bind:event="oninput" placeholder="e.g. Apex Auto Spares, Gearwell Motors"></textarea>
+    <div class="nf-row">
+        <label>Purpose <input class="nf-small" @bind="_purpose" list="nf-purposes" /></label>
+        <datalist id="nf-purposes">
+            @foreach (var p in Purposes) { <option value="@p"></option> }
+        </datalist>
+        <label class="nf-grow">Note <input class="nf-small" @bind="_note" maxlength="400" /></label>
+        <button class="nf-btn" type="button" @onclick="AddAsync" disabled="@(string.IsNullOrWhiteSpace(_draft))">+ ADD</button>
+    </div>
+    @if (_message is not null)
+    {
+        <p class="nf-note" role="status">@_message</p>
+    }
+</section>
+
+@if (_options.Count == 0)
+{
+    <p class="nf-note">No names saved yet.</p>
+}
+else
+{
+    <section class="nf-card" aria-label="Saved names">
+        <h2 class="nf-sub">Saved names <span class="nf-count">@_options.Count</span></h2>
+        <div class="nf-filter" role="group" aria-label="Filter by root number">
+            <button type="button" class="nf-chip @(_root is null ? "is-on" : "")" @onclick="() => _root = null">All</button>
+            @foreach (var r in _options.Select(o => o.RootNumber).Distinct().Order())
+            {
+                var rr = r;
+                <button type="button" class="nf-chip @(_root == rr ? "is-on" : "")" @onclick="() => _root = rr">Root @rr</button>
+            }
+        </div>
+        <div class="nf-scroll">
+            <table class="nf-table">
+                <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Compound</th><th scope="col">Root</th><th scope="col">Cheiro's text for the compound</th><th scope="col"><span class="nf-sr">Remove</span></th></tr></thead>
+                <tbody>
+                    @foreach (var o in Shown)
+                    {
+                        var meaning = CheiroCompoundNumbers.Get(o.CompoundNumber);
+                        <tr>
+                            <th scope="row">
+                                @o.Name
+                                @if (o.Note is not null) { <span class="nf-rownote">@o.Note</span> }
+                                <span class="nf-letters">@Breakdown(o.Name)</span>
+                            </th>
+                            <td>@o.Purpose</td>
+                            <td class="nf-num">@o.CompoundNumber</td>
+                            <td class="nf-num">@o.RootNumber</td>
+                            <td class="nf-meaning">@(meaning is null ? "Cheiro lists meanings for 10–52 only." : meaning.Text)</td>
+                            <td><button type="button" class="nf-remove" @onclick="() => Remove(o.Id)" aria-label="Remove @o.Name">Remove</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="nf-note">Cheiro's Chaldean method · 9 unassigned · Cheiro's Book of Numbers (1926)</p>
+    </section>
+}
+
+@code {
+    private static readonly string[] Purposes = ["Business", "Brand", "Supplier", "Product line", "Shop"];
+
+    private IReadOnlyList<NameOption> _options = [];
+    private string _draft = "";
+    private string _purpose = "Business";
+    private string _note = "";
+    private string? _message;
+    private int? _root;
+
+    private IEnumerable<NameOption> Shown => _root is null ? _options : _options.Where(o => o.RootNumber == _root);
+
+    protected override void OnInitialized()
+    {
+        Active.Clear();
+        Active.SetHeaderExtra(null);
+        Reload();
+    }
+
+    private void Reload() => _options = NameRepo.GetAll();
+
+    private void AddAsync()
+    {
+        var names = _draft.Split(['\n', '\r', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        int added = 0, skipped = 0;
+        foreach (var n in names)
+        {
+            if (NameRepo.Add(n, _purpose, string.IsNullOrWhiteSpace(_note) ? null : _note)) added++; else skipped++;
+        }
+        _message = skipped == 0 ? $"{added} saved." : $"{added} saved, {skipped} skipped (already saved or no letters).";
+        if (added > 0) _draft = "";
+        Reload();
+    }
+
+    private void Remove(int id)
+    {
+        NameRepo.Remove(id);
+        Reload();
+    }
+
+    private static string Breakdown(string name) =>
+        string.Join(" + ", CheiroNumerology.Calculate(name).Letters.Select(l => $"{l.Letter}{l.Value}"));
+}

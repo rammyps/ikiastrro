@@ -50,6 +50,7 @@ builder.Services.AddScoped<NavamsaChartRepository>();
 builder.Services.AddScoped<PairHistoryRepository>();
 builder.Services.AddScoped<DashaCompatibilityRepository>();
 builder.Services.AddScoped<FamilyRepository>();
+builder.Services.AddScoped<NameOptionRepository>();
 builder.Services.AddScoped<YogaInputRepository>();
 builder.Services.AddScoped<AmsabalaRepository>();
 builder.Services.AddScoped<AmsabalaSchemeRepository>();
