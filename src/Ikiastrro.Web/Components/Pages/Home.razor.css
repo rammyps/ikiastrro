@@ -17,7 +17,9 @@
     gap: var(--pad-x);
     align-items: start;
     width: 100%;
-    min-height: calc(100vh - 160px);
+    /* app bar + page padding (12+12) + footer */
+    --home-chrome: calc(var(--ik-appbar-h, 58px) + 24px + 104px + 8px);
+    min-height: calc(100vh - var(--home-chrome));
     color: var(--brand-midnight);
     background: var(--brand-canvas);
     font-family: var(--font-interface);
@@ -204,9 +206,9 @@
    form grows — the app bar height (--ik-appbar-h) is measured in MainLayout.razor.css. */
 .home-art {
     position: sticky;
-    top: var(--ik-appbar-h, 64px);
+    top: calc(var(--ik-appbar-h, 58px) + 12px);
     align-self: start;
-    max-height: calc(100vh - var(--ik-appbar-h, 64px) - 2rem);
+    max-height: calc(100vh - var(--home-chrome));
     overflow: hidden;
 }
 
@@ -220,7 +222,7 @@
     width: 100%;
     height: auto;
     max-width: none;
-    max-height: calc(100vh - var(--ik-appbar-h, 64px) - 2rem);
+    max-height: calc(100vh - var(--home-chrome));
     object-fit: contain;
     object-position: right top;
 }

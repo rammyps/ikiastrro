@@ -287,6 +287,10 @@
    keeps the full 28px. */
 .ik-page-tight-top { padding-top: 12px; }
 
+/* Home fits the viewport with no page scroll: tighter padding above the heading and below the
+   art, so header + page + footer add up to 100vh (see Home.razor.css --home-chrome). */
+.ik-page:has(.home) { padding-top: 12px; padding-bottom: 12px; }
+
 /* Key Inference runs edge to edge (rammyps, 2026-09-29 — "make the chart from end to end"): the
    page drops a hidden `.lm-full` marker, and the shared centered column gives way to full width. */
 .ik-page:has(.lm-full) { max-width: none; padding-inline: 16px; }

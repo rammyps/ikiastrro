@@ -4,6 +4,7 @@
 @inject IPlaceResolver PlaceResolver
 @inject NavigationManager Nav
 @inject ActivePerson Active
+@inject FamilyRepository FamilyRepo
 
 <PageTitle>Iki-Astrro · Discover Your Path</PageTitle>
 
@@ -64,6 +65,46 @@
                                                 }
                                             </select>
                                         </label>
+                                    }
+                                    else if (m == PairMode.Marriage)
+                                    {
+                                        <label class="home-pair-field">
+                                            <span>Saved pair</span>
+                                            <select @onchange="OpenCouple">
+                                                <option value="">@(_couples.Count == 0 ? "No saved pairs yet" : "Choose a saved pair…")</option>
+                                                @foreach (var c in _couples.Where(c => PersonName.Matches(c.GroomName, _query) || PersonName.Matches(c.BrideName, _query)))
+                                                {
+                                                    <option value="@c.GroomId-@c.BrideId">@c.GroomName &amp; @c.BrideName</option>
+                                                }
+                                            </select>
+                                        </label>
+                                        <details class="home-pair-save">
+                                            <summary>Save a new pair</summary>
+                                            <label class="home-pair-field">
+                                                <span>First person</span>
+                                                <select value="@_pairA" @onchange="OnPairA">
+                                                    <option value="0">Choose a saved person…</option>
+                                                    @foreach (var p in _people.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                                    {
+                                                        <option value="@p.Id">@p.Name</option>
+                                                    }
+                                                </select>
+                                            </label>
+                                            @if (_pairA > 0)
+                                            {
+                                                <label class="home-pair-field">
+                                                    <span>Spouse</span>
+                                                    <select value="@_pairB" @onchange="OnPairB">
+                                                        <option value="0">Choose a saved person…</option>
+                                                        @foreach (var p in _people.Where(x => x.Id != _pairA).OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                                        {
+                                                            <option value="@p.Id">@p.Name</option>
+                                                        }
+                                                    </select>
+                                                </label>
+                                            }
+                                            <button type="button" class="home-pair-go" disabled="@(!CanSavePair)" @onclick="SavePair">Save pair</button>
+                                        </details>
                                     }
                                     else
                                     {
@@ -142,6 +183,7 @@
     {
         Active.Clear(); // Home has no active person — hide the per-person nav tabs and band.
         _people = BirthDetailsRepo.GetAll().ToList();
+        _couples = FamilyRepo.GetCouples();
     }
 
     // The saved list is only ever *searched* — typing filters, it never navigates. A person is
@@ -165,6 +207,26 @@
         (PairMode.FamilyCore, "Family"),
         (PairMode.FamilyExtended, "Family Ext"),
     ];
+    private int _pairA;
+    private int _pairB;
+    private IReadOnlyList<FamilyCouple> _couples = [];
+    private bool CanSavePair => _pairA > 0 && _pairB > 0 && _pairA != _pairB;
+    private void OnPairA(ChangeEventArgs e) { _pairA = int.TryParse(e.Value?.ToString(), out var id) ? id : 0; _pairB = 0; }
+    private void OnPairB(ChangeEventArgs e) => _pairB = int.TryParse(e.Value?.ToString(), out var id) ? id : 0;
+    // Saving records the couple (groom/bride follow each person's recorded sex) so it appears in the Saved pair list.
+    private void SavePair()
+    {
+        if (!CanSavePair) return;
+        FamilyRepo.AddSpouses(_pairA, _pairB);
+        _couples = FamilyRepo.GetCouples();
+        _pairA = _pairB = 0;
+    }
+    private void OpenCouple(ChangeEventArgs e)
+    {
+        var parts = (e.Value?.ToString() ?? "").Split('-');
+        if (parts.Length == 2 && int.TryParse(parts[0], out var g) && int.TryParse(parts[1], out var b))
+            Nav.NavigateTo($"/compatibility/{g}?with={b}");
+    }
     private void OpenSavedCharts(ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var id) && id > 0) Nav.NavigateTo("/charts"); }
 
     // A search that matches no saved person IS the intent to add that person: reveal the
