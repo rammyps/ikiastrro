@@ -26,6 +26,11 @@
 -- Great Friend -> +1, Great Enemy -> -1 are applied in the engine
 -- (CombineToPanchadha), not stored here.
 --
+-- Downstream: 41_add_vargottama_facts.sql builds on this dignity layer.
+-- Vargottama (D1 sign == D9 sign) is the sibling varga-strength fact; it
+-- is stored in tbl_Fact_Vargottama under the same rule-set versioning
+-- (RuleSetId) and SRC_ source-attribution convention used here.
+--
 -- Idempotent: table / rule-set / catalog / source adds are guarded; the
 -- seed does DELETE ... WHERE RuleSetId IN (2,3) then re-INSERT, so a re-run
 -- refreshes the reference rows.
