@@ -16,7 +16,7 @@
                 <h2 class="ks-unlock-title">Population statistics are not available yet</h2>
                 <p class="ks-unlock-lead">@PopulationEvidenceText.Message(_snapshot)</p>
                 <ol class="ks-steps">
-                    @foreach (var step in UnlockSteps())
+                    @foreach (var step in KeyStatsLogic.UnlockSteps(_snapshot))
                     {
                         <li class="@(step.Done ? "is-done" : "")">
                             <span class="ks-step-mark" aria-hidden="true">@(step.Done ? "✓" : "○")</span>
@@ -32,7 +32,7 @@
             <section class="ks-summary" aria-label="Summary">
                 <div class="ks-chip"><small>Strongest house</small><b>@Extreme(highest: true)</b></div>
                 <div class="ks-chip"><small>Weakest house</small><b>@Extreme(highest: false)</b></div>
-                <div class="ks-chip"><small>Limited reference data</small><b>@_rows.Count(IsThin) of @_rows.Count houses</b></div>
+                <div class="ks-chip"><small>Limited reference data</small><b>@_rows.Count(KeyStatsLogic.IsThin) of @_rows.Count houses</b></div>
             </section>
             <div class="ks-filters" role="group" aria-label="Filter houses">
                 @foreach (var (key, label) in Filters)
@@ -53,58 +53,33 @@
 
     private PopulationEvidenceSnapshot _snapshot = default!;
     private IReadOnlyList<PopulationComparison> _rows = [];
-
-    private IReadOnlyDictionary<int, IReadOnlyList<HouseMatterLink>> _houseMatters =
-        new Dictionary<int, IReadOnlyList<HouseMatterLink>>();
-
-    // A house's title opens the first life matter read from that house (Lagna perspective).
-    private string? HouseHref(byte house) =>
-        _houseMatters.TryGetValue(house, out var matters) && matters.Count > 0
-            ? KeyInferenceLink.Url(Id, matters[0].MatterCode, "LAGNA", null) + "&view=reading"
-            : null;
-
+    private IReadOnlyDictionary<int, string> _houseMatters = new Dictionary<int, string>();
     private string _filter = "all";
 
     private static readonly (string Key, string Label)[] Filters =
         [("all", "All"), ("notable", "Notable"), ("thin", "Thin")];
 
-    private static bool IsThin(PopulationComparison c) => PopulationStrip.Tone(c) == "is-thin";
-    private static bool IsNotable(PopulationComparison c) => c.RobustZ is { } z && Math.Abs(z) >= 1m;
+    // A house's title opens the matter that reads most specifically from that house (Lagna perspective).
+    private string? HouseHref(byte house) =>
+        _houseMatters.TryGetValue(house, out var matter)
+            ? KeyInferenceLink.Url(Id, matter, "LAGNA", null) + "&view=reading"
+            : null;
 
-    private IEnumerable<PopulationComparison> Filtered(string key) => key switch
-    {
-        "notable" => _rows.Where(IsNotable),
-        "thin" => _rows.Where(IsThin),
-        _ => _rows
-    };
-
-    private int Count(string key) => Filtered(key).Count();
+    private int Count(string key) => KeyStatsLogic.Filter(_rows, key).Count();
 
     // Rows stay in house order (1–12); the card lays them out four to a row, so 1–4 / 5–8 / 9–12.
-    private IReadOnlyList<PopulationComparison> Shown() => Filtered(_filter).ToList();
+    private IReadOnlyList<PopulationComparison> Shown() => KeyStatsLogic.Filter(_rows, _filter).ToList();
 
-    private string Extreme(bool highest)
-    {
-        var ranked = _rows.Where(c => c.Percentile is not null && !IsThin(c)).ToList();
-        if (ranked.Count == 0) return "Not published";
-        var c = highest ? ranked.MaxBy(r => r.Percentile)! : ranked.MinBy(r => r.Percentile)!;
-        return $"House {c.HouseFromLagna} · {PopulationStrip.Ordinal(c.Percentile)} percentile";
-    }
-
-    private IEnumerable<(bool Done, string Text)> UnlockSteps()
-    {
-        var enrolled = _snapshot.AvailabilityCode is not ("NOT_ENROLLED" or "NOT_ELIGIBLE");
-        yield return (enrolled, "Enrol this person on Saved Charts: Research classification plus the explicit-permission confirmation.");
-        yield return (_snapshot.EligiblePeople >= 30, $"Reach at least 30 eligible people in the reference population (now {_snapshot.EligiblePeople}).");
-        yield return (_snapshot.EligiblePeople >= 30 && _snapshot.AnalyticsRunId is not null, "Complete a statistical analytics run over the eligible cohort.");
-    }
+    private string Extreme(bool highest) =>
+        KeyStatsLogic.Extreme(_rows, highest) is { } c
+            ? $"House {c.HouseFromLagna} · {PopulationStrip.Ordinal(c.Percentile)} percentile"
+            : "Not published";
 
     protected override void OnParametersSet()
     {
-
         _snapshot = PreviewSnapshot ?? PopulationEvidenceRepo.GetLatestForBirthDetail(Id);
         const byte ruleSetId = 1;
-        _houseMatters = LifeMatterHouseIndex.ByHouse(
+        _houseMatters = KeyStatsLogic.BestMatterByHouse(
             LifeMatterReferenceRepo.GetAllSteps(ruleSetId), LifeMatterFocusRepo.GetFoci(ruleSetId));
         var feature = _snapshot.Comparisons
             .Select(c => c.FeatureCode)

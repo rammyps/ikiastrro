@@ -1,0 +1,102 @@
+using Bunit;
+using Ikiastrro.Core.LifeMatters;
+using Ikiastrro.Data;
+using Ikiastrro.Data.Statistics;
+using Ikiastrro.Web.Components.LifeMatters;
+using Ikiastrro.Web.Components.Pages;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+namespace Ikiastrro.Web.Tests;
+
+public sealed class KeyStatsLogicTests : BunitContext
+{
+    private static PopulationComparison Row(byte house, decimal? percentile, decimal? z, string sufficiency = "SUFFICIENT") =>
+        new(house, "KI_D1_HOUSE_SUPPORT_V2", 50m, 48, 48, 0m, 50m, 40m, 60m, z, percentile, 47m, 53m, sufficiency);
+
+    private static PopulationEvidenceSnapshot Snap(string code, int eligible, long? run) =>
+        new(code, "ELIGIBLE", "RESEARCH", eligible, run, "D", 1, "v2", 1, null, []);
+
+    [Fact]
+    public void Filter_NotableIsAbsoluteZOfAtLeastOne_ThinIsInsufficientOrIncomplete()
+    {
+        PopulationComparison[] rows =
+        [
+            Row(1, 14m, -1.4m), Row(2, 50m, 0.2m), Row(3, 96m, 2.3m), Row(4, null, null, "INSUFFICIENT"), Row(5, 55m, 1.0m, "INCOMPLETE")
+        ];
+        Assert.Equal([1, 3, 5], KeyStatsLogic.Filter(rows, "notable").Select(r => (int)r.HouseFromLagna));
+        Assert.Equal([4, 5], KeyStatsLogic.Filter(rows, "thin").Select(r => (int)r.HouseFromLagna));
+        Assert.Equal(5, KeyStatsLogic.Filter(rows, "all").Count());
+    }
+
+    [Fact]
+    public void Extreme_IgnoresThinAndUnpublishedHouses()
+    {
+        PopulationComparison[] rows = [Row(1, 14m, -1m), Row(2, 99m, 2m, "INSUFFICIENT"), Row(3, 80m, 1m), Row(4, null, null)];
+        Assert.Equal(3, KeyStatsLogic.Extreme(rows, highest: true)!.HouseFromLagna);
+        Assert.Equal(1, KeyStatsLogic.Extreme(rows, highest: false)!.HouseFromLagna);
+        Assert.Null(KeyStatsLogic.Extreme([Row(2, 99m, 2m, "INSUFFICIENT")], highest: true));
+    }
+
+    [Fact]
+    public void UnlockSteps_RunStepOnlyCountsOnceTheCohortIsLargeEnough()
+    {
+        var notEnrolled = KeyStatsLogic.UnlockSteps(Snap("NOT_ENROLLED", 0, 7));
+        Assert.Equal([false, false, false], notEnrolled.Select(s => s.Done));
+
+        var small = KeyStatsLogic.UnlockSteps(Snap("NO_COMPARISONS", 12, 7));
+        Assert.Equal([true, false, false], small.Select(s => s.Done));
+        Assert.Contains("now 12", small[1].Text);
+
+        var ready = KeyStatsLogic.UnlockSteps(Snap("NO_COMPARISONS", 30, 7));
+        Assert.Equal([true, true, true], ready.Select(s => s.Done));
+        Assert.False(KeyStatsLogic.UnlockSteps(Snap("NO_COMPARISONS", 30, null))[2].Done);
+    }
+
+    private static LifeMatterStepRow Step(int id, string code, string category) =>
+        new(id, code, category, category, id, code, "", "", "", "", null);
+
+    private static LifeMatterFocusRule House(int id, int matter, int house, int priority, string? reference = null, bool active = true) =>
+        new(id, 1, matter, LifeMatterFocusKind.House, reference, house, null, priority, active);
+
+    [Fact]
+    public void BestMatterByHouse_PrefersPrimaryThenMostSpecificNotAlphabeticalCategory()
+    {
+        // CAREER sorts before SELF alphabetically and lists house 1 as a secondary house.
+        LifeMatterStepRow[] steps = [Step(1, "CAREER_01", "CAREER"), Step(2, "SELF_01", "SELF"), Step(3, "SELF_02", "SELF")];
+        LifeMatterFocusRule[] foci =
+        [
+            House(1, 1, 10, 1), House(2, 1, 1, 2),                 // career: primary 10th, secondary 1st
+            House(3, 2, 1, 1),                                     // self 01: only the 1st (primary)
+            House(4, 3, 1, 1), House(5, 3, 6, 2), House(6, 3, 8, 3), // self 02: primary 1st but reads from 3 houses
+            House(7, 2, 7, 1, "CHANDRA_LAGNA"),                    // not Lagna-counted: ignored
+            House(8, 1, 12, 1, active: false)                      // inactive: ignored
+        ];
+
+        var best = KeyStatsLogic.BestMatterByHouse(steps, foci);
+
+        Assert.Equal("SELF_01", best[1]);
+        Assert.Equal("CAREER_01", best[10]);
+        Assert.Equal("SELF_02", best[6]);
+        Assert.False(best.ContainsKey(7));
+        Assert.False(best.ContainsKey(12));
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("stats", "STATS")]
+    [InlineData("Population", "STATS")]
+    [InlineData("TIMING", "STATISTICAL")]
+    [InlineData("reading", "READING")]
+    [InlineData("nonsense", "READING")]
+    public void KeyInferenceView_Parse(string? input, string? expected) =>
+        Assert.Equal(expected, KeyInferenceView.Parse(input));
+
+    [Fact]
+    public void LegacyKeyStatsRoute_RedirectsToThePopulationView()
+    {
+        Render<KeyStats>(p => p.Add(x => x.Id, 3));
+        Assert.EndsWith("/key-inference/3?view=stats", Services.GetRequiredService<NavigationManager>().Uri);
+    }
+}

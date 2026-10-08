@@ -864,7 +864,7 @@ else
         if (View is null) { _appliedView = null; return; }
         if (View == _appliedView) return;
         _appliedView = View;
-        _viewTab = View.ToLowerInvariant() switch { "stats" => "STATS", "timing" => "STATISTICAL", _ => "READING" };
+        _viewTab = KeyInferenceView.Parse(View)!;
     }
 
     private void LoadOrApply()
