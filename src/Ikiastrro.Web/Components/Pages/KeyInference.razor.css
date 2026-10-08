@@ -120,9 +120,9 @@
 .lm-stat-head h2 { margin: 3px 0 5px; font-size: 1.15rem; }
 .lm-stat-head p { margin: 0; max-width: 760px; color: var(--brand-muted); }
 .lm-stat-head label { display: grid; gap: 5px; flex: 0 0 auto; color: var(--brand-muted); font-size: .78rem; font-weight: 700; }
-.lm-stat-head input { border: 1px solid var(--brand-line); border-radius: 5px; background: var(--brand-white); color: var(--brand-midnight); padding: 7px 9px; font: inherit; }
+.lm-stat-head input { border: 1px solid var(--brand-line); border-radius: 5px; background: var(--card-bg); color: var(--brand-midnight); padding: 7px 9px; font: inherit; }
 .lm-stage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.lm-stage { min-width: 0; padding: 13px; border: 1px solid var(--brand-line); border-top: 4px solid var(--brand-muted); border-radius: 7px; background: var(--brand-white); }
+.lm-stage { min-width: 0; padding: 13px; border: 1px solid var(--brand-line); border-top: 4px solid var(--brand-muted); border-radius: 7px; background: var(--card-bg); }
 .lm-stage > span { color: var(--brand-muted); font-size: .7rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
 .lm-stage h3 { margin: 5px 0 8px; font-size: .9rem; }
 .lm-stage > b { display: block; margin-bottom: 8px; font-size: 1rem; }
