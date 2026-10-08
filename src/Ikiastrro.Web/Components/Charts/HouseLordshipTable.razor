@@ -1,3 +1,4 @@
+@using Ikiastrro.Core.Presentation
 @* House lordship for one chart — the classical "lord of the Nth house is placed in…" reading. *@
 @using Ikiastrro.Core.Engines.Astronomy
 @using Ikiastrro.Core.Engines.Karakas
@@ -28,7 +29,7 @@
                     <td class="mono">House @r.LordPlacedInHouseFromMoon</td>
                     <td>
                         @if (r.LordDignityStatus is null) { <span class="muted">—</span> }
-                        else { <span class="pill"><span class="dot" style="background:var(--dignity-@ChartViewModel.DignityToken(r.LordDignityStatus))"></span>@r.LordDignityStatus</span> }
+                        else { <span class="pill @PlanetBand.Class(r.LordPlanet, PlanetBand.FromDignity(r.LordDignityStatus))">@r.LordDignityStatus</span> }
                     </td>
                     @if (Occupants is not null)
                     {

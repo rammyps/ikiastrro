@@ -1,3 +1,4 @@
+@using Ikiastrro.Core.Presentation
 @namespace Ikiastrro.Web.Components.Charts.SindUni
 @using System.Globalization
 @using System.Text.Json
@@ -157,8 +158,8 @@
                         var hot = HotPlanets.Contains(p.Planet);
                         <span class="pl">
                             <img class="orb" src="/images/planets/orb-@(p.Planet.ToLowerInvariant()).png" alt="" />
-                            <span class="chip @(hot ? "hot" : "") @(KarakaPlanets?.Contains(p.Planet) == true ? "karaka" : "")"
-                                  style="--dc:var(--dignity-@p.DignityToken)"
+                            <span class="chip @PlanetBand.Class(p.Planet, PlanetBand.FromToken(p.DignityToken)) @(hot ? "hot" : "") @(KarakaPlanets?.Contains(p.Planet) == true ? "karaka" : "")"
+                                  style="--dc:@PlanetBand.Var(p.Planet, PlanetBand.FromToken(p.DignityToken))"
                                   title="@($"{p.Planet} · {p.DignityStatus ?? "no dignity"}{(p.IsRetrograde && p.Planet is not ("Rahu" or "Ketu") ? " · retrograde" : "")}{(p.IsCombust ? " · combust" : "")}")">@p.Label</span>
                             @if (View != SindUniView.Micro)
                             {
@@ -278,7 +279,7 @@
                         <div class="legend">
                             @foreach (var d in new[] { "Exalted", "Moolatrikona", "Own Sign", "Friend", "Neutral", "Enemy", "Great Enemy", "Debilitated" })
                             {
-                                <span class="chip" style="--dc:var(--dignity-@SindUniGlyphs.DignityToken(d))">@d</span>
+                                <span class="chip @PlanetBand.Class(null, PlanetBand.FromDignity(d))">@d</span>
                             }
                         </div>
                     }

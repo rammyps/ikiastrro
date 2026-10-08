@@ -1,3 +1,4 @@
+@using Ikiastrro.Core.Presentation
 @using System.Globalization
 @using Ikiastrro.Core.Engines.Strength
 @using Ikiastrro.Web.Components.Workspace
@@ -25,9 +26,9 @@
         {
             <div class="vim-body">
                 <div class="vim-legend">
-                    <span><i class="vim-status-strong"></i>&ge;@Band.StrongFrom.ToString("0") Strong</span>
-                    <span><i class="vim-status-moderate"></i>@Band.ModerateFrom.ToString("0")&ndash;@((Band.StrongFrom - 0.01m).ToString("0.##", CultureInfo.InvariantCulture)) Moderate</span>
-                    <span><i class="vim-status-weak"></i>&lt;@Band.ModerateFrom.ToString("0") Weak</span>
+                    <span><i class="@PlanetBand.Class(null, 3)"></i>&ge;@Band.StrongFrom.ToString("0") Strong</span>
+                    <span><i class="@PlanetBand.Class(null, 0)"></i>@Band.ModerateFrom.ToString("0")&ndash;@((Band.StrongFrom - 0.01m).ToString("0.##", CultureInfo.InvariantCulture)) Moderate</span>
+                    <span><i class="@PlanetBand.Class(null, -3)"></i>&lt;@Band.ModerateFrom.ToString("0") Weak</span>
                 </div>
                 <div class="vim-colheads">
                     <span>Rank</span>
@@ -40,7 +41,7 @@
                 @foreach (var (rank, planet, score) in Ranked)
                 {
                     var open = _expanded.Contains(planet);
-                    var (label, css) = StatusOf(score);
+                    var (label, css) = StatusOf(planet, score);
                     <div class="vim-row-wrap">
                         <button type="button" class="vim-row" aria-expanded="@(open ? "true" : "false")" @onclick="() => Toggle(planet)">
                             <span><span class="vim-rank @css">@rank</span></span>
@@ -73,7 +74,7 @@
                                     @foreach (var s in shares)
                                     {
                                         var token = DignityToken(s.ChartType, planet);
-                                        <span class="vim-seg @(token is null ? "vim-seg-plain" : null)" style="width:@((s.Weight * 5).ToString("0.##", CultureInfo.InvariantCulture))%;@(token is null ? "" : $"background:var(--dignity-{token})")"
+                                        <span class="vim-seg @(token is null ? "vim-seg-plain" : PlanetBand.Class(planet, PlanetBand.FromToken(token)))" style="width:@((s.Weight * 5).ToString("0.##", CultureInfo.InvariantCulture))%"
                                               title="@($"{s.ChartType}: {s.Points:0.00} of {s.Weight:0.##}")">@s.ChartType</span>
                                     }
                                 </span>
@@ -135,11 +136,11 @@
 
     private static readonly StrengthBandScale Band = StrengthBands.VimsopakaScore;
 
-    private static (string Label, string CssClass) StatusOf(decimal score) => Band.Classify(score) switch
+    private static (string Label, string CssClass) StatusOf(string planet, decimal score) => Band.Classify(score) switch
     {
-        StrengthTier.Strong => ("Strong", "vim-status-strong"),
-        StrengthTier.Moderate => ("Moderate", "vim-status-moderate"),
-        _ => ("Weak", "vim-status-weak"),
+        StrengthTier.Strong => ("Strong", PlanetBand.Class(planet, PlanetBand.FromVimsopaka(score))),
+        StrengthTier.Moderate => ("Moderate", PlanetBand.Class(planet, PlanetBand.FromVimsopaka(score))),
+        _ => ("Weak", PlanetBand.Class(planet, PlanetBand.FromVimsopaka(score))),
     };
 
     private static string Pct(decimal score) => (Math.Clamp(score, 0, 20) * 5).ToString("0.##", CultureInfo.InvariantCulture);

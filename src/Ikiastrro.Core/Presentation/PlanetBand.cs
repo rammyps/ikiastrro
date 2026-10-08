@@ -37,9 +37,24 @@ public static class PlanetBand
     /// <summary>Dignity label → stop (<see cref="ChartViewModel.DignityScore"/>: Exalted +4 … Debilitated -4).</summary>
     public static int FromDignity(string? dignityStatus) => ChartViewModel.DignityScore(dignityStatus);
 
+    /// <summary>Dignity CSS-token name → stop, for views that only carry the token (ChartViewModel.DignityToken /
+    /// SindUniGlyphs.DignityToken). The merged "good" token (Moolatrikona, Own Sign, Great Friend) sits at +2.</summary>
+    public static int FromToken(string? token) => token switch
+    {
+        "exalted" => 4, "moolatrikona" => 3, "good" or "own" => 2, "great-friend" => 1, "friend" => 0,
+        "neutral" => -1, "enemy" => -2, "great-enemy" => -3, "debilitated" => -4, _ => 0
+    };
+
     /// <summary>Ṣaḍbala as % of the required minimum: 100% is par (0), 200%+ is +4, 0% is -4.</summary>
     public static int FromShadbalaPercent(decimal percentOfRequired) =>
         Clamp((int)Math.Round((percentOfRequired / 100m - 1m) * 4m, MidpointRounding.AwayFromZero));
+
+    /// <summary>Bhava Bala in rūpas: 6 is par (the middle of the 5–7 Moderate band), one stop per rūpa.</summary>
+    public static int FromBhavaRupas(decimal rupas) => Clamp((int)Math.Round(rupas - 6m, MidpointRounding.AwayFromZero));
+
+    /// <summary>Vimśopaka out of 20: 10 (a neutral dignity factor) is par, one stop per 2.5 points, 20 is +4.</summary>
+    public static int FromVimsopaka(decimal score) =>
+        Clamp((int)Math.Round((score - 10m) / 2.5m, MidpointRounding.AwayFromZero));
 
     /// <summary>Bhinnāṣṭavarga bindus in one sign (0–8): 4 is par, so stop = bindus - 4.</summary>
     public static int FromBindus(int bindus) => Clamp(bindus - 4);

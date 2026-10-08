@@ -45,3 +45,24 @@ public class PlanetBandTests
     [InlineData(16, -4)] [InlineData(25, -1)] [InlineData(28, 0)] [InlineData(31, 1)] [InlineData(40, 4)]
     public void SarvaTotal_ParIsTwentyEight(int total, int stop) => Assert.Equal(stop, PlanetBand.FromSarvaTotal(total));
 }
+
+public class PlanetBandTokenTests
+{
+    [Theory]
+    [InlineData("exalted", 4)] [InlineData("moolatrikona", 3)] [InlineData("good", 2)] [InlineData("own", 2)]
+    [InlineData("great-friend", 1)] [InlineData("friend", 0)] [InlineData("neutral", -1)] [InlineData("enemy", -2)]
+    [InlineData("great-enemy", -3)] [InlineData("debilitated", -4)] [InlineData(null, 0)] [InlineData("zzz", 0)]
+    public void FromToken_MapsDignityTokensOntoTheAxis(string? token, int stop) =>
+        Assert.Equal(stop, PlanetBand.FromToken(token));
+}
+
+public class PlanetBandScaleTests
+{
+    [Theory]
+    [InlineData(2, -4)] [InlineData(5, -1)] [InlineData(6, 0)] [InlineData(7, 1)] [InlineData(10, 4)] [InlineData(14, 4)]
+    public void BhavaRupas_SixIsPar(decimal rupas, int stop) => Assert.Equal(stop, PlanetBand.FromBhavaRupas(rupas));
+
+    [Theory]
+    [InlineData(0, -4)] [InlineData(10, 0)] [InlineData(15, 2)] [InlineData(20, 4)]
+    public void Vimsopaka_TenIsPar(decimal score, int stop) => Assert.Equal(stop, PlanetBand.FromVimsopaka(score));
+}

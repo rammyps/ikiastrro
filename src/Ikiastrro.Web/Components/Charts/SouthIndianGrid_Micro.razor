@@ -78,7 +78,7 @@
                                     <span class="glyph-text">@(g.IsRetrograde ? $"({glyph})" : glyph)</span>
                                     @if (g.DignityToken is not null)
                                     {
-                                        <span class="dot" style="background:var(--dignity-@g.DignityToken)"></span>
+                                        <span class="dot @PlanetBand.Class(g.PlanetName, PlanetBand.FromToken(g.DignityToken))"></span>
                                     }
                                     @if (g.IsCombust) { <span class="combust-icon" title="Combust">🔥</span> }
                                     @if (g.NaisargikaKarakaTag is not null)

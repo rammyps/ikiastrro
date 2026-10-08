@@ -66,17 +66,14 @@ table.ppt .muted {
 }
 
 table.ppt .pill {
+    padding: 1px 9px;
+    border-radius: 999px;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
     gap: 5px;
 }
 
-table.ppt .pill .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex: none;
-}
 
 /* Avasthas column (Astro Facts 1.1, D1): one line per state, PVR's meaning muted beside it. */
 table.ppt td.ppt-avastha { min-width: 18rem; line-height: 1.4; }

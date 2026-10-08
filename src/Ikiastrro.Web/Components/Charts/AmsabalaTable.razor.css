@@ -37,8 +37,9 @@
 .am-summary:hover { background: var(--brand-peach); }
 .am-bar-planet { font-weight: 700; }
 .am-stack { display: flex; gap: 2px; height: 26px; border-radius: 6px; overflow: hidden; }
-.am-seg { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .62rem; font-weight: 700; white-space: nowrap; overflow: hidden; }
+.am-seg { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; font-size: .62rem; font-weight: 700; white-space: nowrap; overflow: hidden; }
 .am-seg-empty { background: var(--brand-line); }
+.am-key i.pb { background: var(--pb-bg); }
 .am-bar-value { text-align: right; font-variant-numeric: tabular-nums; border-radius: 6px; padding: 2px 4px; white-space: nowrap; }
 .am-bar-value span { color: var(--brand-muted); font-weight: 500; }
 .am-chevron { justify-self: end; color: var(--brand-muted); font-size: .7rem; }

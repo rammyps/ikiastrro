@@ -1,3 +1,4 @@
+@using Ikiastrro.Core.Presentation
 @*
     SIND-UNI-DTL — the detailed South Indian grid: a perfect-square 4x4 with fixed sign positions,
     one chip per planet ("Ju" direct, "(Ju)" retrograde, several to a row) with a dignity dot, an
@@ -53,7 +54,7 @@
                             <span class="pg-name">@(g.IsRetrograde ? $"({ChartViewModel.PlanetGlyph(g.PlanetName)})" : ChartViewModel.PlanetGlyph(g.PlanetName))</span>
                             @if (g.DignityToken is not null)
                             {
-                                <span class="dot" style="background:var(--dignity-@g.DignityToken)"></span>
+                                <span class="dot @PlanetBand.Class(g.PlanetName, PlanetBand.FromToken(g.DignityToken))"></span>
                             }
                             @if (g.IsCombust) { <span class="combust-icon" title="Combust">🔥</span> }
                         </span>

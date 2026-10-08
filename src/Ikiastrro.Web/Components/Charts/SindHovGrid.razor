@@ -1,3 +1,4 @@
+@using Ikiastrro.Core.Presentation
 @using Ikiastrro.Core.Engines.Astronomy
 @using Ikiastrro.Web.Components.LifeMatters
 @using Microsoft.AspNetCore.Components.Web
@@ -72,7 +73,7 @@
                         <PlanetChip Planet="@glyph.PlanetName" />
                         @if (glyph.DignityToken is not null)
                         {
-                            <span class="dot" style="background:var(--dignity-@glyph.DignityToken)"></span>
+                            <span class="dot @PlanetBand.Class(glyph.PlanetName, PlanetBand.FromToken(glyph.DignityToken))"></span>
                         }
                         <span class="direction">(@(glyph.IsRetrograde ? "R" : "D"))</span>
                         @if (glyph.IsCombust) { <span class="combust" title="Combust">🔥</span> }
@@ -90,7 +91,7 @@
             }
             @if (sav is int b)
             {
-                <span class="sav sav-@(LifeMatterStatistics.SavBand(b).ToString().ToLowerInvariant())" title="Sarva Ashtakavarga (D1): @b bindus">@b</span>
+                <span class="sav @PlanetBand.Class(null, PlanetBand.FromSarvaTotal(b))" title="Sarva Ashtakavarga (D1): @b bindus">@b</span>
             }
             @if (isRelevant || isPinned)
             {

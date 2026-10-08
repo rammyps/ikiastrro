@@ -55,19 +55,10 @@
     transform: translate(-50%, -50%); border: 2px solid var(--card-bg);
 }
 
-/* Strong / Moderate / Weak — the same --status-* fills, badge inks and pill as PlanetStrengthChart. */
-.vim-status-strong { background: var(--status-strong); }
-.vim-status-moderate { background: var(--status-moderate); }
-.vim-status-weak { background: var(--status-weak); }
-.vim-rank.vim-status-strong, .vim-rank.vim-status-moderate, .vim-rank.vim-status-weak { border-color: transparent; }
-.vim-rank.vim-status-strong { background: var(--status-strong); color: var(--status-on); }
-.vim-rank.vim-status-moderate { background: var(--status-moderate); color: var(--brand-midnight); }
-.vim-rank.vim-status-weak { background: var(--status-weak); color: var(--status-on); }
+/* Rank badge + status pill take the graha's band (PlanetBand.FromVimsopaka, 10 = par); the label still comes from StrengthBands. */
+.vim-rank.pb { border-color: transparent; font-weight: 800; }
 .vim-c-status { text-align: center; }
 .vim-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .74em; font-weight: 700; }
-.vim-pill.vim-status-strong { background: var(--status-strong-bg); color: var(--status-strong); }
-.vim-pill.vim-status-moderate { background: var(--status-moderate-bg); color: var(--brand-midnight); }
-.vim-pill.vim-status-weak { background: var(--status-weak-bg); color: var(--status-weak); }
 .vim-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0 10px; font-size: .78em; }
 .vim-legend span { display: inline-flex; align-items: center; gap: 5px; }
 .vim-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }

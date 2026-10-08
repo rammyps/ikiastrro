@@ -5,7 +5,7 @@
    BhavaBalaCalculator), docs/ui/components/astro-facts.md step 3 — same shape as 3.1
    PlanetStrengthChart. Dashed lines mark the Moderate and Strong cut-offs; a negative Bhava Dṛk
    draws left of zero. House order / Strength rank toggle keeps rank = strength either way.
-   Dignity pill reuses ChartViewModel.DignityToken/--dignity-*. "hsc" = HouseStrengthChart. *@
+   Dignity pill and rank badge use the planet-band standard (PlanetBand, planet-bands.css). "hsc" = HouseStrengthChart. *@
 <div class="hsc">
     <div class="hsc-head">
         <div class="hsc-legend">
@@ -54,7 +54,7 @@
                 @if (row.LordDignityStatus is null)
                 { <span class="hsc-muted">—</span> }
                 else
-                { <span class="hsc-pill"><span class="hsc-dignity-dot" style="background:var(--dignity-@ChartViewModel.DignityToken(row.LordDignityStatus))"></span>@row.LordDignityStatus</span> }
+                { <span class="hsc-pill @PlanetBand.Class(row.LordPlanet, PlanetBand.FromDignity(row.LordDignityStatus))">@row.LordDignityStatus</span> }
             </span>
             <span class="hsc-c-bar">
                 <span class="hsc-bar" role="img" aria-label="@($"H{row.HouseNumber}: {row.BhavaBalaRupas.ToString("0.00", CultureInfo.InvariantCulture)} rūpas, {StatusLabel(row.BhavaBalaRupas)}")">
@@ -114,12 +114,7 @@
     /// cut-off exists for Bhava Bala, so both boundaries are SRC_IKIASTRRO_SYNTHESIS heuristics.</summary>
     private static readonly StrengthBandScale Band = StrengthBands.BhavaBalaRupas;
 
-    private static string StatusCss(decimal rupas) => Band.Classify(rupas) switch
-    {
-        StrengthTier.Strong => "hsc-status-strong",
-        StrengthTier.Moderate => "hsc-status-moderate",
-        _ => "hsc-status-weak",
-    };
+    private static string StatusCss(decimal rupas) => PlanetBand.Class(null, PlanetBand.FromBhavaRupas(rupas));
 
     private static string StatusLabel(decimal rupas) => Band.Classify(rupas) switch
     {

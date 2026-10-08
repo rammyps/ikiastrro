@@ -163,8 +163,8 @@ public sealed class SindHovGridTests : BunitContext
         Assert.Single(aries.QuerySelectorAll(".combust"));
         Assert.Single(aries.QuerySelectorAll(".planet.is-karaka"));
         Assert.Equal("Ju(9)", aries.QuerySelector(".aspect")!.TextContent);
-        Assert.Contains("sav-middle", aries.QuerySelector(".sav")!.ClassList);
-        Assert.Contains("sav-weak", cut.Find("[data-sign='Libra'] .sav").ClassList);
-        Assert.Contains("sav-strong", cut.Find("[data-sign='Aquarius'] .sav").ClassList);
+        Assert.Contains("pb-golden-p1", aries.QuerySelector(".sav")!.ClassList);   // 30 bindus: just above par (28)
+        Assert.Contains("pb-golden-n4", cut.Find("[data-sign='Libra'] .sav").ClassList);
+        Assert.Contains("pb-golden-p4", cut.Find("[data-sign='Aquarius'] .sav").ClassList);
     }
 }

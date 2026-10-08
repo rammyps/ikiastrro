@@ -89,9 +89,6 @@
     position: absolute; right: 5px; bottom: 4px; font-size: 9px; font-weight: 800; line-height: 1.4;
     padding: 0 4px; border-radius: 3px; font-variant-numeric: tabular-nums;
 }
-.sav-strong { background: var(--status-strong); color: var(--brand-surface); }
-.sav-middle { color: var(--brand-muted); border: 1px solid var(--brand-line); }
-.sav-weak { background: var(--status-weak); color: var(--brand-surface); }
 
 .selection-mark { position: absolute; left: 6px; bottom: 3px; font-size: 11px; color: var(--brand-midnight); }
 

@@ -8,8 +8,7 @@
 .hlt tbody tr:last-child td { border-bottom: 0; }
 .hlt tbody tr:hover td { background: var(--brand-sunrise); }
 .hlt .mono { font-variant-numeric: tabular-nums; }
-.hlt .pill { display: inline-flex; align-items: center; gap: .3rem; }
-.hlt .dot { width: .5rem; height: .5rem; border-radius: 50%; display: inline-block; }
+.hlt .pill { display: inline-flex; align-items: center; gap: .3rem; padding: 1px 9px; border-radius: 999px; font-weight: 700; }
 .muted { color: var(--brand-muted); }
 .hlt-matters { min-width: 12rem; }
 .hlt-matters a { display: block; color: var(--brand-midnight); text-decoration: underline; text-decoration-color: var(--brand-peach); text-underline-offset: 2px; }
